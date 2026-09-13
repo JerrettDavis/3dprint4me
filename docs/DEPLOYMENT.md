@@ -69,7 +69,7 @@ The function sends two messages after completion:
 
 Production smoke testing should confirm SPF, DKIM, DMARC alignment, inbox placement, Reply-To behavior, HTML rendering, and signed-link expiry.
 
-Current DNS uses Namecheap email-forwarding MX records and an SPF record for that forwarding service. Verify that `hello@3dprint4.me` forwards to a monitored inbox with a real inbound test. Add the exact sending-domain records shown by Resend and confirm its domain status before enabling customer receipts; do not replace the forwarding MX records unless inbound mail is moved deliberately. After SPF and DKIM pass, publish and test a DMARC policy appropriate to the business. See [Resend domain verification](https://resend.com/docs/dashboard/domains/introduction) and [DMARC setup](https://resend.com/docs/dashboard/domains/dmarc).
+Current DNS uses Namecheap email-forwarding MX records and an SPF record for that forwarding service. The owner intends to use MXroute and Cloudflare for mail, but the final inbound route and `hello@3dprint4.me` delivery have not been verified. Preserve the existing MX records until the intended route is configured and tested with a real inbound message. Add the exact sending-domain records shown by Resend and confirm its domain status before enabling customer receipts. After SPF and DKIM pass, publish and test a DMARC policy appropriate to the business. See [Resend domain verification](https://resend.com/docs/dashboard/domains/introduction) and [DMARC setup](https://resend.com/docs/dashboard/domains/dmarc).
 
 ## 4. Configure a webhook
 
@@ -144,7 +144,7 @@ The API function timeout is 45 seconds. Request completion can make successive p
 
 The repository already uses `https://3dprint4.me` in canonical tags, Open Graph metadata, sitemap, robots file, and Stripe return configuration examples.
 
-As checked on 2026-09-13, the apex A record was `192.64.119.53` and `www` resolved to `0.0.0.0` and `::`. Remove the parking/sinkhole records when applying the project-specific records from Vercel; verify both hosts after DNS convergence.
+As checked on 2026-09-13, the apex A record was `192.64.119.53` and `www` resolved to `0.0.0.0` and `::`. The domain is attached to the `jerrettdavis-projects/3dprint4me` Vercel project. Vercel currently requests `A @ 76.76.21.21` and `A www 76.76.21.21`. Remove the conflicting parking/sinkhole A and AAAA records when applying these records at the authoritative DNS provider, and preserve the mail records until the inbound route is confirmed. Verify both hosts and TLS after DNS convergence. The first deployment is available at `https://3dprint4me.vercel.app`; its health check currently reports Supabase and email as unconfigured.
 
 ## 8. Production smoke test
 
