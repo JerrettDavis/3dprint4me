@@ -24,7 +24,7 @@ npm run screenshots
 Expected delivered baseline:
 
 - Static validation passes
-- 33 Node tests pass
+- 35 Node tests pass
 - 25 E2E tests pass
 - 193 UX/accessibility checks pass
 - Screenshot board regenerates without browser errors
@@ -143,6 +143,14 @@ The API function timeout is 45 seconds. Request completion can make successive p
 The repository already uses `https://3dprint4.me` in canonical tags, Open Graph metadata, sitemap, robots file, and Stripe return configuration examples.
 
 ## 8. Production smoke test
+
+Run the read-only HTTP preflight against the deployed URL before sending customers there:
+
+```bash
+npm run smoke:live -- https://3dprint4.me
+```
+
+It requires Supabase and email to be configured, checks public routes and assets, security headers, `/api/health`, and denial of private source paths. To check a Vercel preview URL, replace the origin. A third argument can change the required health flags, for example `supabase,email,webhook`; this checks configuration only, not provider delivery. Continue with the real request, private file, email, and payment checks below.
 
 ### Public experience
 

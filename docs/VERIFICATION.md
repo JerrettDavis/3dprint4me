@@ -24,12 +24,12 @@ npm test
   Static validation: PASS
     8 HTML pages
     67 local references
-    20 JavaScript files
+    22 JavaScript files
     Vercel public output boundary validated
     Content-Security-Policy hashes validated
 
   Node unit tests: PASS
-    33 passed, 0 failed
+    35 passed, 0 failed
 
   End-to-end tests: PASS
     25 passed, 0 failed
@@ -55,6 +55,7 @@ npm run screenshots
 - API functions have a 45-second execution cap to accommodate successive bounded provider calls.
 - The inline JSON-LD script has a matching CSP hash.
 - The production social image is a 1200×630 PNG.
+- `smoke:live` checks deployed routes, configured intake flags, security headers, and private-source denial without sending customer data.
 
 ### API and integration boundaries
 
@@ -100,6 +101,8 @@ The verification host had an enterprise Chromium policy that blocked navigation 
 Automated verification cannot validate credentials or business policy. Before accepting paid work, complete these checks against the real deployment:
 
 As checked on 2026-09-13, the apex domain resolved to `192.64.119.53`, outside Vercel's documented general-purpose apex address, and direct HTTPS checks of `/` and `/api/health` timed out. This workspace has no linked Vercel project or CLI credentials, so the exact project-specific DNS record and deployment state remain unverified. The verified source is pushed to the private `JerrettDavis/3dprint4me` GitHub repository on `main`. GitHub Actions [Verify run 34773561191](https://github.com/JerrettDavis/3dprint4me/actions/runs/34773561191) passed on the pushed source, including tests, audit, screenshots, and artifact upload. Inspect the domain in the Vercel project, update DNS to the value Vercel supplies, then rerun the live smoke test before sharing the domain.
+
+The read-only `npm run smoke:live` check currently fails at the domain with 0 of 15 HTTP responses received; all route requests timed out. This is a live launch failure, not a local source-test failure.
 
 1. Run the Supabase migration and confirm the bucket is private.
 2. Submit a request with real test files and confirm the database row, object paths, and signed-link expiry.
