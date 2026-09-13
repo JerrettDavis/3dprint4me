@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Start a custom 3D modeling, printing, printer repair, tuning, or fabrication project and get a useful rough estimate.">
+  <meta name="theme-color" content="#080b10" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+  <meta property="og:title" content="Start a project — 3dprint4.me"><meta property="og:description" content="Share a file, link, broken printer, sketch, or idea. Get a rough planning range before a human review."><meta property="og:type" content="website"><meta property="og:url" content="https://3dprint4.me/order.html"><meta property="og:image" content="https://3dprint4.me/assets/images/social-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="3dprint4.me — Ideas into parts. Problems into fixes."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://3dprint4.me/assets/images/social-card.png">
+  <title>Start a project — 3dprint4.me</title><link rel="canonical" href="https://3dprint4.me/order.html"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <main id="main">
+    <div class="container order-shell">
+      <section class="order-main" aria-labelledby="order-title">
+        <div class="order-header"><span class="eyebrow">Project builder</span><h1 id="order-title">Tell me what you need.</h1><p>Start with what you know. Your browser saves progress when it can, and the rough estimate updates as you go.</p><p class="backend-note" id="draft-storage-note" role="status" hidden>This browser cannot save your draft. Finish or submit it before leaving this page.</p></div>
+
+        <form id="project-form" novalidate>
+          <div class="progress-wrap"><div class="progress-labels" aria-hidden="true"><span class="active">Service</span><span>Details</span><span>Contact</span><span>Review</span></div><div class="progress-track"><div class="progress-bar" id="progress-bar" role="progressbar" aria-label="Project request progress" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1"></div></div></div>
+
+          <section class="form-step active" data-step="0" aria-labelledby="step-service-title">
+            <div class="step-title"><h2 id="step-service-title" tabindex="-1">What kind of help do you need?</h2><p>Pick the closest match. You can explain anything unusual in the next step.</p></div>
+            <fieldset class="form-section"><legend class="visually-hidden">Choose a service</legend><div class="choice-grid">
+              <div class="choice-card"><input id="service-print" name="service" type="radio" value="print" checked><label for="service-print"><span class="choice-title">Print my model</span><span class="choice-copy">I have a file or model link and need one or more physical parts.</span><span class="choice-price">Typical minimum · $15</span></label></div>
+              <div class="choice-card"><input id="service-design" name="service" type="radio" value="design"><label for="service-design"><span class="choice-title">Design something for me</span><span class="choice-copy">I have dimensions, photos, a sketch, a broken part, or an idea.</span><span class="choice-price">Design time · from $65/hr</span></label></div>
+              <div class="choice-card"><input id="service-repair" name="service" type="radio" value="repair"><label for="service-repair"><span class="choice-title">Repair or tune a printer</span><span class="choice-copy">Diagnosis, calibration, upgrades, firmware, mechanical, or electrical work.</span><span class="choice-price">Bench diagnostic · from $49</span></label></div>
+              <div class="choice-card"><input id="service-consult" name="service" type="radio" value="consult"><label for="service-consult"><span class="choice-title">Consult or plan a printer</span><span class="choice-copy">Project feasibility, printer selection, workflows, or a custom machine build.</span><span class="choice-price">Remote session · from $35</span></label></div>
+            </div><p class="error" id="service-error" aria-live="polite"></p></fieldset>
+          </section>
+
+          <section class="form-step" data-step="1" aria-labelledby="step-details-title">
+            <div class="step-title"><h2 id="step-details-title" tabindex="-1">Add the useful details.</h2><p>Good context matters more than perfect terminology. Photos, dimensions, files, and links all help.</p></div>
+            <div class="form-grid">
+              <div class="field full"><label class="required" for="project-title">Project name</label><input class="input" id="project-title" name="projectTitle" type="text" maxlength="120" autocomplete="off" placeholder="Replacement latch, multicolor sign, Ender repair…" aria-describedby="project-title-error"><p class="error" id="project-title-error" aria-live="polite"></p></div>
+              <div class="field full"><label class="required" for="description">What do you need, and how will it be used?</label><textarea class="textarea" id="description" name="description" maxlength="5000" placeholder="Describe the problem, expected size, fit, load, environment, appearance, what has already been tried, and what a successful result looks like." aria-describedby="description-help description-error"></textarea><p class="help" id="description-help">Avoid including passwords or sensitive personal information.</p><p class="error" id="description-error" aria-live="polite"></p></div>
+              <div class="field"><label for="model-url">Model, reference, or project link</label><input class="input" id="model-url" name="modelUrl" type="url" inputmode="url" placeholder="https://printables.com/model/…" aria-describedby="model-url-help model-url-error"><p class="help" id="model-url-help">Printables, MakerWorld, Thingiverse, Cults3D, Google Drive, GitHub, or any accessible reference.</p><p class="error" id="model-url-error" aria-live="polite"></p></div>
+              <div class="field"><label for="deadline">Needed by</label><input class="input" id="deadline" name="deadline" type="date"><p class="help">Most straightforward work targets under five business days after approval.</p></div>
+            </div>
+
+            <section class="conditional visible service-panel" data-service-panel="print" aria-labelledby="print-options-title"><div class="subsection-head"><h3 id="print-options-title">Print assumptions</h3><p>These values drive the planning range. Unknown values are fine.</p></div><div class="form-grid">
+              <div class="field"><label for="size-class">Approximate size</label><select class="select" id="size-class" name="sizeClass"><option value="tiny">Tiny · coin or keycap</option><option value="palm" selected>Palm-sized · small bracket</option><option value="hand">Hand-sized · enclosure</option><option value="shoebox">Shoebox-sized · larger assembly</option><option value="large">Large · most of a print bed</option></select></div>
+              <div class="field"><label for="material">Preferred material</label><select class="select" id="material" name="material"><option value="pla" selected>PLA · clean, rigid, general purpose</option><option value="petg">PETG · tougher, warmer environments</option><option value="asa">ASA · heat and outdoor exposure</option><option value="tpu">TPU · flexible</option><option value="other">Other / recommend one</option></select></div>
+              <div class="field"><label for="quantity">Quantity</label><input class="input" id="quantity" name="quantity" type="number" min="1" max="500" step="1" value="1" inputmode="numeric"></div>
+              <div class="field"><label for="quality">Surface/detail level</label><select class="select" id="quality" name="quality"><option value="draft">Draft · fastest functional test</option><option value="standard" selected>Standard · balanced</option><option value="fine">Fine · slower, smaller layers</option></select></div>
+              <div class="field"><label for="colors">Color count</label><select class="select" id="colors" name="colors"><option value="1" selected>1 color</option><option value="2">2 colors</option><option value="3">3 colors</option><option value="4">4+ colors</option></select></div>
+              <div class="field"><label for="finish">Post-processing</label><select class="select" id="finish" name="finish"><option value="none" selected>As printed</option><option value="cleanup">Support removal and cleanup</option><option value="sanded">Sanded / fit-finished</option><option value="painted">Painted / presentation finish</option></select></div>
+              <div class="field"><label for="grams">Slicer weight, if known</label><input class="input" id="grams" name="grams" type="number" min="1" max="50000" step="1" inputmode="decimal" placeholder="grams"><p class="help">Total filament for one part.</p></div>
+              <div class="field"><label for="machine-hours">Slicer time, if known</label><input class="input" id="machine-hours" name="machineHours" type="number" min="0.25" max="1000" step="0.25" inputmode="decimal" placeholder="hours"><p class="help">Total machine time for one part.</p></div>
+            </div></section>
+
+            <section class="conditional service-panel" data-service-panel="design" aria-labelledby="design-options-title"><div class="subsection-head"><h3 id="design-options-title">Design assumptions</h3><p>These help estimate how much definition and iteration the model may need.</p></div><div class="form-grid">
+              <div class="field"><label for="complexity">Closest complexity</label><select class="select" id="complexity" name="complexity"><option value="simple">Simple shape or adapter</option><option value="fitted" selected>Fitted functional part</option><option value="assembly">Multi-part assembly</option><option value="complex">Complex surface or mechanism</option></select></div>
+              <div class="field"><label for="source-quality">What can you provide?</label><select class="select" id="source-quality" name="sourceQuality"><option value="cad">Existing CAD to modify</option><option value="dimensions" selected>Accurate dimensions / original part</option><option value="photos">Photos and rough measurements</option><option value="concept">Concept or sketch only</option></select></div>
+              <div class="field"><label for="deliverable">Preferred files</label><select class="select" id="deliverable" name="deliverable"><option value="stl">Print-ready STL/3MF</option><option value="step" selected>STL/3MF + STEP</option><option value="source">Editable source + exports</option></select></div>
+              <div class="field"><label for="include-print">Include a first physical print?</label><select class="select" id="include-print" name="includePrint"><option value="no" selected>No / decide after design</option><option value="yes">Yes, include a test or final print</option></select></div>
+            </div></section>
+
+            <section class="conditional service-panel" data-service-panel="repair" aria-labelledby="repair-options-title"><div class="subsection-head"><h3 id="repair-options-title">Printer and symptoms</h3><p>The model is required. Firmware version, recent changes, photos, video, and error text are especially useful.</p></div><div class="form-grid">
+              <div class="field"><label class="required" for="printer-model">Printer make and model</label><input class="input" id="printer-model" name="printerModel" type="text" maxlength="120" placeholder="Voron 2.4, Ender 3 Pro, Bambu P1S…" aria-describedby="printer-model-error"><p class="error" id="printer-model-error" aria-live="polite"></p></div>
+              <div class="field"><label for="repair-type">Closest work type</label><select class="select" id="repair-type" name="repairType"><option value="diagnostic" selected>Diagnosis / unknown fault</option><option value="tune">Calibration and print quality</option><option value="repair">Known repair or upgrade</option><option value="rebuild">Major rebuild / conversion</option></select></div>
+              <div class="field full"><label for="recent-change">What changed before the problem?</label><input class="input" id="recent-change" name="recentChange" type="text" maxlength="300" placeholder="New hotend, firmware update, crash, long storage, nothing obvious…"></div>
+            </div></section>
+
+            <section class="conditional service-panel" data-service-panel="consult" aria-labelledby="consult-options-title"><div class="subsection-head"><h3 id="consult-options-title">Working-session assumptions</h3><p>Use the description above for the problem, constraints, and decisions you want to leave with.</p></div><div class="form-grid">
+              <div class="field"><label for="consult-type">Engagement</label><select class="select" id="consult-type" name="consultType"><option value="halfHour">30-minute focused question</option><option value="hour" selected>One-hour working session</option><option value="onsite">On-site assessment</option><option value="printerDesign">Custom printer design / build plan</option></select></div>
+              <div class="field"><label for="meeting-format">Preferred format</label><select class="select" id="meeting-format" name="meetingFormat"><option value="video" selected>Video call / screen share</option><option value="phone">Phone</option><option value="onsite">On site in the Tulsa area</option><option value="async">Written / asynchronous review</option></select></div>
+              <div class="field full"><label for="consult-outcome">What should you have at the end?</label><input class="input" id="consult-outcome" name="consultOutcome" type="text" maxlength="300" placeholder="A printer shortlist, parts list, feasibility decision, calibration plan…"></div>
+            </div></section>
+
+            <div class="upload-zone" id="upload-zone"><input id="project-files" name="projectFiles" type="file" multiple accept=".stl,.3mf,.step,.stp,.obj,.f3d,.zip,.jpg,.jpeg,.png,.webp,.pdf,.txt" aria-describedby="upload-help"><strong>Drop files here or choose files</strong><span id="upload-help">STL, 3MF, STEP, OBJ, F3D, ZIP, common images, PDF, or TXT · up to 8 files · 25 MB each</span></div><div class="file-list" id="file-list" aria-live="polite"></div>
+          </section>
+
+          <section class="form-step" data-step="2" aria-labelledby="step-contact-title">
+            <div class="step-title"><h2 id="step-contact-title" tabindex="-1">Where should I reply?</h2><p>Your email is always used for the written quote. Phone is optional unless you prefer a text or call.</p></div>
+            <div class="form-grid">
+              <div class="field"><label class="required" for="name">Name</label><input class="input" id="name" name="name" type="text" maxlength="120" autocomplete="name" aria-describedby="name-error"><p class="error" id="name-error" aria-live="polite"></p></div>
+              <div class="field"><label class="required" for="email">Email</label><input class="input" id="email" name="email" type="email" maxlength="254" autocomplete="email" inputmode="email" aria-describedby="email-error"><p class="error" id="email-error" aria-live="polite"></p></div>
+              <div class="field"><label for="phone">Phone</label><input class="input" id="phone" name="phone" type="tel" maxlength="40" autocomplete="tel" inputmode="tel" aria-describedby="phone-error"><p class="error" id="phone-error" aria-live="polite"></p></div>
+              <fieldset class="field form-section"><legend class="field-label">Preferred reply</legend><div class="radio-row"><div class="radio-pill"><input id="contact-email" name="preferredContact" type="radio" value="email" checked><label for="contact-email">Email</label></div><div class="radio-pill"><input id="contact-text" name="preferredContact" type="radio" value="text"><label for="contact-text">Text</label></div><div class="radio-pill"><input id="contact-call" name="preferredContact" type="radio" value="call"><label for="contact-call">Call</label></div></div></fieldset>
+              <fieldset class="field full form-section"><legend class="field-label">Handoff</legend><div class="radio-row"><div class="radio-pill"><input id="delivery-pickup" name="delivery" type="radio" value="pickup" checked><label for="delivery-pickup">Tulsa pickup / drop-off</label></div><div class="radio-pill"><input id="delivery-local" name="delivery" type="radio" value="local"><label for="delivery-local">Local delivery</label></div><div class="radio-pill"><input id="delivery-shipping" name="delivery" type="radio" value="shipping"><label for="delivery-shipping">Ship it</label></div></div></fieldset>
+              <div class="field full conditional" data-delivery-panel="shipping"><label class="required" for="address">Shipping destination</label><textarea class="textarea compact-textarea" id="address" name="address" autocomplete="shipping street-address" placeholder="Street, city, state, and ZIP" aria-describedby="address-error"></textarea><p class="error" id="address-error" aria-live="polite"></p></div>
+              <div class="field full"><label for="contact-notes">Anything I should know about contacting or handing off?</label><textarea class="textarea compact-textarea" id="contact-notes" name="contactNotes" maxlength="1000" placeholder="Best time to call, gated pickup, alternate contact, accessibility needs…"></textarea></div>
+            </div>
+          </section>
+
+          <section class="form-step" data-step="3" aria-labelledby="step-review-title">
+            <div class="step-title"><h2 id="step-review-title" tabindex="-1">Review the request.</h2><p>This creates a project request, not a binding order. I will confirm scope, price, material, and schedule before work begins.</p></div>
+            <dl class="review-card" id="review-card"></dl>
+            <div class="terms-check"><input id="terms" name="terms" type="checkbox" value="accepted" aria-describedby="terms-copy terms-error"><label for="terms" id="terms-copy">I confirm that I have the right to share and reproduce submitted files, understand this is a non-binding request, and agree to the <a href="/terms.html" target="_blank" rel="noopener">project terms</a> and <a href="/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</label></div><p class="error" id="terms-error" aria-live="polite"></p>
+            <div class="honeypot" aria-hidden="true"><label for="website">Leave this blank</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+          </section>
+
+          <div class="form-actions" id="form-actions"><button class="button ghost" id="back-button" type="button" hidden>Back</button><span class="spacer"></span><button class="button primary" id="next-button" type="button">Continue</button><button class="button primary" id="submit-button" type="submit" hidden>Submit project request</button></div>
+        </form>
+
+        <section class="submission-state" id="submission-state" aria-labelledby="confirmation-title">
+          <div class="success-mark" aria-hidden="true">✓</div><h2 id="confirmation-title" tabindex="-1">Your project request is in.</h2><p id="confirmation-copy">I’ll review the details and respond with a confirmed price, material choice, and schedule.</p><span class="request-id" id="request-id"></span><p class="backend-note" id="backend-note" hidden>This request has not reached us. Use Email this request and attach any selected files, or download a copy to send later.</p><div class="confirmation-actions"><a class="button primary" id="email-request" href="mailto:hello@3dprint4.me">Email this request</a><button class="button secondary" id="download-request" type="button">Download a copy</button><button class="button secondary" id="deposit-button" type="button">Pay optional $25 deposit</button></div><p class="help">A deposit is optional and only appears when Stripe is configured. It does not replace the final approved quote.</p>
+        </section>
+      </section>
+
+      <aside class="estimate-sidebar" aria-labelledby="estimate-title"><div><h2 id="estimate-title">Rough planning range</h2><div class="estimate-amount" id="estimate-amount">$15–$25</div><div class="estimate-confidence" id="estimate-confidence">Planning range, confirmed after review</div></div><dl class="estimate-list" id="estimate-list"></dl><p class="estimate-note">Not a checkout total. Tax, shipping, third-party parts, licensing, unusual packing, and scope changes are confirmed separately.</p></aside>
+    </div>
+  </main>
+  <div id="site-footer"></div><script type="module" src="/assets/js/order.js"></script>
+</body>
+</html>
