@@ -69,6 +69,8 @@ The function sends two messages after completion:
 
 Production smoke testing should confirm SPF, DKIM, DMARC alignment, inbox placement, Reply-To behavior, HTML rendering, and signed-link expiry.
 
+Current DNS uses Namecheap email-forwarding MX records and an SPF record for that forwarding service. Verify that `hello@3dprint4.me` forwards to a monitored inbox with a real inbound test. Add the exact sending-domain records shown by Resend and confirm its domain status before enabling customer receipts; do not replace the forwarding MX records unless inbound mail is moved deliberately. After SPF and DKIM pass, publish and test a DMARC policy appropriate to the business. See [Resend domain verification](https://resend.com/docs/dashboard/domains/introduction) and [DMARC setup](https://resend.com/docs/dashboard/domains/dmarc).
+
 ## 4. Configure a webhook
 
 The webhook is optional but useful for automation and redundancy.
@@ -141,6 +143,8 @@ The API function timeout is 45 seconds. Request completion can make successive p
 6. Confirm both HTTP and HTTPS behavior, then keep HTTPS canonical.
 
 The repository already uses `https://3dprint4.me` in canonical tags, Open Graph metadata, sitemap, robots file, and Stripe return configuration examples.
+
+As checked on 2026-09-13, the apex A record was `192.64.119.53` and `www` resolved to `0.0.0.0` and `::`. Remove the parking/sinkhole records when applying the project-specific records from Vercel; verify both hosts after DNS convergence.
 
 ## 8. Production smoke test
 
