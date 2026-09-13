@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 650" role="img" aria-labelledby="title desc">
+  <title id="title">Modern 3D printer creating an orange part</title><desc id="desc">A stylized enclosed printer, build plate, print head, and a layered part.</desc>
+  <defs>
+    <linearGradient id="frame" x1="90" y1="40" x2="620" y2="590" gradientUnits="userSpaceOnUse"><stop stop-color="#2d3744"/><stop offset="1" stop-color="#0a0f16"/></linearGradient>
+    <linearGradient id="glass" x1="160" y1="90" x2="540" y2="520" gradientUnits="userSpaceOnUse"><stop stop-color="#dbe7f2" stop-opacity=".3"/><stop offset="1" stop-color="#5e7187" stop-opacity=".08"/></linearGradient>
+    <linearGradient id="print" x1="290" y1="310" x2="430" y2="480" gradientUnits="userSpaceOnUse"><stop stop-color="#ff9c4f"/><stop offset="1" stop-color="#df4700"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="22" stdDeviation="20" flood-opacity=".25"/></filter>
+  </defs>
+  <ellipse cx="360" cy="594" rx="250" ry="30" fill="#0a0f16" opacity=".14"/>
+  <g filter="url(#shadow)">
+    <path d="M126 88 173 48h374l47 40v458l-47 44H173l-47-44V88Z" fill="url(#frame)"/>
+    <path d="M163 102h394v410H163z" fill="#0d151f" stroke="#566373" stroke-width="4"/>
+    <path d="M184 123h352v345H184z" fill="url(#glass)" stroke="#9eb0c3" stroke-opacity=".38" stroke-width="3"/>
+    <path d="M204 152h312" stroke="#8b98a7" stroke-width="9" stroke-linecap="round"/>
+    <path d="M239 151v102M481 151v102" stroke="#202b37" stroke-width="12"/>
+    <path d="M242 178h236" stroke="#586778" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(320 162)"><rect width="80" height="62" rx="9" fill="#151e29" stroke="#798798" stroke-width="3"/><path d="M24 62h32l-7 28H31l-7-28Z" fill="#262f3b"/><path d="M36 90h8l-2 18h-4l-2-18Z" fill="#f66a0a"/><circle cx="63" cy="18" r="6" fill="#61d6a8"/></g>
+    <path d="M208 426 262 388h196l54 38-32 29H240l-32-29Z" fill="#262f3b" stroke="#708094" stroke-width="3"/>
+    <path d="M246 409h228l-18 16H264l-18-16Z" fill="#8392a3"/>
+    <g>
+      <path d="M291 395v-84l30-22h78l30 22v84l-30 19h-78l-30-19Z" fill="url(#print)"/>
+      <path d="M321 289v85l-30 21M399 289v85l30 21M321 374h78" fill="none" stroke="#ffbd87" stroke-opacity=".7" stroke-width="3"/>
+      <path d="M303 332h114M303 348h114M303 364h114M303 380h114" stroke="#9e3100" stroke-opacity=".38" stroke-width="2"/>
+      <path d="m321 289 39 23 39-23-39-22-39 22Z" fill="#ffab67"/>
+    </g>
+    <path d="M184 468h352v44H184z" fill="#111923"/>
+    <g transform="translate(221 480)"><circle cx="8" cy="8" r="8" fill="#f66a0a"/><circle cx="36" cy="8" r="8" fill="#263340"/><circle cx="64" cy="8" r="8" fill="#263340"/></g>
+    <rect x="448" y="480" width="63" height="16" rx="8" fill="#263340"/>
+    <path d="m151 91 22-22h374l22 22" fill="none" stroke="#6f7d8e" stroke-width="4"/>
+  </g>
+  <path d="M200 127 325 468" stroke="#fff" stroke-opacity=".12" stroke-width="13"/>
+</svg>

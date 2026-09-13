@@ -1,0 +1,1942 @@
+{
+  "name": "3dprint4.me automated UX and accessibility audit",
+  "generatedAt": "2026-09-13T18:01:05.778788+00:00",
+  "status": "pass",
+  "summary": {
+    "checks": 193,
+    "passed": 193,
+    "failed": 0,
+    "routes": 8,
+    "renderProfiles": 2
+  },
+  "method": {
+    "browser": "Chromium through Playwright (system browser when available, Playwright-managed browser otherwise)",
+    "rendering": "Production HTML, CSS, SVG, and JavaScript bundled in-place because enterprise URL policy blocks browser navigation; HTTP/API behavior is covered separately by E2E tests.",
+    "coverage": [
+      "responsive overflow",
+      "keyboard focus",
+      "semantic landmarks",
+      "heading order",
+      "control names",
+      "image alternatives",
+      "touch targets",
+      "solid-background WCAG AA contrast",
+      "browser errors"
+    ]
+  },
+  "findings": [
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "5 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "36 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 121 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "29 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/services.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 125 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "8 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "32 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 90 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "27 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/about.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 72 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "23 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 66 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "24 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 61 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "24 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 63 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "24 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/404.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 35 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "5 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "33 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 113 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "26 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/services.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 121 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "8 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "29 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/portfolio.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 86 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "24 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/about.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 68 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "20 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/order.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 62 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "21 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 57 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "21 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/terms.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 59 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "21 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/404.html",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "0 solid-background text samples meet WCAG AA contrast; 31 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/",
+      "profile": "desktop/light keyboard",
+      "check": "Visible keyboard focus",
+      "status": "pass",
+      "details": "Tab sequence exposed a visible focus treatment on 12 sampled controls."
+    }
+  ],
+  "metrics": [
+    {
+      "route": "/",
+      "label": "Home",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "3dprint4.me \u2014 Custom 3D modeling, printing, and repair",
+        "description": "Custom 3D modeling, printing, printer repair, tuning, and fabrication in Tulsa. Share a file, sketch, broken part, or idea and get a useful rough quote.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 36,
+        "imageCount": 5,
+        "headingCount": 21
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 121,
+        "failures": []
+      }
+    },
+    {
+      "route": "/services.html",
+      "label": "Services",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "Services and pricing approach \u2014 3dprint4.me",
+        "description": "Custom 3D modeling, printing, printer repair, tuning, consulting, and custom printer design services from 3dprint4.me in Tulsa.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 29,
+        "imageCount": 2,
+        "headingCount": 10
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 125,
+        "failures": []
+      }
+    },
+    {
+      "route": "/portfolio.html",
+      "label": "Work",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "Selected work \u2014 3dprint4.me",
+        "description": "Selected 3D modeling and fabrication work by Jerrett Davis: automotive organizers, printer electronics enclosures, camera housings, ESP32 cases, and shop hardware.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 32,
+        "imageCount": 8,
+        "headingCount": 13
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 90,
+        "failures": []
+      }
+    },
+    {
+      "route": "/about.html",
+      "label": "About",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "About Jerrett \u2014 3dprint4.me",
+        "description": "About Jerrett Davis and 3dprint4.me: a Tulsa software engineer, maker, CAD designer, printer builder, and practical problem solver.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 27,
+        "imageCount": 2,
+        "headingCount": 10
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 72,
+        "failures": []
+      }
+    },
+    {
+      "route": "/order.html",
+      "label": "Project builder",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "Start a project \u2014 3dprint4.me",
+        "description": "Start a custom 3D modeling, printing, printer repair, tuning, or fabrication project and get a useful rough estimate.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 23,
+        "imageCount": 2,
+        "headingCount": 6
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 66,
+        "failures": []
+      }
+    },
+    {
+      "route": "/privacy.html",
+      "label": "Privacy",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "Privacy notice \u2014 3dprint4.me",
+        "description": "Privacy notice for 3dprint4.me project requests, uploaded design files, contact details, payments, and service providers.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 24,
+        "imageCount": 2,
+        "headingCount": 16
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 61,
+        "failures": []
+      }
+    },
+    {
+      "route": "/terms.html",
+      "label": "Terms",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "Project terms \u2014 3dprint4.me",
+        "description": "Project terms for 3dprint4.me custom modeling, 3D printing, printer repair, tuning, consulting, and fabrication services.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 24,
+        "imageCount": 2,
+        "headingCount": 17
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 63,
+        "failures": []
+      }
+    },
+    {
+      "route": "/404.html",
+      "label": "404",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "Page not found \u2014 3dprint4.me",
+        "description": "The requested 3dprint4.me page was not found. Return home or start a custom 3D modeling, printing, or repair project.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 24,
+        "imageCount": 2,
+        "headingCount": 4
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 35,
+        "failures": []
+      }
+    },
+    {
+      "route": "/",
+      "label": "Home",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "3dprint4.me \u2014 Custom 3D modeling, printing, and repair",
+        "description": "Custom 3D modeling, printing, printer repair, tuning, and fabrication in Tulsa. Share a file, sketch, broken part, or idea and get a useful rough quote.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 33,
+        "imageCount": 5,
+        "headingCount": 21
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 113,
+        "failures": []
+      }
+    },
+    {
+      "route": "/services.html",
+      "label": "Services",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "Services and pricing approach \u2014 3dprint4.me",
+        "description": "Custom 3D modeling, printing, printer repair, tuning, consulting, and custom printer design services from 3dprint4.me in Tulsa.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 26,
+        "imageCount": 2,
+        "headingCount": 10
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 121,
+        "failures": []
+      }
+    },
+    {
+      "route": "/portfolio.html",
+      "label": "Work",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "Selected work \u2014 3dprint4.me",
+        "description": "Selected 3D modeling and fabrication work by Jerrett Davis: automotive organizers, printer electronics enclosures, camera housings, ESP32 cases, and shop hardware.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 29,
+        "imageCount": 8,
+        "headingCount": 13
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 86,
+        "failures": []
+      }
+    },
+    {
+      "route": "/about.html",
+      "label": "About",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "About Jerrett \u2014 3dprint4.me",
+        "description": "About Jerrett Davis and 3dprint4.me: a Tulsa software engineer, maker, CAD designer, printer builder, and practical problem solver.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 24,
+        "imageCount": 2,
+        "headingCount": 10
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 68,
+        "failures": []
+      }
+    },
+    {
+      "route": "/order.html",
+      "label": "Project builder",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "Start a project \u2014 3dprint4.me",
+        "description": "Start a custom 3D modeling, printing, printer repair, tuning, or fabrication project and get a useful rough estimate.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 20,
+        "imageCount": 2,
+        "headingCount": 6
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 62,
+        "failures": []
+      }
+    },
+    {
+      "route": "/privacy.html",
+      "label": "Privacy",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "Privacy notice \u2014 3dprint4.me",
+        "description": "Privacy notice for 3dprint4.me project requests, uploaded design files, contact details, payments, and service providers.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 21,
+        "imageCount": 2,
+        "headingCount": 16
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 57,
+        "failures": []
+      }
+    },
+    {
+      "route": "/terms.html",
+      "label": "Terms",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "Project terms \u2014 3dprint4.me",
+        "description": "Project terms for 3dprint4.me custom modeling, 3D printing, printer repair, tuning, consulting, and fabrication services.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 21,
+        "imageCount": 2,
+        "headingCount": 17
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 59,
+        "failures": []
+      }
+    },
+    {
+      "route": "/404.html",
+      "label": "404",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "Page not found \u2014 3dprint4.me",
+        "description": "The requested 3dprint4.me page was not found. Return home or start a custom 3D modeling, printing, or repair project.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 21,
+        "imageCount": 2,
+        "headingCount": 4
+      },
+      "contrast": {
+        "checked": 0,
+        "complexSkipped": 31,
+        "failures": []
+      }
+    }
+  ]
+}

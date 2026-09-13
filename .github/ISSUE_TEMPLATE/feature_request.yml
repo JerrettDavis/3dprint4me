@@ -1,0 +1,41 @@
+name: Feature request
+description: Propose a customer-facing or operational improvement.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or decision this solves
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired customer or operator outcome
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Public content/navigation
+        - Quote/intake experience
+        - Printing
+        - Modeling
+        - Repair/tuning
+        - Consulting/printer design
+        - Files/storage
+        - Email/webhook
+        - Payments/commerce
+        - Operations/admin
+        - Accessibility/testing
+        - Deployment/security
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and acceptance notes
+      description: Include privacy, security, pricing, legal, responsive, or integration concerns.

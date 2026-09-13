@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.vercel/
+.remember/
+node_modules/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.DS_Store
+Thumbs.db
+data/*.ndjson
+!data/.gitkeep
+playwright-report/
+test-results/

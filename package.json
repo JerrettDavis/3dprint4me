@@ -1,0 +1,31 @@
+{
+  "name": "3dprint4me",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Accessible storefront and guided project intake for custom 3D modeling, printing, printer repair, tuning, and fabrication.",
+  "license": "MIT",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "validate": "node scripts/validate.mjs",
+    "test:e2e": "python -m pytest tests/e2e -q",
+    "audit": "python tests/audit/audit.py",
+    "screenshots": "python scripts/capture_screenshots.py",
+    "test": "npm run validate && npm run test:unit && npm run test:e2e && npm run audit",
+    "vercel-build": "npm run validate",
+    "test:unit": "node --test tests/unit/*.test.mjs"
+  },
+  "homepage": "https://3dprint4.me",
+  "keywords": [
+    "3d-printing",
+    "3d-modeling",
+    "fabrication",
+    "supabase",
+    "vercel",
+    "stripe",
+    "accessible"
+  ]
+}
