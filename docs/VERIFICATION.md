@@ -99,7 +99,7 @@ The verification host had an enterprise Chromium policy that blocked navigation 
 
 Automated verification cannot validate credentials or business policy. Before accepting paid work, complete these checks against the real deployment:
 
-As checked on 2026-09-13, the apex domain resolved to `192.64.119.53`, outside Vercel's documented general-purpose apex address, and direct HTTPS checks of `/` and `/api/health` timed out. This workspace has no linked Vercel project or CLI credentials, so the exact project-specific DNS record and deployment state remain unverified. It also has no `.git` metadata, so a repository push cannot be made from this copy. Inspect the domain in the intended Vercel project, update DNS to the value Vercel supplies, put this source into the deployable repository, then rerun the live smoke test before sharing the domain.
+As checked on 2026-09-13, the apex domain resolved to `192.64.119.53`, outside Vercel's documented general-purpose apex address, and direct HTTPS checks of `/` and `/api/health` timed out. This workspace has no linked Vercel project or CLI credentials, so the exact project-specific DNS record and deployment state remain unverified. The verified source now has a local Git commit, but no remote has been configured and no matching repository was found under the signed-in GitHub account. Create or select the intended remote, push this source, inspect the domain in the Vercel project, update DNS to the value Vercel supplies, then rerun the live smoke test before sharing the domain.
 
 1. Run the Supabase migration and confirm the bucket is private.
 2. Submit a request with real test files and confirm the database row, object paths, and signed-link expiry.
