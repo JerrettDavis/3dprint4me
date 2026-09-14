@@ -50,7 +50,7 @@ Additional capabilities should be added as examples beneath these choices before
 
 The visual system is based on a workshop dashboard rather than a novelty maker site:
 
-- Warm red-orange accents suggest heated tools and active work without copying a printer brand.
+- Teal and blue accents evoke precise digital modeling and clear technical communication without copying a printer brand.
 - Neutral surfaces keep technical images, measurements, and text legible.
 - Rounded but structured components feel approachable without becoming toy-like.
 - Grid, layer, fastener, airflow, and measurement motifs support the fabrication subject.
