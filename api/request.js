@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { handleApiError, HttpError, readJson, requireMethod, sendJson } from "../lib/http.js";
 import { normalizeProjectRequest, normalizeUploadedFiles, validateRequestId } from "../lib/validation.js";
 import { completeRequestRecord, createRequestRecord, hasSupabase } from "../lib/supabase.js";
+import * as neonStore from "../lib/neon.js";
 import { hasEmailDelivery, hasWebhookDelivery, postRequestWebhook, sendRequestEmails } from "../lib/notifications.js";
 import { issueCheckoutToken } from "../lib/checkout-token.js";
 
@@ -18,6 +19,7 @@ async function localLog(event) {
   await appendFile(path, `${JSON.stringify({ ...event, loggedAt: new Date().toISOString() })}\n`, "utf8");
 }
 function integrationMode() {
+  if (neonStore.hasNeon()) return "neon";
   if (hasSupabase()) return "supabase";
   if (hasEmailDelivery() || hasWebhookDelivery()) return "delivery";
   return "local";
@@ -27,9 +29,10 @@ async function create(body) {
   const id = newRequestId();
   if (body.website) return { id, mode: "ignored", live: true };
   const request = normalizeProjectRequest(body.request);
-  if (hasSupabase()) await createRequestRecord(id, request);
+  if (neonStore.hasNeon()) await neonStore.createRequestRecord(id, request);
+  else if (hasSupabase()) await createRequestRecord(id, request);
   await localLog({ event: "create", id, request });
-  return { id, mode: integrationMode(), live: hasSupabase() };
+  return { id, mode: integrationMode(), live: neonStore.hasNeon() || hasSupabase() };
 }
 
 async function complete(body) {
@@ -37,7 +40,8 @@ async function complete(body) {
   const request = normalizeProjectRequest(body.request);
   const files = normalizeUploadedFiles(body.uploadedFiles, id);
   const results = { database: false, email: false, webhook: false };
-  if (hasSupabase()) { await completeRequestRecord(id, request, files); results.database = true; }
+  if (neonStore.hasNeon()) { await neonStore.completeRequestRecord(id, request, files); results.database = true; }
+  else if (hasSupabase()) { await completeRequestRecord(id, request, files); results.database = true; }
   await localLog({ event: "complete", id, request, files });
   const [emailResult, webhookResult] = await Promise.allSettled([sendRequestEmails(id, request, files), postRequestWebhook(id, request, files)]);
   if (emailResult.status === "fulfilled") results.email = Boolean(emailResult.value.owner); else console.error("Request email notification failed.");

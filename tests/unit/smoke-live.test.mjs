@@ -15,7 +15,7 @@ function siteResponse(url, { missingEmail = false, publicSource = false } = {}) 
   const privatePath = ["/.env", "/lib/notifications.js", "/data/dev-requests.ndjson"].includes(path);
   const status = privatePath && !publicSource ? 404 : 200;
   const body = path === "/api/health"
-    ? JSON.stringify({ ok: true, service: "3dprint4.me", integrations: { supabase: true, email: !missingEmail } })
+    ? JSON.stringify({ ok: true, service: "3dprint4.me", integrations: { neon: true, privateFiles: true, email: !missingEmail } })
     : "<main>3dprint4.me</main>";
   const response = new Response(body, { status, headers });
   Object.defineProperty(response, "url", { value: String(url) });

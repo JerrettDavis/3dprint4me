@@ -5,7 +5,7 @@ const pages = ["/", "/services.html", "/portfolio.html", "/about.html", "/order.
 const assets = ["/assets/css/site.css", "/assets/js/order.js", "/robots.txt", "/sitemap.xml"];
 const privatePaths = ["/.env", "/lib/notifications.js", "/data/dev-requests.ndjson"];
 
-export async function smokeLive(origin, { fetchImpl = fetch, requiredIntegrations = ["supabase", "email"] } = {}) {
+export async function smokeLive(origin, { fetchImpl = fetch, requiredIntegrations = ["neon", "privateFiles", "email"] } = {}) {
   const base = new URL(origin);
   if (base.protocol !== "https:" || base.username || base.password || base.pathname !== "/" || base.search || base.hash) {
     throw new Error("Use an HTTPS origin without a path, query, or credentials.");
@@ -64,7 +64,7 @@ export async function smokeLive(origin, { fetchImpl = fetch, requiredIntegration
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const origin = process.argv[2] || "https://3dprint4.me";
-  const requiredIntegrations = (process.argv[3] || "supabase,email").split(",").filter(Boolean);
+    const requiredIntegrations = (process.argv[3] || "neon,privateFiles,email").split(",").filter(Boolean);
   try {
     const { checked, failures } = await smokeLive(origin, { requiredIntegrations });
     for (const failure of failures) console.error(`FAIL ${failure}`);
