@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-09-14T01:39:28.368493+00:00",
+  "generatedAt": "2026-09-14T23:22:09.926297+00:00",
   "status": "pass",
   "summary": {
     "checks": 193,
@@ -65,7 +65,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
+      "details": "5 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 130 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 124 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -233,7 +233,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
+      "details": "8 images loaded and each has an alt attribute."
     },
     {
       "route": "/portfolio.html",
@@ -737,7 +737,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
+      "details": "5 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
@@ -779,7 +779,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 126 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 120 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -905,7 +905,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
+      "details": "8 images loaded and each has an alt attribute."
     },
     {
       "route": "/portfolio.html",
@@ -1404,12 +1404,12 @@
         "contentWidth": 1440,
         "viewportWidth": 1440,
         "interactiveCount": 37,
-        "imageCount": 2,
+        "imageCount": 5,
         "headingCount": 22
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 130,
+        "complexSkipped": 124,
         "failures": []
       }
     },
@@ -1474,7 +1474,7 @@
         "contentWidth": 1440,
         "viewportWidth": 1440,
         "interactiveCount": 32,
-        "imageCount": 2,
+        "imageCount": 8,
         "headingCount": 13
       },
       "contrast": {
@@ -1684,12 +1684,12 @@
         "contentWidth": 390,
         "viewportWidth": 390,
         "interactiveCount": 34,
-        "imageCount": 2,
+        "imageCount": 5,
         "headingCount": 22
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 126,
+        "complexSkipped": 120,
         "failures": []
       }
     },
@@ -1754,7 +1754,7 @@
         "contentWidth": 390,
         "viewportWidth": 390,
         "interactiveCount": 29,
-        "imageCount": 2,
+        "imageCount": 8,
         "headingCount": 13
       },
       "contrast": {

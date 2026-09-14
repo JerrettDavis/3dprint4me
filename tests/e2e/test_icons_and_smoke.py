@@ -48,6 +48,9 @@ def test_every_page_renders_header_footer_icons_and_images_without_errors() -> N
             # Every image on the page finished loading successfully.
             images = page.locator("img")
             if images.count():
+                for image in images.all():
+                    image.scroll_into_view_if_needed()
+                    image.evaluate("img => img.decode()")
                 assert images.evaluate_all(
                     "els => els.every(img => img.complete && img.naturalWidth > 0)"
                 ), route

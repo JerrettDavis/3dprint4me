@@ -6,7 +6,16 @@
 - Cults3D: https://cults3d.com/en/users/JerrettDavis/3d-models
 - Thingiverse example: https://www.thingiverse.com/thing:6230499
 
-The site links to those public sources but does not copy marketplace screenshots. All portfolio card artwork in `public/assets/images/portfolio/` is an original SVG interpretation created for this repository.
+The site links to those public sources and uses selected model-listing images uploaded under Jerrett Davis's Cults3D profile, with the owner's approval for storefront use. The images are hosted locally rather than hotlinked; they are project images, not marketplace screenshots or community makes. Other artwork in `public/assets/images/portfolio/` is an original SVG interpretation created for this repository.
+
+| Local image | Listing source | Original listing image |
+|---|---|---|
+| `projects/ioniq-console-organizer.png` | [Ioniq 5 center-console organizer](https://cults3d.com/en/3d-model/game/fully-parametric-ioniq-5-center-console-organizer) | Cults3D listing photo of the printed tray in the car |
+| `projects/ender-skr2-pi-housing.png` | [Ender 3 Pro SKR 2 housing](https://cults3d.com/en/3d-model/tool/ender-3-pro-skr-2-housing-with-pi-4-mount) | `Completed-With-Components.PNG` |
+| `projects/pi-camera-ir-enclosure.png` | [Raspberry Pi camera and IR enclosure](https://cults3d.com/en/3d-model/tool/enclosure-for-raspberry-pi-camera-with-ir-modules) | `Top_Shot_with_Camera.png` |
+| `projects/alitove-psu-cover.png` | [ALITOVE 5V 70A cover](https://cults3d.com/en/3d-model/tool/alitove-5v-power-supply-70a-350w-enclosure) | `Bottom_Cover.png` |
+| `projects/esp32-rfid-dashboard.jpg` | [ESP32-S3 touchscreen RFID dashboard case](https://www.printables.com/model/1745185-esp32-s3-28-touchscreen-rfid-dashboard-case) | `20260604_230932.jpg` |
+| `projects/emergency-stop-render.png` | [Emergency-stop button mount](https://cults3d.com/en/3d-model/gadget/emergency-stop-button-mount) | `emergency-button-mount.png` |
 
 ## Published work used to establish direction
 
@@ -49,7 +58,7 @@ These works support the site positioning around:
 
 - Confirm every direct marketplace URL still resolves.
 - Replace profile links with direct model links where available.
-- Add real project photography only when the image is owned or licensed for this site.
+- Add further real project photography only when the image is owned or licensed for this site; a marketplace user's make is not automatically the model author's photograph.
 - Do not imply that public downloads are customer commissions unless they were.
 - Preserve the source platform's model license and attribution requirements.
 - Remove download/follower counts from marketing copy unless there is a reason to maintain them.

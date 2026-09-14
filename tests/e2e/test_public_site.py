@@ -81,3 +81,20 @@ def test_published_work_is_readable_without_decorative_images() -> None:
         assert page.locator(".project-card a").evaluate_all("els => els.every(a => a.getBoundingClientRect().height >= 44)")
         assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
         site.assert_no_page_errors()
+
+
+def test_published_projects_show_their_own_work_images() -> None:
+    with SiteBrowser(viewport=(1440, 1000), color_scheme="light") as site:
+        home = site.load("/")
+        featured = home.locator(".hero-case img.project-image")
+        assert featured.count() == 1
+        assert "Ender 3 Pro" in featured.get_attribute("alt")
+        assert featured.evaluate("img => img.complete && img.naturalWidth > 0")
+
+        work = site.load("/portfolio.html")
+        images = work.locator(".project-card img.project-image")
+        assert images.count() == 6
+        assert images.evaluate_all(
+            "els => els.every(img => img.complete && img.naturalWidth > 0 && img.alt.trim().length > 12)"
+        )
+        site.assert_no_page_errors()
