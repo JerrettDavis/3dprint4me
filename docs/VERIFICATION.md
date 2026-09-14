@@ -2,9 +2,9 @@
 
 ## Delivered result
 
-**Status: local source verification PASS; live launch verification pending**
+**Status: local source and private-intake verification PASS; DNS and email launch verification pending**
 
-This record describes local source verification for the `3dprint4.me` release package. The current suite passed with the customer-facing privacy and terms copy. It does not establish that production DNS, credentials, private storage, email delivery, or checkout work on the live domain.
+The current suite passed with the customer-facing privacy and terms copy. The Neon database, private Vercel Blob store, and deployed request API were verified with synthetic data. Production DNS, MXroute mailbox delivery, Resend sending, and checkout remain unverified on the live domain.
 
 ## Environment
 
@@ -15,7 +15,7 @@ This record describes local source verification for the `3dprint4.me` release pa
 | Chromium | 151.0.7922.34 |
 | Test runner | Node built-in test runner and pytest through Playwright |
 
-The project runtime has no third-party npm dependencies. Playwright, pytest, and Pillow are development-only Python dependencies.
+The project runtime uses `@neondatabase/serverless` and `@vercel/blob`. Playwright, pytest, and Pillow are development-only Python dependencies.
 
 ## Commands and results
 
@@ -24,7 +24,7 @@ npm test
   Static validation: PASS
     8 HTML pages
     67 local references
-    22 JavaScript files
+    26 JavaScript files
     Vercel public output boundary validated
     Content-Security-Policy hashes validated
 
@@ -42,6 +42,20 @@ npm test
 npm run screenshots
   10 route/theme/viewport screenshots generated
   1 combined preview board generated
+```
+
+```text
+node --env-file=.env.production.local scripts/verify-private-providers.mjs
+  Neon draft/submit persistence: PASS
+  Private Blob upload and signed download: PASS
+  Unauthenticated private read: denied
+
+npm run smoke:live -- https://3dprint4me.vercel.app neon,privateFiles
+  15 responses checked, 0 failures
+
+node --env-file=.env.production.local scripts/verify-live-intake.mjs
+  Deployed request create/upload/complete and persisted row: PASS
+  Synthetic record and file removed
 ```
 
 ## What the verification covers
