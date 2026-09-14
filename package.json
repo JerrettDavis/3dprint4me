@@ -28,5 +28,9 @@
     "vercel",
     "stripe",
     "accessible"
-  ]
+  ],
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "@vercel/blob": "^2.8.0"
+  }
 }

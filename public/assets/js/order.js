@@ -242,10 +242,10 @@ async function uploadFiles(requestId, backendMode = "local") {
     submitButton.textContent = `Uploading ${index + 1}/${selectedFiles.length}…`;
     const instruction = await jsonFetch("/api/upload-url", { method: "POST", body: JSON.stringify({ requestId, filename: file.name, contentType: file.type, size: file.size }) });
     if (!instruction.uploadUrl) throw new Error(`No upload destination was created for ${file.name}.`);
-    const uploadBody = new FormData();
-    uploadBody.append("cacheControl", "3600");
-    uploadBody.append("", file);
-    const response = await fetch(instruction.uploadUrl, { method: instruction.method || "PUT", headers: { ...(instruction.headers || {}) }, body: uploadBody });
+      const uploadBody = new FormData();
+      uploadBody.append("cacheControl", "3600");
+      uploadBody.append("", file);
+      const response = await fetch(instruction.uploadUrl, { method: instruction.method || "PUT", headers: { ...(instruction.headers || {}) }, body: instruction.bodyType === "file" ? file : uploadBody });
     if (!response.ok) throw new Error(`Could not upload ${file.name}.`);
     uploaded.push({ name: file.name, size: file.size, type: file.type, path: instruction.path || null, mode: "signed" });
   }
