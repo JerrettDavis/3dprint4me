@@ -94,6 +94,9 @@ def test_published_projects_show_their_own_work_images() -> None:
         work = site.load("/portfolio.html")
         images = work.locator(".project-card img.project-image")
         assert images.count() == 6
+        for image in images.all():
+            image.scroll_into_view_if_needed()
+            image.evaluate("img => img.decode()")
         assert images.evaluate_all(
             "els => els.every(img => img.complete && img.naturalWidth > 0 && img.alt.trim().length > 12)"
         )
