@@ -185,6 +185,10 @@ def audit_profile(profile_name: str, viewport: tuple[int, int], color_scheme: st
     with SiteBrowser(viewport=viewport, color_scheme=color_scheme) as site:
         for route, label in ROUTES:
             page = site.load(route)
+            for image in page.locator("img[loading='lazy']").all():
+                image.scroll_into_view_if_needed()
+                image.evaluate("img => img.decode()")
+            page.evaluate("window.scrollTo(0, 0)")
             dom = page.evaluate(DOM_AUDIT)
             contrast = page.evaluate(CONTRAST_AUDIT)
             profile = f"{profile_name}/{color_scheme} {viewport[0]}×{viewport[1]}"
