@@ -54,7 +54,7 @@ The visual system is based on a workshop dashboard rather than a novelty maker s
 - Neutral surfaces keep technical images, measurements, and text legible.
 - Rounded but structured components feel approachable without becoming toy-like.
 - Grid, layer, fastener, airflow, and measurement motifs support the fabrication subject.
-- Original illustrations keep the site consistent and avoid depending on marketplace screenshot rights or availability.
+- Published project names, source links, and concrete design constraints provide visual proof without invented likenesses or stand-in product renders. Use actual shop or product photography only when its source and rights are confirmed.
 - Light and dark themes preserve the same hierarchy and meaning.
 
 The voice is direct, practical, and specific. It avoids exaggerated claims, fake precision, and generic phrases such as "bringing dreams to life."

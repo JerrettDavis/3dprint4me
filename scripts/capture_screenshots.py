@@ -60,6 +60,14 @@ def prepare_storage_warning(page) -> None:
     page.evaluate("document.querySelector('#project-form').dispatchEvent(new Event('input', { bubbles: true }))")
 
 
+def show_work_record(page) -> None:
+    page.locator(".work-record").scroll_into_view_if_needed()
+
+
+def show_project_cards(page) -> None:
+    page.locator(".portfolio-grid").scroll_into_view_if_needed()
+
+
 def build_preview_board(items: list[tuple[str, Path]]) -> Path:
     width = 1680
     margin = 56
@@ -103,6 +111,10 @@ def main() -> int:
         ("Home · desktop · dark", capture("/", "home-desktop-dark.png", viewport=(1440, 1000), scheme="dark")),
         ("Services · desktop · light", capture("/services.html", "services-desktop-light.png", viewport=(1440, 1000), scheme="light")),
         ("Portfolio · desktop · dark", capture("/portfolio.html", "portfolio-desktop-dark.png", viewport=(1440, 1000), scheme="dark")),
+        ("Portfolio cards · desktop · light", capture("/portfolio.html", "portfolio-cards-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=show_project_cards)),
+        ("About · desktop · light", capture("/about.html", "about-desktop-light.png", viewport=(1440, 1000), scheme="light")),
+        ("About work record · desktop · dark", capture("/about.html", "about-work-desktop-dark.png", viewport=(1440, 1000), scheme="dark", prepare=show_work_record)),
+        ("About work record · mobile · dark", capture("/about.html", "about-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=show_work_record)),
         ("Print intake · desktop · light", capture("/order.html?service=print", "order-print-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_print_details)),
         ("Design intake · desktop · light", capture("/order.html?service=design", "order-design-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_design_details)),
         ("Repair intake · mobile · dark", capture("/order.html?service=repair", "order-repair-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_mobile_repair)),
