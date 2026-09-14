@@ -38,7 +38,7 @@ These works support the site positioning around:
 
 | Site card | Why it was selected | Current destination |
 |---|---|---|
-| Ioniq 5 organizer | Strong parametric/fitted consumer example | Direct Printables model page (`299171`, as linked from the creator profile on 2026-09-13) |
+| Ioniq 5 organizer | Strong parametric/fitted consumer example | Direct Cults3D model page (verified author and model details on 2026-09-13) |
 | Ender SKR 2/Pi housing | Combines controller, SBC, cooling, cable, and service constraints | Cults3D profile |
 | Raspberry Pi camera/IR enclosures | Shows small electronics fit and toolless thinking | Printables profile |
 | ALITOVE 70A PSU enclosure | Shows airflow, terminal access, strain relief, and safety-adjacent design | Cults3D profile |

@@ -67,3 +67,17 @@ def test_reduced_motion_preference_disables_motion() -> None:
         }""", values)
         assert max(durations) <= 0.001
         site.assert_no_page_errors()
+
+
+def test_published_work_is_readable_without_decorative_images() -> None:
+    with SiteBrowser(viewport=(390, 844), color_scheme="dark") as site:
+        page = site.load("/about.html")
+        assert page.locator(".work-record-list li").count() == 3
+        assert page.locator(".work-record-list a").evaluate_all("els => els.every(a => a.getBoundingClientRect().height > 0)")
+        assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+
+        page = site.load("/portfolio.html")
+        assert page.locator(".project-card").count() == 6
+        assert page.locator(".project-card a").evaluate_all("els => els.every(a => a.getBoundingClientRect().height >= 44)")
+        assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+        site.assert_no_page_errors()
