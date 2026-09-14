@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-09-13T18:01:05.778788+00:00",
+  "generatedAt": "2026-09-14T23:22:09.926297+00:00",
   "status": "pass",
   "summary": {
     "checks": 193,
@@ -72,7 +72,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "36 visible interactive elements have accessible names."
+      "details": "37 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 121 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 124 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -275,7 +275,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 90 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 96 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -324,7 +324,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "27 visible interactive elements have accessible names."
+      "details": "30 visible interactive elements have accessible names."
     },
     {
       "route": "/about.html",
@@ -359,7 +359,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 72 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 81 gradient/image samples were excluded from automation."
     },
     {
       "route": "/order.html",
@@ -744,7 +744,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "33 visible interactive elements have accessible names."
+      "details": "34 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -779,7 +779,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 113 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 120 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -947,7 +947,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 86 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 92 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -996,7 +996,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "24 visible interactive elements have accessible names."
+      "details": "27 visible interactive elements have accessible names."
     },
     {
       "route": "/about.html",
@@ -1031,7 +1031,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 68 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 77 gradient/image samples were excluded from automation."
     },
     {
       "route": "/order.html",
@@ -1403,13 +1403,13 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 36,
+        "interactiveCount": 37,
         "imageCount": 5,
-        "headingCount": 21
+        "headingCount": 22
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 121,
+        "complexSkipped": 124,
         "failures": []
       }
     },
@@ -1479,7 +1479,7 @@
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 90,
+        "complexSkipped": 96,
         "failures": []
       }
     },
@@ -1508,13 +1508,13 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 27,
+        "interactiveCount": 30,
         "imageCount": 2,
-        "headingCount": 10
+        "headingCount": 11
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 72,
+        "complexSkipped": 81,
         "failures": []
       }
     },
@@ -1683,13 +1683,13 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 33,
+        "interactiveCount": 34,
         "imageCount": 5,
-        "headingCount": 21
+        "headingCount": 22
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 113,
+        "complexSkipped": 120,
         "failures": []
       }
     },
@@ -1759,7 +1759,7 @@
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 86,
+        "complexSkipped": 92,
         "failures": []
       }
     },
@@ -1788,13 +1788,13 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 24,
+        "interactiveCount": 27,
         "imageCount": 2,
-        "headingCount": 10
+        "headingCount": 11
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 68,
+        "complexSkipped": 77,
         "failures": []
       }
     },

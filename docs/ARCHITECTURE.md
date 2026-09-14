@@ -11,8 +11,8 @@ flowchart TB
     Customer[Customer browser]
     Static[Vercel static output\npublic/]
     Functions[Vercel Node functions\napi/]
-    DB[(Supabase Postgres)]
-    Storage[(Supabase private Storage)]
+    DB[(Neon Postgres)]
+    Storage[(Vercel private Blob)]
     Email[Resend]
     Hook[Signed automation webhook]
     Stripe[Stripe Checkout]
@@ -71,7 +71,7 @@ A complete payload is validated before the initial row is created. This prevents
 
 ### `POST /api/upload-url`
 
-1. Requires Supabase configuration.
+1. Requires configured Neon and private Vercel Blob storage (or the legacy Supabase adapter).
 2. Validates request ID, filename, extension, and size.
 3. Confirms the request exists and is still in the draft state.
 4. Creates a random object name beneath the request namespace.
@@ -82,7 +82,7 @@ The file body does not pass through the Node function. The browser uploads direc
 ### `PATCH /api/request`
 
 1. Revalidates the request and uploaded file metadata.
-2. Atomically marks one draft Supabase record submitted and refuses missing or already-completed requests.
+2. Atomically marks one draft database record submitted and refuses missing or already-completed requests.
 3. Writes a local NDJSON event only in local development.
 4. Attempts owner/customer email and webhook delivery. Owner and customer email outcomes are tracked separately; a failed customer receipt does not erase a successful owner notification.
 5. Returns per-integration results without exposing provider details.
@@ -95,7 +95,7 @@ Creates a Stripe-hosted Checkout Session for the configured deposit and stores t
 
 ### `GET /api/health`
 
-Reports application version and whether Supabase, email, webhook, and Stripe variables are configured. It does not test provider credentials or reveal their values.
+Reports application version and whether Neon, private files, legacy Supabase, email, webhook, and Stripe variables are configured. It does not test provider credentials or reveal their values.
 
 ## Data model
 
@@ -116,15 +116,15 @@ service_requests
   updated_at        trigger-maintained timestamp
 ```
 
-Row Level Security is enabled with no anonymous or authenticated policies. Only the server-side service-role request path is intended to access the table in the delivered application.
+Neon is accessed only by the server-side database credential; the browser has no database connection. The legacy Supabase schema enables Row Level Security with no anonymous or authenticated policies.
 
-The private bucket defaults to `service-files`. Objects are stored as:
+The private Vercel Blob store holds objects as:
 
 ```text
 <request-id>/<random-prefix>-<sanitized-filename>
 ```
 
-The random prefix avoids collisions and discourages path guessing. The original safe filename remains visible to the owner.
+The random prefix avoids collisions and discourages path guessing. The original safe filename remains visible to the owner. The legacy Supabase bucket defaults to `service-files`.
 
 ## Request contract
 

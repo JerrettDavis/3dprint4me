@@ -3,7 +3,7 @@
 ## Recommended production shape
 
 - Vercel serves the `public/` directory and runs the Node functions in `api/`.
-- Supabase stores normalized request records and private customer files.
+- Neon stores request records and Vercel Blob stores private customer files. The older Supabase adapter remains available for deployments that already use it.
 - Resend delivers the owner notification and customer receipt.
 - A signed webhook feeds any automation or back-office process.
 - Stripe is optional and should initially be used in test mode for deposits.
@@ -24,12 +24,16 @@ npm run screenshots
 Expected delivered baseline:
 
 - Static validation passes
-- 33 Node tests pass
+- 35 Node tests pass
 - 25 E2E tests pass
 - 193 UX/accessibility checks pass
 - Screenshot board regenerates without browser errors
 
-## 2. Create Supabase resources
+## 2. Create request storage
+
+The current production project uses a Neon Free database and a private Vercel Blob store, both connected only to the Production environment. Apply `neon/migrations/001_service_requests.sql` to Neon (`node --env-file=.env.production.local scripts/migrate-neon.mjs` after pulling production variables). Verify with `node --env-file=.env.production.local scripts/verify-private-providers.mjs`; it creates and deletes a synthetic request and private file. Run `node --env-file=.env.production.local scripts/verify-live-intake.mjs` to exercise the deployed API and delete its synthetic data. The server uses `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN`; neither belongs in `public/`. The browser receives only a 15-minute signed upload URL scoped to one path, size, and content type. Owner download links expire after 15 minutes. Monitor the free limits before accepting more than 1 GB of uploads, and move to a paid plan or another private store before the limit is reached.
+
+### Legacy Supabase option
 
 1. Create a Supabase project in the desired region.
 2. Open the SQL editor.
@@ -68,6 +72,8 @@ The function sends two messages after completion:
 - Customer receipt with request ID, planning range, and next-step language
 
 Production smoke testing should confirm SPF, DKIM, DMARC alignment, inbox placement, Reply-To behavior, HTML rendering, and signed-link expiry.
+
+Current DNS uses Namecheap email-forwarding MX records and an SPF record for that forwarding service. The owner chose an MXroute mailbox for `hello@3dprint4.me` and Cloudflare for future DNS management. The live nameservers are still Namecheap's, so Cloudflare records are not authoritative. Before changing nameservers, copy all required web and mail records into Cloudflare; obtain the exact MXroute server-specific MX and DKIM values from its control panel, create the mailbox, and verify inbound delivery. Preserve the existing MX records until the MXroute mailbox and replacement records are ready. Add the exact sending-domain records shown by Resend and confirm its domain status before enabling customer receipts. After SPF and DKIM pass, publish and test a DMARC policy appropriate to the business. See [MXroute setup](https://docs.mxroute.com/docs/quick-setup.html), [Resend domain verification](https://resend.com/docs/dashboard/domains/introduction), and [DMARC setup](https://resend.com/docs/dashboard/domains/dmarc).
 
 ## 4. Configure a webhook
 
@@ -142,7 +148,17 @@ The API function timeout is 45 seconds. Request completion can make successive p
 
 The repository already uses `https://3dprint4.me` in canonical tags, Open Graph metadata, sitemap, robots file, and Stripe return configuration examples.
 
+As checked on 2026-09-13, the authoritative apex A record was `192.64.119.53` and `www` was a CNAME to `parkingpage.namecheap.com`. The domain is attached to the `jerrettdavis-projects/3dprint4me` Vercel project. Vercel currently requests `A @ 76.76.21.21` and `A www 76.76.21.21`. Remove the conflicting parking records when applying these records at the authoritative DNS provider, and preserve the mail records until the inbound route is confirmed. Verify both hosts and TLS after DNS convergence. The production deployment is available at `https://3dprint4me.vercel.app`; Neon and private files passed the live API check, while email remains unconfigured.
+
 ## 8. Production smoke test
+
+Run the read-only HTTP preflight against the deployed URL before sending customers there:
+
+```bash
+npm run smoke:live -- https://3dprint4.me
+```
+
+It requires Neon, private files, and email to be configured, checks public routes and assets, security headers, `/api/health`, and denial of private source paths. To check a Vercel preview URL, replace the origin. A third argument can change the required health flags, for example `neon,privateFiles`; this checks configuration only, not provider delivery. Continue with the real request, private file, email, and payment checks below.
 
 ### Public experience
 

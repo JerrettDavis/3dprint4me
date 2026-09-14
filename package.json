@@ -14,6 +14,7 @@
     "test:e2e": "python -m pytest tests/e2e -q",
     "audit": "python tests/audit/audit.py",
     "screenshots": "python scripts/capture_screenshots.py",
+    "smoke:live": "node scripts/smoke-live.mjs",
     "test": "npm run validate && npm run test:unit && npm run test:e2e && npm run audit",
     "vercel-build": "npm run validate",
     "test:unit": "node --test tests/unit/*.test.mjs"
@@ -27,5 +28,9 @@
     "vercel",
     "stripe",
     "accessible"
-  ]
+  ],
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "@vercel/blob": "^2.8.0"
+  }
 }

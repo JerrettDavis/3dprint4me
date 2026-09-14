@@ -2,9 +2,9 @@
 
 ## Delivered result
 
-**Status: local source verification PASS; live launch verification pending**
+**Status: local source and private-intake verification PASS; DNS and email launch verification pending**
 
-This record describes local source verification for the `3dprint4.me` release package. The current suite passed with the customer-facing privacy and terms copy. It does not establish that production DNS, credentials, private storage, email delivery, or checkout work on the live domain.
+The current suite passed with the customer-facing privacy and terms copy. The Neon database, private Vercel Blob store, and deployed request API were verified with synthetic data. Production DNS, MXroute mailbox delivery, Resend sending, and checkout remain unverified on the live domain.
 
 ## Environment
 
@@ -15,7 +15,7 @@ This record describes local source verification for the `3dprint4.me` release pa
 | Chromium | 151.0.7922.34 |
 | Test runner | Node built-in test runner and pytest through Playwright |
 
-The project runtime has no third-party npm dependencies. Playwright, pytest, and Pillow are development-only Python dependencies.
+The project runtime uses `@neondatabase/serverless` and `@vercel/blob`. Playwright, pytest, and Pillow are development-only Python dependencies.
 
 ## Commands and results
 
@@ -24,12 +24,12 @@ npm test
   Static validation: PASS
     8 HTML pages
     67 local references
-    20 JavaScript files
+    26 JavaScript files
     Vercel public output boundary validated
     Content-Security-Policy hashes validated
 
   Node unit tests: PASS
-    33 passed, 0 failed
+    35 passed, 0 failed
 
   End-to-end tests: PASS
     25 passed, 0 failed
@@ -44,6 +44,20 @@ npm run screenshots
   1 combined preview board generated
 ```
 
+```text
+node --env-file=.env.production.local scripts/verify-private-providers.mjs
+  Neon draft/submit persistence: PASS
+  Private Blob upload and signed download: PASS
+  Unauthenticated private read: denied
+
+npm run smoke:live -- https://3dprint4me.vercel.app neon,privateFiles
+  15 responses checked, 0 failures
+
+node --env-file=.env.production.local scripts/verify-live-intake.mjs
+  Deployed request create/upload/complete and persisted row: PASS
+  Synthetic record and file removed
+```
+
 ## What the verification covers
 
 ### Static and deployment structure
@@ -55,6 +69,7 @@ npm run screenshots
 - API functions have a 45-second execution cap to accommodate successive bounded provider calls.
 - The inline JSON-LD script has a matching CSP hash.
 - The production social image is a 1200×630 PNG.
+- `smoke:live` checks deployed routes, configured intake flags, security headers, and private-source denial without sending customer data.
 
 ### API and integration boundaries
 
@@ -99,7 +114,9 @@ The verification host had an enterprise Chromium policy that blocked navigation 
 
 Automated verification cannot validate credentials or business policy. Before accepting paid work, complete these checks against the real deployment:
 
-As checked on 2026-09-13, the apex domain resolved to `192.64.119.53`, outside Vercel's documented general-purpose apex address, and direct HTTPS checks of `/` and `/api/health` timed out. This workspace has no linked Vercel project or CLI credentials, so the exact project-specific DNS record and deployment state remain unverified. The verified source now has a local Git commit, but no remote has been configured and no matching repository was found under the signed-in GitHub account. Create or select the intended remote, push this source, inspect the domain in the Vercel project, update DNS to the value Vercel supplies, then rerun the live smoke test before sharing the domain.
+As checked on 2026-09-13, the apex domain resolved to `192.64.119.53`, outside Vercel's documented general-purpose apex address, and direct HTTPS checks of `/` and `/api/health` timed out. `www` resolved to `0.0.0.0` and `::`. Mail DNS has Namecheap forwarding MX records and SPF for that service, but no `_dmarc` TXT record; DNS does not prove that `hello@3dprint4.me` forwards to a monitored inbox. This workspace has no linked Vercel project or CLI credentials, so the exact project-specific DNS record and deployment state remain unverified. The verified source is pushed to the private `JerrettDavis/3dprint4me` GitHub repository on `main`. GitHub Actions [Verify run 34774131252](https://github.com/JerrettDavis/3dprint4me/actions/runs/34774131252) passed on the pushed source, including tests, audit, screenshots, and artifact upload. Inspect the domain in the Vercel project, update DNS to the value Vercel supplies, then rerun the live smoke test before sharing the domain.
+
+The read-only `npm run smoke:live` check currently fails at the domain with 0 of 15 HTTP responses received; all route requests timed out. This is a live launch failure, not a local source-test failure.
 
 1. Run the Supabase migration and confirm the bucket is private.
 2. Submit a request with real test files and confirm the database row, object paths, and signed-link expiry.

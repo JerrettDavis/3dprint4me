@@ -13,3 +13,4 @@ data/*.ndjson
 !data/.gitkeep
 playwright-report/
 test-results/
+supabase/.temp/
