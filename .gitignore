@@ -3,6 +3,7 @@
 !.env.example
 .vercel/
 .remember/
+.private/
 node_modules/
 __pycache__/
 .pytest_cache/
