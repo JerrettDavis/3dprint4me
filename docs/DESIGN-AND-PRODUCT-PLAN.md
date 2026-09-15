@@ -120,7 +120,13 @@ No estimate is represented as a binding price. The confirmed scope should state 
 
 ## Portfolio strategy
 
-The selected public work emphasizes the strongest proof of capability:
+Original, owner-approved work leads the portfolio. The initial "Designed by us" set demonstrates:
+
+- A purpose-built mechanical keyswitch tester
+- Measured mounting geometry in a magnetic power-brick holder
+- Electronics fit and service access in a ratgdo holster
+
+Public model listings remain as a secondary, inspectable catalog. They emphasize:
 
 - Parametric automotive organization
 - Printer electronics integration

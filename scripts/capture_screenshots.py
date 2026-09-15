@@ -65,7 +65,7 @@ def show_work_record(page) -> None:
 
 
 def show_project_cards(page) -> None:
-    page.locator(".portfolio-grid").scroll_into_view_if_needed()
+    page.locator(".portfolio-grid.designed-work").scroll_into_view_if_needed()
 
 
 def build_preview_board(items: list[tuple[str, Path]]) -> Path:
@@ -112,6 +112,7 @@ def main() -> int:
         ("Services · desktop · light", capture("/services.html", "services-desktop-light.png", viewport=(1440, 1000), scheme="light")),
         ("Portfolio · desktop · dark", capture("/portfolio.html", "portfolio-desktop-dark.png", viewport=(1440, 1000), scheme="dark")),
         ("Portfolio cards · desktop · light", capture("/portfolio.html", "portfolio-cards-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=show_project_cards)),
+        ("Portfolio cards · mobile · dark", capture("/portfolio.html", "portfolio-cards-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=show_project_cards)),
         ("About · desktop · light", capture("/about.html", "about-desktop-light.png", viewport=(1440, 1000), scheme="light")),
         ("About work record · desktop · dark", capture("/about.html", "about-work-desktop-dark.png", viewport=(1440, 1000), scheme="dark", prepare=show_work_record)),
         ("About work record · mobile · dark", capture("/about.html", "about-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=show_work_record)),

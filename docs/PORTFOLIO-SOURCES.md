@@ -8,6 +8,20 @@
 
 The site links to those public sources and uses selected model-listing images uploaded under Jerrett Davis's Cults3D profile, with the owner's approval for storefront use. The images are hosted locally rather than hotlinked; they are project images, not marketplace screenshots or community makes. Other artwork in `public/assets/images/portfolio/` is an original SVG interpretation created for this repository.
 
+## Owner-approved original work
+
+On 2026-09-14, Jerrett reviewed the Fusion project candidates individually and approved these three original projects for public display:
+
+| Local image | Fusion document | What the render shows |
+|---|---|---|
+| `projects/designed/keyswitch-tester.png` | `Keyswitch Tester` | Mechanical test assembly, actuator travel, switch fixture, guides, and base |
+| `projects/designed/power-brick-holder.png` | `Magnetic Power Brick Holder` | Fitted holder, mounting slots, and retained hardware |
+| `projects/designed/ratgdo-holster.png` | `Ratgdo Holster_Holder` | Electronics carrier, retention geometry, cable clearance, and mounting features |
+
+The images were captured from the owner's Fusion documents through the local Fusion MCP connection. Construction geometry was hidden for presentation, solid bodies were shown with their saved appearances, and the source documents were closed without saving those view-only changes.
+
+Unapproved and third-party candidates remain outside the repository and public site. A logo-conversion project was removed because permission to publish the source artwork has not been obtained.
+
 | Local image | Listing source | Original listing image |
 |---|---|---|
 | `projects/ioniq-console-organizer.png` | [Ioniq 5 center-console organizer](https://cults3d.com/en/3d-model/game/fully-parametric-ioniq-5-center-console-organizer) | Cults3D listing photo of the printed tray in the car |
