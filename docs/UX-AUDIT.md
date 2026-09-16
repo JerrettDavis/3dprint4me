@@ -1,7 +1,7 @@
 # UX, Accessibility, and Responsive Audit
 
 **Result: PASS**  
-Generated: 2026-09-14T23:22:09.926297+00:00  
+Generated: 2026-09-16T01:28:48.461490+00:00  
 Automated checks: **193/193 passed** across 8 routes, desktop light mode, mobile dark mode, and a separate keyboard-focus sequence.
 
 ## What was exercised
@@ -12,18 +12,18 @@ The audit executes the production HTML, CSS, SVG artwork, quote engine, navigati
 |---|---:|---|
 | Browser/render checks | Pass | 193 passed, 0 failed |
 | Viewports | Pass | 1440×1000 light and 390×844 dark on every route |
-| Keyboard | Pass | Tab-order sample includes a visible focus treatment |
-| Request UX | Pass | Service-specific wizard, inline errors, quote updates, upload metadata, review, local fallback, email and JSON handoff |
-| Backend lifecycle | Pass | Real HTTP create/complete, health, validation, 404, security headers, unconfigured integration responses |
-| Reduced motion | Pass | Browser test verifies transitions/animations collapse under the OS preference |
+| Keyboard | Pass | Separate Tab-order sample |
+| Request UX | Separate E2E suite | Quick inquiry, project dialogs, four-service wizard, inline errors, recovery, email and JSON handoff |
+| Backend lifecycle | Separate API/unit suites | Create/complete, validation, health, security headers, and unconfigured integration responses; live providers need deployment verification |
+| Reduced motion | Separate E2E suite | Browser test verifies transitions/animations collapse under the OS preference |
 
 ## UX review
 
-The primary action is consistent across the header, hero, service cards, portfolio, and footer. The intake begins with four outcome-oriented choices instead of asking customers to understand fabrication terminology. Each choice reveals only its relevant fields, and the estimate stays visible without being presented as a binding checkout total.
+The homepage starts with outcome-oriented choices, published project examples, and a short inquiry. Customers can describe an idea, share a link, or attach files without selecting a paid service. The detailed builder remains available for the four service paths and labels its estimates as non-binding.
 
-Validation is local to the field, moves focus to the first issue, and preserves the draft in the browser. The final review restates the service, rough range, contact, handoff, files, and description before consent. When no external service is configured, submission still succeeds as a demonstrable local handoff with an email draft and downloadable JSON copy rather than ending in a dead form.
+Quick inquiries and detailed requests retain separate contracts. The inquiry provides field validation, optional local drafts, and email/download recovery when online intake is unavailable. A recovery copy is not proof of server acceptance or email delivery. The detailed builder retains its service-specific review and consent step.
 
-Mobile navigation is keyboard-dismissable, primary controls remain at least 44 CSS pixels where practical, form actions remain reachable in a sticky footer, and all audited pages avoid horizontal scrolling at 390 CSS pixels. Light, dark, and system themes use the same information hierarchy rather than changing content between modes.
+The findings above report mobile overflow and target sizes, and the separate E2E suite checks keyboard dismissal, dialog behavior, and theme controls. Light, dark, and system preferences share the same customer content. Generated screenshots include desktop and mobile inquiry and project dialogs for visual review.
 
 ## Finding resolved during verification
 
@@ -31,6 +31,6 @@ The audit found that an author-level `display` rule could override the browser�
 
 ## Limits and launch checks
 
-Automated contrast sampling excludes text positioned over gradients or illustrations because a single computed background color would be misleading; those overlays were visually inspected in the generated screenshots. Before accepting paid work, perform one manual pass with a production URL, a screen reader, real email delivery, the chosen private storage bucket, and Stripe test mode. Pricing, taxes, shipping rules, prohibited-item policy, warranty language, and privacy terms should be reviewed for the actual business and jurisdiction.
+Automated contrast sampling excludes text positioned over gradients or illustrations because a single computed background color would be misleading. Those overlays require separate visual inspection of generated screenshots; this script does not certify that inspection. Before accepting paid work, perform one manual pass with a production URL, a screen reader, real email delivery, private Blob storage, and Stripe test mode. Pricing, taxes, shipping rules, prohibited-item policy, warranty language, and privacy terms should be reviewed for the actual business and jurisdiction.
 
 The machine-readable result is in [`docs/ux-audit.json`](./ux-audit.json).

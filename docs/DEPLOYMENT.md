@@ -232,3 +232,11 @@ The repository supplies working language and technical controls, but production 
 - File retention and deletion schedule
 - Rush fees and service-level promises
 - Accessibility and screen-reader validation on the live deployment
+
+## Blue/teal release and quick inquiry
+
+Apply the additive inquiry migration before releasing the new homepage: `node --env-file=.env.production.local scripts/migrate-neon.mjs 002_quick_inquiries.sql`. Migration statements run in one transaction. Existing detailed requests and their schema remain unchanged.
+
+For a release candidate with Production provider settings but no domain promotion, use `vercel deploy --prod --skip-domain`. Verify `node --env-file=.env.production.local scripts/verify-live-inquiry.mjs https://<candidate-host>` before `vercel promote <candidate-host>`. The verifier creates only labeled synthetic data and deletes its own records/files. It refuses locally configured email delivery; do not use it against an email-enabled deployment without separately authorizing test notifications.
+
+The quick-inquiry notification and retention runbook is in [QUICK-INQUIRY.md](QUICK-INQUIRY.md). Database receipt is independent of owner-email delivery.

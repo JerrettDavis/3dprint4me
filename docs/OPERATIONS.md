@@ -209,6 +209,10 @@ When capacity is constrained, change the public copy before accepting work rathe
 - Explain remaining limitations and maintenance needs.
 - Do not return equipment in a less safe state.
 
+## Quick inquiries
+
+Apply the additive Neon inquiry migration before release. Monitor accepted inquiries and pending/failed notifications independently; quick inquiries send only an owner notification and do not create estimates or orders. See [quick inquiry operations](QUICK-INQUIRY.md) for private file retrieval, bounded notification retries, recovery, and draft cleanup.
+
 ## Retention suggestion
 
 Choose and publish an actual policy. A practical starting point to review legally and operationally:
