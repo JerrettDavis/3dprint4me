@@ -2,14 +2,16 @@ import assert from 'node:assert/strict';
 import { randomBytes, createHash } from 'node:crypto';
 import { head, del } from '@vercel/blob';
 import { neon } from '@neondatabase/serverless';
+import { requireDisabledRemoteDelivery } from './lib/verification-safety.mjs';
 
 // Run with node --env-file=<private env file> scripts/verify-live-inquiry.mjs <target origin>.
-// The target deployment must also have owner email delivery unconfigured.
+// The target deployment must explicitly report email and webhook delivery disabled.
 if (!process.argv[2]) throw new Error('An explicit target origin is required.');
 if (!process.env.DATABASE_URL) throw new Error('Database configuration is required.');
 if (process.env.RESEND_API_KEY && process.env.REQUEST_FROM_EMAIL && process.env.REQUEST_TO_EMAIL) throw new Error('Disable owner email delivery before running synthetic verification.');
 const base = new URL(process.argv[2]);
 if (!['http:', 'https:'].includes(base.protocol) || base.username || base.password) throw new Error('Invalid target origin.');
+await requireDisabledRemoteDelivery(base);
 const sql = neon(process.env.DATABASE_URL);
 const submissionKey = randomBytes(32).toString('hex');
 const keyHash = createHash('sha256').update(submissionKey).digest('hex');
