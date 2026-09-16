@@ -10,13 +10,14 @@
   },
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
-    "validate": "node scripts/validate.mjs",
+    "assets:version": "node scripts/version-assets.mjs",
+    "validate": "node scripts/version-assets.mjs --check && node scripts/validate.mjs",
     "test:e2e": "python -m pytest tests/e2e -q",
     "audit": "python tests/audit/audit.py",
     "screenshots": "python scripts/capture_screenshots.py",
     "smoke:live": "node scripts/smoke-live.mjs",
     "test": "npm run validate && npm run test:unit && npm run test:e2e && npm run audit",
-    "vercel-build": "npm run validate",
+    "vercel-build": "npm run assets:version && npm run validate",
     "test:unit": "node --test tests/unit/*.test.mjs"
   },
   "homepage": "https://3dprint4.me",
