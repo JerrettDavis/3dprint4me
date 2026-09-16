@@ -1,5 +1,7 @@
 # Architecture
 
+The separate homepage inquiry API and its private-upload, ownership, and notification contract are documented in [QUICK-INQUIRY.md](QUICK-INQUIRY.md).
+
 ## Goals
 
 The implementation optimizes for a fast public site, low operating cost, few dependencies, secure handling of customer files, and clear seams for hosted services. It intentionally avoids making a large client framework a prerequisite for a small-service storefront.

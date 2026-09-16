@@ -65,7 +65,17 @@ def show_work_record(page) -> None:
 
 
 def show_project_cards(page) -> None:
-    page.locator(".portfolio-grid").scroll_into_view_if_needed()
+    page.locator(".portfolio-grid.designed-work").scroll_into_view_if_needed()
+
+
+def show_inquiry(page) -> None:
+    page.locator(".hero-actions [data-ask]").click()
+    page.locator("#ask-message").fill("The clip on my vacuum broke. Could you make a replacement?")
+    page.locator("#ask-email").fill("customer@example.com")
+
+
+def show_project_dialog(page) -> None:
+    page.locator(".hero-project").click()
 
 
 def build_preview_board(items: list[tuple[str, Path]]) -> Path:
@@ -109,9 +119,16 @@ def main() -> int:
     cases = [
         ("Home · desktop · light", capture("/", "home-desktop-light.png", viewport=(1440, 1000), scheme="light")),
         ("Home · desktop · dark", capture("/", "home-desktop-dark.png", viewport=(1440, 1000), scheme="dark")),
+        ("Home · mobile · light", capture("/", "home-mobile-light.png", viewport=(390, 844), scheme="light")),
+        ("Home · mobile · dark", capture("/", "home-mobile-dark.png", viewport=(390, 844), scheme="dark")),
+        ("Quick inquiry · desktop · light", capture("/", "inquiry-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=show_inquiry)),
+        ("Quick inquiry · mobile · dark", capture("/", "inquiry-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=show_inquiry)),
+        ("Project detail · desktop · dark", capture("/", "project-dialog-desktop-dark.png", viewport=(1440, 1000), scheme="dark", prepare=show_project_dialog)),
+        ("Project detail · mobile · light", capture("/", "project-dialog-mobile-light.png", viewport=(390, 844), scheme="light", prepare=show_project_dialog)),
         ("Services · desktop · light", capture("/services.html", "services-desktop-light.png", viewport=(1440, 1000), scheme="light")),
         ("Portfolio · desktop · dark", capture("/portfolio.html", "portfolio-desktop-dark.png", viewport=(1440, 1000), scheme="dark")),
         ("Portfolio cards · desktop · light", capture("/portfolio.html", "portfolio-cards-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=show_project_cards)),
+        ("Portfolio cards · mobile · dark", capture("/portfolio.html", "portfolio-cards-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=show_project_cards)),
         ("About · desktop · light", capture("/about.html", "about-desktop-light.png", viewport=(1440, 1000), scheme="light")),
         ("About work record · desktop · dark", capture("/about.html", "about-work-desktop-dark.png", viewport=(1440, 1000), scheme="dark", prepare=show_work_record)),
         ("About work record · mobile · dark", capture("/about.html", "about-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=show_work_record)),

@@ -34,7 +34,7 @@ function printEstimate(data) {
   const subtotal = Math.max(p.minimum, setup + production + finish + delivery);
   const exactInputs = Boolean(data.grams && data.machineHours);
   const spread = exactInputs ? 0.14 : 0.28;
-  return range(subtotal * (1 - spread), subtotal * (1 + spread), exactInputs ? "better" : "rough", {
+  return range(Math.max(p.minimum, subtotal * (1 - spread)), subtotal * (1 + spread), exactInputs ? "better" : "rough", {
     service: SERVICE_LABELS.print,
     material: String(data.material || "PLA").toUpperCase(),
     quantity: String(quantity),

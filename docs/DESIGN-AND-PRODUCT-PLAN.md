@@ -120,7 +120,13 @@ No estimate is represented as a binding price. The confirmed scope should state 
 
 ## Portfolio strategy
 
-The selected public work emphasizes the strongest proof of capability:
+Original, owner-approved work leads the portfolio. The initial "Designed by us" set demonstrates:
+
+- A purpose-built mechanical keyswitch tester
+- Measured mounting geometry in a magnetic power-brick holder
+- Electronics fit and service access in a ratgdo holster
+
+Public model listings remain as a secondary, inspectable catalog. They emphasize:
 
 - Parametric automotive organization
 - Printer electronics integration
@@ -193,3 +199,9 @@ Avoid collecting behavioral analytics until there is a specific decision they wi
 - Add fixed-price repeatable products only after there is a stable SKU, known material/time, stock or capacity rule, packaging, and license to sell
 - Connect Shopify through a Buy Button for a few products or Storefront API for a deeper catalog
 - Syndicate appropriate products to marketplaces separately from custom-service intake
+
+## September 15 storefront evolution
+
+The blue/teal proposal supplies the homepage direction: outcome-led copy, a real in-use Ioniq organizer photo, three filterable published examples with detail/share dialogs, a business section, and a short neutral inquiry. The complete original-design portfolio remains linked. System/light/dark preferences are shared across the homepage and existing detailed builder.
+
+The inquiry requires a reply email and a message, usable link, or attachment; name is optional. It does not choose consulting or manufacture an estimate. The detailed four-service builder remains a separate route. The proposed demo inbox, fake APIs, remote image swapping, iframe builder, and noindex metadata are excluded. See [implementation review and plan](superpowers/plans/2026-09-15-blue-teal.md) and [production inquiry contract](QUICK-INQUIRY.md).
