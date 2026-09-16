@@ -56,7 +56,11 @@ Owns the intake state machine, conditional fields, draft persistence, file valid
 
 ### `assets/css/site.css`
 
-Contains theme tokens, layout primitives, components, responsive behavior, focus states, reduced-motion handling, and print-independent illustration styling. There are no remote fonts or stylesheets.
+Contains service-page and builder layouts, responsive behavior, and illustration styling. The homepage and inquiry layouts live in `assets/evolution/evolution.css`.
+
+### `assets/css/shared.css`
+
+Loaded last on all eight public pages. Owns the shared blue/teal theme tokens, typography, content widths, buttons, navigation, footer, focus treatment, and responsive chrome. Both layout stylesheets consume these tokens. Every page mounts the same header and footer through `site.js`; the homepage imports that module before initializing its gallery and inquiry dialogs. The shared inquiry CTA opens the homepage dialog directly or links to `/?ask=unknown` from another route. Detailed service-specific builder links remain available. There are no remote fonts or stylesheets.
 
 ## Server functions
 
