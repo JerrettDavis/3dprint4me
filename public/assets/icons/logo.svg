@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 64" role="img" aria-labelledby="title desc">
   <title id="title">3dprint4.me</title><desc id="desc">A dimensional cube mark and the 3dprint4.me wordmark.</desc>
-  <g transform="translate(0)"><path fill="#087f9b" d="M31.8 2.8 57 17.3v29.1L31.8 61 6.6 46.4V17.3L31.8 2.8Z"/><path fill="#fff" d="m31.8 10.3 18.6 10.8-18.6 10.7-18.7-10.7 18.7-10.8Zm-20 15.8 16.8 9.7v17.7l-16.8-9.7V26.1Zm23.2 9.7 16.8-9.7v17.7L35 53.5V35.8Z"/><path fill="#087f9b" d="m31.8 18.2 6.2 3.6-6.2 3.6-6.3-3.6 6.3-3.6Z"/></g>
-  <text x="74" y="43" fill="currentColor" font-family="Inter,system-ui,sans-serif" font-size="34" font-weight="800" letter-spacing="-1.6">3dprint4<tspan fill="#087f9b">.me</tspan></text>
+  <g transform="translate(0)"><path fill="#245adb" d="M31.8 2.8 57 17.3v29.1L31.8 61 6.6 46.4V17.3L31.8 2.8Z"/><path fill="#fff" d="m31.8 10.3 18.6 10.8-18.6 10.7-18.7-10.7 18.7-10.8Zm-20 15.8 16.8 9.7v17.7l-16.8-9.7V26.1Zm23.2 9.7 16.8-9.7v17.7L35 53.5V35.8Z"/><path fill="#245adb" d="m31.8 18.2 6.2 3.6-6.2 3.6-6.3-3.6 6.3-3.6Z"/></g>
+  <text x="74" y="43" fill="currentColor" font-family="Inter,system-ui,sans-serif" font-size="34" font-weight="800" letter-spacing="-1.6">3dprint4<tspan fill="#0b7878">.me</tspan></text>
 </svg>

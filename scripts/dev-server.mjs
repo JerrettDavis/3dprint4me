@@ -6,6 +6,7 @@ import requestHandler from "../api/request.js";
 import uploadHandler from "../api/upload-url.js";
 import checkoutHandler from "../api/checkout.js";
 import healthHandler from "../api/health.js";
+import inquiryHandler from "../api/inquiry.js";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const root = resolve(projectRoot, "public");
@@ -13,6 +14,7 @@ const port = Number(process.env.PORT || 4173);
 const host = process.env.HOST || "127.0.0.1";
 process.env.LOCAL_DEV ||= "1";
 const apiRoutes = new Map([["/api/request", requestHandler], ["/api/upload-url", uploadHandler], ["/api/checkout", checkoutHandler], ["/api/health", healthHandler]]);
+apiRoutes.set("/api/inquiry", inquiryHandler);
 const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".mjs":"text/javascript; charset=utf-8", ".json":"application/json; charset=utf-8", ".webmanifest":"application/manifest+json; charset=utf-8", ".svg":"image/svg+xml", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp", ".xml":"application/xml; charset=utf-8", ".txt":"text/plain; charset=utf-8" };
 function securityHeaders(res) { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin"); res.setHeader("X-Frame-Options", "DENY"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); }
 async function fileExists(path) { try { return (await stat(path)).isFile(); } catch { return false; } }
