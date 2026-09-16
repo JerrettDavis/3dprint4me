@@ -116,7 +116,7 @@ def render_page_html(route: str, *, storage: dict[str, str] | None = None, stora
 
     html = source_path.read_text(encoding="utf-8")
     html = re.sub(
-        r'<link\s+rel=["\']stylesheet["\']\s+href=["\'](?P<path>/assets/[^"\']+\.css)["\']\s*/?>',
+        r'<link\s+rel=["\']stylesheet["\']\s+href=["\'](?P<path>/assets/[^"\'?]+\.css)(?:\?v=[a-f0-9]+)?["\']\s*/?>',
         lambda match: "<style>\n" + (SITE_ROOT / match.group("path").lstrip("/")).read_text(encoding="utf-8") + "\n</style>",
         html,
         flags=re.IGNORECASE,
@@ -124,7 +124,7 @@ def render_page_html(route: str, *, storage: dict[str, str] | None = None, stora
     html = re.sub(r'<link\s+rel=["\'](?:icon|manifest)["\'][^>]*>', "", html, flags=re.IGNORECASE)
     order = filename == "order.html"
     html = re.sub(
-        r'<script\s+type=["\']module["\']\s+src=["\']/assets/(?:js/(?:site|order)|evolution/app)\.js["\']\s*>\s*</script>',
+        r'<script\s+type=["\']module["\']\s+src=["\']/assets/(?:js/(?:site|order)|evolution/app)\.js(?:\?v=[a-f0-9]+)?["\']\s*>\s*</script>',
         "",
         html,
         flags=re.IGNORECASE,

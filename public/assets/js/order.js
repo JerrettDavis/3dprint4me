@@ -1,7 +1,7 @@
-import "./site.js";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js";
-import { toast } from "./site.js";
+import "./site.js?v=72c3aa9ae76ea28e";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=72c3aa9ae76ea28e";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=72c3aa9ae76ea28e";
+import { toast } from "./site.js?v=72c3aa9ae76ea28e";
 
 const form = document.querySelector("#project-form");
 const steps = [...document.querySelectorAll(".form-step")];
