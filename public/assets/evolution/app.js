@@ -1,3 +1,4 @@
+import '../js/site.js';
 import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl } from './inquiry-core.js';
 import { PROJECTS, INTENT_LABELS } from './projects.js';
 import { submitInquiry } from './inquiry-client.js';
@@ -48,27 +49,6 @@ $$('dialog').forEach(dialog => {
     if (event.target === dialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) dialog.close();
   });
 });
-function setTheme(mode, persist = true) {
-  const modes = ['system', 'light', 'dark']; state.theme = modes.includes(mode) ? mode : 'system';
-  const effective = state.theme === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : state.theme;
-  document.documentElement.dataset.theme = effective;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', effective === 'dark' ? '#101923' : '#f3f6fa');
-  const next = modes[(modes.indexOf(state.theme) + 1) % modes.length];
-  $('#theme-button').setAttribute('aria-label', `Theme: ${state.theme}. Switch to ${next}.`);
-  $('#theme-button').innerHTML = ico(state.theme === 'dark' ? 'moon' : state.theme === 'light' ? 'sun' : 'system');
-  $('#theme-button').title = `Theme: ${state.theme}. Click for ${next}.`;
-  if (persist) { try { localStorage.setItem(STORAGE.theme, state.theme); } catch { /* theme still works for this session */ } }
-}
-$('#theme-button').addEventListener('click', () => {
-  const modes = ['system', 'light', 'dark']; setTheme(modes[(modes.indexOf(state.theme) + 1) % modes.length]); toast(`Theme: ${state.theme}.`);
-});
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (state.theme === 'system') setTheme('system', false); });
-setTheme(readStorage(STORAGE.theme) || 'system', false);
-function closeMenu() { $('#mobile-nav').hidden = true; $('#menu-button').setAttribute('aria-expanded', 'false'); $('#menu-button').setAttribute('aria-label', 'Open navigation'); $('#menu-button').innerHTML = ico('menu'); }
-$('#menu-button').addEventListener('click', () => { const open = $('#mobile-nav').hidden; $('#mobile-nav').hidden = !open; $('#menu-button').setAttribute('aria-expanded', String(open)); $('#menu-button').setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation'); $('#menu-button').innerHTML = ico(open ? 'close' : 'menu'); if (open) $('#mobile-nav a')?.focus(); });
-$('#mobile-nav').addEventListener('click', event => { if (event.target.closest('a, [data-ask]')) closeMenu(); });
-document.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('#mobile-nav').hidden) { closeMenu(); $('#menu-button').focus(); } });
-
 function renderGallery() {
   $('#project-grid').innerHTML = PROJECTS.map(project => `<a class="work-card" href="?project=${project.slug}" data-project="${project.slug}" data-category="${project.category}"><div class="work-card-image"><img class="project-image" data-project-image="${project.slug}" src="${project.image}" alt="${esc(project.alt)}" width="900" height="620" loading="lazy"><span class="work-card-label">${esc(project.label)}</span><span class="media-note" data-media-label="${project.slug}">${esc(project.media)}</span></div><div class="work-card-body"><h3>${esc(project.title)}</h3><p>${esc(project.summary)}</p><span class="work-card-footer">See the idea behind it ${ico('diagonal')}</span></div></a>`).join('');
 }
@@ -130,7 +110,8 @@ function openInquiry(intent = 'unknown', entryPoint = 'unknown', exampleSlug = n
   $('#ask-intent').value = Object.hasOwn(INTENT_LABELS, intent) ? intent : 'unknown';
   state.context = { entryPoint, exampleSlug: PROJECTS.some(project => project.slug === exampleSlug) ? exampleSlug : null }; showContext();
   $('#draft-banner').hidden = !readStorage(STORAGE.draft);
-  closeMenu(); showDialog($('#ask-dialog'), $('#ask-title'));
+  if ($('#menu-toggle')?.getAttribute('aria-expanded') === 'true') $('#menu-toggle').click();
+  showDialog($('#ask-dialog'), $('#ask-title'));
 }
 $('#remove-context').addEventListener('click', () => { state.context.exampleSlug = null; showContext(); });
 function addFiles(collection) {
@@ -252,7 +233,10 @@ document.addEventListener('click', event => {
   const project = event.target.closest('[data-project]'); if (project) { event.preventDefault(); openProject(project.dataset.project); return; }
 });
 if ('IntersectionObserver' in window) new IntersectionObserver(entries => { $('#mobile-ask').classList.toggle('is-away', entries.some(entry => entry.isIntersecting)); }, { threshold: .25 }).observe($('#final-cta'));
-const initialProject = new URLSearchParams(location.search).get('project');
+const initialSearch = new URLSearchParams(window.__THREEDP_TEST_SEARCH || location.search);
+const initialProject = initialSearch.get('project');
 if (initialProject && PROJECTS.some(project => project.slug === initialProject)) openProject(initialProject, false);
 
 document.querySelector('#year').textContent = new Date().getFullYear();
+
+if (initialSearch.get('ask') === 'unknown') openInquiry('unknown', 'navigation');

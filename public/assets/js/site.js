@@ -40,13 +40,13 @@ function headerMarkup() {
       ${navMarkup()}
       <div class="nav-actions">
         <button class="icon-button" id="theme-toggle" type="button" aria-label="Theme: system" title="Change theme">${icons.system}</button>
-        <a class="button primary small-button" href="/order.html">Start a project</a>
+        <a class="button primary small-button" href="/?ask=unknown" data-ask="unknown" data-entry="navigation">Let’s make something</a>
         <button class="icon-button menu-button" id="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-panel" aria-label="Open menu">${icons.menu}</button>
       </div>
     </div>
     <nav class="mobile-panel" id="mobile-panel" aria-label="Mobile navigation">
       ${navItems.map(([label, href]) => `<a class="nav-link" href="${href}">${label}</a>`).join("")}
-      <a class="button primary block" href="/order.html">Start a project ${icons.arrow}</a>
+      <a class="button primary block" href="/?ask=unknown" data-ask="unknown" data-entry="navigation">Let’s make something ${icons.arrow}</a>
     </nav>
   </header>`;
 }
@@ -63,7 +63,7 @@ function footerMarkup() {
         <a href="mailto:${SITE_CONFIG.email}">${SITE_CONFIG.email}</a>
       </div>
       <div><h2>Services</h2><a href="/order.html?service=design">3D modeling</a><a href="/order.html?service=print">3D printing</a><a href="/order.html?service=repair">Repair & tuning</a><a href="/order.html?service=consult">Consulting</a></div>
-      <div><h2>Explore</h2><a href="/portfolio.html">Selected work</a><a href="/services.html">Pricing approach</a><a href="/about.html">About Jerrett</a><a href="/order.html">Start a project</a></div>
+      <div><h2>Explore</h2><a href="/portfolio.html">Selected work</a><a href="/services.html">Pricing approach</a><a href="/about.html">About Jerrett</a><a href="/?ask=unknown" data-ask="unknown" data-entry="navigation">Let’s make something</a></div>
       <div><h2>Elsewhere</h2><a href="${SITE_CONFIG.profiles.printables}" target="_blank" rel="noopener">Printables</a><a href="${SITE_CONFIG.profiles.cults}" target="_blank" rel="noopener">Cults3D</a><a href="${SITE_CONFIG.profiles.thingiverse}" target="_blank" rel="noopener">Thingiverse</a></div>
     </div>
     <div class="container footer-base"><span>© <span id="year"></span> ${SITE_CONFIG.owner}</span><span><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></span></div>
