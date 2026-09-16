@@ -127,3 +127,9 @@ The read-only `npm run smoke:live` check currently fails at the domain with 0 of
 7. Configure rate limiting or bot protection before broad promotion if request abuse becomes material.
 
 No live provider account, DNS record, production credential, or payment webhook is included in the source package.
+
+## Blue/teal integration verification — September 15, 2026
+
+Baseline: 35 unit / 27 browser / 193 UX checks. Integrated release: 51 unit / 35 browser / 193 UX checks passed, including quick-inquiry validation, local recovery with denied storage, real client/server contract, same-key retries, uncertain completion, and same-metadata attachment replacement. The $15 print minimum has a regression test.
+
+A real local HTTP server connected to Neon/private Blob verified concurrent inquiry creation, request ownership, missing-upload rejection, signed upload, anonymous-read denial, completion, replay, and deletion of synthetic records/files. Email is unconfigured; no email delivery was claimed or tested. Screenshot capture produced 21 views and the preview board was visually inspected for the proposed layout, mobile dialogs, both color themes, and retained detailed service pages. Production release evidence follows after deployment.

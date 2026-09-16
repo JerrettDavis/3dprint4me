@@ -32,14 +32,14 @@ def test_public_pages_render_theme_and_navigation() -> None:
 def test_mobile_menu_keyboard_and_no_horizontal_overflow() -> None:
     with SiteBrowser(viewport=(390, 844), color_scheme="dark") as site:
         page = site.load("/")
-        menu = page.locator("#menu-toggle")
-        panel = page.locator("#mobile-panel")
+        menu = page.locator("#menu-button")
+        panel = page.locator("#mobile-nav")
 
         assert menu.is_visible()
         assert menu.get_attribute("aria-expanded") == "false"
         menu.click()
         assert menu.get_attribute("aria-expanded") == "true"
-        assert panel.evaluate("el => el.classList.contains('open')")
+        assert panel.is_visible()
         assert panel.locator("a").first.evaluate("el => el === document.activeElement")
         page.keyboard.press("Escape")
         assert menu.get_attribute("aria-expanded") == "false"
@@ -87,9 +87,10 @@ def test_designed_and_published_work_is_readable_without_decorative_images() -> 
 def test_approved_original_projects_lead_the_portfolio() -> None:
     with SiteBrowser(viewport=(1440, 1000), color_scheme="light") as site:
         home = site.load("/")
-        featured = home.locator(".hero-case img.project-image")
+        featured = home.locator(".hero-project img.project-image")
         assert featured.count() == 1
-        assert "keyswitch tester" in featured.get_attribute("alt").lower()
+        assert "ioniq" in featured.get_attribute("alt").lower()
+        assert home.locator("a[href='/portfolio.html']").count() >= 1
         assert featured.evaluate("img => img.complete && img.naturalWidth > 0")
 
         work = site.load("/portfolio.html")

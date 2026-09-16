@@ -25,11 +25,22 @@ def _module_source(path: Path) -> str:
     """
     source = path.read_text(encoding="utf-8")
     source = re.sub(r"^\s*import\s+[^;]+;\s*$", "", source, flags=re.MULTILINE)
-    source = re.sub(r"\bexport\s+(?=(?:const|let|var|function|class)\b)", "", source)
+    source = re.sub(r"\bexport\s+(?=(?:const|let|var|function|class|async\s+function)\b)", "", source)
     return f"\n/* source: {path.relative_to(ROOT).as_posix()} */\n{source}\n"
 
 
-def _bundle(order: bool) -> str:
+def _bundle(order: bool, *, home: bool = False) -> str:
+    if home:
+        paths = [SITE_ROOT / "assets/evolution" / name for name in (
+            "inquiry-core.js", "projects.js", "inquiry-client.js", "app.js"
+        )]
+        bundle = "\n".join(_module_source(path) for path in paths)
+        # Gallery and dialog photos are created from the production project data.
+        return re.sub(
+            r"(?P<quote>['\"])(?P<path>/assets/[^'\"]+\.(?:svg|png|jpe?g|webp))(?P=quote)",
+            lambda match: json.dumps(_asset_data_uri(match.group("path"))),
+            bundle,
+        )
     paths = [SITE_ROOT / "assets/js/config.js"]
     if order:
         paths.append(SITE_ROOT / "assets/js/quote-engine.js")
@@ -104,24 +115,23 @@ def render_page_html(route: str, *, storage: dict[str, str] | None = None, stora
         raise FileNotFoundError(f"Unknown site route: {route}")
 
     html = source_path.read_text(encoding="utf-8")
-    css = CSS_PATH.read_text(encoding="utf-8")
     html = re.sub(
-        r'<link\s+rel=["\']stylesheet["\']\s+href=["\']/assets/css/site\.css["\']\s*/?>',
-        f"<style>\n{css}\n</style>",
+        r'<link\s+rel=["\']stylesheet["\']\s+href=["\'](?P<path>/assets/[^"\']+\.css)["\']\s*/?>',
+        lambda match: "<style>\n" + (SITE_ROOT / match.group("path").lstrip("/")).read_text(encoding="utf-8") + "\n</style>",
         html,
         flags=re.IGNORECASE,
     )
     html = re.sub(r'<link\s+rel=["\'](?:icon|manifest)["\'][^>]*>', "", html, flags=re.IGNORECASE)
     order = filename == "order.html"
     html = re.sub(
-        r'<script\s+type=["\']module["\']\s+src=["\']/assets/js/(?:site|order)\.js["\']\s*>\s*</script>',
+        r'<script\s+type=["\']module["\']\s+src=["\']/assets/(?:js/(?:site|order)|evolution/app)\.js["\']\s*>\s*</script>',
         "",
         html,
         flags=re.IGNORECASE,
     )
     html = _inline_static_images(html)
     preamble = _storage_preamble(f"/{filename}" if filename != "index.html" else "/", f"?{query}" if query else "", storage)
-    scripts = f"<script>\n{_bundle(order)}\n</script>"
+    scripts = f"<script>\n{_bundle(order, home=filename == 'index.html')}\n</script>"
     denied_script = "<script>Object.defineProperty(window, 'localStorage', { configurable: true, get() { throw new DOMException('Storage denied', 'SecurityError'); } });</script>" if storage_denied else ""
     html = html.replace("</head>", f"{preamble}{denied_script}</head>", 1)
     html = html.replace("</body>", f"{scripts}</body>", 1)

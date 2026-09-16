@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#080b10" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
   <meta property="og:title" content="3dprint4.me — Ideas into parts. Problems into fixes.">
-  <meta property="og:description" content="Custom 3D modeling, printing, repair, tuning, and printer design. Most straightforward work turns around in under five business days.">
+  <meta property="og:description" content="Custom 3D modeling, printing, repair, tuning, and printer design. Share a photo, sketch, model link, or idea to start a project.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://3dprint4.me/">
   <meta property="og:image" content="https://3dprint4.me/assets/images/social-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="3dprint4.me — Ideas into parts. Problems into fixes."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://3dprint4.me/assets/images/social-card.png">
@@ -15,166 +15,74 @@
   <link rel="canonical" href="https://3dprint4.me/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/assets/evolution/evolution.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfessionalService","name":"3dprint4.me","url":"https://3dprint4.me","email":"hello@3dprint4.me","founder":{"@type":"Person","name":"Jerrett Davis"},"areaServed":{"@type":"City","name":"Tulsa"},"description":"Custom 3D modeling, 3D printing, printer repair, tuning, consulting, and printer design.","sameAs":["https://www.printables.com/@Jdsfighter","https://cults3d.com/en/users/JerrettDavis/3d-models"]}</script>
 </head>
 <body>
-  <div id="site-header"></div>
+  <svg class="svg-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-diagonal" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6L18 18M6 18L18 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 9 5v9l-9 5-9-5V8l9-5ZM3 8l9 5 9-5M12 13v9M7.5 5.5l9 5"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M21 6.5a6 6 0 0 1-8 6L6 20a2.5 2.5 0 0 1-3.5-3.5l7.4-7A6 6 0 0 1 17 2l-4 4 1 4 4 1 3-4.5Z"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 2.7 7.3L22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 10 5-10 5L2 8l10-5ZM2 12l10 5 10-5M2 16l10 5 10-5"/></symbol>
+    <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m3 16 5-4 4 4 4-6 5 6"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="m10 14 4-4M9 16l-2 2a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0M15 8l2-2a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0" transform="translate(-1 0)"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7l-5-5ZM14 2v6h5M8 12h8M8 16h6"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 5 9 8 9-8"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/></symbol><symbol id="i-system" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20 4c-3-2-6 0-8 2-2-2-5-4-8-2-5 4 1 11 8 17 7-6 13-13 8-17Z"/></symbol>
+  </defs></svg>
+  <a class="skip-link" href="#main">Skip to content</a>
+<header class="site-nav site-header">
+    <div class="wrap nav-inner">
+      <a class="wordmark" href="/" aria-label="3dprint4.me home"><span class="brand-cube"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m16 2 13 7.5v13L16 30 3 22.5v-13Z"/><path d="m3 9.5 13 7.4 13-7.4M16 17v13M9.5 5.7l13 7.5"/></svg></span>3dprint4<span class="wordmark-end">.me</span></a>
+      <nav class="desktop-links" aria-label="Main navigation"><a href="#work">What's possible</a><a href="#how-it-works">How it works</a><a href="#for-business">For businesses</a><a href="/about.html">About</a><button type="button" class="nav-text" data-ask="repair" data-entry="navigation-repair">Printer repair</button></nav>
+      <div class="nav-actions"><button class="icon-button theme-button" type="button" id="theme-button" aria-label="Theme: light. Switch to dark." title="Change color theme"><svg class="icon"><use href="#i-sun"/></svg></button><button class="button button-dark nav-cta" type="button" data-ask="unknown" data-entry="navigation">Let's make something <svg class="icon"><use href="#i-diagonal"/></svg></button><button class="icon-button mobile-menu-button" type="button" id="menu-button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open navigation"><svg class="icon"><use href="#i-menu"/></svg></button></div>
+    </div>
+    <nav class="mobile-nav wrap" id="mobile-nav" aria-label="Mobile navigation" hidden><a href="#work">What's possible</a><a href="#how-it-works">How it works</a><a href="#for-business">For businesses</a><a href="/about.html">About</a><button class="nav-text" data-ask="repair" data-entry="mobile-navigation" type="button">Printer repair</button><button class="button button-accent" data-ask="unknown" data-entry="mobile-navigation" type="button">Can you make this? <svg class="icon"><use href="#i-diagonal"/></svg></button></nav>
+  </header>
+
   <main id="main">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <span class="eyebrow">Custom fabrication · Tulsa, Oklahoma</span>
-          <h1 class="display" id="hero-title">Ideas into parts.<br><span class="accent-text">Problems into fixes.</span></h1>
-          <p class="lede">Bring a model, a broken part, a sketch, or a half-formed idea. I design useful objects, print them well, and get stubborn printers working again.</p>
-          <div class="hero-actions">
-            <a class="button primary" href="/order.html">Start a project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-            <a class="button secondary" href="/portfolio.html">See selected work</a>
-          </div>
-          <div class="trust-line" aria-label="Service highlights">
-            <span>Rough price before review</span><span>Private file intake</span><span>Most work under 5 business days</span>
-          </div>
-        </div>
-        <aside class="hero-case" aria-label="Example original project">
-          <div class="hero-case-top"><span class="eyebrow">Designed by us</span><span class="hero-case-ref">MECHANICAL TEST RIG</span></div>
-          <img class="project-image hero-project-image designed-render" src="/assets/images/projects/designed/keyswitch-tester.png" alt="CAD render of our tall keyswitch tester assembly with actuator carriage, guides, switch fixture, and base" width="1600" height="1000" fetchpriority="high">
-          <h2>A purpose-built keyswitch tester.</h2>
-          <p>The assembly turns repeatable switch pressing into a controlled mechanism, with the actuator, linear travel, fixture, and service access modeled together.</p>
-          <a href="/portfolio.html#designed-work">See how we design</a>
-        </aside>
-</div>
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy"><p class="eyebrow"><span class="location-dot"></span> MADE IN TULSA. MADE FOR YOU.</p><h1 id="hero-title">That thing<br>you need?<br><span>Let's make it.</span></h1><p class="hero-intro">A replacement part. Something made to fit. An idea that doesn't exist on a shelf.<br class="desktop-break"> Start with what you have. We'll figure out the rest.</p><div class="hero-actions"><button class="button button-accent button-large" type="button" data-ask="unknown" data-entry="hero">Can you make this? <svg class="icon"><use href="#i-diagonal"/></svg></button><a class="text-link" href="#work">Show me what's possible <svg class="icon"><use href="#i-arrow"/></svg></a></div><p class="hero-reassurance"><svg class="icon"><use href="#i-check"/></svg>No CAD file needed.<span class="separator">/</span>No payment to ask.</p></div>
+      <div class="hero-visual"><div class="project-sticker"><svg class="icon"><use href="#i-spark"/></svg><span>Not off the shelf.<br><strong>Made to fit.</strong></span></div><a class="hero-project" href="?project=ioniq-console-organizer" data-project="ioniq-console-organizer" aria-label="Explore the Ioniq 5 console organizer"><div class="hero-image-wrap"><img class="project-image" data-project-image="ioniq-console-organizer" src="/assets/images/projects/ioniq-console-organizer.png" alt="Printed Ioniq 5 organizer fitted in the car console" width="900" height="620" fetchpriority="high"><span class="media-note" data-media-label="ioniq-console-organizer">Printed &amp; in use</span></div><div class="hero-project-caption"><div><span class="eyebrow">A LITTLE LESS EVERYDAY CHAOS</span><h2>A place for everything.</h2><p>A custom-fit Ioniq console organizer.</p></div><span class="circle-link"><svg class="icon"><use href="#i-diagonal"/></svg></span></div></a><span class="visual-footnote">One real idea from Jerrett's published design catalog.</span></div>
     </section>
+    <section class="reassurance-bar wrap" aria-label="What to expect"><div><svg class="icon"><use href="#i-photo"/></svg><span><strong>A photo is a good start.</strong> You don't need a specification.</span></div><div><svg class="icon"><use href="#i-check"/></svg><span><strong>Clear before we make.</strong> Agree on the work and price.</span></div><div><svg class="icon"><use href="#i-box"/></svg><span><strong>Local or a little farther.</strong> Tulsa pickup + U.S. shipping.</span></div></section>
 
-    <section class="proof-bar" aria-label="At a glance">
-      <div class="container proof-grid">
-        <div class="proof-item"><strong>Design + make</strong><span>One person owns the full result</span></div>
-        <div class="proof-item"><strong>Single or multicolor</strong><span>Functional, decorative, or both</span></div>
-        <div class="proof-item"><strong>Local or shipped</strong><span>Tulsa pickup and U.S. shipping</span></div>
-        <div class="proof-item"><strong>Human review</strong><span>No instant quote pretending to know everything</span></div>
-      </div>
-    </section>
+    <section class="section wrap" id="possibilities" aria-labelledby="possibilities-title"><div class="section-heading"><div><p class="eyebrow">START WITH YOUR “WHAT IF”</p><h2 id="possibilities-title">What do you have in mind?</h2></div><p class="section-intro">You bring the problem, the file, or the spark.<br>I bring the design and the printers.</p></div><div class="outcome-grid">
+      <button class="outcome-card" data-ask="replace" data-entry="outcome-replace" type="button"><span class="outcome-icon tone-teal"><svg class="icon"><use href="#i-wrench"/></svg></span><h3>This part broke.</h3><p>A missing knob, a cracked clip, an impossible-to-find bit. Let's take a look.</p><span class="outcome-action">Replace a part <svg class="icon"><use href="#i-arrow"/></svg></span></button>
+      <button class="outcome-card" data-ask="custom" data-entry="outcome-custom" type="button"><span class="outcome-icon tone-blue"><svg class="icon"><use href="#i-spark"/></svg></span><h3>I have an idea.</h3><p>Something personal, practical, or just a better fit for your particular life.</p><span class="outcome-action">Make something custom <svg class="icon"><use href="#i-arrow"/></svg></span></button>
+      <a class="outcome-card" href="/order.html?service=print"><span class="outcome-icon tone-slate"><svg class="icon"><use href="#i-layers"/></svg></span><h3>I found a model.</h3><p>A design you love, but no printer? Bring the file or link. Let's make it tangible.</p><span class="outcome-action">Print it for me <svg class="icon"><use href="#i-arrow"/></svg></span></a>
+      <button class="outcome-card" data-ask="repair" data-entry="outcome-repair" type="button"><span class="outcome-icon tone-sky"><svg class="icon"><use href="#i-box"/></svg></span><h3>My printer is… not.</h3><p>More spaghetti than success? Get help with repairs, tuning, and upgrades.</p><span class="outcome-action">Get it working <svg class="icon"><use href="#i-arrow"/></svg></span></button>
+    </div></section>
 
-    <section class="section" aria-labelledby="services-title">
-      <div class="container">
-        <div class="section-header">
-          <span class="eyebrow">What I do</span>
-          <h2 class="h2" id="services-title">From the first dimension to the final layer.</h2>
-          <p class="lede">Pick the closest service. The project builder asks only the questions that matter for that kind of work.</p>
-        </div>
-        <div class="card-grid">
-          <article class="service-card">
-            <div class="card-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m16 3 11 6.5v13L16 29 5 22.5v-13L16 3Z"/><path d="m5 9.5 11 6.3 11-6.3M16 15.8V29"/></svg></div>
-            <h3>3D model design</h3>
-            <p>Replacement parts, fitted organizers, electronics enclosures, brackets, adapters, fixtures, and printable assemblies from dimensions, photos, sketches, or an existing object.</p>
-            <a class="card-link" href="/order.html?service=design">Plan a design</a>
-          </article>
-          <article class="service-card">
-            <div class="card-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 5h20v22H6zM10 9h12M10 23h12M16 9v6"/><path d="m12 15 4-3 4 3v6l-4 2-4-2v-6Z"/></svg></div>
-            <h3>3D printing</h3>
-            <p>One-off prototypes through small batches in PLA, PETG, ASA, TPU, and other practical materials. Single-color, multicolor, draft, fine, and fit-finished options.</p>
-            <a class="card-link" href="/order.html?service=print">Quote a print</a>
-          </article>
-          <article class="service-card">
-            <div class="card-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 4h16v9H8zM5 13h22v15H5z"/><path d="M10 18h12M10 23h7M22 8h.01"/></svg></div>
-            <h3>Printer repair & tuning</h3>
-            <p>Diagnosis, calibration, firmware, motion systems, hotends, wiring, upgrades, rebuilds, and the nagging print-quality problem you have already chased for a weekend.</p>
-            <a class="card-link" href="/order.html?service=repair">Describe the printer</a>
-          </article>
-          <article class="service-card">
-            <div class="card-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 25 14 4h4l9 21M9 17h14"/><path d="M16 10v15M12 25h8"/></svg></div>
-            <h3>Consulting & printer design</h3>
-            <p>Printer selection, shop workflow, print-farm planning, material and process advice, feasibility reviews, custom machine concepts, and hands-on project help.</p>
-            <a class="card-link" href="/order.html?service=consult">Book a working session</a>
-          </article>
-          <article class="service-card wide">
-            <div>
-              <div class="card-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 16h24M16 4v24M7 7l18 18M25 7 7 25"/><circle cx="16" cy="16" r="11"/></svg></div>
-              <h3>Something between categories?</h3>
-              <p>Most useful projects cross boundaries. A design may need test prints. A repair may need a new bracket. A custom printer may begin with a consulting session. Explain the outcome and I will sort out the path.</p>
-              <a class="card-link" href="/order.html?service=consult">Tell me what success looks like</a>
-            </div>
-            <div class="machine-lines" aria-hidden="true"><span style="--w:84%"></span><span style="--w:62%"></span><span style="--w:92%"></span><span style="--w:48%"></span><span style="--w:74%"></span><span style="--w:57%"></span></div>
-          </article>
-        </div>
-      </div>
-    </section>
+    <section class="work-section section" id="work" aria-labelledby="work-title"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">A FEW THINGS THAT BECAME REAL</p><h2 id="work-title">Small objects.<br>Very specific possibilities.</h2></div><div class="work-heading-note"><p>Made around a space, a circuit board,<br>or a problem worth solving.</p><span>Published design examples, not customer testimonials.</span></div></div><div class="filter-row"><div class="filter-group" role="group" aria-label="Filter project examples"><button type="button" class="filter active" data-filter="all" aria-pressed="true">All work <span>3</span></button><button type="button" class="filter" data-filter="fit" aria-pressed="false">Made to fit</button><button type="button" class="filter" data-filter="electronics" aria-pressed="false">Electronics</button><button type="button" class="filter" data-filter="printer" aria-pressed="false">Printer upgrades</button></div><span id="filter-status" class="sr-only" role="status">Showing all 3 projects.</span></div><div class="project-grid" id="project-grid"></div><p><a class="text-link" href="/portfolio.html">See all our work, including original designs</a></p><div class="work-tail"><span>Your project doesn't need to look like these.</span><button class="text-link" data-ask="unknown" data-entry="after-work" type="button">Tell me about your idea <svg class="icon"><use href="#i-arrow"/></svg></button></div></div></section>
 
-    <section class="section surface" aria-labelledby="process-title">
-      <div class="container">
-        <div class="section-header">
-          <span class="eyebrow">How it works</span>
-          <h2 class="h2" id="process-title">Clear enough to start. Flexible enough for real work.</h2>
-          <p class="lede">You do not need a perfect specification. Start with what you know, then we close the gaps together.</p>
-        </div>
-        <div class="process-grid">
-          <article class="process-step"><h3>Share the problem</h3><p>Upload a file or photo, paste a link, or describe the part, printer, or idea.</p></article>
-          <article class="process-step"><h3>See a planning range</h3><p>The project builder gives a rough estimate based on size, material, time, and complexity.</p></article>
-          <article class="process-step"><h3>Confirm the work</h3><p>I review fit, risk, material, finish, rights, schedule, and shipping before anything is charged.</p></article>
-          <article class="process-step"><h3>Make and deliver</h3><p>Most straightforward jobs are completed within five business days after approval.</p></article>
-        </div>
-      </div>
-    </section>
+    <section class="process-section section wrap" id="how-it-works" aria-labelledby="process-title"><div class="process-intro"><p class="eyebrow">LESS OVERTHINKING. MORE MAKING.</p><h2 id="process-title">You don't have to know<br>how to make it.</h2><p>You just need a place to start. There is no commitment to a paid job until we agree on the plan and price.</p><button class="text-link" data-ask="unknown" data-entry="process" type="button">A photo and a sentence will do <svg class="icon"><use href="#i-arrow"/></svg></button></div><ol class="steps"><li><span class="step-number">01</span><div><h3>Show me what you're thinking.</h3><p>A photo, a sketch, a file, or “there has to be a better way.” No engineering vocabulary required.</p></div></li><li><span class="step-number">02</span><div><h3>We'll work out the details.</h3><p>Fit, material, price, and timing. If design or diagnostics are needed, that work gets its own agreed scope.</p></div></li><li><span class="step-number">03</span><div><h3>From idea to something you can hold.</h3><p>Once approved, I make it and arrange pickup or shipping. Timing depends on the job and current queue.</p></div></li></ol></section>
 
-    <section class="section" aria-labelledby="work-title">
-      <div class="container">
-        <div class="section-header">
-          <span class="eyebrow">Designed by us</span>
-          <h2 class="h2" id="work-title">Original builds, shown from the model outward.</h2>
-          <p class="lede">These projects began with a real need: turn artwork into printable objects, test hardware repeatedly, or fit electronics and everyday equipment cleanly.</p>
-        </div>
-        <div class="portfolio-grid designed-work">
-          <article class="project-card large"><img class="project-image designed-render" src="/assets/images/projects/designed/ratgdo-holster.png" alt="CAD render of our fitted ratgdo electronics holster with board rails, cable opening, and mounting features" width="1600" height="1000" loading="lazy"><span class="project-number" aria-hidden="true">01 / 02</span><div class="project-overlay"><div class="tag-row"><span class="tag">Electronics fit</span><span class="tag">Service access</span></div><h3>ratgdo electronics holster</h3><p>A compact carrier shaped around the board and its installation needs, with retention, wiring clearance, and removal considered together.</p></div></article>
-          <article class="project-card small-card"><img class="project-image designed-render" src="/assets/images/projects/designed/power-brick-holder.png" alt="CAD render of our magnetic power-brick holder with mounting slots and captured fastener holes" width="1600" height="1000" loading="lazy"><span class="project-number" aria-hidden="true">02 / 02</span><div class="project-overlay"><div class="tag-row"><span class="tag">Measured fit</span><span class="tag">Mounting</span></div><h3>Magnetic power-brick holder</h3><p>A compact fitted part that manages the power brick, mounting hardware, and installation clearance as one object.</p></div></article>
-        </div>
-        <div class="action-row" style="margin-top:1.2rem"><a class="button secondary" href="/portfolio.html#designed-work">Explore our original builds</a><a class="button ghost" href="/order.html">Start with your own problem →</a></div>
-      </div>
-    </section>
+    <section class="business-section wrap" id="for-business" aria-labelledby="business-title"><div class="business-panel"><div><p class="eyebrow">FOR THE THINGS YOUR BUSINESS NEEDS</p><h2 id="business-title">One prototype.<br>One useful next step.</h2><p>Fitted enclosures, shop fixtures, organizers, prototypes, and small batches. Start with the problem, not a minimum order.</p><button class="button button-light" data-ask="business" data-entry="business" type="button">Let's talk about your project <svg class="icon"><use href="#i-diagonal"/></svg></button></div><div class="business-right"><span class="business-outline" aria-hidden="true"><svg viewBox="0 0 220 220"><path d="m110 12 82 47v98l-82 47-82-47V59l82-47ZM28 59l82 48 82-48M110 107v97M69 35l82 48v98"/><path d="M15 178h42M36 157v42M164 27h42M185 6v42"/></svg></span><p>Practical engineering.<br>A direct conversation.<br><strong>Your constraints, considered.</strong></p></div></div></section>
 
-    <section class="section surface" aria-labelledby="maker-title">
-      <div class="container split">
-        <div>
-          <span class="eyebrow">One accountable maker</span>
-          <h2 class="h2" id="maker-title">Software discipline, mechanical curiosity, and a room full of printers.</h2>
-          <p class="lede">I’m Jerrett, a Tulsa software engineer and lifelong tinkerer. I design because I need parts that do not exist, and I repair printers because understanding the machine is part of making reliable parts.</p>
-          <ul class="capability-list">
-            <li><div><strong>Designed for the actual constraints</strong><span>Dimensions, load, heat, access, fastening, print orientation, and assembly all matter.</span></div></li>
-            <li><div><strong>Communicated like a real project</strong><span>Assumptions, tradeoffs, revisions, price, and handoff are explicit.</span></div></li>
-            <li><div><strong>Files you can keep using</strong><span>STL, STEP, 3MF, and source formats are available when included in scope.</span></div></li>
-          </ul>
-          <a class="button secondary" href="/about.html">More about the shop</a>
-        </div>
-        <figure class="quote-panel">
-          <blockquote>The goal is not to put plastic on a build plate. It is to hand you the right object, with fewer surprises between the idea and the result.</blockquote>
-          <footer>Jerrett Davis · 3dprint4.me</footer>
-        </figure>
-      </div>
-    </section>
+    <section class="maker-section section wrap" id="maker" aria-labelledby="maker-title"><div class="maker-intro"><div class="maker-monogram" aria-hidden="true">jd<span>↗</span></div><div><p class="eyebrow">THE PERSON BEHIND THE PRINTERS</p><h2 id="maker-title">Hi, I'm Jerrett.</h2><p class="maker-location"><svg class="icon"><use href="#i-pin"/></svg>Software engineer. Maker. Tulsa, Oklahoma.</p></div></div><div class="maker-copy"><p>I started designing parts because the things I needed didn't always exist. That is still my favorite place to start.</p><p>A good part is more than its shape. It has to fit, leave room for the wires, and be understandable when you need to take it apart again.</p><button class="text-link" data-ask="unknown" data-entry="maker" type="button">Let's figure out your thing <svg class="icon"><use href="#i-arrow"/></svg></button></div></section>
 
-    <section class="section compact" aria-labelledby="faq-title">
-      <div class="container narrow">
-        <div class="section-header center"><span class="eyebrow">Before you ask</span><h2 class="h2" id="faq-title">Common questions</h2></div>
-        <div class="accordion">
-          <details><summary>Can you print an STL I found online?</summary><p>Usually. Send the model link or file and confirm its license allows the intended use. I will review printability, size, material, color, and expected finish before confirming the order.</p></details>
-          <details><summary>Can you recreate a broken plastic part?</summary><p>Often. Photos beside a ruler help, but accurate caliper measurements or the original part are better. Some safety-critical, regulated, or heavily loaded parts may be declined or treated as prototypes.</p></details>
-          <details><summary>How accurate is the rough quote?</summary><p>It is a planning range, not a checkout total. It becomes much tighter when you provide slicer grams and machine time. Design and repair work needs human review because unknowns matter.</p></details>
-          <details><summary>Do you ship?</summary><p>Yes, within the United States for suitable work. Tulsa pickup or local handoff is also available. Shipping, taxes, unusual packing, and replacement parts are confirmed separately.</p></details>
-          <details><summary>What will you not make?</summary><p>I decline work that is illegal, unsafe, deceptive, beyond the capabilities of the process, or not properly licensed. See the project terms for the practical boundaries.</p></details>
-        </div>
-      </div>
-    </section>
+    <section class="faq-section section wrap" aria-labelledby="faq-title"><div><p class="eyebrow">GOOD QUESTIONS</p><h2 id="faq-title">A few things<br>you might be wondering.</h2><p>Still not sure where your idea fits?<br>That's a perfectly good place to start.</p></div><div class="faq-list"><details><summary>Do I need a 3D model or a file?<span>+</span></summary><p>No. A photo, rough dimensions, a sketch, or a description can be enough to start a conversation. Any paid design work is scoped and agreed separately.</p></details><details><summary>How much will it cost?<span>+</span></summary><p>It depends on the design work, size, material, quantity, and finish. A print-ready file and a part that needs designing are different jobs. The detailed builder provides a planning range, not a final quote.</p><a class="button button-outline" href="/order.html?service=print">Try the detailed builder <svg class="icon"><use href="#i-arrow"/></svg></a></details><details><summary>Can you print something I found online?<span>+</span></summary><p>Often. Share the file or model link. Printability and the design's license need review before a physical print is confirmed. Buying a design file does not automatically grant every type of commercial use.</p></details><details><summary>Can you recreate a broken part?<span>+</span></summary><p>Often, depending on its job and the available measurements. Start with a photo beside a ruler and explain how it is used. Safety-critical, heavily loaded, or unsuitable parts may be declined.</p></details><details><summary>I'm not in Tulsa. Can we still work together?<span>+</span></summary><p>Yes, for suitable design and print projects. Tulsa pickup and U.S. shipping are available. Shipping, packing, and timing are confirmed with the work.</p></details><details><summary>What happens when I send an inquiry?<span>+</span></summary><p>Your inquiry is reviewed before any work or payment is agreed. If online delivery is unavailable, you can email or download your inquiry. The confirmation explains whether your files were uploaded.</p></details></div></section>
 
-    <section class="section compact">
-      <div class="container">
-        <div class="cta-panel">
-          <span class="eyebrow">Have a file, part, printer, or idea?</span>
-          <h2 class="h2">Start with what you know. I’ll help with what you don’t.</h2>
-          <p class="lede">The guided form takes a few minutes, saves your draft, accepts common CAD and image formats, and gives you a rough planning range before review.</p>
-          <div class="action-row"><a class="button primary" href="/order.html">Build my project request</a><a class="button secondary" href="mailto:hello@3dprint4.me">Email instead</a></div>
-        </div>
-      </div>
-    </section>
+    <section class="final-cta wrap" id="final-cta"><p class="eyebrow">THE NEXT ONE COULD BE YOURS</p><h2>A little “what if”<br>can become a real thing.</h2><button class="button button-accent button-large" data-ask="unknown" data-entry="final-cta" type="button">Can you make this? <svg class="icon"><use href="#i-diagonal"/></svg></button><p>A photo. A sketch. That idea you've been sitting on.</p><span class="cta-spark" aria-hidden="true">✳</span></section>
   </main>
-  <div id="site-footer"></div>
-  <script type="module" src="/assets/js/site.js"></script>
+  <footer class="footer wrap site-footer"><div class="footer-main"><a class="wordmark" href="#">3dprint4<span class="wordmark-end">.me</span></a><p>Useful things. Made for you.<br>Tulsa, Oklahoma · U.S. shipping</p><nav aria-label="Footer"><a href="#work">Selected work</a><a class="button button-outline" href="/order.html?service=print">Detailed builder</a><a href="/services.html">Services</a><a href="/portfolio.html">All work</a><a href="/about.html">About</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="mailto:hello@3dprint4.me">Email Jerrett</a></nav></div><div class="footer-bottom"><span>© <span id="year">2026</span> Jerrett Davis</span><span>Useful things. Made with care.</span></div></footer>
+  <div class="mobile-ask" id="mobile-ask"><span>No file? No problem.</span><button class="button button-accent" data-ask="unknown" data-entry="mobile-sticky" type="button">Ask about an idea <svg class="icon"><use href="#i-diagonal"/></svg></button></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog class="ask-dialog" id="ask-dialog" aria-labelledby="ask-title"><button class="dialog-close icon-button" data-close type="button" aria-label="Close inquiry"><svg class="icon"><use href="#i-close"/></svg></button><div id="inquiry-editor" class="ask-layout"><aside class="ask-aside"><span class="eyebrow">A SMALL START IS A GOOD START</span><h2>Let's make<br>your thing.</h2><div class="aside-art" aria-hidden="true"><svg class="icon"><use href="#i-spark"/></svg><span>idea<br>↓<br>object</span><svg class="icon"><use href="#i-box"/></svg></div><p>Not sure about materials?<br>Don't have a drawing?<br><strong>You're in the right place.</strong></p><div class="aside-demo"><strong>A conversation comes first.</strong><p>Design, diagnostics, and fabrication are paid work, scoped and agreed separately.</p></div></aside><div class="ask-form-wrap"><p class="eyebrow">CAN YOU MAKE THIS?</p><h2 id="ask-title" tabindex="-1">Show me what you have in mind.</h2><p class="form-intro">One sentence is a perfectly good start.</p><div class="context-chip" id="inquiry-context" hidden><span></span><button type="button" id="remove-context" aria-label="Remove project inspiration"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="draft-banner" id="draft-banner" hidden>There is a saved draft on this device. <button type="button" id="restore-draft">Restore it</button><button type="button" id="discard-draft">Discard</button></div><form id="inquiry-form" novalidate><div class="sr-only" aria-hidden="true"><label for="ask-website">Leave this blank</label><input id="ask-website" name="website" tabindex="-1" autocomplete="off"></div><div class="field"><label for="ask-intent">What's the closest fit?</label><select id="ask-intent" name="intent"><option value="unknown">Not sure yet</option><option value="replace">Replace a broken or missing part</option><option value="custom">Make something custom</option><option value="print">Print a model I found</option><option value="repair">Get my printer working</option><option value="business">Something for my business</option></select></div><div class="field"><label for="ask-message">What would you like to make or fix?</label><textarea id="ask-message" name="message" rows="3" maxlength="4000" placeholder="The little clip on my vacuum broke, and I can't find a replacement…" aria-describedby="error-message"></textarea><p class="field-error" id="error-message" hidden></p></div><div class="upload-zone" id="upload-zone"><svg class="icon"><use href="#i-photo"/></svg><div><button type="button" id="choose-files">Add a photo or file</button><span>or drop it here · optional</span></div><input id="ask-files" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.stl,.3mf,.step,.stp,.obj,.txt" class="sr-only" tabindex="-1" aria-label="Choose project photos or files"></div><div class="attachment-list" id="attachment-list"></div><p class="file-help">Up to 6 files · 10 MB each · 25 MB total. JPG/PNG/WebP, PDF, STL/3MF/STEP/OBJ, TXT. Files are private. For iPhone HEIC photos, export a JPG or PNG first.</p><p class="field-error" id="error-files" role="alert" hidden></p><button class="add-link" id="toggle-reference" type="button" aria-expanded="false" aria-controls="reference-field"><svg class="icon"><use href="#i-link"/></svg>Add a model or reference link</button><div class="field" id="reference-field" hidden><label for="ask-reference">Model or reference link</label><input id="ask-reference" name="referenceUrl" type="url" placeholder="https://…" maxlength="2000" aria-describedby="error-referenceUrl"><p class="field-error" id="error-referenceUrl" hidden></p></div><div class="contact-grid"><div class="field"><label for="ask-email">Where should I reply? <span>Required</span></label><input id="ask-email" name="replyEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required aria-describedby="error-replyEmail"><p class="field-error" id="error-replyEmail" hidden></p></div><div class="field"><label for="ask-name">Your name <span>Optional</span></label><input id="ask-name" name="name" type="text" autocomplete="given-name" placeholder="First name is fine" maxlength="100" aria-describedby="error-name"><p class="field-error" id="error-name" hidden></p></div></div><p class="field-error" id="save-error" role="alert" hidden></p><div class="form-actions"><button class="button button-accent" id="save-inquiry" type="submit">Send inquiry <svg class="icon"><use href="#i-arrow"/></svg></button><button class="text-link small-link" type="button" id="save-draft">Save a draft</button></div><button class="text-link small-link download-fallback" type="button" id="download-unsaved" hidden>Download this inquiry instead <svg class="icon"><use href="#i-arrow"/></svg></button><p class="form-fine-print">An inquiry, not an order or a payment. By sending, you agree to the <a href="/terms.html">terms</a> and <a href="/privacy.html">privacy notice</a>.</p></form></div></div><div class="success-pane" id="success-pane" hidden><div class="success-icon"><svg class="icon"><use href="#i-check"/></svg></div><p class="eyebrow">AN IDEA WITH A STARTING POINT</p><h2 id="success-title" tabindex="-1">Inquiry received</h2><p id="success-note"></p><div class="success-receipt" id="success-receipt"></div><div class="success-actions"><button class="button button-dark" type="button" id="download-inquiry">Download the inquiry <svg class="icon"><use href="#i-arrow"/></svg></button><a class="button button-outline" id="email-inquiry" href="mailto:hello@3dprint4.me">Email the inquiry</a></div><button class="text-link" type="button" id="another-inquiry">Try another idea <svg class="icon"><use href="#i-arrow"/></svg></button></div></dialog>
+
+  <dialog class="project-dialog" id="project-dialog" aria-labelledby="project-detail-title"><button class="dialog-close icon-button" data-close type="button" aria-label="Close project"><svg class="icon"><use href="#i-close"/></svg></button><div id="project-detail"></div></dialog>
+<dialog class="inbox-dialog" id="inbox-dialog" aria-labelledby="inbox-title"><button class="dialog-close icon-button" data-close type="button" aria-label="Close demo inbox"><svg class="icon"><use href="#i-close"/></svg></button><div class="inbox-head"><p class="eyebrow">THE OTHER SIDE OF THE CONVERSATION</p><h2 id="inbox-title" tabindex="-1">Your local demo inbox.</h2><p>Only inquiries you save in this browser appear here. This is not a production owner dashboard.</p><div class="inbox-actions"><button class="button button-outline" id="export-inbox" type="button">Export inquiries</button><button class="text-link" id="clear-inbox" type="button">Clear local inquiries</button></div><div class="clear-confirm" id="clear-confirm" hidden><p>Delete all quick inquiries stored by this demo on this device?</p><button class="button button-accent" id="confirm-clear" type="button">Delete local inquiries</button><button class="button button-outline" id="cancel-clear" type="button">Keep them</button></div></div><div id="inbox-list" class="inbox-list"></div><div class="inbox-foot"><p><strong>What this demonstrates:</strong> outcome context, optional photo references, a short inquiry, local persistence, and a shareable public-project entry point.</p><p><strong>What it doesn't do:</strong> send email, upload files, take payment, or create a production lead. Files remain in memory until the inquiry is reset or the page is closed; saved records contain metadata only.</p><button class="text-link small-link" type="button" id="reset-all">Reset all demo data on this device</button><p class="reset-confirm" id="reset-confirm" hidden>Clear quick inquiries, drafts, the legacy builder's demo drafts, and theme preference? <button class="button button-accent" id="confirm-reset" type="button">Reset demo</button><button class="button button-outline" id="cancel-reset" type="button">Cancel</button></p></div></dialog>
+  <noscript><div class="no-script">To ask about a project, <a href="mailto:hello@3dprint4.me">email hello@3dprint4.me</a>. You can also browse <a href="/portfolio.html">our work</a> and <a href="/services.html">services</a>.</div></noscript>
+  <script type="module" src="/assets/evolution/app.js"></script>
 </body>
 </html>

@@ -176,3 +176,5 @@ npm run screenshots
 ```
 
 Review all four service paths, because shared delivery values can affect more than one estimate.
+
+The print estimate’s lower uncertainty bound is clamped to the configured print minimum ($15 at this release). Blank slicer inputs continue to use the selected size assumptions; rates are unchanged.

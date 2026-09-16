@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-09-14T23:22:09.926297+00:00",
+  "generatedAt": "2026-09-16T01:28:48.461490+00:00",
   "status": "pass",
   "summary": {
     "checks": 193,
@@ -11,7 +11,7 @@
   },
   "method": {
     "browser": "Chromium through Playwright (system browser when available, Playwright-managed browser otherwise)",
-    "rendering": "Production HTML, CSS, SVG, and JavaScript bundled in-place because enterprise URL policy blocks browser navigation; HTTP/API behavior is covered separately by E2E tests.",
+    "rendering": "Production HTML, CSS, SVG, and JavaScript bundled in-place because enterprise URL policy blocks browser navigation. This rendering check does not verify production CSP, network loading, or live provider delivery; HTTP/API behavior has separate tests.",
     "coverage": [
       "responsive overflow",
       "keyboard focus",
@@ -65,14 +65,14 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "5 images loaded and each has an alt attribute."
+      "details": "4 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "37 visible interactive elements have accessible names."
+      "details": "38 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 124 gradient/image samples were excluded from automation."
+      "details": "136 solid-background text samples meet WCAG AA contrast; 5 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -233,7 +233,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "8 images loaded and each has an alt attribute."
+      "details": "11 images loaded and each has an alt attribute."
     },
     {
       "route": "/portfolio.html",
@@ -275,7 +275,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 96 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 113 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -527,7 +527,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 61 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 63 gradient/image samples were excluded from automation."
     },
     {
       "route": "/terms.html",
@@ -737,7 +737,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "5 images loaded and each has an alt attribute."
+      "details": "4 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
@@ -779,7 +779,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 120 gradient/image samples were excluded from automation."
+      "details": "132 solid-background text samples meet WCAG AA contrast; 5 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -905,7 +905,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "8 images loaded and each has an alt attribute."
+      "details": "11 images loaded and each has an alt attribute."
     },
     {
       "route": "/portfolio.html",
@@ -947,7 +947,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 92 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 109 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -1199,7 +1199,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 57 gradient/image samples were excluded from automation."
+      "details": "0 solid-background text samples meet WCAG AA contrast; 59 gradient/image samples were excluded from automation."
     },
     {
       "route": "/terms.html",
@@ -1403,13 +1403,13 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 37,
-        "imageCount": 5,
-        "headingCount": 22
+        "interactiveCount": 38,
+        "imageCount": 4,
+        "headingCount": 19
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 124,
+        "checked": 136,
+        "complexSkipped": 5,
         "failures": []
       }
     },
@@ -1454,8 +1454,8 @@
       "profile": "desktop/light 1440\u00d71000",
       "dom": {
         "lang": "en",
-        "title": "Selected work \u2014 3dprint4.me",
-        "description": "Selected 3D modeling and fabrication work by Jerrett Davis: automotive organizers, printer electronics enclosures, camera housings, ESP32 cases, and shop hardware.",
+        "title": "Designed by us \u2014 3dprint4.me",
+        "description": "Original 3D modeling and fabrication work by Jerrett Davis, including custom keychains, mechanical test equipment, fitted holders, electronics mounts, and published models.",
         "viewportMeta": "width=device-width, initial-scale=1",
         "mainCount": 1,
         "h1Count": 1,
@@ -1474,12 +1474,12 @@
         "contentWidth": 1440,
         "viewportWidth": 1440,
         "interactiveCount": 32,
-        "imageCount": 8,
-        "headingCount": 13
+        "imageCount": 11,
+        "headingCount": 17
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 96,
+        "complexSkipped": 113,
         "failures": []
       }
     },
@@ -1580,11 +1580,11 @@
         "viewportWidth": 1440,
         "interactiveCount": 24,
         "imageCount": 2,
-        "headingCount": 16
+        "headingCount": 17
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 61,
+        "complexSkipped": 63,
         "failures": []
       }
     },
@@ -1684,12 +1684,12 @@
         "contentWidth": 390,
         "viewportWidth": 390,
         "interactiveCount": 34,
-        "imageCount": 5,
-        "headingCount": 22
+        "imageCount": 4,
+        "headingCount": 19
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 120,
+        "checked": 132,
+        "complexSkipped": 5,
         "failures": []
       }
     },
@@ -1734,8 +1734,8 @@
       "profile": "mobile/dark 390\u00d7844",
       "dom": {
         "lang": "en",
-        "title": "Selected work \u2014 3dprint4.me",
-        "description": "Selected 3D modeling and fabrication work by Jerrett Davis: automotive organizers, printer electronics enclosures, camera housings, ESP32 cases, and shop hardware.",
+        "title": "Designed by us \u2014 3dprint4.me",
+        "description": "Original 3D modeling and fabrication work by Jerrett Davis, including custom keychains, mechanical test equipment, fitted holders, electronics mounts, and published models.",
         "viewportMeta": "width=device-width, initial-scale=1",
         "mainCount": 1,
         "h1Count": 1,
@@ -1754,12 +1754,12 @@
         "contentWidth": 390,
         "viewportWidth": 390,
         "interactiveCount": 29,
-        "imageCount": 8,
-        "headingCount": 13
+        "imageCount": 11,
+        "headingCount": 17
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 92,
+        "complexSkipped": 109,
         "failures": []
       }
     },
@@ -1860,11 +1860,11 @@
         "viewportWidth": 390,
         "interactiveCount": 21,
         "imageCount": 2,
-        "headingCount": 16
+        "headingCount": 17
       },
       "contrast": {
         "checked": 0,
-        "complexSkipped": 57,
+        "complexSkipped": 59,
         "failures": []
       }
     },
