@@ -1,7 +1,9 @@
 import { del } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
+import { requireDisabledRemoteDelivery } from "./lib/verification-safety.mjs";
 
 const base = process.argv[2] || "https://3dprint4me.vercel.app";
+await requireDisabledRemoteDelivery(base);
 const sql = neon(process.env.DATABASE_URL);
 const request = {
   projectTitle: "Synthetic intake check", service: "consult", serviceLabel: "Ask a fabrication question",
