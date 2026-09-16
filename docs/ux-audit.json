@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-09-16T01:42:31.202241+00:00",
+  "generatedAt": "2026-09-16T02:18:00.858320+00:00",
   "status": "pass",
   "summary": {
     "checks": 193,
@@ -65,14 +65,14 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "4 images loaded and each has an alt attribute."
+      "details": "6 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "38 visible interactive elements have accessible names."
+      "details": "42 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "136 solid-background text samples meet WCAG AA contrast; 5 gradient/image samples were excluded from automation."
+      "details": "142 solid-background text samples meet WCAG AA contrast; 5 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -191,7 +191,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 125 gradient/image samples were excluded from automation."
+      "details": "125 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/portfolio.html",
@@ -275,7 +275,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 113 gradient/image samples were excluded from automation."
+      "details": "113 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -359,7 +359,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 81 gradient/image samples were excluded from automation."
+      "details": "81 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/order.html",
@@ -443,7 +443,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 66 gradient/image samples were excluded from automation."
+      "details": "66 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/privacy.html",
@@ -527,7 +527,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 63 gradient/image samples were excluded from automation."
+      "details": "63 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/terms.html",
@@ -611,7 +611,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 63 gradient/image samples were excluded from automation."
+      "details": "63 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/404.html",
@@ -695,7 +695,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 35 gradient/image samples were excluded from automation."
+      "details": "35 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/",
@@ -737,14 +737,14 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "4 images loaded and each has an alt attribute."
+      "details": "6 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "34 visible interactive elements have accessible names."
+      "details": "40 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -779,7 +779,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "132 solid-background text samples meet WCAG AA contrast; 5 gradient/image samples were excluded from automation."
+      "details": "140 solid-background text samples meet WCAG AA contrast; 5 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -863,7 +863,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 121 gradient/image samples were excluded from automation."
+      "details": "121 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/portfolio.html",
@@ -947,7 +947,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 109 gradient/image samples were excluded from automation."
+      "details": "109 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -1031,7 +1031,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 77 gradient/image samples were excluded from automation."
+      "details": "77 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/order.html",
@@ -1115,7 +1115,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 62 gradient/image samples were excluded from automation."
+      "details": "62 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/privacy.html",
@@ -1199,7 +1199,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 59 gradient/image samples were excluded from automation."
+      "details": "59 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/terms.html",
@@ -1283,7 +1283,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 59 gradient/image samples were excluded from automation."
+      "details": "59 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/404.html",
@@ -1367,7 +1367,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "0 solid-background text samples meet WCAG AA contrast; 31 gradient/image samples were excluded from automation."
+      "details": "31 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/",
@@ -1403,12 +1403,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 38,
-        "imageCount": 4,
-        "headingCount": 19
+        "interactiveCount": 42,
+        "imageCount": 6,
+        "headingCount": 22
       },
       "contrast": {
-        "checked": 136,
+        "checked": 142,
         "complexSkipped": 5,
         "failures": []
       }
@@ -1443,8 +1443,8 @@
         "headingCount": 10
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 125,
+        "checked": 125,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1478,8 +1478,8 @@
         "headingCount": 17
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 113,
+        "checked": 113,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1513,8 +1513,8 @@
         "headingCount": 11
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 81,
+        "checked": 81,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1548,8 +1548,8 @@
         "headingCount": 6
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 66,
+        "checked": 66,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1583,8 +1583,8 @@
         "headingCount": 17
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 63,
+        "checked": 63,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1618,8 +1618,8 @@
         "headingCount": 17
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 63,
+        "checked": 63,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1653,8 +1653,8 @@
         "headingCount": 4
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 35,
+        "checked": 35,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1683,12 +1683,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 34,
-        "imageCount": 4,
-        "headingCount": 19
+        "interactiveCount": 40,
+        "imageCount": 6,
+        "headingCount": 22
       },
       "contrast": {
-        "checked": 132,
+        "checked": 140,
         "complexSkipped": 5,
         "failures": []
       }
@@ -1723,8 +1723,8 @@
         "headingCount": 10
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 121,
+        "checked": 121,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1758,8 +1758,8 @@
         "headingCount": 17
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 109,
+        "checked": 109,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1793,8 +1793,8 @@
         "headingCount": 11
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 77,
+        "checked": 77,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1828,8 +1828,8 @@
         "headingCount": 6
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 62,
+        "checked": 62,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1863,8 +1863,8 @@
         "headingCount": 17
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 59,
+        "checked": 59,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1898,8 +1898,8 @@
         "headingCount": 17
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 59,
+        "checked": 59,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -1933,8 +1933,8 @@
         "headingCount": 4
       },
       "contrast": {
-        "checked": 0,
-        "complexSkipped": 31,
+        "checked": 31,
+        "complexSkipped": 0,
         "failures": []
       }
     }

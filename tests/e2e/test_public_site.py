@@ -32,8 +32,8 @@ def test_public_pages_render_theme_and_navigation() -> None:
 def test_mobile_menu_keyboard_and_no_horizontal_overflow() -> None:
     with SiteBrowser(viewport=(390, 844), color_scheme="dark") as site:
         page = site.load("/")
-        menu = page.locator("#menu-button")
-        panel = page.locator("#mobile-nav")
+        menu = page.locator("#menu-toggle")
+        panel = page.locator("#mobile-panel")
 
         assert menu.is_visible()
         assert menu.get_attribute("aria-expanded") == "false"
