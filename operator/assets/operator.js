@@ -1,6 +1,7 @@
 import { createApiClient, OperatorApiError } from "./api-client.js";
 import { allowedTransitions, formatRelativeTime } from "./work-state.js";
 import { createPushClient } from "./push-client.js";
+import { createAuthClient } from "./auth-client.js";
 
 export function createOperatorController({ api, view }) {
   const model = { state: "checking-session", operator: null, items: [], detail: null, selectedId: null, noteDraft: "" };
@@ -44,8 +45,10 @@ function createDomView() {
 }
 
 async function bootstrap() {
-  const config = await fetch("/config.json", { cache: "no-store" }).then(r => r.ok ? r.json() : ({})).catch(() => ({})); const api = createApiClient({ apiBase: config.apiBase ?? "" }); const view = createDomView(); const controller = createOperatorController({ api, view }); view.attach(controller);
-  document.querySelector("#sign-in").onclick = () => config.authSignInUrl ? location.assign(config.authSignInUrl) : controller.start(); document.querySelector("#sign-out").onclick = () => { controller.clearPrivate(); location.assign(config.authSignOutUrl ?? "/"); };
+  const config = await fetch("/config.json", { cache: "no-store" }).then(r => r.ok ? r.json() : ({})).catch(() => ({}));
+  let auth = null; if (config.authBase) { const { createNeonBrowserAuth } = await import("./neon-auth.js"); const neon = createNeonBrowserAuth(config.authBase); auth = createAuthClient({ client: neon.client, getToken: neon.getToken }); }
+  const api = createApiClient({ apiBase: config.apiBase ?? "", getSessionHeaders: auth?.sessionHeaders ?? (async () => ({})) }); const view = createDomView(); const controller = createOperatorController({ api, view }); view.attach(controller);
+  document.querySelector("#sign-in").onclick = () => auth ? auth.signIn("github") : controller.start(); document.querySelector("#sign-out").onclick = async () => { controller.clearPrivate(); if (auth) await auth.signOut(); location.assign("/"); };
   const connection = document.querySelector("#connection-status"); const online = () => { connection.textContent = navigator.onLine ? "Online" : "Offline"; connection.dataset.state = navigator.onLine ? "online" : "offline"; }; addEventListener("online", online); addEventListener("offline", online); online();
   if ("serviceWorker" in navigator) { await navigator.serviceWorker.register("/sw.js"); navigator.serviceWorker.addEventListener("message", () => controller.loadList()); }
   const push = createPushClient({ api }); document.querySelector("#notifications").onclick = async () => { const state = await push.getState(); if (!state.supported) return view.announce("Notifications are not available in this browser."); if (state.subscribed) { await push.disable(); view.announce("Notifications disabled."); } else { const result = await push.enable(); view.announce(result.state === "enabled" ? "Notifications enabled." : `Notifications remain ${result.state}.`); } };

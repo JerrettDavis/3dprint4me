@@ -4,6 +4,7 @@ import test from "node:test";
 import { createApiClient, OperatorApiError } from "../../operator/assets/api-client.js";
 import { createPushClient, urlBase64ToUint8Array } from "../../operator/assets/push-client.js";
 import { allowedTransitions, filterWork, sortWork } from "../../operator/assets/work-state.js";
+import { createAuthClient } from "../../operator/assets/auth-client.js";
 
 test("operator API client uses credentialed requests and distinguishes recovery classes", async () => {
   const calls = [];
@@ -37,4 +38,9 @@ test("Push remains explicit and converts the VAPID URL-safe key correctly", asyn
   assert.equal((await push.getState()).permission, "default");
   assert.equal((await push.enable()).state, "denied");
   assert.equal(prompted, 1);
+});
+
+test("provider-neutral auth adapter supplies the official client token only as an API header", async () => {
+  const auth = createAuthClient({ client: { signIn: { social() {} }, getSession() {}, signOut() {} }, getToken: async () => "verified-jwt" });
+  assert.deepEqual(await auth.sessionHeaders(), { authorization: "Bearer verified-jwt" });
 });
