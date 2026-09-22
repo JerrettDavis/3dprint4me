@@ -10,6 +10,7 @@ import * as workStore from "../lib/work-store.js";
 import { hasEmailDelivery, hasWebhookDelivery, postRequestWebhook, sendRequestEmails } from "../lib/notifications.js";
 import { issueCheckoutToken } from "../lib/checkout-token.js";
 import { getLocalOperatorStore, localOperatorEnabled } from "../lib/local-operator.js";
+import { triggerPushWorker } from "../lib/push-trigger.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const newRequestId = () => `3DP-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(10).toString("hex").toUpperCase()}`;
@@ -42,13 +43,15 @@ async function complete(body) {
   const request = normalizeProjectRequest(body.request);
   const files = normalizeUploadedFiles(body.uploadedFiles, id);
   const results = { database: false, email: false, webhook: false };
-  if (neonStore.hasNeon()) { await workStore.completeRequestWithWork(id, request, files); results.database = true; }
+  let outboxId = null;
+  if (neonStore.hasNeon()) { const completed = await workStore.completeRequestWithWork(id, request, files); outboxId = completed.outbox.id; results.database = true; }
   else if (hasSupabase()) { await completeRequestRecord(id, request, files); results.database = true; }
   else if (localOperatorEnabled()) { await getLocalOperatorStore().completeRequestWithWork(id, request, files); results.database = true; }
   await localLog({ event: "complete", id, request, files });
-  const [emailResult, webhookResult] = await Promise.allSettled([sendRequestEmails(id, request, files), postRequestWebhook(id, request, files)]);
+  const [emailResult, webhookResult, pushResult] = await Promise.allSettled([sendRequestEmails(id, request, files), postRequestWebhook(id, request, files), triggerPushWorker(outboxId)]);
   if (emailResult.status === "fulfilled") results.email = Boolean(emailResult.value.owner); else console.error("Request email notification failed.");
   if (webhookResult.status === "fulfilled") results.webhook = webhookResult.value.delivered; else console.error("Request webhook failed.");
+  if (pushResult.status === "rejected") console.error("Push worker trigger failed.");
   const live = Object.values(results).some(Boolean);
   return { id, mode: integrationMode(), live, integrations: results, checkoutToken: live ? issueCheckoutToken(id, request.contact.email, request.projectTitle) : null };
 }

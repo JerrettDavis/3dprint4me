@@ -175,3 +175,28 @@ test("local work store supports minimized reads, interactive updates, history an
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("local work store owns subscriptions and leases notification outbox idempotently", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "3dp-push-store-"));
+  const path = join(directory, "operator-dev.json");
+  try {
+    const store = createLocalWorkStore({ path });
+    const actor = await store.findOperatorByAuthUserId("local-development-owner");
+    await store.completeRequestWithWork(requestId, request, []);
+    const subscription = { endpoint: "https://push.example.test/send/abc", expirationTime: null, keys: { p256dh: "browser-key_123", auth: "auth-key_123" } };
+    assert.deepEqual(await store.savePushSubscription(actor, subscription, "Browser fixture"), { subscribed: true });
+    assert.equal(await store.hasPushSubscription(actor), true);
+    const claimed = await store.claimPushOutbox({ workerId: "worker_12345678", batchSize: 10 });
+    assert.equal(claimed.length, 1);
+    assert.equal((await store.claimPushOutbox({ workerId: "worker_other_12", batchSize: 10 })).length, 0);
+    const subscriptions = await store.listPushSubscriptions(claimed[0]);
+    assert.equal(subscriptions.length, 1);
+    await store.recordPushOutcome({ outboxId: claimed[0].id, subscriptionId: subscriptions[0].id, state: "delivered", category: null });
+    await store.finishPushOutbox(claimed[0].id, { delivered: 1, retrying: 0 });
+    assert.equal((await store.snapshot()).outbox[0].state, "delivered");
+    assert.deepEqual(await store.disablePushSubscription(actor, subscription.endpoint), { disabled: true });
+    assert.equal(await store.hasPushSubscription(actor), false);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
