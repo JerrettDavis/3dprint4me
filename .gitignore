@@ -18,3 +18,4 @@ operator/dist/
 playwright-report/
 test-results/
 supabase/.temp/
+.neon
