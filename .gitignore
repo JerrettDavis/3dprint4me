@@ -13,6 +13,7 @@ __pycache__/
 Thumbs.db
 data/*.ndjson
 data/operator-dev.json
+operator/dist/
 !data/.gitkeep
 playwright-report/
 test-results/
