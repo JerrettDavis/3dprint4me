@@ -45,7 +45,7 @@ function createDomView() {
 }
 
 async function bootstrap() {
-  const config = await fetch("/config.json", { cache: "no-store" }).then(r => r.ok ? r.json() : ({})).catch(() => ({}));
+  const config = await fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : ({})).catch(() => ({}));
   let auth = null; if (config.authBase) { const { createNeonBrowserAuth } = await import("./neon-auth.js"); const neon = createNeonBrowserAuth(config.authBase); auth = createAuthClient({ client: neon.client, getToken: neon.getToken }); }
   const api = createApiClient({ apiBase: config.apiBase ?? "", getSessionHeaders: auth?.sessionHeaders ?? (async () => ({})) }); const view = createDomView(); const controller = createOperatorController({ api, view }); view.attach(controller);
   document.querySelector("#sign-in").onclick = () => auth ? auth.signIn("github") : controller.start(); document.querySelector("#sign-out").onclick = async () => { controller.clearPrivate(); if (auth) await auth.signOut(); location.assign("/"); };
