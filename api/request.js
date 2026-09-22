@@ -9,6 +9,7 @@ import * as neonStore from "../lib/neon.js";
 import * as workStore from "../lib/work-store.js";
 import { hasEmailDelivery, hasWebhookDelivery, postRequestWebhook, sendRequestEmails } from "../lib/notifications.js";
 import { issueCheckoutToken } from "../lib/checkout-token.js";
+import { getLocalOperatorStore, localOperatorEnabled } from "../lib/local-operator.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const newRequestId = () => `3DP-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(10).toString("hex").toUpperCase()}`;
@@ -43,6 +44,7 @@ async function complete(body) {
   const results = { database: false, email: false, webhook: false };
   if (neonStore.hasNeon()) { await workStore.completeRequestWithWork(id, request, files); results.database = true; }
   else if (hasSupabase()) { await completeRequestRecord(id, request, files); results.database = true; }
+  else if (localOperatorEnabled()) { await getLocalOperatorStore().completeRequestWithWork(id, request, files); results.database = true; }
   await localLog({ event: "complete", id, request, files });
   const [emailResult, webhookResult] = await Promise.allSettled([sendRequestEmails(id, request, files), postRequestWebhook(id, request, files)]);
   if (emailResult.status === "fulfilled") results.email = Boolean(emailResult.value.owner); else console.error("Request email notification failed.");

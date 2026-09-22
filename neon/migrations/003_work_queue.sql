@@ -88,6 +88,15 @@ CREATE TABLE IF NOT EXISTS notification_deliveries (
   PRIMARY KEY (outbox_id, subscription_id)
 );
 
+CREATE TABLE IF NOT EXISTS work_actions (
+  operator_id text NOT NULL REFERENCES operators(id) ON DELETE CASCADE,
+  idempotency_key text NOT NULL CHECK (char_length(idempotency_key) BETWEEN 8 AND 128),
+  work_item_id text NOT NULL REFERENCES work_items(id) ON DELETE RESTRICT,
+  result jsonb NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (operator_id, idempotency_key)
+);
+
 CREATE INDEX IF NOT EXISTS work_items_actionable_idx ON work_items (status, priority, created_at, id);
 CREATE INDEX IF NOT EXISTS work_items_updated_idx ON work_items (updated_at DESC, id);
 CREATE INDEX IF NOT EXISTS work_events_cursor_idx ON work_events (id, work_item_id);
@@ -95,3 +104,4 @@ CREATE INDEX IF NOT EXISTS work_notes_item_idx ON work_notes (work_item_id, crea
 CREATE INDEX IF NOT EXISTS push_subscriptions_operator_idx ON push_subscriptions (operator_id, enabled);
 CREATE INDEX IF NOT EXISTS notification_outbox_claim_idx ON notification_outbox (state, next_attempt_at, id);
 CREATE INDEX IF NOT EXISTS notification_deliveries_claim_idx ON notification_deliveries (state, next_attempt_at, outbox_id);
+CREATE INDEX IF NOT EXISTS work_actions_item_idx ON work_actions (work_item_id, created_at);
