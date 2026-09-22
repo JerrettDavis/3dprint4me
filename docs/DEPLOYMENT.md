@@ -31,7 +31,13 @@ Expected delivered baseline:
 
 ## 2. Create request storage
 
-The current production project uses a Neon Free database and a private Vercel Blob store, both connected only to the Production environment. Apply `neon/migrations/001_service_requests.sql` to Neon (`node --env-file=.env.production.local scripts/migrate-neon.mjs` after pulling production variables). Verify with `node --env-file=.env.production.local scripts/verify-private-providers.mjs`; it creates and deletes a synthetic request and private file. Run `node --env-file=.env.production.local scripts/verify-live-intake.mjs` to exercise the deployed API and delete its synthetic data. The server uses `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN`; neither belongs in `public/`. The browser receives only a 15-minute signed upload URL scoped to one path, size, and content type. Owner download links expire after 15 minutes. Monitor the free limits before accepting more than 1 GB of uploads, and move to a paid plan or another private store before the limit is reached.
+The current production project uses a Neon Free database and a private Vercel Blob store, both connected only to the Production environment. Apply the additive migrations in order: `001_service_requests.sql`, `002_quick_inquiries.sql`, and `003_work_queue.sql` (`node --env-file=.env.production.local scripts/migrate-neon.mjs 003_work_queue.sql` for the latest migration). Verify with `node --env-file=.env.production.local scripts/verify-private-providers.mjs`; it creates and deletes a synthetic request and private file. Run `node --env-file=.env.production.local scripts/verify-live-intake.mjs` to exercise the deployed API and delete its synthetic data. The server uses `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN`; neither belongs in `public/`. The browser receives only a 15-minute signed upload URL scoped to one path, size, and content type. Owner download links expire after 15 minutes. Monitor free limits and move to a paid plan or another private store before they are reached.
+
+### Private operator inbox
+
+The queue is created only for Neon-backed completions; existing Supabase and delivery-only modes remain unchanged. Enable Managed Neon Auth on the production branch, configure GitHub in Neon, deploy the separate `operator/` origin, and set the exact origin in `OPERATOR_ALLOWED_ORIGINS`. Apply `neon.ts` to deploy the Push outbox Function and its one-minute scheduled trigger. Do not serve `operator/` from the storefront's `public/` output.
+
+After the first GitHub sign-in, copy the stable auth user ID—not the email or GitHub login—into an enabled `operators` row. Generate a dedicated VAPID key pair and a long random worker secret. See [OPERATOR-INBOX.md](OPERATOR-INBOX.md) for commands, environment variables, verification, rotation, and rollback.
 
 ### Legacy Supabase option
 

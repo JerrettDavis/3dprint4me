@@ -28,6 +28,14 @@ test("push worker drains a bounded batch for an authorized invocation", async ()
   assert.equal(calls[0].batchSize, 20);
 });
 
+test("push worker accepts a platform scheduled-trigger invocation identifier", async () => {
+  let drained = false;
+  const handler = createPushWorkerHandler({ secret: "long-worker-secret", drain: async () => { drained = true; return { claimed: 0, delivered: 0, disabled: 0, retrying: 0, failed: 0 }; } });
+  const response = await handler(new Request("https://worker.example/", { method: "POST", headers: { "x-neon-trigger-invocation-id": "018f2f89-8e5d-7a2b-8c3d-123456789abc" } }));
+  assert.equal(response.status, 200);
+  assert.equal(drained, true);
+});
+
 test("push worker never returns provider or database internals", async () => {
   const handler = createPushWorkerHandler({ secret: "long-worker-secret", drain: async () => { throw new Error("postgres://secret raw provider body"); } });
   const response = await handler(new Request("https://worker.example/", { method: "POST", headers: { authorization: "Bearer long-worker-secret" } }));

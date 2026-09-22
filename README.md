@@ -19,6 +19,8 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 - Owner and customer email delivery through Resend
 - Signed generic webhook delivery for CRM, automation, Home Assistant, n8n, Make, Zapier, or custom systems
 - Optional Stripe-hosted project deposit checkout
+- Durable Neon-backed work queue with revision-safe operational updates
+- Separate installable operator PWA with GitHub sign-in, private notes, and generic Web Push alerts
 - No-account fallback with local draft persistence, email handoff, and downloadable JSON
 - Original SVG artwork, portfolio illustrations, favicon, PWA manifest, sitemap, robots file, Open Graph metadata, and JSON-LD
 - Static checks, Node unit tests, real-HTTP E2E tests, browser UX tests, responsive checks, accessibility auditing, and generated screenshots
@@ -44,6 +46,14 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:4173`.
+
+To run the storefront and private operator inbox together with loopback-only development auth:
+
+```bash
+npm run dev:workspace
+```
+
+Open the printed storefront and operator URLs (defaults: ports `4173` and `4180`). Local work persists in ignored `data/operator-dev.json`. This mode generates ephemeral VAPID keys and never sends external Push traffic.
 
 The development API records create and complete events in `data/dev-requests.ndjson`. That file is ignored by Git.
 
@@ -76,6 +86,12 @@ Copy `.env.example` to `.env` for local work. Vercel reads the same names from P
 | Variable | Required | Purpose |
 |---|---:|---|
 | `SITE_URL` | Recommended | Canonical origin used for Stripe return URLs |
+| `DATABASE_URL` | For Neon intake/queue | Server-only Neon connection string |
+| `BLOB_READ_WRITE_TOKEN` | For Neon intake files | Server-only private Vercel Blob credential |
+| `NEON_AUTH_BASE_URL`, `NEON_AUTH_JWKS_URL` | Operator auth | Managed Neon Auth service and verifier keys; GitHub is the initial provider |
+| `OPERATOR_ALLOWED_ORIGINS` | Operator API | Exact comma-separated operator origins allowed credentialed CORS access |
+| `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Push | Web Push identity; only the public key reaches an authenticated browser |
+| `PUSH_WORKER_URL`, `PUSH_WORKER_SECRET` | Push delivery | Immediate Neon Function trigger and its server-only shared secret |
 | `SUPABASE_URL` | For database/uploads | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | For database/uploads | Server-only REST and Storage credential; never expose it in browser code |
 | `SUPABASE_STORAGE_BUCKET` | Optional | Private bucket name, default `service-files` |
@@ -145,6 +161,8 @@ The calculator intentionally returns a range. A human confirms geometry, risk, m
 ├── data/                        Local development request log
 ├── docs/                        Product, architecture, deployment, and audit docs
 ├── lib/                         Validation and integration adapters
+├── neon/                       Neon migrations and scheduled Push Function
+├── operator/                   Separate private installable operator PWA (never copied to public)
 ├── public/                      Only files published as the static site
 │   ├── assets/css/              Theme and responsive component system
 │   ├── assets/icons/            Brand mark and logo
@@ -168,6 +186,10 @@ The calculator intentionally returns a range. A human confirms geometry, risk, m
 | `/api/upload-url` | `POST` | Create a request-scoped signed private upload URL |
 | `/api/request` | `PATCH` | Finalize the request and deliver notifications |
 | `/api/checkout` | `POST` | Create an optional Stripe Checkout Session for a deposit |
+| `/api/operator-session` | `GET` | Authorize an approved operator identity |
+| `/api/operator-work` | `GET` | Read minimized queue, private detail, or incremental events |
+| `/api/operator-work-update` | `PATCH` | Apply revision-checked workflow updates and private notes |
+| `/api/operator-push` | `GET`, `POST` | Manage the authenticated operator's Push subscription |
 
 API payloads are size-limited, normalized, and revalidated server-side. Client-side estimates and validation exist for usability, not trust.
 
@@ -187,6 +209,7 @@ Custom fabrication is best served by the guided request flow because geometry, l
 - The request form includes a honeypot field and explicit consent.
 
 Read [`SECURITY.md`](SECURITY.md) before accepting untrusted files in production.
+The complete setup, operator approval, notification, recovery, and provider-swap runbook is in [`docs/OPERATOR-INBOX.md`](docs/OPERATOR-INBOX.md).
 
 ## Deliberate tradeoffs
 
