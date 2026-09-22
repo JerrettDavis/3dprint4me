@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12304a">
+  <meta name="description" content="Private 3dprint4.me work inbox">
+  <title>Work inbox · 3dprint4.me</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/operator.css">
+</head>
+<body>
+  <a class="skip-link" href="#work-detail">Skip to selected work</a>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="3dprint4.me work inbox"><span aria-hidden="true">3D</span><strong>Work inbox</strong></a>
+    <div class="session-strip"><span id="connection-status" class="connection" data-state="checking">Checking connection</span><span id="operator-name"></span><button id="sign-out" class="quiet" type="button" hidden>Sign out</button></div>
+  </header>
+  <main>
+    <section id="auth-view" class="auth-view" aria-labelledby="auth-title">
+      <p class="kicker">Private operations</p><h1 id="auth-title">Keep every build moving.</h1>
+      <p>Sign in to review new requests, plan the work, and keep a private activity record.</p>
+      <button id="sign-in" class="primary" type="button">Continue with GitHub</button>
+    </section>
+    <div id="workspace" class="workspace" hidden>
+      <aside class="queue" aria-labelledby="queue-title">
+        <div class="queue-heading"><div><p class="kicker">Build rail</p><h1 id="queue-title">Incoming work</h1></div><output id="work-count" aria-live="polite">0</output></div>
+        <form id="filters" class="filters" aria-label="Filter work">
+          <label>View<select name="view"><option value="active">Active</option><option value="unacknowledged">Needs acknowledgment</option><option value="waiting">Waiting</option><option value="completed">Completed</option><option value="all">All</option></select></label>
+          <label>Service<select name="service"><option value="">Every service</option><option value="print">3D printing</option><option value="design">3D design</option><option value="repair">Printer repair</option><option value="consult">Project consult</option></select></label>
+          <label>Priority<select name="priority"><option value="">Any priority</option><option value="urgent">Urgent</option><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></label>
+        </form>
+        <nav aria-label="Work requests"><ol id="work-list" class="work-list"></ol></nav>
+        <div id="empty-state" class="empty" hidden><strong>The rail is clear.</strong><p>New persisted requests will appear here.</p></div>
+      </aside>
+      <section id="work-detail" class="detail" tabindex="-1" aria-labelledby="detail-title">
+        <div id="detail-placeholder" class="detail-placeholder"><span class="part-mark" aria-hidden="true">⌁</span><h2 id="detail-title">Select work to open its job sheet</h2><p>Customer details stay inside this private view.</p></div>
+        <div id="detail-content" hidden></div>
+      </section>
+    </div>
+  </main>
+  <div class="utility-dock"><button id="notifications" type="button">Manage notifications</button><button id="theme" type="button" aria-label="Change color theme">Theme: system</button></div>
+  <p id="status-message" class="sr-only" role="status" aria-live="polite"></p>
+  <noscript>This private inbox requires JavaScript for secure sign-in and updates.</noscript>
+  <script type="module" src="/assets/operator.js"></script>
+</body>
+</html>

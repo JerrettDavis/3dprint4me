@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const publicRoot = resolve(root, "public");
+const operatorRoot = resolve(root, "operator");
 const errors = [];
 const requiredPublic = ["index.html", "services.html", "portfolio.html", "about.html", "order.html", "privacy.html", "terms.html", "404.html", "manifest.webmanifest", "robots.txt", "sitemap.xml", "favicon.svg"];
 const requiredRoot = ["vercel.json", "package.json", ".env.example"];
@@ -32,6 +33,8 @@ function localTarget(file, ref) {
 
 for (const name of requiredPublic) if (!(await exists(join(publicRoot, name)))) errors.push(`Missing public file: ${name}`);
 for (const name of requiredRoot) if (!(await exists(join(root, name)))) errors.push(`Missing root file: ${name}`);
+for (const name of ["index.html", "manifest.webmanifest", "sw.js", "assets/operator.css", "assets/operator.js"]) if (!(await exists(join(operatorRoot, name)))) errors.push(`Missing operator file: ${name}`);
+if (await exists(join(publicRoot, "operator"))) errors.push("operator/: private operator application must not be inside public output");
 
 const vercel = JSON.parse(await readFile(join(root, "vercel.json"), "utf8"));
 if (vercel.outputDirectory !== "public") errors.push("vercel.json: outputDirectory must be public");
@@ -46,6 +49,7 @@ for (const source of inlineScripts) {
 }
 const files = await walk(root);
 const publicFiles = await walk(publicRoot);
+const operatorFiles = await walk(operatorRoot);
 const htmlFiles = publicFiles.filter(file => extname(file) === ".html");
 let refsChecked = 0;
 for (const file of htmlFiles) {
@@ -64,6 +68,18 @@ for (const file of htmlFiles) {
     if (!(target === publicRoot || target.startsWith(`${publicRoot}${sep}`))) errors.push(`${file}: path escapes public output: ${ref}`);
     else if (!(await exists(target))) errors.push(`${file}: missing local reference ${ref}`);
   }
+}
+
+const operatorHtml = await readFile(join(operatorRoot, "index.html"), "utf8");
+for (const ref of [...operatorHtml.matchAll(/\b(?:href|src)="([^"]+)"/g)].map(match => match[1])) {
+  if (/^(https?:|data:)/i.test(ref)) errors.push(`operator/index.html: external browser asset is not allowed: ${ref}`);
+  const target = resolve(operatorRoot, `.${cleanRef(ref)}`);
+  if (!(target === operatorRoot || target.startsWith(`${operatorRoot}${sep}`)) || !(await exists(target))) errors.push(`operator/index.html: missing local reference ${ref}`);
+}
+const forbiddenBrowserSecrets = ["VAPID_PRIVATE_KEY", "PUSH_WORKER_SECRET", "DATABASE_URL", "BLOB_READ_WRITE_TOKEN", "STRIPE_SECRET_KEY", "RESEND_API_KEY"];
+for (const file of operatorFiles.filter(file => [".html", ".js", ".css", ".json", ".webmanifest", ".svg"].includes(extname(file)))) {
+  const source = await readFile(file, "utf8");
+  for (const secret of forbiddenBrowserSecrets) if (source.includes(secret)) errors.push(`${file}: browser source contains forbidden secret name ${secret}`);
 }
 
 const jsFiles = files.filter(file => [".js", ".mjs"].includes(extname(file)));
