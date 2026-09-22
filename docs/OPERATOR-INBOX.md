@@ -24,7 +24,7 @@ The command starts both origins on loopback and prints their URLs. Development a
    ```
 
 2. Enable Managed Neon Auth on the production branch and configure GitHub as a social provider. Its callback URL must exactly match the URL Neon supplies for that branch.
-3. Set `NEON_AUTH_BASE_URL` and `NEON_AUTH_JWKS_URL` on the API deployment. Set the operator origin in `OPERATOR_ALLOWED_ORIGINS`; do not use a wildcard.
+3. Set `NEON_AUTH_BASE_URL` and `NEON_AUTH_JWKS_URL` on the API deployment. Set the operator origin in `OPERATOR_ALLOWED_ORIGINS`; do not use a wildcard. The API normally verifies Neon JWTs. It also accepts a bounded opaque Managed Auth session token by resolving it against an unexpired `neon_auth.session` row; this covers managed deployments where the cross-origin browser response does not expose Neon's JWT header. This fallback stays inside the Neon adapter and never bypasses the explicit `operators.auth_user_id` approval check.
 4. Build the local browser bundle with `npm run operator:build`, then deploy `operator/` as a separate static app whose non-file routes fall back to `index.html`. Return a non-cacheable `/config.json` containing only `apiBase` and `authBase`. Neither value is a secret.
 5. Sign in once, obtain the stable Neon Auth user ID from the managed-auth user record/session, and explicitly approve it:
 
