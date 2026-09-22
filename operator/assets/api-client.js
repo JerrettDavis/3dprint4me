@@ -18,6 +18,6 @@ export function createApiClient({ apiBase = "", getSessionHeaders = async () => 
     events: (after = "0") => request(`/api/operator-work?eventsAfter=${encodeURIComponent(after)}`),
     updateWork: (id, command, idempotencyKey = crypto.randomUUID()) => request("/api/operator-work-update", { method: "PATCH", body: JSON.stringify({ id, command, idempotencyKey }) }),
     pushConfig: () => request("/api/operator-push"),
-    pushAction: (action, subscription) => request("/api/operator-push", { method: "POST", body: JSON.stringify(subscription ? { action, subscription } : { action }) })
+    pushAction: (action, value) => request("/api/operator-push", { method: "POST", body: JSON.stringify(action === "subscribe" ? { action, subscription: value } : action === "unsubscribe" ? { action, endpoint: value.endpoint } : { action }) })
   };
 }
