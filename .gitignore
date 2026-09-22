@@ -12,6 +12,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 data/*.ndjson
+data/operator-dev.json
 !data/.gitkeep
 playwright-report/
 test-results/
