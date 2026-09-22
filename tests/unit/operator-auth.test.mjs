@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { authorizeOperator, createDevelopmentIdentityProvider, createIdentityProvider } from "../../lib/operator-auth.js";
+import { authorizeOperator, createDevelopmentIdentityProvider, createIdentityProvider, createNeonIdentityProvider } from "../../lib/operator-auth.js";
 
 const request = { headers: { authorization: "Bearer session-fixture" }, socket: { remoteAddress: "127.0.0.1" } };
 
@@ -18,6 +18,39 @@ test("provider-neutral identity maps a verified Neon session without exposing pr
     email: "owner@example.com",
     provider: "github"
   });
+});
+
+test("Neon identity resolves an active opaque session when the managed client cannot expose its JWT", async () => {
+  const tokens = [];
+  const provider = createNeonIdentityProvider({
+    jwksUrl: "https://auth.example.test/.well-known/jwks.json",
+    issuer: "https://auth.example.test",
+    findOpaqueSession: async token => {
+      tokens.push(token);
+      return { user: { id: "auth-user-123", name: "Jerrett", email: "owner@example.com" }, provider: "neon" };
+    }
+  });
+  const opaqueRequest = { headers: { authorization: "Bearer AbCdEf0123456789_opaque-session" } };
+
+  assert.deepEqual(await provider.getIdentity(opaqueRequest), {
+    authUserId: "auth-user-123",
+    name: "Jerrett",
+    email: "owner@example.com",
+    provider: "neon"
+  });
+  assert.deepEqual(tokens, ["AbCdEf0123456789_opaque-session"]);
+});
+
+test("Neon identity rejects malformed opaque tokens without querying session storage", async () => {
+  let lookups = 0;
+  const provider = createNeonIdentityProvider({
+    jwksUrl: "https://auth.example.test/.well-known/jwks.json",
+    findOpaqueSession: async () => { lookups += 1; }
+  });
+
+  assert.equal(await provider.getIdentity({ headers: { authorization: "Bearer too-short" } }), null);
+  assert.equal(await provider.getIdentity({ headers: { authorization: "Bearer invalid/token/value/123456" } }), null);
+  assert.equal(lookups, 0);
 });
 
 test("authorization distinguishes missing identity, unapproved identity and disabled operator", async () => {
