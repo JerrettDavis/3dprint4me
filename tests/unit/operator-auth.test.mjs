@@ -53,6 +53,21 @@ test("Neon identity rejects malformed opaque tokens without querying session sto
   assert.equal(lookups, 0);
 });
 
+test("Neon JWT verification uses the auth service origin as issuer", async () => {
+  const calls = [];
+  const provider = createNeonIdentityProvider({
+    jwksUrl: "https://auth.example.test/neondb/auth/.well-known/jwks.json",
+    issuer: "https://auth.example.test/neondb/auth",
+    verifyJwt: async (token, _jwks, options) => {
+      calls.push({ token, options });
+      return { payload: { sub: "auth-user-123" } };
+    }
+  });
+
+  assert.equal((await provider.getIdentity({ headers: { authorization: "Bearer header.payload.signature" } })).authUserId, "auth-user-123");
+  assert.deepEqual(calls, [{ token: "header.payload.signature", options: { issuer: "https://auth.example.test" } }]);
+});
+
 test("authorization distinguishes missing identity, unapproved identity and disabled operator", async () => {
   const missing = { getIdentity: async () => null };
   await assert.rejects(authorizeOperator(request, { findOperatorByAuthUserId: async () => null }, missing), error => error.status === 401);
