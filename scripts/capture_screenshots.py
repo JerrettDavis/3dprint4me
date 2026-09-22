@@ -8,6 +8,9 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tests.support.browser_harness import ROOT, SiteBrowser
+from tests.support.operator_harness import running_operator_workspace
+from tests.support.server import json_request
+from tests.e2e.test_api import project_request
 
 OUTPUT = ROOT / "screenshots"
 
@@ -114,6 +117,35 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
     return output
 
 
+def capture_operator_states() -> list[tuple[str, Path]]:
+    captured: list[tuple[str, Path]] = []
+    with running_operator_workspace() as (storefront, operator, _):
+        payload = project_request()
+        payload["projectTitle"] = "Replacement alignment bracket"
+        status, _, created = json_request(storefront + "/api/request", method="POST", payload={"request": payload, "website": ""})
+        assert status == 201
+        status, _, _ = json_request(storefront + "/api/request", method="PATCH", payload={"id": created["id"], "request": payload, "uploadedFiles": []})
+        assert status == 200
+        for label, filename, viewport, scheme, open_detail in [
+            ("Operator inbox · desktop · light", "operator-inbox-desktop-light.png", (1440, 1000), "light", False),
+            ("Operator job sheet · desktop · dark", "operator-detail-desktop-dark.png", (1440, 1000), "dark", True),
+            ("Operator job sheet · mobile · light", "operator-detail-mobile-light.png", (390, 844), "light", True),
+        ]:
+            path = OUTPUT / filename
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
+                page = site.page
+                assert page is not None
+                page.goto(operator, wait_until="networkidle")
+                page.locator("#workspace:not([hidden])").wait_for()
+                if open_detail:
+                    page.locator("#work-list .work-row").click()
+                    page.locator("#detail-content:not([hidden])").wait_for()
+                site.screenshot(path, full_page=False)
+                site.assert_no_page_errors()
+            captured.append((label, path))
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -138,6 +170,7 @@ def main() -> int:
         ("Consult intake · desktop · light", capture("/order.html?service=consult", "order-consult-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_consult_details)),
         ("Storage warning · mobile · dark", capture("/order.html?service=consult", "order-storage-warning-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_storage_warning, storage_denied=True)),
     ]
+    cases.extend(capture_operator_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
     print(f"Captured {len(cases) + 1} screenshots and {board.relative_to(ROOT)}")
