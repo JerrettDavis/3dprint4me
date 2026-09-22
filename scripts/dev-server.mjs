@@ -7,6 +7,11 @@ import uploadHandler from "../api/upload-url.js";
 import checkoutHandler from "../api/checkout.js";
 import healthHandler from "../api/health.js";
 import inquiryHandler from "../api/inquiry.js";
+import { createSessionHandler } from "../api/operator-session.js";
+import { createWorkHandler } from "../api/operator-work.js";
+import { createWorkUpdateHandler } from "../api/operator-work-update.js";
+import { configuredOperatorOrigins } from "../lib/operator-api.js";
+import { getLocalIdentityProvider, getLocalOperatorStore, localOperatorEnabled } from "../lib/local-operator.js";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const root = resolve(projectRoot, "public");
@@ -15,6 +20,14 @@ const host = process.env.HOST || "127.0.0.1";
 process.env.LOCAL_DEV ||= "1";
 const apiRoutes = new Map([["/api/request", requestHandler], ["/api/upload-url", uploadHandler], ["/api/checkout", checkoutHandler], ["/api/health", healthHandler]]);
 apiRoutes.set("/api/inquiry", inquiryHandler);
+if (localOperatorEnabled()) {
+  const store = getLocalOperatorStore();
+  const identityProvider = getLocalIdentityProvider();
+  const allowedOrigins = configuredOperatorOrigins();
+  apiRoutes.set("/api/operator-session", createSessionHandler({ store, identityProvider, allowedOrigins }));
+  apiRoutes.set("/api/operator-work", createWorkHandler({ store, identityProvider, allowedOrigins }));
+  apiRoutes.set("/api/operator-work-update", createWorkUpdateHandler({ store, identityProvider, allowedOrigins }));
+}
 const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".mjs":"text/javascript; charset=utf-8", ".json":"application/json; charset=utf-8", ".webmanifest":"application/manifest+json; charset=utf-8", ".svg":"image/svg+xml", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp", ".xml":"application/xml; charset=utf-8", ".txt":"text/plain; charset=utf-8" };
 function securityHeaders(res) { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin"); res.setHeader("X-Frame-Options", "DENY"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); }
 async function fileExists(path) { try { return (await stat(path)).isFile(); } catch { return false; } }

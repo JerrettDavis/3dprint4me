@@ -21,7 +21,7 @@ def free_port() -> int:
 
 
 @contextmanager
-def running_server() -> Iterator[str]:
+def running_server(*, extra_env: dict[str, str] | None = None) -> Iterator[str]:
     port = free_port()
     env = {
         **os.environ,
@@ -32,11 +32,13 @@ def running_server() -> Iterator[str]:
     }
     # Ensure tests prove the zero-account fallback rather than using accidental secrets.
     for key in [
+        "DATABASE_URL", "BLOB_READ_WRITE_TOKEN",
         "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_STORAGE_BUCKET",
         "RESEND_API_KEY", "REQUEST_TO_EMAIL", "REQUEST_FROM_EMAIL",
         "REQUEST_WEBHOOK_URL", "REQUEST_WEBHOOK_SECRET", "STRIPE_SECRET_KEY",
     ]:
         env.pop(key, None)
+    env.update(extra_env or {})
     process = subprocess.Popen(
         ["node", "scripts/dev-server.mjs"],
         cwd=ROOT,
@@ -82,6 +84,6 @@ def request(url: str, *, method: str = "GET", payload: Any | None = None, header
         return error.code, dict(error.headers.items()), error.read()
 
 
-def json_request(url: str, *, method: str = "GET", payload: Any | None = None) -> tuple[int, dict[str, str], dict[str, Any]]:
-    status, headers, body = request(url, method=method, payload=payload)
+def json_request(url: str, *, method: str = "GET", payload: Any | None = None, headers: dict[str, str] | None = None) -> tuple[int, dict[str, str], dict[str, Any]]:
+    status, headers, body = request(url, method=method, payload=payload, headers=headers)
     return status, headers, json.loads(body.decode("utf-8"))
