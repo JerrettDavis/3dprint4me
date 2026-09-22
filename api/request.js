@@ -6,6 +6,7 @@ import { handleApiError, HttpError, readJson, requireMethod, sendJson } from "..
 import { normalizeProjectRequest, normalizeUploadedFiles, validateRequestId } from "../lib/validation.js";
 import { completeRequestRecord, createRequestRecord, hasSupabase } from "../lib/supabase.js";
 import * as neonStore from "../lib/neon.js";
+import * as workStore from "../lib/work-store.js";
 import { hasEmailDelivery, hasWebhookDelivery, postRequestWebhook, sendRequestEmails } from "../lib/notifications.js";
 import { issueCheckoutToken } from "../lib/checkout-token.js";
 
@@ -40,7 +41,7 @@ async function complete(body) {
   const request = normalizeProjectRequest(body.request);
   const files = normalizeUploadedFiles(body.uploadedFiles, id);
   const results = { database: false, email: false, webhook: false };
-  if (neonStore.hasNeon()) { await neonStore.completeRequestRecord(id, request, files); results.database = true; }
+  if (neonStore.hasNeon()) { await workStore.completeRequestWithWork(id, request, files); results.database = true; }
   else if (hasSupabase()) { await completeRequestRecord(id, request, files); results.database = true; }
   await localLog({ event: "complete", id, request, files });
   const [emailResult, webhookResult] = await Promise.allSettled([sendRequestEmails(id, request, files), postRequestWebhook(id, request, files)]);
