@@ -1,0 +1,11 @@
+{
+  "name": "3dprint4.me Work Inbox",
+  "short_name": "Work Inbox",
+  "description": "Private work intake and fabrication status",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7faf9",
+  "theme_color": "#12304a",
+  "icons": [{ "src": "/assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
