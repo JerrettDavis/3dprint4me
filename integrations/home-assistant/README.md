@@ -35,9 +35,10 @@ The persistent notification appears inside Home Assistant. For phone push, add t
     message: New work is available. Open it in the operator inbox.
     data:
       url: "https://work.3dprint4.me/work/{{ trigger.to_state.state }}"
+      clickAction: "https://work.3dprint4.me/work/{{ trigger.to_state.state }}"
 ```
 
-`notify.mobile_app_owner_phone` is illustrative. Replace it with the actual `notify.mobile_app_*` target exposed by your Home Assistant Companion App. The URL is a fixed operator work path using the same validated trigger ID; it performs no write.
+`notify.mobile_app_owner_phone` is illustrative. Replace it with the actual `notify.mobile_app_*` target exposed by your Home Assistant Companion App. The [iOS `url` and Android `clickAction`](https://companion.home-assistant.io/docs/notifications/notifications-basic/#opening-a-url) use the same fixed operator work path and validated trigger ID; tapping either notification performs no write.
 
 ## Operation and removal
 
