@@ -4,7 +4,7 @@ A production-oriented storefront and guided project intake for custom 3D modelin
 
 ![3dprint4.me light, dark, desktop, and mobile preview board](screenshots/preview-board.png)
 
-The project is deliberately static-first. The public site is plain HTML, CSS, SVG, and browser JavaScript, while four small Node endpoints provide request handling, private upload instructions, health reporting, and optional Stripe deposits. It deploys cleanly to Vercel, runs locally with no JavaScript package installation, and remains demonstrable even before external services are connected.
+The project is deliberately static-first. The public site is plain HTML, CSS, SVG, and browser JavaScript, while thin Node endpoints expose feature-oriented request, inquiry, work-management, health, and optional deposit capabilities. It deploys cleanly to Vercel and remains demonstrable even before external services are connected.
 
 ## What is included
 
@@ -14,8 +14,8 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 - Four-step intake with service-specific questions and inline validation
 - Live rough estimates driven by material, time, quality, quantity, complexity, finishing, and delivery inputs
 - File selection for STL, 3MF, STEP, OBJ, Fusion, ZIP, image, PDF, and text references
-- Private, direct-to-Supabase signed uploads when configured
-- Supabase request records protected behind server-only credentials
+- Private, direct-to-Vercel Blob uploads with Neon persistence, plus a supported legacy Supabase mode
+- Feature-oriented server slices with automated dependency-boundary checks
 - Owner and customer email delivery through Resend
 - Signed generic webhook delivery for CRM, automation, Home Assistant, n8n, Make, Zapier, or custom systems
 - Optional Stripe-hosted project deposit checkout
@@ -30,8 +30,8 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 The delivered build passes:
 
 - Static validation of all public routes, local references, JavaScript syntax, Vercel output configuration, and CSP hashes
-- 10 Node unit tests covering integration boundaries, upload scoping, completion state, and JSON content types
-- 7 end-to-end scenarios, including the real local API lifecycle
+- 139 Node unit and repository-contract tests covering domain, application, adapter, and integration boundaries
+- 46 end-to-end scenarios covering real HTTP, browser flows, recovery, operator behavior, and accessibility
 - 193 automated UX, accessibility, responsive, browser-error, keyboard, and contrast checks
 - Desktop light, desktop dark, full-page, and mobile dark screenshot generation
 
@@ -76,7 +76,8 @@ The same code supports four useful operating modes.
 |---|---|---|
 | Preview | Nothing | Full UI, calculator, draft saving, local browser copy, email draft, and JSON export |
 | Delivery | Resend and/or webhook | Requests are delivered without a database; uploads are recorded as metadata only |
-| Full intake | Supabase, optionally Resend/webhook | Request records persist and files upload to a private bucket by signed URL |
+| Full intake | Neon + private Blob, optionally Resend/webhook | Request records persist, work is created atomically, and files upload privately by signed instruction |
+| Legacy full intake | Supabase, optionally Resend/webhook | The earlier database/storage adapter remains available during migration |
 | Intake plus deposit | Full intake plus Stripe | Customers can open a Stripe-hosted checkout for a configurable project deposit |
 
 Copy `.env.example` to `.env` for local work. Vercel reads the same names from Project Settings.

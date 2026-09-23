@@ -6,6 +6,8 @@ Every successfully completed Neon request is atomically paired with one work ite
 
 The operator app is a separate installable PWA in `operator/`. It is intentionally outside `public/`, has its own origin, never stores sessions or customer data in browser storage, and keeps every `/api/` request network-only. Push payloads contain generic text plus opaque work/event IDs; names, contact details, descriptions, estimates, and file names are excluded.
 
+Server behavior belongs to `lib/work-management/`: `domain.js` owns workflow policy, `service.js` exposes application operations, and `runtime.js` selects the Neon or loopback-local repository adapter. Operator API files authenticate and serialize HTTP only. Both adapters satisfy the same repository contract tests, including minimized lists, private detail, revision conflicts, idempotent commands, and outbox lifecycle.
+
 ## Local use
 
 ```bash
