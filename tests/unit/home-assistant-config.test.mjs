@@ -49,3 +49,11 @@ test("the machine token name stays out of browser assets and is blocked by valid
     }
   }
 });
+
+test("optional phone alert links to the canonical work item on iOS and Android", async () => {
+  const readme = await read("integrations/home-assistant/README.md");
+  const mobileExample = readme.split("## Optional phone delivery")[1].split("## Operation and removal")[0];
+  const canonicalWorkUrl = 'https://work.3dprint4.me/work/{{ trigger.to_state.state }}';
+  assert.ok(mobileExample.includes(`url: "${canonicalWorkUrl}"`), "iOS URL must open the work item");
+  assert.ok(mobileExample.includes(`clickAction: "${canonicalWorkUrl}"`), "Android clickAction must open the same work item");
+});
