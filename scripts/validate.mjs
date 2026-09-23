@@ -10,7 +10,7 @@ const publicRoot = resolve(root, "public");
 const operatorRoot = resolve(root, "operator");
 const errors = [];
 const requiredPublic = ["index.html", "services.html", "portfolio.html", "about.html", "order.html", "privacy.html", "terms.html", "404.html", "manifest.webmanifest", "robots.txt", "sitemap.xml", "favicon.svg"];
-const requiredRoot = ["vercel.json", "package.json", ".env.example"];
+const requiredRoot = ["vercel.json", "package.json", ".env.example", "integrations/home-assistant/package.yaml", "integrations/home-assistant/dashboard.yaml", "integrations/home-assistant/README.md"];
 
 async function walk(path) {
   const result = [];
@@ -77,10 +77,27 @@ for (const ref of [...operatorHtml.matchAll(/\b(?:href|src)="([^"]+)"/g)].map(ma
   const target = resolve(operatorRoot, `.${cleanRef(ref)}`);
   if (!(target === operatorRoot || target.startsWith(`${operatorRoot}${sep}`)) || !(await exists(target))) errors.push(`operator/index.html: missing local reference ${ref}`);
 }
-const forbiddenBrowserSecrets = ["VAPID_PRIVATE_KEY", "PUSH_WORKER_SECRET", "DATABASE_URL", "BLOB_READ_WRITE_TOKEN", "STRIPE_SECRET_KEY", "RESEND_API_KEY"];
-for (const file of operatorFiles.filter(file => [".html", ".js", ".css", ".json", ".webmanifest", ".svg"].includes(extname(file)))) {
+const forbiddenBrowserSecrets = ["VAPID_PRIVATE_KEY", "PUSH_WORKER_SECRET", "DATABASE_URL", "BLOB_READ_WRITE_TOKEN", "STRIPE_SECRET_KEY", "RESEND_API_KEY", "HOME_ASSISTANT_TOKEN"];
+for (const file of [...publicFiles, ...operatorFiles].filter(file => [".html", ".js", ".mjs", ".css", ".json", ".webmanifest", ".svg"].includes(extname(file)))) {
   const source = await readFile(file, "utf8");
   for (const secret of forbiddenBrowserSecrets) if (source.includes(secret)) errors.push(`${file}: browser source contains forbidden secret name ${secret}`);
+}
+
+const homeAssistantPackagePath = join(root, "integrations/home-assistant/package.yaml");
+const homeAssistantDashboardPath = join(root, "integrations/home-assistant/dashboard.yaml");
+if (await exists(homeAssistantPackagePath) && await exists(homeAssistantDashboardPath)) {
+  const packageYaml = await readFile(homeAssistantPackagePath, "utf8");
+  const dashboardYaml = await readFile(homeAssistantDashboardPath, "utf8");
+  for (const [label, valid] of [
+    ["snapshot endpoint", /resource:\s*https:\/\/3dprint4\.me\/api\/home-assistant-work/.test(packageYaml)],
+    ["secret Authorization header", /Authorization:\s*!secret three_d_print_work_authorization/.test(packageYaml)],
+    ["one-minute polling", /scan_interval:\s*60/.test(packageYaml)],
+    ["persistent notification", /persistent_notification\.create/.test(packageYaml)],
+    ["canonical alert link", /https:\/\/work\.3dprint4\.me\/work\//.test(packageYaml)],
+    ["canonical dashboard link", /https:\/\/work\.3dprint4\.me\//.test(dashboardYaml)],
+    ["item canonical URLs", /item\.url/.test(dashboardYaml)],
+    ["read-only configuration", !/operator-work-update|\backnowledge\b|set-status|add-note/.test(`${packageYaml}\n${dashboardYaml}`)]
+  ]) if (!valid) errors.push(`Home Assistant integration: missing or invalid ${label}`);
 }
 
 const jsFiles = files.filter(file => [".js", ".mjs"].includes(extname(file)));
