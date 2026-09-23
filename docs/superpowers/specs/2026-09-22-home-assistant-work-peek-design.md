@@ -24,7 +24,7 @@ Home Assistant polls `GET https://3dprint4.me/api/home-assistant-work` using a d
 
 The snapshot query is purpose-built rather than composed from repeated operator-list calls. This gives one internally consistent result, one database round trip, explicit field minimization, and no dependency on a human Neon Auth session. The query is read-only and cannot reach repository command, acknowledgement, event-cursor, Push, or outbox methods.
 
-Home Assistant's REST integration polls the endpoint once per minute. Multiple entities derive from the same response so one polling cycle makes one HTTP request. An automation compares the latest creation marker to its prior state and sends a notification only when a new work item appears. Restarting Home Assistant must not notify for every existing item.
+Home Assistant's REST integration polls the endpoint once per minute. Multiple entities derive from the same response so one polling cycle makes one HTTP request. An automation compares the latest creation marker to its prior valid state and sends a notification only when a new work item appears. The first successful poll establishes state without an alert. Restarting Home Assistant must not notify for every existing item.
 
 ## Authentication and transport
 
@@ -66,7 +66,7 @@ The response is versioned and deliberately bounded:
 }
 ```
 
-`items` contains at most 20 nonterminal work items, ordered with the same operational priority policy as the operator queue. `latestCreatedId` identifies the most recently created active item independently of that display order, so priority changes cannot create false new-work alerts. When no active work exists it is `null` and `items` is empty.
+`items` contains at most 20 nonterminal work items, ordered with the same operational priority policy as the operator queue. `latestCreatedId` identifies the most recently created work item across **all** statuses, independently of the active display order; it is `null` only if no work has ever been created. When no active work exists, active counts are zero and `items` is empty, but the marker retains the newest created ID. This prevents a terminal transition from moving the marker backward or to `null` and then causing a false new-work alert.
 
 The count meanings are:
 
@@ -86,12 +86,12 @@ The repository ships a copyable Home Assistant package and dashboard snippet und
 The package defines a single REST resource and derives:
 
 - active, unacknowledged, urgent, and waiting-customer counts;
-- the latest active work ID;
+- the latest created work ID across all statuses;
 - bounded item data used by the dashboard.
 
 The dashboard presents count badges and a compact list of current work. The dashboard's queue action opens `https://work.3dprint4.me/`; each item action opens its exact `/work/<id>` URL. There are no acknowledge, status, priority, assignment, note, or other mutation controls in Home Assistant.
 
-The alert automation triggers when `latestCreatedId` changes from one nonempty work ID to another, or from the established empty state to a new ID after startup initialization. The notification title and message contain operational summary data only. Its click action uses the item's canonical operator URL. The shipped automation uses a configurable notify action placeholder because mobile-notify entity names are installation-specific.
+The alert automation triggers when `latestCreatedId` changes from one valid work ID to a different valid work ID. The first successful poll establishes state without an alert, including when the prior state is empty or unavailable. The notification title and message contain operational summary data only. Its click action uses the canonical operator URL derived from the validated marker, even if that work has already left the active list. The shipped baseline creates a Home Assistant persistent notification; optional mobile delivery uses an installation-specific notify action.
 
 Polling failures make the integration unavailable without clearing or mutating work. Recovery on a later successful poll resumes from the current snapshot. The API does not promise delivery of every intermediate item created and completed entirely between polls; the operator inbox remains authoritative.
 

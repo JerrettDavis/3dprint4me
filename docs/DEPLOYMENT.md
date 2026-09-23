@@ -39,6 +39,18 @@ The queue is created only for Neon-backed completions; existing Supabase and del
 
 After the first GitHub sign-in, copy the stable auth user ID—not the email or GitHub login—into an enabled `operators` row. Generate a dedicated VAPID key pair and a long random worker secret. See [OPERATOR-INBOX.md](OPERATOR-INBOX.md) for commands, environment variables, verification, rotation, and rollback.
 
+### Read-only Home Assistant work peek
+
+The snapshot endpoint is optional and independent of the operator PWA. The operator queue must already be working on the production Neon database. The package and dashboard are in [`integrations/home-assistant/`](../integrations/home-assistant/README.md); they are deployment examples outside `public/`.
+
+1. Generate a distinct token on a trusted machine with `openssl rand -base64 48`. Keep the actual value in a secret manager, not a command transcript, repository file, browser bundle, or URL.
+2. In the storefront Vercel project, add `HOME_ASSISTANT_TOKEN` under **Settings → Environment Variables** for **Production** with that value. It is a server-only variable; do not add a `VITE_` prefix or place it in `public/` or `operator/`. Deploy the API so the new variable reaches the function. A missing or shorter-than-32-character value fails closed with `503`.
+3. Before adding the matching Home Assistant secret, confirm anonymous and wrong-token requests to `https://3dprint4.me/api/home-assistant-work` return `401`. Send the correct token only in an Authorization header, and confirm `200`, `Cache-Control: no-store`, and the minimized snapshot. Avoid recording the header in shell history or shared logs.
+4. Install the package, `secrets.yaml` value (`three_d_print_work_authorization: "Bearer <same token>"`), and dashboard in the order described in the integration README. Run Home Assistant **Check configuration** before restarting it. Confirm the REST and derived sensors update, then verify the dashboard and alert with one labeled synthetic work item. The first successful poll establishes state without an alert.
+5. Record the timestamped production results in [VERIFICATION.md](VERIFICATION.md). The local automated suite does not prove the Home Assistant installation or live alert.
+
+For coordinated rotation, generate a new token and prepare the replacement Home Assistant secret. Change `HOME_ASSISTANT_TOKEN` in Vercel and redeploy, then change the Home Assistant `secrets.yaml` value, run **Check configuration**, and restart or reload the integration within one maintenance window. Brief `401` responses while values differ are expected. Confirm the new token returns `200`, the old token returns `401`, and the sensor resumes with a fresh `generatedAt`. Do not expose either token in the evidence record. If rotation fails, restore a matching token on both sides and redeploy/restart as needed; a previous Vercel deployment may contain an old environment value, so verify its actual endpoint behavior. For an intentional disable or rollback, remove `HOME_ASSISTANT_TOKEN` from Vercel and redeploy; the endpoint must return `503` even when called with an old token. Then remove the Home Assistant package, dashboard, and secret as described in its README. Intake and the operator PWA remain available independently.
+
 ### Legacy Supabase option
 
 1. Create a Supabase project in the desired region.

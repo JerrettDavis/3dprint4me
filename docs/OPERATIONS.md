@@ -48,6 +48,16 @@ Use `draft` only for the short period between request creation and final file/me
 8. Decide: quote, request more information, refer out, or decline.
 9. Respond with a concrete next step and update the status.
 
+## Home Assistant work peek
+
+Home Assistant is a convenience read-only view of the work queue. The Neon work record and authenticated operator PWA at `https://work.3dprint4.me/` remain authoritative. An unavailable Home Assistant instance or snapshot endpoint must not block customer intake, operator updates, existing owner notifications, Web Push, or the notification outbox. Do all acknowledgements and status changes in the operator PWA.
+
+Check `sensor.three_d_print_work` in Home Assistant Developer Tools → States. Its attributes hold `generatedAt`, counts, `latestCreatedId`, and up to 20 active summaries. The supplied package polls every 60 seconds; `generatedAt` should advance on successful polls. If it is stale beyond two expected intervals, check the entity's availability, the REST integration log, endpoint HTTP status, Vercel function health, and Neon connectivity. A fixed marker between polls is normal when no new work was created. The marker is newest-created work across all statuses, so it remains set when all work is terminal; active counts and items then fall to zero. The first successful poll only establishes state and should not alert.
+
+For `401`, check that the API has the configured token and that the Home Assistant `three_d_print_work_authorization` secret has the exact `Bearer ` prefix and matching value. Check for stale configuration after rotation; never paste either secret into a ticket, log, or URL. For `503`, check whether `HOME_ASSISTANT_TOKEN` is missing or too short, whether the function can reach Neon, and whether the operator queue is otherwise healthy. Removing the Vercel variable intentionally produces `503`, not an anonymous feed. A polling outage makes the Home Assistant view unavailable; the next successful poll resumes the current snapshot and cannot reconstruct work created and completed between polls.
+
+After editing `integrations/home-assistant/package.yaml` or the installed secret, run Home Assistant **Check configuration** before restart or reload. If validation fails, restore the last valid package and secret, then recheck. Inspect the dashboard links and alert against the exact operator work ID; opening a link may require operator sign-in. If a new-work alert seems duplicated, compare the prior and current valid markers and the automation trace. Repeated polls with the same marker should not alert or change work revision, acknowledgement, events, or outbox state. See [DEPLOYMENT.md](DEPLOYMENT.md) for coordinated token rotation and rollback.
+
 ## File safety
 
 Customer files are untrusted input even when the extension looks harmless.
