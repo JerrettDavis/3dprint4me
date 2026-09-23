@@ -46,6 +46,10 @@ def _bundle(order: bool, *, home: bool = False) -> str:
         paths.append(SITE_ROOT / "assets/js/quote-engine.js")
     paths.append(SITE_ROOT / "assets/js/site.js")
     if order:
+        paths.extend(SITE_ROOT / "assets/js/order" / name for name in (
+            "model.js", "draft-store.js", "client.js", "files.js",
+            "validation.js", "view.js", "controller.js",
+        ))
         paths.append(SITE_ROOT / "assets/js/order.js")
     bundle = "\n".join(_module_source(path) for path in paths)
     # Header/footer art is created from JavaScript, so make that image self-contained too.
