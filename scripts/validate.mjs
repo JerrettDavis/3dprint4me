@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { dirname, extname, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkArchitecture } from "./check-architecture.mjs";
+import { scanBrowserSecrets } from "./browser-secret-scan.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const publicRoot = resolve(root, "public");
@@ -50,7 +51,6 @@ for (const source of inlineScripts) {
 }
 const files = await walk(root);
 const publicFiles = await walk(publicRoot);
-const operatorFiles = await walk(operatorRoot);
 const htmlFiles = publicFiles.filter(file => extname(file) === ".html");
 let refsChecked = 0;
 for (const file of htmlFiles) {
@@ -77,10 +77,8 @@ for (const ref of [...operatorHtml.matchAll(/\b(?:href|src)="([^"]+)"/g)].map(ma
   const target = resolve(operatorRoot, `.${cleanRef(ref)}`);
   if (!(target === operatorRoot || target.startsWith(`${operatorRoot}${sep}`)) || !(await exists(target))) errors.push(`operator/index.html: missing local reference ${ref}`);
 }
-const forbiddenBrowserSecrets = ["VAPID_PRIVATE_KEY", "PUSH_WORKER_SECRET", "DATABASE_URL", "BLOB_READ_WRITE_TOKEN", "STRIPE_SECRET_KEY", "RESEND_API_KEY", "HOME_ASSISTANT_TOKEN"];
-for (const file of [...publicFiles, ...operatorFiles].filter(file => [".html", ".js", ".mjs", ".css", ".json", ".webmanifest", ".svg"].includes(extname(file)))) {
-  const source = await readFile(file, "utf8");
-  for (const secret of forbiddenBrowserSecrets) if (source.includes(secret)) errors.push(`${file}: browser source contains forbidden secret name ${secret}`);
+for (const { file, secret } of await scanBrowserSecrets([publicRoot, operatorRoot])) {
+  errors.push(`${file}: browser source contains forbidden secret name ${secret}`);
 }
 
 const homeAssistantPackagePath = join(root, "integrations/home-assistant/package.yaml");
