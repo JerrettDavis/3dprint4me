@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-22
+
+- Reorganized Project Request, Quick Inquiry, Work Management, and Checkout around explicit domain, application, adapter, runtime, and transport boundaries.
+- Split the detailed browser intake into model, validation, draft, file, client, view, and controller modules while preserving all four service paths and local recovery.
+- Added executable architecture dependency rules, repository contract tests, domain language, and ADR documentation.
+- Fixed private Blob uploads in Neon mode, made denied browser storage non-fatal, and removed unsafe HTML rendering from request review output.
+- Verified 139 unit/contract tests, 46 E2E tests, 193/193 UX checks, and the generated responsive light/dark screenshot board.
+
 ## Unreleased - 2026-09-02
 
 - Fixed the theme toggle icon breaking after the first click (light/dark states rendered no icon).

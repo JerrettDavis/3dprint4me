@@ -6,6 +6,17 @@ The separate homepage inquiry API and its private-upload, ownership, and notific
 
 The implementation optimizes for a fast public site, low operating cost, few dependencies, secure handling of customer files, and clear seams for hosted services. It intentionally avoids making a large client framework a prerequisite for a small-service storefront.
 
+## Feature-oriented boundaries
+
+The application is organized around four bounded contexts rather than technical-layer folders:
+
+- `lib/project-request/` owns detailed customer intake, upload authorization, completion, and its server composition root. The browser half lives in `public/assets/js/order/` and separates the model, validation, persistence, API client, view, and controller.
+- `lib/quick-inquiry/` owns the lightweight homepage inquiry, attachment verification, durable completion, and bounded notification retry policy.
+- `lib/work-management/` owns operator-visible work, revision-safe commands, authorization-facing repository operations, and Push/outbox capabilities. Neon and local JSON are adapters to the same repository port.
+- `lib/checkout/` owns deposit eligibility, completion proofs, trusted return origins, and the Stripe adapter. A browser return URL is never payment verification.
+
+Files directly under `api/` are transport entrypoints. Domain and application code point inward and provider SDKs remain in adapters/composition roots. `npm run validate` executes `scripts/check-architecture.mjs` to enforce the public/server, domain/provider, feature/transport, and API/provider boundaries. Transitional root modules such as `lib/work-store.js` are compatibility facades, not new extension points. See [ADR 0001](adr/0001-feature-oriented-bounded-contexts.md) and [DOMAIN-LANGUAGE.md](DOMAIN-LANGUAGE.md).
+
 ## System context
 
 ```mermaid
@@ -50,9 +61,9 @@ Provides deterministic estimate functions and request-summary construction. It h
 
 Renders the shared header and footer, applies system/light/dark theme behavior, manages mobile navigation, and provides common interaction behavior. Theme controls remain usable for the current visit when browser storage is denied.
 
-### `assets/js/order.js`
+### `assets/js/order.js` and `assets/js/order/`
 
-Owns the intake state machine, conditional fields, draft persistence, file validation, estimate updates, review rendering, API orchestration, local fallback, mailto handoff, JSON export, and optional deposit flow.
+`order.js` composes the browser feature. The nested modules own request projection, conditional validation, recoverable drafts, file rules, API/upload protocol, accessible rendering, and flow state without importing server code.
 
 ### `assets/css/site.css`
 
@@ -76,7 +87,7 @@ The real-HTTP cached-upgrade browser test primes old unversioned assets, serves 
 2. Applies the honeypot behavior.
 3. Normalizes and validates the complete project request.
 4. Generates a non-sequential request ID.
-5. Creates a Supabase draft row when configured.
+5. Creates a Neon draft row in the primary production mode, or a legacy Supabase draft when explicitly configured.
 6. Returns the active integration mode.
 
 A complete payload is validated before the initial row is created. This prevents anonymous clients from reserving empty records or arbitrary upload namespaces.
@@ -188,7 +199,7 @@ Resend and/or a webhook can be used without Supabase. Request details are delive
 
 ### Full intake
 
-Supabase persists records and enables signed uploads. Resend and webhook delivery remain optional but are recommended for operational awareness.
+Neon persists requests/work and private Vercel Blob provides signed uploads. The legacy Supabase adapter remains supported. Resend and webhook delivery remain optional but are recommended for operational awareness.
 
 ### Deposit
 

@@ -28,10 +28,10 @@ npm test
     Vercel public output boundary validated
     Content-Security-Policy hashes validated
 
-  Node unit tests: PASS
+  Node unit and repository-contract tests: PASS (139)
     35 passed, 0 failed
 
-  End-to-end tests: PASS
+  End-to-end tests: PASS (46)
     25 passed, 0 failed
 
   UX/accessibility audit: PASS
