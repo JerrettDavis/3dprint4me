@@ -1,15 +1,14 @@
 import { randomBytes, createHmac } from 'node:crypto';
-import { head } from '@vercel/blob';
 import { HttpError, readJson, requireMethod, sendJson, handleApiError } from '../lib/http.js';
 import { normalizeInquiry, validateSubmissionKey } from '../lib/inquiry-validation.js';
-import { hasBlob, createSignedUpload } from '../lib/blob.js';
+import { hasBlob, createSignedUpload, inspectPrivateObject } from '../lib/blob.js';
 import * as store from '../lib/inquiry-store.js';
 
 export function createInquiryHandler(deps = {}) {
   const db = deps.store || store;
   const configured = deps.configured || (()=>Boolean(process.env.DATABASE_URL));
   const blobConfigured = deps.blobConfigured || hasBlob;
-  const inspect = deps.head || head;
+  const inspect = deps.head || inspectPrivateObject;
   const sign = deps.sign || createSignedUpload;
   async function verified(file) {
     try { const object = await inspect(file.path); return object.pathname === file.path && object.size === file.size; }

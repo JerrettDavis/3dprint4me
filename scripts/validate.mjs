@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { dirname, extname, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkArchitecture } from "./check-architecture.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const publicRoot = resolve(root, "public");
@@ -88,9 +89,13 @@ for (const file of jsFiles) {
   if (result.status !== 0) errors.push(`${file}: JavaScript syntax error\n${result.stderr}`);
 }
 
+const architecture = await checkArchitecture({ root });
+for (const violation of architecture.violations) errors.push(`${violation.file}: ${violation.rule} (${violation.import})`);
+
 if (errors.length) {
   console.error(`Validation failed with ${errors.length} issue(s):\n- ${errors.join("\n- ")}`);
   process.exit(1);
 }
 console.log(`Validated ${htmlFiles.length} HTML pages, ${refsChecked} local references, and ${jsFiles.length} JavaScript files.`);
+console.log(`Architecture boundaries passed for ${architecture.filesChecked} JavaScript files.`);
 console.log("Static validation passed.");
