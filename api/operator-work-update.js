@@ -1,7 +1,7 @@
 import { authorizeOperator, createNeonIdentityProvider } from "../lib/operator-auth.js";
 import { configuredOperatorOrigins, createOperatorApiHandler } from "../lib/operator-api.js";
-import { createNeonWorkStore } from "../lib/work-store.js";
-import { parseWorkCommand } from "../lib/work-validation.js";
+import { parseWorkCommand } from "../lib/work-management/domain.js";
+import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
 import { HttpError, readJson } from "../lib/http.js";
 
 function parseEnvelope(input) {
@@ -16,12 +16,13 @@ function parseEnvelope(input) {
   catch (error) { throw new HttpError(400, error.message); }
 }
 
-export function createWorkUpdateHandler({ store = createNeonWorkStore(), identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
+export function createWorkUpdateHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
+  const work = resolveWorkManagementRuntime({ runtime, repository: store });
   let provider = identityProvider;
-  const authorizeRequest = authorize ?? (req => authorizeOperator(req, store, provider ??= createNeonIdentityProvider()));
+  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
   return createOperatorApiHandler({ methods: ["PATCH"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
     const { id, command, idempotencyKey } = parseEnvelope(await readJson(req, 16 * 1024));
-    return store.applyWorkCommand(id, command, operator, idempotencyKey);
+    return work.service.command(id, command, operator, idempotencyKey);
   } });
 }
 
