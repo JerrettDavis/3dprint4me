@@ -20,7 +20,7 @@
     "smoke:live": "node scripts/smoke-live.mjs",
     "test": "npm run validate && npm run test:unit && npm run test:e2e && npm run audit",
     "vercel-build": "npm run assets:version && npm run validate",
-    "test:unit": "node --test tests/unit/*.test.mjs"
+    "test:unit": "node --test tests/unit/*.test.mjs tests/contract/*.test.mjs"
   },
   "homepage": "https://3dprint4.me",
   "keywords": [

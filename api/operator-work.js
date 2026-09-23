@@ -1,7 +1,7 @@
 import { authorizeOperator, createNeonIdentityProvider } from "../lib/operator-auth.js";
 import { configuredOperatorOrigins, createOperatorApiHandler } from "../lib/operator-api.js";
-import { createNeonWorkStore } from "../lib/work-store.js";
-import { parseWorkQuery } from "../lib/work-validation.js";
+import { parseWorkQuery } from "../lib/work-management/domain.js";
+import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
 import { HttpError } from "../lib/http.js";
 
 function workId(value) {
@@ -20,15 +20,16 @@ function eventLimit(value) {
   return limit;
 }
 
-export function createWorkHandler({ store = createNeonWorkStore(), identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
+export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
+  const work = resolveWorkManagementRuntime({ runtime, repository: store });
   let provider = identityProvider;
-  const authorizeRequest = authorize ?? (req => authorizeOperator(req, store, provider ??= createNeonIdentityProvider()));
+  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
   return createOperatorApiHandler({ methods: ["GET"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
     const url = new URL(req.url ?? "/api/operator-work", "https://operator-api.invalid");
-    if (url.searchParams.has("id")) return store.getWork(workId(url.searchParams.get("id")), operator);
-    if (url.searchParams.has("eventsAfter")) return store.listEvents(eventCursor(url.searchParams.get("eventsAfter")), eventLimit(url.searchParams.get("limit")), operator);
+    if (url.searchParams.has("id")) return work.service.detail(workId(url.searchParams.get("id")), operator);
+    if (url.searchParams.has("eventsAfter")) return work.service.events(eventCursor(url.searchParams.get("eventsAfter")), eventLimit(url.searchParams.get("limit")), operator);
     const input = Object.fromEntries(url.searchParams);
-    return store.listWork(parseWorkQuery(input), operator);
+    return work.service.list(parseWorkQuery(input), operator);
   } });
 }
 
