@@ -74,6 +74,42 @@ test("missing and malformed authorization never read the snapshot", async () => 
   assert.equal(spy.calls(), 0);
 });
 
+test("duplicate raw Authorization fields are rejected after Node normalizes headers", async () => {
+  const spy = runtimeSpy();
+  const handler = createHomeAssistantWorkHandler({ runtime: spy.runtime, token });
+  const res = response();
+  await handler({
+    method: "GET",
+    headers: { authorization: `Bearer ${token}` },
+    rawHeaders: ["Host", "3dprint4.me", "Authorization", `Bearer ${token}`, "authorization", "Bearer another-token"]
+  }, res);
+
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.headers.get("cache-control"), "no-store");
+  assert.deepEqual(JSON.parse(res.body), { error: "Authentication is required." });
+  assert.equal(spy.calls(), 0);
+});
+
+test("one raw Authorization field and a Headers object without rawHeaders remain valid", async () => {
+  const spy = runtimeSpy();
+  const handler = createHomeAssistantWorkHandler({ runtime: spy.runtime, token });
+  const requests = [
+    {
+      method: "GET",
+      headers: { authorization: `Bearer ${token}` },
+      rawHeaders: ["Host", "3dprint4.me", "Authorization", `Bearer ${token}`]
+    },
+    { method: "GET", headers: new Headers({ Authorization: `Bearer ${token}` }) }
+  ];
+  for (const req of requests) {
+    const res = response();
+    await handler(req, res);
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(JSON.parse(res.body), snapshot);
+  }
+  assert.equal(spy.calls(), 2);
+});
+
 test("an absent or short configured token fails closed before reading the snapshot", async () => {
   const spy = runtimeSpy();
   for (const configuredToken of ["", "too-short"]) {
