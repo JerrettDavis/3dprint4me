@@ -22,8 +22,10 @@ views:
 
           [Open the operator queue](https://work.3dprint4.me/)
 
-          {% set items = state_attr('sensor.three_d_print_work', 'items') or [] %}
-          {% if items %}
+          {% set items = state_attr('sensor.three_d_print_work', 'items') %}
+          {% if not has_value('sensor.three_d_print_work') or items is none %}
+          Work feed unavailable. [Open the operator queue](https://work.3dprint4.me/).
+          {% elif items %}
           {% for item in items %}
           - [{{ item.id }}]({{ item.url }}) · {{ item.service }} · {{ item.status }} · {{ item.priority }}{% if not item.acknowledged %} · unacknowledged{% endif %}
           {% endfor %}

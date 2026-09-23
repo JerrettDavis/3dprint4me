@@ -1,20 +1,12 @@
 import assert from "node:assert/strict";
-import { readFile, readdir } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
+import { forbiddenBrowserSecrets, scanBrowserSecrets } from "../../scripts/browser-secret-scan.mjs";
 
 const root = new URL("../../", import.meta.url);
 const read = path => readFile(new URL(path, root), "utf8");
-
-async function browserFiles(directory) {
-  const result = [];
-  for (const entry of await readdir(new URL(directory, root), { withFileTypes: true })) {
-    const path = join(directory, entry.name).replaceAll("\\", "/");
-    if (entry.isDirectory()) result.push(...await browserFiles(`${path}/`));
-    else if ([".html", ".js", ".mjs", ".css", ".json", ".webmanifest", ".svg"].includes(extname(path))) result.push(path);
-  }
-  return result;
-}
 
 test("Home Assistant package polls the authenticated read-only snapshot", async () => {
   const packageYaml = await read("integrations/home-assistant/package.yaml");
@@ -41,12 +33,26 @@ test("Home Assistant dashboard offers only canonical work links", async () => {
 });
 
 test("the machine token name stays out of browser assets and is blocked by validation", async () => {
-  const validation = await read("scripts/validate.mjs");
-  assert.match(validation, /forbiddenBrowserSecrets\s*=\s*\[[^\]]*HOME_ASSISTANT_TOKEN/s);
+  assert.ok(forbiddenBrowserSecrets.includes("HOME_ASSISTANT_TOKEN"));
   for (const directory of ["public/", "operator/"]) {
-    for (const path of await browserFiles(directory)) {
-      assert.doesNotMatch(await read(path), /HOME_ASSISTANT_TOKEN/, path);
-    }
+    const files = await scanBrowserSecrets([new URL(directory, root)]);
+    assert.deepEqual(files, []);
+  }
+});
+
+test("browser secret scan catches deployable text and skips binary assets", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "browser-secret-scan-"));
+  try {
+    await writeFile(join(directory, "robots.txt"), "HOME_ASSISTANT_TOKEN");
+    await writeFile(join(directory, "sitemap.xml"), "<secret>HOME_ASSISTANT_TOKEN</secret>");
+    await writeFile(join(directory, "image.png"), Buffer.from([0, 255, 0, ...Buffer.from("HOME_ASSISTANT_TOKEN")]));
+    const findings = await scanBrowserSecrets([directory]);
+    assert.deepEqual(findings.map(({ file, secret }) => [file.split(/[\\/]/).at(-1), secret]).sort(), [
+      ["robots.txt", "HOME_ASSISTANT_TOKEN"],
+      ["sitemap.xml", "HOME_ASSISTANT_TOKEN"]
+    ]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
 });
 
