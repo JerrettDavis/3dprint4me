@@ -13,6 +13,7 @@ The application is organized around four bounded contexts rather than technical-
 - `lib/project-request/` owns detailed customer intake, upload authorization, completion, and its server composition root. The browser half lives in `public/assets/js/order/` and separates the model, validation, persistence, API client, view, and controller.
 - `lib/quick-inquiry/` owns the lightweight homepage inquiry, attachment verification, durable completion, and bounded notification retry policy.
 - `lib/work-management/` owns operator-visible work, revision-safe commands, authorization-facing repository operations, and Push/outbox capabilities. Neon and local JSON are adapters to the same repository port.
+- The read-only Home Assistant work snapshot is a separate machine client of `lib/work-management/`. Its API boundary uses a dedicated server-only bearer token; it cannot invoke operator commands or consume events and outbox entries.
 - `lib/checkout/` owns deposit eligibility, completion proofs, trusted return origins, and the Stripe adapter. A browser return URL is never payment verification.
 
 Files directly under `api/` are transport entrypoints. Domain and application code point inward and provider SDKs remain in adapters/composition roots. `npm run validate` executes `scripts/check-architecture.mjs` to enforce the public/server, domain/provider, feature/transport, and API/provider boundaries. Transitional root modules such as `lib/work-store.js` are compatibility facades, not new extension points. See [ADR 0001](adr/0001-feature-oriented-bounded-contexts.md) and [DOMAIN-LANGUAGE.md](DOMAIN-LANGUAGE.md).
@@ -119,6 +120,14 @@ Creates a Stripe-hosted Checkout Session for the configured deposit and stores t
 ### `GET /api/health`
 
 Reports application version and whether Neon, private files, legacy Supabase, email, webhook, and Stripe variables are configured. It does not test provider credentials or reveal their values.
+
+### `GET /api/home-assistant-work`
+
+Accepts exactly one `Authorization: Bearer <token>` header matching the server-only `HOME_ASSISTANT_TOKEN`. The token must be at least 32 characters; a missing or invalid token receives `401`, and an unconfigured or unavailable integration receives `503`. Neither response reveals the token or an internal provider error. The response uses `Cache-Control: no-store`; other methods cannot obtain a snapshot.
+
+The work-management service reads one bounded, consistent snapshot through its repository adapter. It returns version, generation time, the fixed operator queue URL, four active-work counts, a newest-created marker, and at most 20 active summaries with canonical `https://work.3dprint4.me/work/<id>` links. Counts and list entries exclude terminal work. `latestCreatedId` covers **all** statuses and remains the newest work ID even when the active list is empty; only a database with no work returns `null`. A terminal transition therefore cannot move the marker backward and cause a false new-work alert. The response omits customer contact, descriptions, estimates, uploaded-file metadata, notes, events, revisions, and operator identities. It constructs URLs from a fixed origin rather than request headers or stored customer data.
+
+The Home Assistant package under `integrations/home-assistant/` polls once per minute and derives dashboard entities from the one REST response. Its first successful poll establishes the marker without alerting. A later transition between two distinct valid work IDs creates one persistent notification linked to the exact operator item. Home Assistant has no work mutation control; the authenticated operator application and database remain authoritative.
 
 ## Data model
 
