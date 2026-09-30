@@ -1,0 +1,33 @@
+{
+  "source": "3dprint4me_rate_margin_model.xlsx (handoff 2026-09-30): Assumptions, Unit Economics, Filament Inventory, Products",
+  "assumptions": {
+    "machineCostBasisUsd": 1000,
+    "serviceLifeYears": 3,
+    "annualMaintenanceRate": 0.1,
+    "scheduledRuntimeHoursPerWeek": 32,
+    "weeksPerYear": 52,
+    "productiveUtilization": 0.8,
+    "averagePowerKw": 0.2,
+    "electricityUsdPerKwh": 0.15,
+    "failureReworkRate": 0.1,
+    "monthlyFixedOverheadUsd": 0,
+    "operatorBaseWageUsdPerHour": 10,
+    "laborBurdenRate": 0.25,
+    "laborReserveRate": 0,
+    "defaultActiveHoursPerPlate": 0.25,
+    "materialWasteRate": 0.08,
+    "plaLandedUsdPerKg": 20,
+    "requiredMinimumMargin": 0.5
+  },
+  "expected": {
+    "passiveMachineUsdPerSuccessfulHour": 0.3950231481481481,
+    "loadedLaborUsdPerActiveHour": 12.5,
+    "defaultLaborUsdPerPlate": 3.125
+  },
+  "products": [
+    { "name": "Multicolor Sign", "unitsPerPlate": 1, "plateGrams": 115, "plateHours": 3.5, "targetUsdPerUnit": 30, "modeledCostUsdPerUnit": 6.991581018518518, "modeledMargin": 0.7669472993827161 },
+    { "name": "Multicolor Sign Base and Business Card Holder", "unitsPerPlate": 1, "plateGrams": 200, "plateHours": 7.25, "targetUsdPerUnit": 50, "modeledCostUsdPerUnit": 10.308917824074074, "modeledMargin": 0.7938216435185186 },
+    { "name": "Single-Color Axolotl", "unitsPerPlate": 1, "plateGrams": 22, "plateHours": 1.25, "targetUsdPerUnit": 5, "modeledCostUsdPerUnit": 4.093978935185185, "modeledMargin": 0.18120421296296296 },
+    { "name": "Multicolor Axolotl", "unitsPerPlate": 7, "plateGrams": 290, "plateHours": 13, "targetUsdPerUnit": 10, "modeledCostUsdPerUnit": 2.0749001322751326, "modeledMargin": 0.7925099867724867 }
+  ]
+}
