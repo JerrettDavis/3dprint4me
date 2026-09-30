@@ -23,6 +23,6 @@ export function createFileManager({ config, client, notify, render, onChange = (
       changed();
     },
     remove(index) { selected.splice(index, 1); changed(); },
-    prepare(requestId, mode, onProgress) { return client.prepareFiles(requestId, mode, selected, onProgress); }
+    prepare(requestId, mode, onProgress, { isPreUploaded = () => false } = {}) { return client.prepareFiles(requestId, mode, selected, onProgress, isPreUploaded); }
   };
 }

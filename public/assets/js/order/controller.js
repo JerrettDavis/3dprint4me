@@ -7,6 +7,7 @@ export function createOrderController({
   draftStore,
   view,
   newLocalId,
+  printEstimate = null,
   warn = console.warn
 }) {
   let completedRequest = null;
@@ -27,13 +28,16 @@ export function createOrderController({
         created = { id: newLocalId(), mode: "local", live: false, offlineFallback: true };
       }
 
-      const uploadedFiles = await files.prepare(created.id, created.mode, (current, total) => view.uploadProgress(current, total));
+      const live = !created.offlineFallback && created.mode !== "ignored";
+      const uploadedFiles = await files.prepare(created.id, created.mode, (current, total) => view.uploadProgress(current, total), { isPreUploaded: file => live && Boolean(printEstimate?.isPreUploaded(file)) });
       let completed;
       if (created.mode === "ignored") completed = { id: created.id, mode: "ignored", live: true };
       else if (created.offlineFallback) completed = { id: created.id, mode: "local", live: false };
       else {
         try {
-          completed = await client.complete({ id: created.id, request, uploadedFiles });
+          const attachment = request.service === "print" ? printEstimate?.attachment() ?? null : null;
+          if (attachment) await printEstimate.finalize();
+          completed = await client.complete({ id: created.id, request, uploadedFiles, ...(attachment ? { printEstimate: attachment } : {}) });
         } catch (error) {
           if (error.kind === "correctable") throw error;
           warn("Could not confirm remote completion; preserving the request locally.");

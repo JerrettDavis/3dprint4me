@@ -64,6 +64,12 @@ export function createProjectRequestClient({ fetchImpl = (...args) => fetch(...a
     health: () => requestJson("/api/health"),
     checkout: body => requestJson("/api/checkout", { method: "POST", body: JSON.stringify(body) }, "checkout"),
     upload,
-    prepareFiles: (requestId, mode, files, onProgress) => ["neon", "supabase"].includes(mode) ? upload(requestId, files, onProgress) : Promise.resolve(metadata(files))
+    async prepareFiles(requestId, mode, files, onProgress, isPreUploaded = () => false) {
+      // A model already stored privately with its print estimate is referenced, never re-uploaded.
+      const estimateModels = files.filter(file => isPreUploaded(file)).map(file => ({ name: file.name, size: file.size, type: file.type || "application/octet-stream", path: null, mode: "estimate" }));
+      const remaining = files.filter(file => !isPreUploaded(file));
+      const prepared = ["neon", "supabase"].includes(mode) ? await upload(requestId, remaining, onProgress) : metadata(remaining);
+      return [...estimateModels, ...prepared];
+    }
   };
 }
