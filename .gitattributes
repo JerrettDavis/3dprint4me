@@ -5,3 +5,5 @@
 *.webp binary
 *.ico binary
 *.zip binary
+*.stl binary
+*.3mf binary
