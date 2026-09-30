@@ -111,3 +111,75 @@ def test_browser_uploads_model_privately_once_and_submits_without_reupload() -> 
         purposes = sorted(item["purpose"] for item in state["estimates"])
         assert purposes == ["preview", "submission"], purposes
         assert request(storefront + "/api/dev-private-file?op=get&path=x")[0] == 403
+
+
+def slicer_env(mode: str = "ok") -> dict[str, str]:
+    return {
+        "SLICER_PROVIDER": "local-cli",
+        "SLICER_BIN": str(FIXTURES / "fake-slicer.mjs"),
+        "SLICER_ARGS": json.dumps(["--export-gcode", f"--mode={mode}", "--output", "{output}", "{model}"]),
+        "SLICER_PROFILE_ID": "pla-0.20mm-standard",
+    }
+
+
+def run_worker(store_path, env: dict[str, str]) -> dict:
+    import os
+    import subprocess
+
+    result = subprocess.run(
+        ["node", "scripts/print-estimate-worker.mjs", "--once"], cwd=ROOT, capture_output=True, text=True, timeout=60,
+        env={**os.environ, "LOCAL_DEV": "1", "OPERATOR_DEV_AUTH": "1", "OPERATOR_DEV_STORE_PATH": str(store_path), **env},
+    )
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout.strip().splitlines()[-1])
+
+
+def test_async_slicer_job_narrows_the_estimate_and_never_blocks_submission() -> None:
+    model = (FIXTURES / "cube-20mm-binary.stl").read_bytes()
+    env = slicer_env()
+    with running_operator_workspace(env) as (storefront, _operator, store_path):
+        _, _, session = json_request(storefront + "/api/print-estimate", method="POST", payload={"action": "create", "options": {}})
+        sid, token = session["sessionId"], session["token"]
+        _, _, upload = json_request(storefront + "/api/print-estimate", method="POST", payload={"action": "authorize-upload", "sessionId": sid, "token": token, "filename": "cube.stl", "size": len(model)})
+        assert put_bytes(upload["uploadUrl"], model) == 200
+        _, _, geometry = json_request(storefront + "/api/print-estimate", method="POST", payload={"action": "analyze", "sessionId": sid, "token": token, "assetId": upload["assetId"]})
+        assert geometry["slice"] == {"status": "pending"}, "exact slicing is queued, never awaited"
+
+        summary = run_worker(store_path, env)
+        assert summary["ready"] == 1
+
+        _, _, status = json_request(storefront + f"/api/print-estimate?id={sid}", headers={"X-Print-Estimate-Token": token})
+        assert status["slice"]["status"] == "ready"
+        assert status["slice"]["confidence"] == "better"
+        geometry_width = geometry["price"]["high"] - geometry["price"]["low"]
+        slice_width = status["slice"]["price"]["high"] - status["slice"]["price"]["low"]
+        assert slice_width < geometry_width
+        slice_row = next(item for item in local_print_state(store_path)["estimates"] if item["estimatorType"] == "slicer")
+        assert (slice_row["engine"], slice_row["engineVersion"], slice_row["profileId"]) == ("prusaslicer-cli", "9.9.9", "pla-0.20mm-standard")
+
+
+def test_failed_slicer_stays_private_and_the_request_still_submits() -> None:
+    model = (FIXTURES / "cube-20mm-binary.stl").read_bytes()
+    env = slicer_env("fail")
+    with running_operator_workspace(env) as (storefront, _operator, store_path):
+        _, _, session = json_request(storefront + "/api/print-estimate", method="POST", payload={"action": "create", "options": {}})
+        sid, token = session["sessionId"], session["token"]
+        _, _, upload = json_request(storefront + "/api/print-estimate", method="POST", payload={"action": "authorize-upload", "sessionId": sid, "token": token, "filename": "cube.stl", "size": len(model)})
+        assert put_bytes(upload["uploadUrl"], model) == 200
+        json_request(storefront + "/api/print-estimate", method="POST", payload={"action": "analyze", "sessionId": sid, "token": token, "assetId": upload["assetId"]})
+        assert run_worker(store_path, env)["retrying"] == 1
+        _, _, status = json_request(storefront + f"/api/print-estimate?id={sid}", headers={"X-Print-Estimate-Token": token})
+        assert status["slice"]["status"] == "pending", "a retrying job is still pending publicly"
+        assert "exit" not in json.dumps(status).lower()
+        job = local_print_state(store_path)["jobs"][0]
+        assert job["lastErrorCategory"] == "slicer_failed"
+
+        payload = project_request()
+        payload["files"] = [{"name": "cube.stl", "size": len(model), "type": "model/stl"}]
+        _, _, created = json_request(storefront + "/api/request", method="POST", payload={"request": payload, "website": ""})
+        status_code, _, completed = json_request(storefront + "/api/request", method="PATCH", payload={
+            "id": created["id"], "request": payload,
+            "uploadedFiles": [{"name": "cube.stl", "size": len(model), "type": "model/stl", "path": None, "mode": "estimate"}],
+            "printEstimate": {"sessionId": sid, "token": token},
+        })
+        assert status_code == 200 and completed["printEstimate"]["attached"] is True
