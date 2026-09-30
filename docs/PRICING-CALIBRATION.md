@@ -70,6 +70,53 @@ Parts are not included.
 | On-site session | $95 to $145 |
 | Custom printer design | $250 to $950 |
 
+## Dual-floor print pricing
+
+The public rate card above is the **market** candidate. Model-aware print estimates also compute a private **economic floor** on the server (`lib/print-estimation/pricing-policy.js`, version `2026-09-30.1`):
+
+```text
+passive machine $/successful hour = (basis/life + basis*maintenance + monthly overhead*12)
+                                     / (runtime h/week * weeks * productive utilization)
+                                   + power kW * $/kWh, then / (1 - failure/rework rate)
+active labor per plate            = wage * (1 + burden) * (1 + reserve) * touch hours per plate
+material                          = grams * landed $/kg / 1000 * (1 + waste)
+internal cost                     = material + machine hours * passive rate + plates * labor per plate
+                                    + finishing hours * loaded rate + other direct cost
+economic floor                    = internal cost / (1 - required minimum margin)
+candidate price                   = max(market price, economic floor, minimum job charge)
+```
+
+| Assumption | Value |
+|---|---:|
+| Machine basis / life / maintenance | $1,000 / 3 years / 10% per year |
+| Scheduled runtime / weeks / productive utilization | 32 h per week / 52 / 80% |
+| Power / electricity | 0.20 kW / $0.15 per kWh |
+| Failure and rework reserve | 10% |
+| Passive machine cost | ≈ $0.395 per successful hour |
+| Operator wage / burden / loaded rate | $10 / 25% / $12.50 per active hour |
+| Default touch time | 0.25 h per print job/plate ($3.125) |
+| Finishing touch time per unit | cleanup 0.1 h, sanded 0.5 h, painted 1.25 h |
+| Material waste | 8% |
+| Fallback landed cost | PLA $20, PETG $22, ASA $26, TPU $28, other $25 per kg |
+| Required minimum margin | 50% |
+| Minimum job charge | $15 (must equal the public rate card) |
+
+Operator wages are never spread across unattended machine hours; routine touch labor is charged once per plate, so seven units on one plate share one $3.125 setup. Material cost uses the private filament inventory: weighted on-hand landed cost, then the estimate-default or most recent active row, then the explicit fallback above. The chosen source and inventory IDs are stored with each snapshot.
+
+Confidence bands around the candidate price: catalog ±5%, slicer ±12%, manual grams/hours ±14%, geometry ±25%, size class ±28%. The low end never drops below the minimum charge or the economic floor. Customers see only the range, confidence, production estimate, and assumptions; operators see market price, floor, internal cost breakdown, and projected profit/margin at low/target/high.
+
+Calibration fixtures (`tests/fixtures/print-estimation/pricing-calibration.json`) pin the workbook: Multicolor Sign 115 g/3.5 h ≈ $6.99 (76.7% at $30); Sign Base 200 g/7.25 h ≈ $10.31 (79.4% at $50); single-color Axolotl 22 g/1.25 h ≈ $4.09 (18.1% at $5); 7-up multicolor Axolotl 290 g/13 h ≈ $2.07 per unit (79.3% at $10). The low single-part margin is intentional evidence that batching and the minimum charge matter; a lone axolotl is priced at the $15 minimum.
+
+To change assumptions, edit `DEFAULT_PRICING_MODEL`, bump `PRICING_MODEL_VERSION`, update the fixtures if the workbook changed, and run `npm test`. Historical snapshots keep their original numbers.
+
+### Geometry is not a slice
+
+Browser and server geometry estimates convert mesh volume and surface area into rough grams (1.2 mm walls, 15% infill, material density, support and color allowances) and time (draft 22, standard 15, fine 9 g/h). They are labelled "not a slice" everywhere and use the wide geometry band. A configured slicer replaces them with measured time/material and the narrower slicer band.
+
+### Estimated versus actual
+
+Operators can record actual grams, machine hours, labor minutes, failed attempts, and completed quantity against a work item. The job sheet shows variance against the linked estimate. Nothing auto-retunes prices; review variance with the worksheet below.
+
 ## Calibrate printing from actual cost
 
 A useful machine-hour rate should recover more than electricity. Track at least:

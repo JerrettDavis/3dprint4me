@@ -8,6 +8,18 @@ The operator app is a separate installable PWA in `operator/`. It is intentional
 
 Server behavior belongs to `lib/work-management/`: `domain.js` owns workflow policy, `service.js` exposes application operations, and `runtime.js` selects the Neon or loopback-local repository adapter. Operator API files authenticate and serialize HTTP only. Both adapters satisfy the same repository contract tests, including minimized lists, private detail, revision conflicts, idempotent commands, and outbox lifecycle.
 
+## Print estimate section
+
+Print requests whose model was uploaded through the estimate flow show a **Print estimate** section in the private job sheet (never in the list, Push payloads, or Home Assistant):
+
+- **Source files** — name, format, size, dimensions, triangle count, volume, warnings, analysis failures with their private diagnostic code, and retention state. **Download** requests a signed link valid for 60 seconds, only after the server verifies the asset belongs to this work item; it is never stored in the page.
+- **Latest estimate** — the slicer result for the submitted profile when available, otherwise the submission snapshot: estimator, confidence, engine/version, profile, pricing-model version, customer range, selected price and basis, market price, economic floor, internal cost breakdown (material, passive machine, active labor, finishing), and projected profit/margin at low/target/high.
+- **Slicer analysis** — job state, attempts, last error category, and next retry.
+- **Estimate history** — every immutable snapshot, newest first.
+- **Actual production** — record actual grams, machine hours, labor minutes, failed attempts, and quantity; variance against the linked estimate is shown.
+
+If the print tables are unavailable, the section says so and the rest of the job sheet works. Filament cost basis is managed through `GET|POST /api/operator-print` (owner-only writes); see [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md).
+
 ## Local use
 
 ```bash

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-30
+
+- Added model-aware print estimation: bounded browser/server STL and 3MF geometry analysis with hostile-archive limits, a prominent STL/3MF intake path, and honest geometry-versus-slicer confidence.
+- Added a server-only dual-floor pricing policy (market rate card vs. economic floor at a required margin vs. minimum charge) pinned to the rate-and-margin workbook fixtures, plus a private filament cost basis.
+- Added capability-owned anonymous estimate sessions with direct private Blob uploads, immutable estimate snapshots, attachment to the single work item on submission, and retention/privacy cleanup.
+- Added an asynchronous slicer port with local CLI and HTTP providers and a leased retry job runner.
+- Added the operator print sheet: files with 60-second signed downloads, latest estimate, cost/margin, history, job state, and estimated-versus-actual runs. Work list and Home Assistant stay minimized.
+- Migration 004 (additive). Verified 220 unit/contract tests, 61 E2E tests, 193/193 UX checks, and 28 screenshots.
+
 ## 2026-09-22
 
 - Reorganized Project Request, Quick Inquiry, Work Management, and Checkout around explicit domain, application, adapter, runtime, and transport boundaries.
