@@ -11,6 +11,7 @@ import { createSessionHandler } from "../api/operator-session.js";
 import { createWorkHandler } from "../api/operator-work.js";
 import { createWorkUpdateHandler } from "../api/operator-work-update.js";
 import { createPushHandler } from "../api/operator-push.js";
+import { createOperatorPrintHandler } from "../api/operator-print.js";
 import { configuredOperatorOrigins } from "../lib/operator-api.js";
 import { getLocalIdentityProvider, getLocalOperatorStore, localOperatorEnabled } from "../lib/local-operator.js";
 
@@ -29,6 +30,7 @@ if (localOperatorEnabled()) {
   apiRoutes.set("/api/operator-work", createWorkHandler({ store, identityProvider, allowedOrigins }));
   apiRoutes.set("/api/operator-work-update", createWorkUpdateHandler({ store, identityProvider, allowedOrigins }));
   apiRoutes.set("/api/operator-push", createPushHandler({ store, identityProvider, allowedOrigins }));
+  apiRoutes.set("/api/operator-print", createOperatorPrintHandler({ store, identityProvider, allowedOrigins }));
 }
 const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".mjs":"text/javascript; charset=utf-8", ".json":"application/json; charset=utf-8", ".webmanifest":"application/manifest+json; charset=utf-8", ".svg":"image/svg+xml", ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp", ".xml":"application/xml; charset=utf-8", ".txt":"text/plain; charset=utf-8" };
 function securityHeaders(res) { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin"); res.setHeader("X-Frame-Options", "DENY"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); }
