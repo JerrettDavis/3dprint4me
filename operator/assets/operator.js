@@ -2,6 +2,7 @@ import { createApiClient, OperatorApiError } from "./api-client.js";
 import { allowedTransitions, formatRelativeTime } from "./work-state.js";
 import { createPushClient } from "./push-client.js";
 import { createAuthClient } from "./auth-client.js";
+import { renderPrintEstimation } from "./print-detail.js";
 
 export function createOperatorController({ api, view }) {
   const model = { state: "checking-session", operator: null, items: [], detail: null, selectedId: null, noteDraft: "" };
@@ -15,7 +16,17 @@ export function createOperatorController({ api, view }) {
     try { const result = await api.updateWork(model.selectedId, command); model.detail = { ...model.detail, item: result.item ?? model.detail.item }; if (command.type === "add-note") model.noteDraft = ""; view.detail(model.detail); view.announce("Update saved."); await loadList(); }
     catch (error) { if (error.kind === "conflict") { model.noteDraft ||= view.noteDraft?.() ?? ""; model.detail = await api.getWork(model.selectedId); view.detail(model.detail, { noteDraft: model.noteDraft }); view.announce("This work changed in another window. Review the current version, then try again."); return; } if (["signed-out", "forbidden"].includes(error.kind)) clearPrivate(); view.state(error.kind ?? "error", model); view.announce(error.message); }
   }
-  return { start, loadList, select, command, clearPrivate, snapshot: () => structuredClone(model) };
+  async function download(assetId) {
+    if (!model.selectedId) return;
+    try { const result = await api.printAssetDownload(model.selectedId, assetId); view.announce(`Download link for ${result.filename} expires in 60 seconds.`); view.openDownload?.(result.url); }
+    catch (error) { if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } view.announce(error.message); }
+  }
+  async function recordRun(run) {
+    if (!model.selectedId) return;
+    try { await api.recordPrintRun(model.selectedId, run); model.detail = await api.getWork(model.selectedId); view.detail(model.detail); view.announce("Production run recorded."); }
+    catch (error) { if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } view.announce(error.message); }
+  }
+  return { start, loadList, select, command, download, recordRun, clearPrivate, snapshot: () => structuredClone(model) };
 }
 
 const title = value => String(value ?? "").replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
@@ -39,8 +50,9 @@ function createDomView() {
       const facts = el("section", "job-sheet"); facts.append(el("h3", "", "Request details")); for (const [key, value] of Object.entries(request)) { if (value == null || value === "" || typeof value === "object") continue; const dl = el("dl"), row = el("div", "fact"); row.append(el("dt", "", title(key)), el("dd", "", String(value))); dl.append(row); facts.append(dl); } if (files.length) facts.append(el("p", "", `${files.length} private file${files.length === 1 ? "" : "s"} attached`));
       const form = el("form", "note-form"), note = el("textarea"); note.id = "private-note"; note.maxLength = 4000; note.rows = 4; note.value = options.noteDraft ?? ""; const noteLabel = el("label", "", "Private note"); noteLabel.htmlFor = note.id; const save = el("button", "primary", "Add private note"); save.type = "submit"; form.append(noteLabel, note, save); form.onsubmit = event => { event.preventDefault(); controller.command({ type: "add-note", body: note.value, revision: item.revision }); };
       const activity = el("section", "history"); activity.append(el("h3", "", "Activity")); for (const event of events) activity.append(el("p", "", `${title(event.type)} · ${new Date(event.occurredAt).toLocaleString()}`)); for (const savedNote of notes) activity.append(el("blockquote", "", savedNote.body));
-      detail.append(back, heading, actions, facts, form, activity); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
-    }, announce(message) { status.textContent = message; }
+      const print = renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) });
+      detail.append(back, heading, actions, facts, ...(print ? [print] : []), form, activity); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
+    }, announce(message) { status.textContent = message; }, openDownload(url) { location.assign(url); }
   }; filters.onchange = () => controller.loadList(); return view;
 }
 

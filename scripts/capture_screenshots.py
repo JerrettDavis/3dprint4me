@@ -11,6 +11,7 @@ from tests.support.browser_harness import ROOT, SiteBrowser
 from tests.support.operator_harness import running_operator_workspace
 from tests.support.server import json_request
 from tests.e2e.test_api import project_request
+from tests.support.print_seed import FIXTURES, fake_slicer_env, seed_print_request
 
 OUTPUT = ROOT / "screenshots"
 
@@ -43,6 +44,14 @@ def prepare_print_details(page) -> None:
     page.locator("#project-title").fill("Palm-size PLA bracket")
     page.locator("#description").fill("A palm-size bracket; slicer weight and time are not known yet.")
     page.locator("#model-url").fill("https://example.com/bracket.stl")
+
+
+def prepare_print_model(page) -> None:
+    prepare_print_details(page)
+    page.locator("#model-file").set_input_files(str(FIXTURES / "two-cubes.3mf"))
+    page.locator("#model-card[data-state='analyzed']").wait_for()
+    page.locator("#quantity").fill("4")
+    page.locator("#model-intake").scroll_into_view_if_needed()
 
 
 def prepare_consult_details(page) -> None:
@@ -119,7 +128,9 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
 
 def capture_operator_states() -> list[tuple[str, Path]]:
     captured: list[tuple[str, Path]] = []
-    with running_operator_workspace() as (storefront, operator, _):
+    slicer = fake_slicer_env()
+    with running_operator_workspace(slicer) as (storefront, operator, store_path):
+        seed_print_request(storefront, store_path, title="Alignment bracket, 4-up PLA", slice_env=slicer)
         payload = project_request()
         payload["projectTitle"] = "Replacement alignment bracket"
         status, _, created = json_request(storefront + "/api/request", method="POST", payload={"request": payload, "website": ""})
@@ -130,6 +141,8 @@ def capture_operator_states() -> list[tuple[str, Path]]:
             ("Operator inbox · desktop · light", "operator-inbox-desktop-light.png", (1440, 1000), "light", False),
             ("Operator job sheet · desktop · dark", "operator-detail-desktop-dark.png", (1440, 1000), "dark", True),
             ("Operator job sheet · mobile · light", "operator-detail-mobile-light.png", (390, 844), "light", True),
+            ("Operator print estimate · desktop · light", "operator-print-estimate-desktop-light.png", (1440, 1000), "light", "print"),
+            ("Operator print estimate · mobile · dark", "operator-print-estimate-mobile-dark.png", (390, 844), "dark", "print"),
         ]:
             path = OUTPUT / filename
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
@@ -137,8 +150,12 @@ def capture_operator_states() -> list[tuple[str, Path]]:
                 assert page is not None
                 page.goto(operator, wait_until="networkidle")
                 page.locator("#workspace:not([hidden])").wait_for()
-                if open_detail:
-                    page.locator("#work-list .work-row").click()
+                if open_detail == "print":
+                    page.locator("#work-list .work-row", has_text="4-up PLA").click()
+                    page.locator(".print-sheet").wait_for()
+                    page.evaluate("document.querySelector('.print-sheet').scrollIntoView({ block: 'start' })")
+                elif open_detail:
+                    page.locator("#work-list .work-row", has_text="Replacement alignment bracket").click()
                     page.locator("#detail-content:not([hidden])").wait_for()
                 site.screenshot(path, full_page=False)
                 site.assert_no_page_errors()
@@ -165,6 +182,8 @@ def main() -> int:
         ("About work record · desktop · dark", capture("/about.html", "about-work-desktop-dark.png", viewport=(1440, 1000), scheme="dark", prepare=show_work_record)),
         ("About work record · mobile · dark", capture("/about.html", "about-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=show_work_record)),
         ("Print intake · desktop · light", capture("/order.html?service=print", "order-print-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_print_details)),
+        ("Print model estimate · desktop · light", capture("/order.html?service=print", "order-print-model-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_print_model)),
+        ("Print model estimate · mobile · dark", capture("/order.html?service=print", "order-print-model-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_print_model)),
         ("Design intake · desktop · light", capture("/order.html?service=design", "order-design-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_design_details)),
         ("Repair intake · mobile · dark", capture("/order.html?service=repair", "order-repair-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_mobile_repair)),
         ("Consult intake · desktop · light", capture("/order.html?service=consult", "order-consult-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_consult_details)),
