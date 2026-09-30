@@ -1,4 +1,4 @@
-import { formatBytes } from "./files.js?v=a45049d8b5d26e1a";
+import { formatBytes } from "./files.js?v=28526c8452110fbb";
 
 export function createOrderView({ document, window, form, formatEstimate }) {
   const elements = {
@@ -121,7 +121,7 @@ export function createOrderView({ document, window, form, formatEstimate }) {
       document.querySelector("#confirmation-title").textContent = request.backend.live ? "Your project request is in." : "Your request is ready.";
       document.querySelector("#request-id").textContent = request.id;
       document.querySelector("#confirmation-copy").textContent = request.backend.live
-        ? request.uploadedFiles.some(file => !file.path)
+        ? request.uploadedFiles.some(file => !file.path && file.mode !== "estimate")
           ? "I’ll review the details and respond with a confirmed price, material choice, and schedule. Your selected files were not uploaded; use Email this request and attach them with your request ID."
           : "I’ll review the details and respond with a confirmed price, material choice, and schedule."
         : savedLocally

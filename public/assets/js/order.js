@@ -1,18 +1,19 @@
-import "./site.js?v=a45049d8b5d26e1a";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=a45049d8b5d26e1a";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=a45049d8b5d26e1a";
-import { toast } from "./site.js?v=a45049d8b5d26e1a";
-import { createProjectRequestClient } from "./order/client.js?v=a45049d8b5d26e1a";
-import { createOrderController } from "./order/controller.js?v=a45049d8b5d26e1a";
-import { createDraftStore } from "./order/draft-store.js?v=a45049d8b5d26e1a";
-import { createFileManager } from "./order/files.js?v=a45049d8b5d26e1a";
-import { activeProjectData, projectRequestFromData, readProjectForm } from "./order/model.js?v=a45049d8b5d26e1a";
-import { createStepValidator } from "./order/validation.js?v=a45049d8b5d26e1a";
-import { createOrderView } from "./order/view.js?v=a45049d8b5d26e1a";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=a45049d8b5d26e1a";
-import { modelFormat } from "./print-estimation/geometry.js?v=a45049d8b5d26e1a";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=a45049d8b5d26e1a";
-import { createModelPanelView } from "./print-estimation/view.js?v=a45049d8b5d26e1a";
+import "./site.js?v=28526c8452110fbb";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=28526c8452110fbb";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=28526c8452110fbb";
+import { toast } from "./site.js?v=28526c8452110fbb";
+import { createProjectRequestClient } from "./order/client.js?v=28526c8452110fbb";
+import { createOrderController } from "./order/controller.js?v=28526c8452110fbb";
+import { createDraftStore } from "./order/draft-store.js?v=28526c8452110fbb";
+import { createFileManager } from "./order/files.js?v=28526c8452110fbb";
+import { activeProjectData, projectRequestFromData, readProjectForm } from "./order/model.js?v=28526c8452110fbb";
+import { createStepValidator } from "./order/validation.js?v=28526c8452110fbb";
+import { createOrderView } from "./order/view.js?v=28526c8452110fbb";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=28526c8452110fbb";
+import { modelFormat } from "./print-estimation/geometry.js?v=28526c8452110fbb";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=28526c8452110fbb";
+import { createModelPanelView } from "./print-estimation/view.js?v=28526c8452110fbb";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=28526c8452110fbb";
 
 const form = document.querySelector("#project-form");
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
@@ -29,7 +30,20 @@ function saveDraft() {
 }
 
 const modelPanel = createModelPanelView({ document, card: document.querySelector("#model-card") });
+const printEstimateOptions = () => {
+  const data = activeProjectData(getData());
+  return { material: data.material, quality: data.quality, colors: data.colors, finish: data.finish, supports: data.supports, delivery: data.delivery, quantity: data.quantity, sizeClass: data.sizeClass };
+};
+let privateEstimateFlow = null;
+const privateEstimates = {
+  reset: () => privateEstimateFlow?.reset(),
+  start: (file, hooks) => privateEstimateFlow?.start(file, hooks),
+  isPreUploaded: file => Boolean(privateEstimateFlow?.isPreUploaded(file)),
+  attachment: () => privateEstimateFlow?.attachment() ?? null,
+  finalize: () => privateEstimateFlow?.finalize()
+};
 const modelEstimates = createModelEstimateController({
+  privateEstimates,
   limits: resolveModelLimits(SITE_CONFIG.printEstimation?.limits),
   render: state => modelPanel.render(state, activeProjectData(getData())),
   onChange: () => updateEstimate()
@@ -104,7 +118,8 @@ const controller = createOrderController({
       toast(error.message || "The request could not be submitted.");
     }
   },
-  newLocalId: () => `LOCAL-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+  newLocalId: () => `LOCAL-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+  printEstimate: privateEstimates
 });
 
 function renderReview() { view.renderReview(buildRequest(), getData(), files.list()); }
@@ -161,6 +176,7 @@ async function refreshIntegrationState() {
     const health = await client.health();
     const request = controller.completedRequest();
     view.setDepositVisible(Boolean(health.integrations?.stripe) && !(request && (!request.backend.live || !request.backend.checkoutToken)));
+    if (health.integrations?.printEstimation && !privateEstimateFlow) privateEstimateFlow = createPrivateEstimateFlow({ client: createPrintEstimateClient(), getOptions: printEstimateOptions });
   } catch { view.setDepositVisible(false); }
 }
 
