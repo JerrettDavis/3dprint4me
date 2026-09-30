@@ -4,7 +4,7 @@ const COMMON_FIELDS = new Set([
   "projectFiles", "terms", "website"
 ]);
 const SERVICE_FIELDS = Object.freeze({
-  print: new Set(["material", "quality", "colors", "finish", "quantity", "sizeClass", "grams", "machineHours"]),
+  print: new Set(["material", "quality", "colors", "finish", "supports", "quantity", "sizeClass", "grams", "machineHours"]),
   design: new Set(["complexity", "sourceQuality", "deliverable", "includePrint"]),
   repair: new Set(["printerModel", "repairType", "recentChange"]),
   consult: new Set(["consultType", "meetingFormat", "consultOutcome"])

@@ -26,6 +26,7 @@ Maintain 3dprint4.me as a trustworthy, accessible custom-fabrication storefront.
 - Visual system: `public/assets/css/site.css`
 - Server validation: `lib/validation.js`
 - Integrations: `lib/supabase.js`, `lib/notifications.js`, `api/checkout.js`
+- Print estimation (geometry, pricing policy, sessions, slicer, retention): `lib/print-estimation/`, `public/assets/js/print-estimation/`, `docs/PRINT-ESTIMATION.md`
 - Deployment headers/output: `vercel.json`
 - Database/bucket: `supabase/migrations/001_service_requests.sql`
 

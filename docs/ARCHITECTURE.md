@@ -14,6 +14,7 @@ The application is organized around four bounded contexts rather than technical-
 - `lib/quick-inquiry/` owns the lightweight homepage inquiry, attachment verification, durable completion, and bounded notification retry policy.
 - `lib/work-management/` owns operator-visible work, revision-safe commands, authorization-facing repository operations, and Push/outbox capabilities. Neon and local JSON are adapters to the same repository port.
 - The read-only Home Assistant work snapshot is a separate machine client of `lib/work-management/`. Its API boundary uses a dedicated server-only bearer token; it cannot invoke operator commands or consume events and outbox entries.
+- `lib/print-estimation/` owns model-aware print estimates: the server-only dual-floor pricing policy, filament cost basis, capability-owned anonymous estimate sessions, private model assets, immutable estimate snapshots, the asynchronous slicer port and job runner, the operator print read model, and retention. Its bounded STL/3MF parsers live in `public/assets/js/print-estimation/` because the browser runs the same code for instant feedback; the server re-runs them and only the server result is persisted. It contributes to work *detail* through an optional read-model port and never to the work list or Home Assistant snapshot. See [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md).
 - `lib/checkout/` owns deposit eligibility, completion proofs, trusted return origins, and the Stripe adapter. A browser return URL is never payment verification.
 
 Files directly under `api/` are transport entrypoints. Domain and application code point inward and provider SDKs remain in adapters/composition roots. `npm run validate` executes `scripts/check-architecture.mjs` to enforce the public/server, domain/provider, feature/transport, and API/provider boundaries. Transitional root modules such as `lib/work-store.js` are compatibility facades, not new extension points. See [ADR 0001](adr/0001-feature-oriented-bounded-contexts.md) and [DOMAIN-LANGUAGE.md](DOMAIN-LANGUAGE.md).
@@ -113,6 +114,14 @@ The file body does not pass through the Node function. The browser uploads direc
 
 Email or webhook failure does not erase a successfully persisted database request.
 
+### `POST|GET /api/print-estimate`
+
+Anonymous print estimates. `create` returns a session ID and a 256-bit capability token (only its SHA-256 is stored). `authorize-upload` validates STL/3MF name and size server-side and returns a signed, non-overwriting private Blob PUT for `print-estimates/<session>/<random>-<name>`; the path itself is not returned. `analyze`/`finalize` verify the uploaded object exists within its authorized size, re-parse it with bounded limits, and insert an immutable snapshot; the response contains only range, confidence, model facts, production estimate, and assumptions. `GET ?id=` with `X-Print-Estimate-Token` returns status, including the slice job. Completing a print request with `printEstimate: { sessionId, token }` attaches the session, assets, and snapshots in the same statement that creates the one work item; an expired or foreign session attaches nothing and never fails submission. Models referenced this way appear in `uploadedFiles` with `mode: "estimate"` and no path.
+
+### `GET|POST /api/operator-print`
+
+Approved operators only (same origin allowlist and identity as other operator APIs): filament cost basis (owner-only writes), a 60-second signed download for an asset verified to belong to the requested work item, and actual-production runs.
+
 ### `POST /api/checkout`
 
 Creates a Stripe-hosted Checkout Session for the configured deposit and stores the request ID in Checkout and PaymentIntent metadata. It validates the email, request ID, title, and a 24-hour HMAC completion token issued only after a live request was persisted or delivered. The configured deposit amount is bounded server-side. A well-formed but unsubmitted request ID cannot create a Checkout Session.
@@ -147,6 +156,8 @@ service_requests
   submitted_at      timestamp
   updated_at        trigger-maintained timestamp
 ```
+
+Migration `004_print_estimation.sql` adds `filament_inventory`, `print_estimate_sessions`, `print_assets`, `print_estimates` (insert-only snapshots), `print_analysis_jobs` (leased retry queue), and `print_runs` (actuals). Assets, sessions, and snapshots relate to `service_requests.id`; runs relate to `work_items.id`. No second work queue exists.
 
 Neon is accessed only by the server-side database credential; the browser has no database connection. The legacy Supabase schema enables Row Level Security with no anonymous or authenticated policies.
 

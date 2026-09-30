@@ -7,6 +7,8 @@ export const SITE_CONFIG = Object.freeze({
   typicalTurnaround: "Under 5 business days",
   maxUploadBytes: 25 * 1024 * 1024,
   maxFiles: 8,
+  // Browser-side model analysis limits. The server enforces its own configured limits.
+  printEstimation: { limits: { maxModelBytes: 25 * 1024 * 1024, maxTriangles: 1_500_000 } },
   profiles: {
     printables: "https://www.printables.com/@Jdsfighter",
     cults: "https://cults3d.com/en/users/JerrettDavis/3d-models",

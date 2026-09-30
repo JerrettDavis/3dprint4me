@@ -13,6 +13,7 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 - Outcome-based service selection for printing, design, repair, and consulting
 - Four-step intake with service-specific questions and inline validation
 - Live rough estimates driven by material, time, quality, quantity, complexity, finishing, and delivery inputs
+- Model-aware print estimates: bounded in-browser STL/3MF geometry, private model upload with server verification, immutable estimate snapshots, an asynchronous slicer contract, and a private dual-floor (market vs. economic floor) pricing policy with operator cost/margin views ([PRINT-ESTIMATION.md](docs/PRINT-ESTIMATION.md))
 - File selection for STL, 3MF, STEP, OBJ, Fusion, ZIP, image, PDF, and text references
 - Private, direct-to-Vercel Blob uploads with Neon persistence, plus a supported legacy Supabase mode
 - Feature-oriented server slices with automated dependency-boundary checks
@@ -30,8 +31,8 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 The delivered build passes:
 
 - Static validation of all public routes, local references, JavaScript syntax, Vercel output configuration, and CSP hashes
-- 139 Node unit and repository-contract tests covering domain, application, adapter, and integration boundaries
-- 46 end-to-end scenarios covering real HTTP, browser flows, recovery, operator behavior, and accessibility
+- 220 Node unit and repository-contract tests covering domain, application, adapter, and integration boundaries (including the real Neon SQL executed on in-process PGlite)
+- 61 end-to-end scenarios covering real HTTP, browser flows, private model estimates, recovery, operator behavior, and accessibility
 - 193 automated UX, accessibility, responsive, browser-error, keyboard, and contrast checks
 - Desktop light, desktop dark, full-page, and mobile dark screenshot generation
 
@@ -103,6 +104,8 @@ Copy `.env.example` to `.env` for local work. Vercel reads the same names from P
 | `REQUEST_WEBHOOK_SECRET` | Recommended with webhook | HMAC-SHA256 signing secret |
 | `STRIPE_SECRET_KEY` | For deposits | Stripe secret API key |
 | `DEPOSIT_AMOUNT_CENTS` | Optional | Deposit amount, default `2500` |
+| `PRINT_ESTIMATE_*`, `PRINT_ASSET_RETENTION_DAYS` | Optional | Model analysis limits, anonymous session bounds, and model retention ([PRINT-ESTIMATION.md](docs/PRINT-ESTIMATION.md)) |
+| `SLICER_PROVIDER`, `SLICER_*` | Optional | Asynchronous exact slicing (`local-cli` or `http`); unset keeps geometry-only estimates |
 | `LOCAL_DEV` | Local only | Enables NDJSON request logging when set to `1` |
 | `HOST`, `PORT` | Local only | Development listener, defaults `127.0.0.1:4173` |
 
@@ -186,11 +189,13 @@ The calculator intentionally returns a range. A human confirms geometry, risk, m
 | `/api/request` | `POST` | Validate the first complete request payload and reserve an ID |
 | `/api/upload-url` | `POST` | Create a request-scoped signed private upload URL |
 | `/api/request` | `PATCH` | Finalize the request and deliver notifications |
+| `/api/print-estimate` | `POST`, `GET` | Capability-owned print estimate sessions: signed private model upload, server analysis, status |
 | `/api/checkout` | `POST` | Create an optional Stripe Checkout Session for a deposit |
 | `/api/operator-session` | `GET` | Authorize an approved operator identity |
 | `/api/operator-work` | `GET` | Read minimized queue, private detail, or incremental events |
 | `/api/operator-work-update` | `PATCH` | Apply revision-checked workflow updates and private notes |
 | `/api/operator-push` | `GET`, `POST` | Manage the authenticated operator's Push subscription |
+| `/api/operator-print` | `GET`, `POST` | Filament cost basis, 60-second signed model downloads, and actual production runs |
 
 API payloads are size-limited, normalized, and revalidated server-side. Client-side estimates and validation exist for usability, not trust.
 

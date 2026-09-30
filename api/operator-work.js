@@ -3,6 +3,13 @@ import { configuredOperatorOrigins, createOperatorApiHandler } from "../lib/oper
 import { parseWorkQuery } from "../lib/work-management/domain.js";
 import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
 import { HttpError } from "../lib/http.js";
+import { createOperatorPrintView } from "../lib/print-estimation/application/operator-view.js";
+import { createPrintEstimationRuntime } from "../lib/print-estimation/runtime.js";
+
+function defaultPrintEstimates() {
+  const print = createPrintEstimationRuntime();
+  return print.repository ? createOperatorPrintView({ repository: print.repository, fileStore: print.fileStore }) : null;
+}
 
 function workId(value) {
   const id = String(value ?? "");
@@ -20,8 +27,8 @@ function eventLimit(value) {
   return limit;
 }
 
-export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
-  const work = resolveWorkManagementRuntime({ runtime, repository: store });
+export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), printEstimates = runtime ? null : defaultPrintEstimates() } = {}) {
+  const work = resolveWorkManagementRuntime({ runtime, repository: store, printEstimates });
   let provider = identityProvider;
   const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
   return createOperatorApiHandler({ methods: ["GET"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {

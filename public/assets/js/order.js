@@ -1,14 +1,19 @@
-import "./site.js?v=6dfa37e669b62115";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=6dfa37e669b62115";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=6dfa37e669b62115";
-import { toast } from "./site.js?v=6dfa37e669b62115";
-import { createProjectRequestClient } from "./order/client.js?v=6dfa37e669b62115";
-import { createOrderController } from "./order/controller.js?v=6dfa37e669b62115";
-import { createDraftStore } from "./order/draft-store.js?v=6dfa37e669b62115";
-import { createFileManager } from "./order/files.js?v=6dfa37e669b62115";
-import { activeProjectData, projectRequestFromData, readProjectForm } from "./order/model.js?v=6dfa37e669b62115";
-import { createStepValidator } from "./order/validation.js?v=6dfa37e669b62115";
-import { createOrderView } from "./order/view.js?v=6dfa37e669b62115";
+import "./site.js?v=2fc56965c9220f82";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=2fc56965c9220f82";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=2fc56965c9220f82";
+import { toast } from "./site.js?v=2fc56965c9220f82";
+import { createProjectRequestClient } from "./order/client.js?v=2fc56965c9220f82";
+import { createOrderController } from "./order/controller.js?v=2fc56965c9220f82";
+import { createDraftStore } from "./order/draft-store.js?v=2fc56965c9220f82";
+import { createFileManager } from "./order/files.js?v=2fc56965c9220f82";
+import { activeProjectData, projectRequestFromData, readProjectForm } from "./order/model.js?v=2fc56965c9220f82";
+import { createStepValidator } from "./order/validation.js?v=2fc56965c9220f82";
+import { createOrderView } from "./order/view.js?v=2fc56965c9220f82";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=2fc56965c9220f82";
+import { modelFormat } from "./print-estimation/geometry.js?v=2fc56965c9220f82";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=2fc56965c9220f82";
+import { createModelPanelView } from "./print-estimation/view.js?v=2fc56965c9220f82";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=2fc56965c9220f82";
 
 const form = document.querySelector("#project-form");
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
@@ -24,9 +29,31 @@ function saveDraft() {
   if (!draftStore.saveDraft(getData())) view.showDraftStorageWarning();
 }
 
+const modelPanel = createModelPanelView({ document, card: document.querySelector("#model-card") });
+const printEstimateOptions = () => {
+  const data = activeProjectData(getData());
+  return { material: data.material, quality: data.quality, colors: data.colors, finish: data.finish, supports: data.supports, delivery: data.delivery, quantity: data.quantity, sizeClass: data.sizeClass };
+};
+let privateEstimateFlow = null;
+const privateEstimates = {
+  reset: () => privateEstimateFlow?.reset(),
+  start: (file, hooks) => privateEstimateFlow?.start(file, hooks),
+  isPreUploaded: file => Boolean(privateEstimateFlow?.isPreUploaded(file)),
+  attachment: () => privateEstimateFlow?.attachment() ?? null,
+  finalize: () => privateEstimateFlow?.finalize()
+};
+const modelEstimates = createModelEstimateController({
+  privateEstimates,
+  limits: resolveModelLimits(SITE_CONFIG.printEstimation?.limits),
+  render: state => modelPanel.render(state, activeProjectData(getData())),
+  onChange: () => updateEstimate()
+});
+
 function updateEstimate() {
-  latestEstimate = calculateEstimate(activeProjectData(getData()));
+  const data = activeProjectData(getData());
+  latestEstimate = calculateEstimate(data.service === "print" ? { ...data, modelEstimate: modelEstimates.modelEstimate(data) } : data);
   view.renderEstimate(latestEstimate);
+  if (data.service === "print") modelPanel.render(modelEstimates.state(), data);
 }
 
 const files = createFileManager({
@@ -34,8 +61,15 @@ const files = createFileManager({
   client,
   notify: toast,
   render: selected => view.renderFiles(selected),
-  onChange: () => { updateEstimate(); saveDraft(); }
+  onChange: selected => { modelEstimates.sync(selected); updateEstimate(); saveDraft(); }
 });
+
+function chooseModelFile(file) {
+  if (!file) return;
+  const current = files.list().findIndex(existing => modelFormat(existing.name));
+  if (current >= 0 && modelFormat(file.name)) files.remove(current);
+  files.add([file]);
+}
 
 const buildRequest = () => projectRequestFromData({ data: getData(), estimate: latestEstimate, files: files.list(), buildSummary: buildRequestSummary });
 
@@ -84,7 +118,8 @@ const controller = createOrderController({
       toast(error.message || "The request could not be submitted.");
     }
   },
-  newLocalId: () => `LOCAL-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+  newLocalId: () => `LOCAL-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+  printEstimate: privateEstimates
 });
 
 function renderReview() { view.renderReview(buildRequest(), getData(), files.list()); }
@@ -141,6 +176,7 @@ async function refreshIntegrationState() {
     const health = await client.health();
     const request = controller.completedRequest();
     view.setDepositVisible(Boolean(health.integrations?.stripe) && !(request && (!request.backend.live || !request.backend.checkoutToken)));
+    if (health.integrations?.printEstimation && !privateEstimateFlow) privateEstimateFlow = createPrivateEstimateFlow({ client: createPrintEstimateClient(), getOptions: printEstimateOptions });
   } catch { view.setDepositVisible(false); }
 }
 
@@ -157,6 +193,9 @@ form.addEventListener("submit", controller.submit);
 view.elements.nextButton.addEventListener("click", () => { if (validateStep(currentStep)) showStep(currentStep + 1); });
 view.elements.backButton.addEventListener("click", () => showStep(currentStep - 1));
 view.elements.fileInput.addEventListener("change", () => { files.add(view.elements.fileInput.files); view.elements.fileInput.value = ""; });
+const modelInput = document.querySelector("#model-file");
+document.querySelector("#model-file-button").addEventListener("click", () => modelInput.click());
+modelInput.addEventListener("change", () => { chooseModelFile(modelInput.files[0]); modelInput.value = ""; });
 view.elements.fileList.addEventListener("click", event => { const button = event.target.closest("[data-file-index]"); if (button) files.remove(Number(button.dataset.fileIndex)); });
 ["dragenter", "dragover"].forEach(type => view.elements.uploadZone.addEventListener(type, event => { event.preventDefault(); view.elements.uploadZone.classList.add("dragover"); }));
 ["dragleave", "drop"].forEach(type => view.elements.uploadZone.addEventListener(type, event => { event.preventDefault(); view.elements.uploadZone.classList.remove("dragover"); }));
