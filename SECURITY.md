@@ -16,6 +16,8 @@ The following values are server-only:
 - `RESEND_API_KEY`
 - `REQUEST_WEBHOOK_SECRET`
 - `STRIPE_SECRET_KEY`
+- `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN`, `HOME_ASSISTANT_TOKEN`, `PUSH_WORKER_SECRET`, `VAPID_PRIVATE_KEY`
+- `SLICER_HTTP_TOKEN`
 
 Never place them in `public/`, client JavaScript, HTML, screenshots, test fixtures, logs, or issue reports. Use separate sandbox and production credentials. Rotate any credential that may have been exposed.
 
@@ -34,6 +36,17 @@ Recommended controls:
 - Define and automate a retention policy.
 - Consider content-type inspection and malware scanning before scaling beyond a trusted local customer base.
 
+### Print models (STL/3MF)
+
+Model files are parsed as untrusted input by dependency-free bounded parsers, in the browser for feedback and again on the server before anything is persisted:
+
+- extension allowlist plus content checks (exact binary STL length, ASCII STL structure, 3MF must be a ZIP container);
+- configurable size, triangle, entry, total-expansion, XML-node, object, part, and nesting limits;
+- 3MF: ZIP64, encrypted entries, duplicate names, absolute/`..`/backslash/drive paths, compression ratios above 200:1, and output beyond the declared size are refused; only the model relationship and referenced model parts are decompressed; any DTD or entity declaration is rejected (no external entity resolution); thumbnails, metadata, and embedded slicer settings are never used for pricing and nothing is rendered as HTML;
+- public failures are generic (`analysis_unavailable`, `file_too_large`); diagnostic codes are stored privately for operators.
+
+Uploads go directly from the browser to private Blob through a signed, size-bounded, non-overwriting URL; bytes never pass through a JSON function body. Anonymous estimate sessions are owned by a 256-bit capability token whose SHA-256 hash is stored; it is sent in a header, never the URL, and ends when the request is submitted. Public estimate responses exclude Blob paths, hashes, landed costs, wages, overhead, floors, and margins. Operator downloads are 60-second signed links issued only after verifying the asset belongs to the requested work item. Slicer providers run without a shell in a private temporary directory with a hard timeout; the HTTP provider receives only a short-lived signed URL. Abandoned models expire and privacy purge deletes Blob objects before records ([PRINT-ESTIMATION.md](docs/PRINT-ESTIMATION.md)).
+
 ## Webhook verification
 
 When `REQUEST_WEBHOOK_SECRET` is configured, the receiver must calculate HMAC-SHA256 over the exact raw body and compare it to `X-3DP-Signature` using a constant-time method. Add replay protection at the receiver.
@@ -51,4 +64,6 @@ The runtime intentionally has no third-party npm packages. Python packages are d
 - The honeypot is a low-cost spam control, not comprehensive abuse prevention.
 - No CAPTCHA, rate-limit service, malware scanner, authenticated admin portal, or payment webhook is included.
 - The health endpoint reports configuration presence, not credential validity.
+- Anonymous estimate sessions are bounded per session (models, snapshots, TTL) but have no global rate limit; add one before broad promotion if session creation abuse becomes material.
+- Model parsing checks structure and limits; it is not malware scanning. Open downloaded models only in current slicer/CAD software.
 - Local NDJSON logs are for development only and are not durable serverless storage.

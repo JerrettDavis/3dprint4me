@@ -68,3 +68,9 @@ test("Given the repository, when architecture is checked, then every current dep
   const result = await checkArchitecture({ root });
   assert.deepEqual(result.violations, []);
 });
+
+test("Given the Vercel Hobby function limit, when API entrypoints are counted, then the deployment stays at twelve or fewer", async () => {
+  const { readdir } = await import("node:fs/promises");
+  const entries = (await readdir(fileURLToPath(new URL("../../api", import.meta.url)))).filter(name => name.endsWith(".js"));
+  assert.ok(entries.length <= 12, `api/ has ${entries.length} functions: ${entries.join(", ")}`);
+});

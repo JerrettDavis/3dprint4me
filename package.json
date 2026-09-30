@@ -18,6 +18,8 @@
     "audit": "python tests/audit/audit.py",
     "screenshots": "python scripts/capture_screenshots.py",
     "smoke:live": "node scripts/smoke-live.mjs",
+    "estimate:cleanup": "node scripts/print-estimate-maintenance.mjs",
+    "estimate:worker": "node scripts/print-estimate-worker.mjs",
     "test": "npm run validate && npm run test:unit && npm run test:e2e && npm run audit",
     "vercel-build": "npm run assets:version && npm run validate",
     "test:unit": "node --test tests/unit/*.test.mjs tests/contract/*.test.mjs"
@@ -42,6 +44,7 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "esbuild": "^0.25.12"
   }
 }

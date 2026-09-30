@@ -10,7 +10,7 @@ from tests.support.browser_harness import SiteBrowser
 @pytest.mark.parametrize("service", ["print", "design", "repair", "consult"])
 def test_each_service_submits_only_its_own_specification_fields(service: str) -> None:
     service_fields = {
-        "print": {"sizeClass", "material", "quantity", "quality", "colors", "finish", "grams", "machineHours"},
+        "print": {"sizeClass", "material", "quantity", "quality", "colors", "finish", "supports", "grams", "machineHours"},
         "design": {"complexity", "sourceQuality", "deliverable", "includePrint"},
         "repair": {"printerModel", "repairType", "recentChange"},
         "consult": {"consultType", "meetingFormat", "consultOutcome"},

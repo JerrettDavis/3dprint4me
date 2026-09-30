@@ -1,4 +1,4 @@
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=6dfa37e669b62115";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=2fc56965c9220f82";
 
 const money = new Intl.NumberFormat(SITE_CONFIG.defaults.locale, {
   style: "currency",
@@ -17,12 +17,23 @@ function quantityMultiplier(quantity) {
   return SITE_CONFIG.pricing.print.quantityDiscount.find(tier => quantity >= tier.min)?.multiplier ?? 1;
 }
 
-function printEstimate(data) {
+// Model-derived production values. A geometry estimate is not a slice, so it keeps a wide band.
+const MODEL_ESTIMATE_SPREAD = Object.freeze({ geometry: 0.25, slicer: 0.12 });
+const roundTenth = value => Math.round(value * 10) / 10;
+
+/**
+ * Customer-facing rate-card (market) price for one print job. This is the public
+ * retail model; the private economic floor is applied separately on the server.
+ */
+export function printRateCardQuote(data = {}) {
   const p = SITE_CONFIG.pricing.print;
-  const quantity = Math.max(1, n(data.quantity, 1));
+  const quantity = Math.max(1, Math.round(n(data.quantity, 1)));
   const fallback = p.sizeFallback[data.sizeClass] ?? p.sizeFallback.palm;
-  const grams = Math.max(1, n(data.grams, fallback.grams));
-  const hours = Math.max(0.25, n(data.machineHours, fallback.hours));
+  const exactInputs = Boolean(data.grams && data.machineHours);
+  const model = data.modelEstimate && Number.isFinite(Number(data.modelEstimate.grams)) && Number.isFinite(Number(data.modelEstimate.hours)) ? data.modelEstimate : null;
+  const source = exactInputs ? "manual" : model ? (model.source === "slicer" ? "slicer" : "geometry") : "size";
+  const grams = Math.max(1, exactInputs ? n(data.grams, fallback.grams) : model ? roundTenth(Number(model.grams)) : n(data.grams, fallback.grams));
+  const hours = Math.max(0.25, exactInputs ? n(data.machineHours, fallback.hours) : model ? roundTenth(Number(model.hours)) : n(data.machineHours, fallback.hours));
   const materialRate = p.materialPerGram[data.material] ?? p.materialPerGram.other;
   const quality = p.qualityMultiplier[data.quality] ?? 1;
   const colors = Math.min(4, Math.max(1, n(data.colors, 1)));
@@ -32,13 +43,24 @@ function printEstimate(data) {
   const setup = p.setup + (p.colorsAdd[colors] ?? p.colorsAdd[4]);
   const delivery = SITE_CONFIG.pricing.delivery[data.delivery] ?? 0;
   const subtotal = Math.max(p.minimum, setup + production + finish + delivery);
-  const exactInputs = Boolean(data.grams && data.machineHours);
-  const spread = exactInputs ? 0.14 : 0.28;
-  return range(Math.max(p.minimum, subtotal * (1 - spread)), subtotal * (1 + spread), exactInputs ? "better" : "rough", {
+  return { subtotal, minimum: p.minimum, quantity, grams, hours, colors, source, exactInputs };
+}
+
+function printEstimate(data) {
+  const p = SITE_CONFIG.pricing.print;
+  const quote = printRateCardQuote(data);
+  const { subtotal, quantity, grams, hours, source } = quote;
+  const spread = source === "manual" ? 0.14 : source === "size" ? 0.28 : MODEL_ESTIMATE_SPREAD[source];
+  const confidence = source === "manual" || source === "slicer" ? "better" : "rough";
+  const assumption = source === "manual" ? `${grams} g · ${hours} machine hr`
+    : source === "slicer" ? `Slicer estimate · ${grams} g · ${hours} machine hr`
+      : source === "geometry" ? `Model geometry (not a slice) · ~${grams} g · ~${hours} machine hr`
+        : `${data.sizeClass || "palm"} size assumption`;
+  return range(Math.max(p.minimum, subtotal * (1 - spread)), subtotal * (1 + spread), confidence, {
     service: SERVICE_LABELS.print,
     material: String(data.material || "PLA").toUpperCase(),
     quantity: String(quantity),
-    assumption: exactInputs ? `${grams} g · ${hours} machine hr` : `${data.sizeClass || "palm"} size assumption`,
+    assumption,
     delivery: data.delivery || "pickup"
   });
 }
