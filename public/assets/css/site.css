@@ -111,7 +111,7 @@ img,svg{display:block;max-width:100%}button,input,select,textarea{font:inherit}b
 .model-card-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem;align-items:baseline}
 .model-name{overflow-wrap:anywhere;font-size:.95rem}
 .model-format{color:var(--muted);font-size:.76rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.model-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:.6rem;margin:.8rem 0}
+.model-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(7.25rem,1fr));gap:.6rem;margin:.8rem 0}
 .model-facts div{padding:.55rem .65rem;border-radius:.6rem;background:var(--surface-2)}
 .model-facts dt{color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .model-facts dd{margin:.1rem 0 0;font-size:.9rem;font-weight:680;font-variant-numeric:tabular-nums}
