@@ -46,6 +46,9 @@ def _bundle(order: bool, *, home: bool = False) -> str:
         paths.append(SITE_ROOT / "assets/js/quote-engine.js")
     paths.append(SITE_ROOT / "assets/js/site.js")
     if order:
+        paths.extend(SITE_ROOT / "assets/js/print-estimation" / name for name in (
+            "mesh.js", "stl.js", "three-mf.js", "geometry.js", "controller.js", "view.js",
+        ))
         paths.extend(SITE_ROOT / "assets/js/order" / name for name in (
             "model.js", "draft-store.js", "client.js", "files.js",
             "validation.js", "view.js", "controller.js",
