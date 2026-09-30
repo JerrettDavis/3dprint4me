@@ -51,6 +51,16 @@ The snapshot endpoint is optional and independent of the operator PWA. The opera
 
 For coordinated rotation, generate a new token and prepare the replacement Home Assistant secret. Change `HOME_ASSISTANT_TOKEN` in Vercel and redeploy, then change the Home Assistant `secrets.yaml` value, run **Check configuration**, and restart or reload the integration within one maintenance window. Brief `401` responses while values differ are expected. Confirm the new token returns `200`, the old token returns `401`, and the sensor resumes with a fresh `generatedAt`. Do not expose either token in the evidence record. If rotation fails, restore a matching token on both sides and redeploy/restart as needed; a previous Vercel deployment may contain an old environment value, so verify its actual endpoint behavior. For an intentional disable or rollback, remove `HOME_ASSISTANT_TOKEN` from Vercel and redeploy; the endpoint must return `503` even when called with an old token. Then remove the Home Assistant package, dashboard, and secret as described in its README. Intake and the operator PWA remain available independently.
 
+### Print estimation
+
+Apply the additive print-estimation schema after migrations 001-003:
+
+```bash
+node --env-file=.env.production.local scripts/migrate-neon.mjs 004_print_estimation.sql
+```
+
+It adds `filament_inventory`, `print_estimate_sessions`, `print_assets`, `print_estimates` (insert-only, trigger-enforced), `print_analysis_jobs`, and `print_runs`, all with RLS enabled and no public grants. Until it is applied, the storefront keeps working: private estimates fail closed to browser-only geometry and operator detail shows the print section as unavailable. Model objects use the same private Blob store under `print-estimates/<session>/`. Schedule `npm run estimate:cleanup` hourly from a trusted host and, when exact slicing is wanted, run `npm run estimate:worker` or an HTTP worker. Full configuration, bootstrap, retention, and rollback: [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md).
+
 ### Legacy Supabase option
 
 1. Create a Supabase project in the desired region.

@@ -1,5 +1,13 @@
 # Release Verification
 
+## Print estimation — local verification (2026-09-30; production gate pending)
+
+`npm test` passed: static validation, 220 unit/contract tests, 61 browser/real-HTTP tests, and the 193/193 UX audit. `npm run screenshots` captured 28 views; the preview board was inspected, including the STL/3MF model panel (desktop light, 390 px dark) and the operator print sheet (desktop light, 390 px dark).
+
+Coverage includes: pinned workbook calibration fixtures and dual-floor boundaries; filament cost selection; malformed STL, 3MF traversal, ZIP bomb, size-lying entries, DTD/entities, encryption, entry-count and expansion limits; browser/server parser parity; capability ownership, wrong-token and cross-session denial, server-side size/type limits, upload-before-analysis, per-session limits; the real Neon SQL (migration 004, attach-on-completion statement, immutability trigger, `SKIP LOCKED` job leases, retention, purge) executed on in-process PGlite; slicer CLI success/failure/timeout/invalid output and HTTP provider mapping; slicer failure never blocking submission; a real browser uploading the model exactly once and submitting without re-upload; operator detail, 60-second signed download, and recorded runs; and the work list/Home Assistant excluding file, estimate, and margin data.
+
+**Pending before production use:** apply `004_print_estimation.sql` to production Neon; confirm `/api/health` reports `printEstimation: true`; verify a synthetic print request end to end against private Blob (upload, verification, operator download, cleanup); schedule `npm run estimate:cleanup`; optionally provision a slicer worker. None of these were performed in this change.
+
 ## Home Assistant work peek — release gate (production installed; synthetic alert pending)
 
 Local tests and source review verify the endpoint, snapshot contract, and Home Assistant example. Production evidence below covers deployment and the installed empty-queue dashboard, but not synthetic-work alerts, phone delivery, terminal behavior, or the deliberate failure drills. Record a timestamp, deployment identifier, Home Assistant configuration-check result, synthetic work ID, HTTP status and response-header observations, and before/after work-state evidence for each check below. Never record token values or full private request data.
