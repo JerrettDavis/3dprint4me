@@ -11,7 +11,7 @@ import { createPrintEstimationRuntime, createSlicerFromEnv } from "../lib/print-
 export function createWorker(runtime = createPrintEstimationRuntime(), env = process.env) {
   if (!runtime.repository || !runtime.fileStore) throw new Error("Print estimation storage is not configured.");
   const slicer = createSlicerFromEnv({ fileStore: runtime.fileStore, env });
-  if (!slicer) throw new Error("SLICER_PROVIDER is not configured (local-cli or http).");
+  if (!slicer) throw new Error("SLICER_PROVIDER is not configured (local-cli, bambu-cli, or http).");
   return createSliceJobRunner({
     repository: runtime.repository, fileStore: runtime.fileStore, slicer, materialCosts: runtime.materialCosts, limits: runtime.limits,
     logFailure: category => console.error(`Slice job failed: ${category}`)
