@@ -124,18 +124,30 @@ On the Docker host (these steps are manual; nothing here is automated):
 
 ```bash
 git clone https://github.com/JerrettDavis/3dprint4me.git && cd 3dprint4me
-cp deploy/slicer-worker/.env.worker.example deploy/slicer-worker/.env.worker
-chmod 600 deploy/slicer-worker/.env.worker
-$EDITOR deploy/slicer-worker/.env.worker      # DATABASE_URL, BLOB_READ_WRITE_TOKEN, SLICER_PROFILE_ID
+cp deploy/slicer-worker/.env.worker.example deploy/slicer-worker/.env   # compose reads .env next to the compose file
+chmod 600 deploy/slicer-worker/.env
+$EDITOR deploy/slicer-worker/.env             # DATABASE_URL, BLOB_READ_WRITE_TOKEN (required), SLICER_PROFILE_ID
 docker compose -f deploy/slicer-worker/docker-compose.yml up -d --build
 docker compose -f deploy/slicer-worker/docker-compose.yml logs -f      # expect JSON lines only when jobs are claimed
 ```
+
+#### Alternative: Portainer git stack
+
+The compose file takes all configuration from environment variables (no `env_file`), so it deploys as a Portainer Repository stack on a standalone Docker host:
+
+1. Check free disk on the host first (`docker system df`, `df -h`); the build needs roughly 2 GB for the image plus build cache.
+2. Portainer > Stacks > Add stack > Repository.
+3. Repository URL `https://github.com/JerrettDavis/3dprint4me`, reference `refs/heads/main`, compose path `deploy/slicer-worker/docker-compose.yml` (the `../..` build context resolves to the repository root checkout). Add credentials only if the repo is private.
+4. Under Environment variables enter `DATABASE_URL` and `BLOB_READ_WRITE_TOKEN` (required; the stack refuses to deploy without them) and optionally `SLICER_PROFILE_ID`, `SLICER_TIMEOUT_MS`, `SLICER_POLL_MS`, `SLICER_PROVIDER`, `SLICER_ENGINE`. Defaults are the Bambu values in `.env.worker.example`. `SLICER_BIN`, `SLICER_PROFILE`, `SLICER_BED_TYPE` and `SLICER_FILAMENT_PROFILES` are only passed through when set (the Bambu image bakes them). For PrusaSlicer also set `SLICER_DOCKERFILE=Dockerfile`, `SLICER_PROVIDER=local-cli`, `SLICER_BIN=/opt/prusaslicer/AppRun`, `SLICER_PROFILE=/app/profiles/default.ini`, `SLICER_ENGINE=prusaslicer-cli`.
+5. Deploy the stack. To update, use "Pull and redeploy" with re-build enabled.
+
+Watchtower does not help here: the image is built locally and is not published to a registry, so there is nothing to pull. Exclude the container from Watchtower (label `com.centurylinklabs.watchtower.enable=false`) if Watchtower runs in monitor-all mode, and redeploy from Portainer instead.
 
 **Switching an existing PrusaSlicer host to Bambu Studio:** `.env.worker` values override the image defaults, so remove the PrusaSlicer `SLICER_PROVIDER`, `SLICER_BIN`, `SLICER_PROFILE` and `SLICER_ENGINE` lines (use the Bambu block of `.env.worker.example`) before `up -d --build`; otherwise the new image would try to run `/opt/prusaslicer/AppRun`. To stay on PrusaSlicer, run compose with `SLICER_DOCKERFILE=Dockerfile`.
 
 Optional one-batch check before relying on it: `docker compose -f deploy/slicer-worker/docker-compose.yml run --rm slicer-worker node scripts/print-estimate-worker.mjs --once` (exits 0 when the queue is empty).
 
-Update: `git pull && docker compose -f deploy/slicer-worker/docker-compose.yml up -d --build`. Stop: `docker compose -f deploy/slicer-worker/docker-compose.yml down` (jobs stay queued and are leased again on restart). Run only one worker per queue unless you intend parallelism; leases make concurrent workers safe.
+Update (CLI): `git pull && docker compose -f deploy/slicer-worker/docker-compose.yml up -d --build`. Stop: `docker compose -f deploy/slicer-worker/docker-compose.yml down` (jobs stay queued and are leased again on restart). Run only one worker per queue unless you intend parallelism; leases make concurrent workers safe.
 
 ### Storefront step
 
