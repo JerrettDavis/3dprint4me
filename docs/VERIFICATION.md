@@ -1,5 +1,14 @@
 # Release Verification
 
+## Print estimation — scheduled cleanup (production deployment pending)
+
+The GitHub Actions workflow `.github/workflows/estimate-cleanup.yml` runs `npm run estimate:cleanup` on an hourly schedule. To enable it:
+
+1. Add `NEON_DATABASE_URL` (same value as the storefront's `DATABASE_URL`) and `VERCEL_BLOB_TOKEN` (same value as the storefront's `BLOB_READ_WRITE_TOKEN`) to repository secrets.
+2. Verify the workflow runs successfully in the Actions tab — the first run should show `sweep` results in the workflow logs.
+3. Confirm cleanup logs appear in Vercel function logs, with no critical errors in the past 24 hours.
+4. Verify that sessions and assets older than their retention TTL are removed by querying Neon directly or inspecting Blob storage metrics.
+
 ## Print estimation — local verification (2026-09-30; production gate pending)
 
 `npm test` passed: static validation, 220 unit/contract tests, 61 browser/real-HTTP tests, and the 193/193 UX audit. `npm run screenshots` captured 28 views; the preview board was inspected, including the STL/3MF model panel (desktop light, 390 px dark) and the operator print sheet (desktop light, 390 px dark).
