@@ -62,8 +62,8 @@ The runtime intentionally has no third-party npm packages. Python packages are d
 ## Known boundaries
 
 - The honeypot is a low-cost spam control, not comprehensive abuse prevention.
-- No CAPTCHA, rate-limit service, malware scanner, authenticated admin portal, or payment webhook is included.
+- No CAPTCHA, external rate-limit service, malware scanner, authenticated admin portal, or payment webhook is included.
 - The health endpoint reports configuration presence, not credential validity.
-- Anonymous estimate sessions are bounded per session (models, snapshots, TTL) but have no global rate limit; add one before broad promotion if session creation abuse becomes material.
+- Anonymous estimate sessions are bounded per session (models, snapshots, TTL), and session creation and upload-token issuance are rate limited globally and per client with Neon-backed fixed-window counters (migration 005; defaults 10 sessions and 30 upload tokens per client per hour, 300 and 900 globally; see [PRINT-ESTIMATION.md](docs/PRINT-ESTIMATION.md)). Client identity is a salted hash of the edge-supplied address (raw addresses are never stored), so clients behind one NAT share a budget and a distributed attacker is only bounded by the global cap. The limiter fails closed (429 over limit, error if counters are unavailable); the storefront then submits the file with the request as usual.
 - Model parsing checks structure and limits; it is not malware scanning. Open downloaded models only in current slicer/CAD software.
 - Local NDJSON logs are for development only and are not durable serverless storage.

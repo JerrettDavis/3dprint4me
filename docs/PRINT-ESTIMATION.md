@@ -48,6 +48,10 @@ See [PRICING-CALIBRATION.md](PRICING-CALIBRATION.md#dual-floor-print-pricing). E
 | `PRINT_ESTIMATE_MAX_3MF_UNCOMPRESSED_BYTES` | 134217728 | Total bounded 3MF expansion |
 | `PRINT_ESTIMATE_SESSION_TTL_HOURS` | 24 | Anonymous session/asset lifetime (max 168) |
 | `PRINT_ESTIMATE_MAX_ASSETS` / `PRINT_ESTIMATE_MAX_ESTIMATES` | 3 / 20 | Per-session abuse bounds |
+| `PRINT_ESTIMATE_SESSIONS_PER_CLIENT` / `PRINT_ESTIMATE_SESSIONS_GLOBAL` | 10 / 300 | Session creations per client / all clients per window |
+| `PRINT_ESTIMATE_UPLOADS_PER_CLIENT` / `PRINT_ESTIMATE_UPLOADS_GLOBAL` | 30 / 900 | Upload-token issuances per client / all clients per window |
+| `PRINT_ESTIMATE_RATE_WINDOW_SECONDS` | 3600 | Fixed rate-limit window (max 86400) |
+| `PRINT_ESTIMATE_RATE_SALT` | empty | Optional secret salt for hashing client addresses into rate-limit subjects |
 | `PRINT_ASSET_RETENTION_DAYS` | 90 | Model retention after work reaches a terminal status |
 | `SLICER_PROVIDER` | unset | `local-cli` (PrusaSlicer-style), `bambu-cli` (Bambu Studio / OrcaSlicer), or `http`; unset disables exact slicing. The storefront only checks that it is set. |
 | `SLICER_BIN`, `SLICER_PROFILE`, `SLICER_PROFILE_ID`, `SLICER_ARGS`, `SLICER_ENGINE`, `SLICER_ENGINE_VERSION` | — | Local CLI provider (PrusaSlicer-compatible defaults; `SLICER_ARGS` is a JSON array with `{model}`, `{output}`, `{profile}`) |
@@ -59,7 +63,7 @@ Browser analysis limits live in `SITE_CONFIG.printEstimation` and never replace 
 
 ## Enable in production
 
-1. Apply migration 004 after 001-003 (additive; see [DEPLOYMENT.md](DEPLOYMENT.md#print-estimation)).
+1. Apply migration 004 after 001-003, then 005 (both additive; see [DEPLOYMENT.md](DEPLOYMENT.md#print-estimation)). Apply 005 before deploying code that includes the rate limiter, because creation fails closed without its counter table.
 2. Optionally bootstrap filament cost basis. Without rows, the explicit pricing-model fallback ($20/kg PLA) is used and recorded as `fallback`:
 
    ```sql
@@ -150,12 +154,17 @@ The PrusaSlicer AppImage version is overridable at build time (`--build-arg PRUS
 - Submitted models adopt the work lifecycle: never deleted while work is active; deleted from Blob `PRINT_ASSET_RETENTION_DAYS` after the work is completed, declined, or cancelled, unless `print_assets.retention_hold = true`. The asset row remains (`state = 'deleted'`) so history stays explainable.
 - Privacy deletion: `npm run estimate:cleanup -- --purge-request <request-id>` deletes the Blob objects first (aborting if any deletion fails) and then assets, estimate snapshots, jobs, and sessions for that request. Delete the request's other records with the existing request/work procedures.
 
+## Rate limiting
+
+`create` and `authorize-upload` (the only actions that mint a session capability or a signed upload URL) consume a fixed-window counter in `print_estimate_rate_buckets` (migration 005) in two buckets: the caller (`c_` + salted SHA-256 of `x-vercel-forwarded-for`, `x-real-ip`, `x-forwarded-for`, or the socket address) and `global`. The increment is a single atomic `INSERT ... ON CONFLICT DO UPDATE ... RETURNING`, so concurrent functions cannot over-admit. The client bucket is counted first so refused attempts from one caller do not drain the global budget. Over limit returns `429` with `Retry-After`; a counter failure also blocks (fail closed). Status, analyze, and finalize are not limited here because they require an existing capability. Buckets older than two days are pruned by `npm run estimate:cleanup` (`rateBucketsPruned`). Rollback: the table may remain; roll back code first.
+
 ## Failure behavior
 
 | Failure | Customer | Operator |
 |---|---|---|
 | No Neon/Blob | Local geometry and range; file uploads with the request | Normal request detail |
 | Model cannot be parsed | Generic "could not be measured" copy; still submittable | Asset `failed` with private diagnostic code |
+| Estimate rate limit exceeded (`429` + `Retry-After`) or counter store unavailable | Private estimate skipped; file uploads with the request instead | Normal file row |
 | Private upload/verification fails | File uploads with the request instead | Normal file row |
 | Slicer unavailable/failing | Geometry range; "exact estimate queued" copy | Job pending/failed with category and attempts |
 | Session expired before submit | Request submits without attachment | No print section data |
