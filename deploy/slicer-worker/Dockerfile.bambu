@@ -1,0 +1,89 @@
+# syntax=docker/dockerfile:1
+# Slicer worker image: `npm run estimate:worker` + headless Bambu Studio CLI
+# (SLICER_PROVIDER=bambu-cli). Build from the repository root:
+#   docker build -f deploy/slicer-worker/Dockerfile.bambu -t 3dprint4me-slicer-worker:bambu .
+#
+# The PrusaSlicer image (deploy/slicer-worker/Dockerfile) is unchanged and still supported.
+# OrcaSlicer uses the same CLI and can be swapped in with the SLICER_APPIMAGE_* build args,
+# but its bundled vendor profiles do not include the Bambu Lab X2D (see docs/PRINT-ESTIMATION.md).
+
+# ---- Stage 1: fetch and extract the slicer AppImage (no FUSE needed) ----
+FROM ubuntu:24.04 AS slicer
+ARG SLICER_APPIMAGE_URL="https://github.com/bambulab/BambuStudio/releases/download/v02.08.04.57/BambuStudio_ubu24-v02.08.04.57-20260922164607.AppImage"
+ARG SLICER_APPIMAGE_SHA256=4870e355fa5e98e3a47bcd196b7ae16c2e9c15896a81ceaabe09ddbefa80d2f0
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+RUN curl -fsSL -o slicer.AppImage "$SLICER_APPIMAGE_URL" \
+ && echo "$SLICER_APPIMAGE_SHA256  slicer.AppImage" | sha256sum -c - \
+ && chmod +x slicer.AppImage \
+ && ./slicer.AppImage --appimage-extract >/dev/null \
+ && rm slicer.AppImage \
+ && mv squashfs-root /opt/slicer \
+ && rm -rf /opt/slicer/usr/share/doc
+
+# ---- Stage 2: node dependencies (production only) ----
+FROM node:22-bookworm-slim AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+
+# ---- Stage 3: flatten the selected presets (the CLI does not resolve `inherits`) ----
+FROM node:22-bookworm-slim AS presets
+# Owner's Bambu Studio selection (BambuStudio.conf): printer, process, and per-material filament.
+ARG SLICER_VENDOR=BBL
+ARG SLICER_MACHINE_PRESET="Bambu Lab X2D 0.4 nozzle"
+ARG SLICER_PROCESS_PRESET="0.16mm High Quality @BBL X2D"
+ARG SLICER_FILAMENT_PLA="Generic PLA @BBL X2D 0.4 nozzle"
+ARG SLICER_FILAMENT_PETG="Generic PETG @BBL X2D 0.4 nozzle"
+ARG SLICER_FILAMENT_ASA="Generic ASA @BBL X2D 0.4 nozzle"
+ARG SLICER_FILAMENT_TPU="Generic TPU @BBL X2D 0.4 nozzle"
+WORKDIR /build
+COPY --from=slicer /opt/slicer/resources/profiles ./vendor-profiles
+COPY lib/print-estimation/slicer-presets.js ./lib/print-estimation/slicer-presets.js
+COPY scripts/flatten-slicer-presets.mjs ./scripts/flatten-slicer-presets.mjs
+# Optional owner-exported user presets (sanitized JSON) can be referenced by path, e.g.
+#   --build-arg SLICER_PROCESS_PRESET=/build/user-presets/process/MyProcess.json
+COPY deploy/slicer-worker/profiles/bambu ./user-presets
+RUN echo '{"type":"module"}' > package.json \
+ && node scripts/flatten-slicer-presets.mjs --profiles vendor-profiles --vendor "$SLICER_VENDOR" --out /profiles \
+      --machine "$SLICER_MACHINE_PRESET" --process "$SLICER_PROCESS_PRESET" \
+      --filament pla="$SLICER_FILAMENT_PLA" --filament petg="$SLICER_FILAMENT_PETG" \
+      --filament asa="$SLICER_FILAMENT_ASA" --filament tpu="$SLICER_FILAMENT_TPU"
+
+# ---- Stage 4: runtime (Ubuntu 24.04 to match the AppImage's build ABI) ----
+FROM ubuntu:24.04
+# Runtime libraries the extracted slicer links against (GTK3/WebKit/GL stack). The CLI
+# never opens a display, so no X server or xvfb is needed.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libgtk-3-0t64 libwebkit2gtk-4.1-0 libgl1 libegl1 libglu1-mesa libgstreamer1.0-0 \
+      libgstreamer-plugins-base1.0-0 libwayland-client0 libwayland-server0 libdbus-1-3 \
+      libfontconfig1 ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=deps /usr/local/bin/node /usr/local/bin/node
+ENV NODE_ENV=production \
+    HOME=/home/worker \
+    TMPDIR=/tmp \
+    LC_ALL=C \
+    SLICER_PROVIDER=bambu-cli \
+    SLICER_ENGINE=bambu-studio-cli \
+    SLICER_BED_TYPE="Textured PEI Plate" \
+    SLICER_BIN=/opt/slicer/AppRun \
+    SLICER_MACHINE_PROFILE=/app/profiles/machine.json \
+    SLICER_PROCESS_PROFILE=/app/profiles/process.json \
+    SLICER_FILAMENT_PROFILES="pla=/app/profiles/filament-pla.json;petg=/app/profiles/filament-petg.json;asa=/app/profiles/filament-asa.json;tpu=/app/profiles/filament-tpu.json"
+RUN useradd --system --uid 10001 --create-home --home-dir /home/worker --shell /usr/sbin/nologin worker
+COPY --from=slicer /opt/slicer /opt/slicer
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
+COPY lib ./lib
+# lib/ imports the shared geometry/quote modules the browser also uses.
+COPY public/assets/js ./public/assets/js
+COPY scripts/print-estimate-worker.mjs ./scripts/print-estimate-worker.mjs
+COPY --from=presets /profiles ./profiles
+USER worker
+# The filesystem can be read-only; each slice runs with a private HOME under $TMPDIR (a tmpfs).
+HEALTHCHECK --interval=2m --timeout=20s --start-period=30s --retries=3 \
+  CMD node -e "const fs=require('fs');fs.accessSync(process.env.SLICER_BIN,fs.constants.X_OK);for(const p of [process.env.SLICER_MACHINE_PROFILE,process.env.SLICER_PROCESS_PROFILE])fs.accessSync(p,fs.constants.R_OK)"
+CMD ["node", "scripts/print-estimate-worker.mjs"]
