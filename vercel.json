@@ -5,7 +5,8 @@
   "outputDirectory": "public",
   "functions": {
     "api/*.js": {
-      "maxDuration": 45
+      "maxDuration": 45,
+      "includeFiles": "public/assets/js/print-estimation/**"
     }
   },
   "headers": [
