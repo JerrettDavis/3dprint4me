@@ -1,6 +1,11 @@
-# Slicer worker for the always-on Docker host. Run from the repository root:
-#   docker compose -f deploy/slicer-worker/docker-compose.yml up -d --build
-# Create deploy/slicer-worker/.env.worker from .env.worker.example first (never commit it).
+# Slicer worker for the always-on Docker host.
+# Configuration comes ONLY from environment variables (no env_file), so the same file works for:
+#   - Portainer: Stacks > Add stack > Repository, compose path deploy/slicer-worker/docker-compose.yml,
+#     variables entered in the stack's "Environment variables" section (see docs/PRINT-ESTIMATION.md).
+#   - CLI: put the values in deploy/slicer-worker/.env (git-ignored; see .env.worker.example) and run
+#       docker compose -f deploy/slicer-worker/docker-compose.yml up -d --build
+#     or pass --env-file <path>. Never commit real values.
+# Build context ../.. is the repository root, which is what a Portainer git stack checks out.
 services:
   slicer-worker:
     build:
@@ -11,7 +16,20 @@ services:
     image: 3dprint4me-slicer-worker:latest
     container_name: 3dprint4me-slicer-worker
     restart: unless-stopped
-    env_file: .env.worker
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      BLOB_READ_WRITE_TOKEN: ${BLOB_READ_WRITE_TOKEN:?BLOB_READ_WRITE_TOKEN is required}
+      SLICER_PROVIDER: ${SLICER_PROVIDER:-bambu-cli}
+      SLICER_ENGINE: ${SLICER_ENGINE:-bambu-studio-cli}
+      SLICER_PROFILE_ID: ${SLICER_PROFILE_ID:-bambu-x2d-0.4-0.16hq-generic-v1}
+      SLICER_TIMEOUT_MS: ${SLICER_TIMEOUT_MS:-300000}
+      SLICER_POLL_MS: ${SLICER_POLL_MS:-15000}
+      # Pass-through only when set; otherwise the image's baked ENV defaults apply (an empty string
+      # here would override them). Bambu image bakes these; set them for PrusaSlicer (Dockerfile).
+      SLICER_BIN:
+      SLICER_PROFILE:
+      SLICER_BED_TYPE:
+      SLICER_FILAMENT_PROFILES:
     # No ports: the worker only makes outbound connections (Neon, Vercel Blob).
     read_only: true
     tmpfs:
