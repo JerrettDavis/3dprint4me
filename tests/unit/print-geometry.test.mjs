@@ -155,3 +155,11 @@ test("the browser model controller picks the first STL/3MF and ignores stale ana
   assert.equal(controller.modelEstimate({}), null);
   assert.ok(renders.some(state => state.status === "reading"));
 });
+
+test("vercel serverless regression: server-imported public modules are resolved despite cache-busting query params in geometry.js", async () => {
+  // This test ensures that when npm run vercel-build rewrites imports in public/assets/js/print-estimation/**
+  // with cache-busting query params (e.g., ./stl.js?v=hash), Node.js can still import and use the server-side
+  // analyze-model.js module. The fix adds includeFiles to vercel.json to ensure Vercel bundles these files.
+  const metrics = await analyze("cube-20mm-binary.stl");
+  assert.ok(metrics.volumeMm3 > 0, "server-side analysis must work for Vercel serverless bundles");
+});
