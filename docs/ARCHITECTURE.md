@@ -157,7 +157,7 @@ service_requests
   updated_at        trigger-maintained timestamp
 ```
 
-Migration `004_print_estimation.sql` adds `filament_inventory`, `print_estimate_sessions`, `print_assets`, `print_estimates` (insert-only snapshots), `print_analysis_jobs` (leased retry queue), and `print_runs` (actuals). Assets, sessions, and snapshots relate to `service_requests.id`; runs relate to `work_items.id`. No second work queue exists.
+Migration `005_print_estimate_rate_limits.sql` adds `print_estimate_rate_buckets` (fixed-window counters for global and per-client rate limiting of estimate session creation and upload-token issuance). Migration `004_print_estimation.sql` adds `filament_inventory`, `print_estimate_sessions`, `print_assets`, `print_estimates` (insert-only snapshots), `print_analysis_jobs` (leased retry queue), and `print_runs` (actuals). Assets, sessions, and snapshots relate to `service_requests.id`; runs relate to `work_items.id`. No second work queue exists.
 
 Neon is accessed only by the server-side database credential; the browser has no database connection. The legacy Supabase schema enables Row Level Security with no anonymous or authenticated policies.
 
