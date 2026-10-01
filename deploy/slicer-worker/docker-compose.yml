@@ -5,7 +5,9 @@ services:
   slicer-worker:
     build:
       context: ../..
-      dockerfile: deploy/slicer-worker/Dockerfile
+      # Bambu Studio CLI (default). For the PrusaSlicer image set SLICER_DOCKERFILE=Dockerfile
+      # in the shell or a compose .env file, and use the PrusaSlicer block in .env.worker.
+      dockerfile: deploy/slicer-worker/${SLICER_DOCKERFILE:-Dockerfile.bambu}
     image: 3dprint4me-slicer-worker:latest
     container_name: 3dprint4me-slicer-worker
     restart: unless-stopped
@@ -15,7 +17,8 @@ services:
     tmpfs:
       - /tmp:size=512m,mode=1777
       - /home/worker:size=64m,uid=10001,gid=10001,mode=0700
-    # Owner profile override: uncomment and point SLICER_PROFILE at /profiles/<file>.ini
+    # PrusaSlicer profile override: uncomment and point SLICER_PROFILE at /profiles/<file>.ini.
+    # (Bambu presets are flattened at build time; see profiles/bambu/README.md.)
     # volumes:
     #   - ./profiles:/profiles:ro
     cap_drop: [ALL]
