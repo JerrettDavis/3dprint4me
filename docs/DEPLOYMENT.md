@@ -61,6 +61,15 @@ node --env-file=.env.production.local scripts/migrate-neon.mjs 004_print_estimat
 
 It adds `filament_inventory`, `print_estimate_sessions`, `print_assets`, `print_estimates` (insert-only, trigger-enforced), `print_analysis_jobs`, and `print_runs`, all with RLS enabled and no public grants. Until it is applied, the storefront keeps working: private estimates fail closed to browser-only geometry and operator detail shows the print section as unavailable. Model objects use the same private Blob store under `print-estimates/<session>/`. Schedule `npm run estimate:cleanup` hourly from a trusted host and, when exact slicing is wanted, run `npm run estimate:worker` or an HTTP worker. Full configuration, bootstrap, retention, and rollback: [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md).
 
+### Print estimation scheduled cleanup
+
+A GitHub Actions workflow runs `npm run estimate:cleanup` hourly to clean up expired sessions, failed uploads, and retained assets per the configured retention policy. Add the following repository secrets under **Settings → Secrets and variables → Actions**:
+
+- `NEON_DATABASE_URL`: The production Neon database connection string (same as the storefront's `DATABASE_URL`)
+- `VERCEL_BLOB_TOKEN`: The production Vercel Blob token (same as the storefront's `BLOB_READ_WRITE_TOKEN`)
+
+The workflow runs on an hourly schedule (`0 * * * *`) and can also be triggered manually via `workflow_dispatch` from the Actions tab. If cleanup is already running from another trusted host, disable or remove `.github/workflows/estimate-cleanup.yml` to avoid concurrent execution.
+
 ### Legacy Supabase option
 
 1. Create a Supabase project in the desired region.
