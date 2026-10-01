@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+!.env.worker.example
 .vercel/
 .remember/
 .private/
@@ -19,3 +20,7 @@ playwright-report/
 test-results/
 supabase/.temp/
 .neon
+
+# Slicer worker secrets
+deploy/slicer-worker/.env.worker
+.env.worker

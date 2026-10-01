@@ -105,7 +105,7 @@ Copy `.env.example` to `.env` for local work. Vercel reads the same names from P
 | `STRIPE_SECRET_KEY` | For deposits | Stripe secret API key |
 | `DEPOSIT_AMOUNT_CENTS` | Optional | Deposit amount, default `2500` |
 | `PRINT_ESTIMATE_*`, `PRINT_ASSET_RETENTION_DAYS` | Optional | Model analysis limits, anonymous session bounds, and model retention ([PRINT-ESTIMATION.md](docs/PRINT-ESTIMATION.md)) |
-| `SLICER_PROVIDER`, `SLICER_*` | Optional | Asynchronous exact slicing (`local-cli` or `http`); unset keeps geometry-only estimates |
+| `SLICER_PROVIDER`, `SLICER_*` | Optional | Asynchronous exact slicing (`bambu-cli` for Bambu Studio/OrcaSlicer, `local-cli` for PrusaSlicer, or `http`); unset keeps geometry-only estimates |
 | `LOCAL_DEV` | Local only | Enables NDJSON request logging when set to `1` |
 | `HOST`, `PORT` | Local only | Development listener, defaults `127.0.0.1:4173` |
 
