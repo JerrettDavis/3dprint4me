@@ -2,6 +2,8 @@
 
 ## 2026-09-30
 
+- Added global and per-client DB-backed rate limiting for anonymous print-estimate session creation and upload-token issuance (additive migration 005, fails closed with 429; the storefront still uploads the file with the request).
+
 - Added model-aware print estimation: bounded browser/server STL and 3MF geometry analysis with hostile-archive limits, a prominent STL/3MF intake path, and honest geometry-versus-slicer confidence.
 - Added a server-only dual-floor pricing policy (market rate card vs. economic floor at a required margin vs. minimum charge) pinned to the rate-and-margin workbook fixtures, plus a private filament cost basis.
 - Added capability-owned anonymous estimate sessions with direct private Blob uploads, immutable estimate snapshots, attachment to the single work item on submission, and retention/privacy cleanup.
