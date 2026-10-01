@@ -69,7 +69,41 @@ Browser analysis limits live in `SITE_CONFIG.printEstimation` and never replace 
    Or the owner can `POST /api/operator-print` with `{ "action": "save-filament", "filament": { ... } }`. Money is integer cents; landed cost per kg is derived.
 3. `/api/health` reports `printEstimation: true` once Neon and private Blob are configured; the order page then uploads the model privately.
 4. Schedule `npm run estimate:cleanup` (hourly is sufficient) from a trusted host with the production environment. A GitHub Actions workflow (`.github/workflows/estimate-cleanup.yml`) is provided that runs hourly; see [DEPLOYMENT.md](DEPLOYMENT.md#print-estimation-scheduled-cleanup) for secret configuration.
-5. Exact slicing is optional: run `npm run estimate:worker` on a host with a slicer binary (`SLICER_PROVIDER=local-cli`), or deploy an HTTP worker implementing the contract in `adapters/http-slicer.js`, and set `SLICER_PROVIDER` on the storefront so jobs are queued.
+5. Exact slicing is optional: run `npm run estimate:worker` on a host with a slicer binary (`SLICER_PROVIDER=local-cli`), or deploy an HTTP worker implementing the contract in `adapters/http-slicer.js`, and set `SLICER_PROVIDER` on the storefront so jobs are queued. The containerized worker for an always-on Docker host is described in [Slicer worker container](#slicer-worker-container).
+
+## Slicer worker container
+
+`deploy/slicer-worker/` packages `npm run estimate:worker` with a headless PrusaSlicer CLI (`SLICER_PROVIDER=local-cli`) for an always-on Docker host. PrusaSlicer is the official Linux release AppImage (pinned version and SHA-256 build args, extracted with `--appimage-extract`, so no FUSE is needed). The container runs as a non-root user (uid 10001), with a read-only root filesystem, tmpfs for `/tmp` and `$HOME`, all capabilities dropped, no published ports (outbound to Neon and Vercel Blob only), 2 GB / 2 CPU limits, and `restart: unless-stopped`. The healthcheck verifies the slicer binary and profile are present; job-level health is visible in `print_analysis_jobs` and the operator print section.
+
+Files: `Dockerfile`, `docker-compose.yml`, `.env.worker.example`, `profiles/default.ini` (placeholder).
+
+### Profile (owner action required)
+
+`profiles/default.ini` is a generic placeholder, not calibrated to any printer. Export your real config from PrusaSlicer (select printer, filament and print presets, then File > Export > Export Config...) and replace the file, or mount a directory at `/profiles` and set `SLICER_PROFILE=/profiles/<file>.ini`. Change `SLICER_PROFILE_ID` whenever the profile changes; it is recorded on every estimate.
+
+### Host deploy steps
+
+On the Docker host (these steps are manual; nothing here is automated):
+
+```bash
+git clone https://github.com/JerrettDavis/3dprint4me.git && cd 3dprint4me
+cp deploy/slicer-worker/.env.worker.example deploy/slicer-worker/.env.worker
+chmod 600 deploy/slicer-worker/.env.worker
+$EDITOR deploy/slicer-worker/.env.worker      # DATABASE_URL, BLOB_READ_WRITE_TOKEN, SLICER_PROFILE_ID
+cp /path/to/exported-profile.ini deploy/slicer-worker/profiles/default.ini
+docker compose -f deploy/slicer-worker/docker-compose.yml up -d --build
+docker compose -f deploy/slicer-worker/docker-compose.yml logs -f      # expect JSON lines only when jobs are claimed
+```
+
+Optional one-batch check before relying on it: `docker compose -f deploy/slicer-worker/docker-compose.yml run --rm slicer-worker node scripts/print-estimate-worker.mjs --once` (exits 0 when the queue is empty).
+
+Update: `git pull && docker compose -f deploy/slicer-worker/docker-compose.yml up -d --build`. Stop: `docker compose -f deploy/slicer-worker/docker-compose.yml down` (jobs stay queued and are leased again on restart). Run only one worker per queue unless you intend parallelism; leases make concurrent workers safe.
+
+### Storefront step
+
+In Vercel (Production), set `SLICER_PROVIDER=local-cli` and redeploy. The storefront only needs the variable to queue slice jobs; the binary and profile variables are used by the worker only. To disable exact slicing, unset the variable and redeploy; pending jobs simply wait.
+
+The AppImage version is overridable at build time (`--build-arg PRUSASLICER_APPIMAGE_URL=... --build-arg PRUSASLICER_SHA256=...`). Newer PrusaSlicer releases no longer publish an AppImage on GitHub, so 2.8.1 is pinned.
 
 ## Slicer contract
 

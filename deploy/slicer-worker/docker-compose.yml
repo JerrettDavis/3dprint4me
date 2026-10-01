@@ -1,0 +1,32 @@
+# Slicer worker for the always-on Docker host. Run from the repository root:
+#   docker compose -f deploy/slicer-worker/docker-compose.yml up -d --build
+# Create deploy/slicer-worker/.env.worker from .env.worker.example first (never commit it).
+services:
+  slicer-worker:
+    build:
+      context: ../..
+      dockerfile: deploy/slicer-worker/Dockerfile
+    image: 3dprint4me-slicer-worker:latest
+    container_name: 3dprint4me-slicer-worker
+    restart: unless-stopped
+    env_file: .env.worker
+    # No ports: the worker only makes outbound connections (Neon, Vercel Blob).
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+      - /home/worker:size=64m,uid=10001,gid=10001,mode=0700
+    # Owner profile override: uncomment and point SLICER_PROFILE at /profiles/<file>.ini
+    # volumes:
+    #   - ./profiles:/profiles:ro
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 2g
+    memswap_limit: 2g
+    cpus: 2.0
+    pids_limit: 256
+    init: true
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
