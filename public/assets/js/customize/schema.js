@@ -8,9 +8,11 @@ const EPS = 1e-9;
 
 export const sensitiveKeys = generator => Object.entries(generator.schema).filter(([, d]) => d.sensitive).map(([k]) => k);
 
+const stepBase = def => def.min ?? 0;
+
 const onStep = (v, def) => {
   if (!def.step) return true;
-  const base = def.min ?? 0;
+  const base = stepBase(def);
   const n = (v - base) / def.step;
   return Math.abs(n - Math.round(n)) < 1e-6;
 };
@@ -77,7 +79,7 @@ export function redactSensitive(generator, params) {
 
 const snapToStep = (v, def, lo, hi) => {
   if (!def.step) return Math.min(hi, Math.max(lo, v));
-  const base = def.min;
+  const base = stepBase(def);
   const n = (v - base) / def.step;
   let snapped = base + Math.round(n) * def.step;
   if (snapped > hi + EPS) {
@@ -101,7 +103,8 @@ export function clampParams(generator, params, changedKey) {
       if (typeof v !== "number" || !Number.isFinite(v)) {
         out[changedKey] = def.default;
       } else {
-        const [lo, hi] = initialLimits[changedKey] ?? [def.min, def.max];
+        // Clamp changedKey against field's own limits, not rule limits
+        const [lo, hi] = [def.min, def.max];
         out[changedKey] = snapToStep(v, def, lo, hi);
       }
     }
