@@ -103,6 +103,43 @@ export function blockText(CrossSection, text) {
   return centered;
 }
 
+// ---- Block-text layout in a box (shared by generators) ----------------------------------
+// A block-font line is 6 cells per character minus the trailing gap; a cell is 1 unit before
+// scaling, so the printed cap height is 7 × the cell size.
+const CELL_H = 7.16, LINE_GAP = 2.5;   // block-font cell height (with gap) and line spacing, in cells
+export const blockCellsWide = line => [...line].length * 6 - 1 + 0.16;
+
+/**
+ * A label line that would print under `splitBelow` mm cap height on one row is split in two,
+ * at the space nearest the middle (or mid-word when there is none).
+ * box: { maxW, maxH } in mm.
+ */
+export function splitBlockLines(text, box, splitBelow = 4) {
+  const one = Math.min(box.maxW / blockCellsWide(text), box.maxH / CELL_H) * 7;
+  if (one >= splitBelow || [...text].length < 2) return [text];
+  const chars = [...text], mid = chars.length / 2;
+  let at = -1;
+  chars.forEach((ch, i) => { if (ch === " " && (at < 0 || Math.abs(i - mid) < Math.abs(at - mid))) at = i; });
+  const lines = at > 0 ? [chars.slice(0, at), chars.slice(at + 1)] : [chars.slice(0, Math.ceil(mid)), chars.slice(Math.ceil(mid))];
+  return lines.map(l => l.join("").trim()).filter(Boolean);
+}
+
+/**
+ * Lines of block text at one shared size, centered in box { cx, cy, maxW, maxH }.
+ * `t` registers temporaries for the caller to free. Returns { cs, cap } (cap height in mm);
+ * `cs` is registered with `t` too, so the caller copies it if it must outlive the build.
+ */
+export function blockTextLines(CrossSection, lines, box, t) {
+  const k = lines.length;
+  const cell = Math.min(box.maxW / Math.max(...lines.map(blockCellsWide)), box.maxH / (CELL_H * k + LINE_GAP * (k - 1)));
+  const total = cell * (CELL_H * k + LINE_GAP * (k - 1));
+  const parts = lines.map((line, i) => {
+    const y = box.cy + total / 2 - cell * (CELL_H / 2 + i * (CELL_H + LINE_GAP));
+    return t(t(t(blockText(CrossSection, line)).scale([cell, cell])).translate([box.cx, y]));
+  });
+  return { cs: t(CrossSection.union(parts)), cap: cell * 7 };
+}
+
 function quad(p0, p1, p2, t) {
   const u = 1 - t;
   return [u*u*p0[0] + 2*u*t*p1[0] + t*t*p2[0], u*u*p0[1] + 2*u*t*p1[1] + t*t*p2[1]];

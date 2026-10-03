@@ -459,3 +459,89 @@ def test_wifi_label_too_small_to_read_is_an_error_at_the_network_name(page: Page
     page.get_by_label("Tag format").select_option("placard")
     wait_ready(page)
     expect(error).to_have_text("")
+
+
+# --- Rating card ------------------------------------------------------------------------------
+
+RATING_DRAFT_KEY = "3dp-customize:rating-card:v1"
+
+
+def paw_png() -> bytes:
+    """A bold test image generated in memory (a paw print on white)."""
+    import io
+    from PIL import Image, ImageDraw
+    img = Image.new("RGB", (600, 520), "white")
+    draw = ImageDraw.Draw(img)
+    draw.ellipse((170, 230, 430, 470), fill="black")
+    for cx, cy in [(130, 190), (230, 110), (370, 110), (470, 190)]:
+        draw.ellipse((cx - 55, cy - 70, cx + 55, cy + 70), fill="black")
+    buffer = io.BytesIO()
+    img.save(buffer, "PNG")
+    return buffer.getvalue()
+
+
+def test_catalog_lists_rating_card_and_the_default_card_builds(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/")
+    page.get_by_role("link", name="Rating card").click()
+    expect(page).to_have_url(re.compile(r"/customize/g/rating-card/$"))
+    wait_ready(page)
+    expect(page.locator("#cz-facts-list")).to_contain_text("85.6 × 54 × 1.6 mm")
+    expect(page.locator("#cz-color-badge")).to_have_text("5 colors")
+    expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
+    # Image controls appear only for a custom icon; the stars slider moves in half steps.
+    expect(page.locator("#cz-image-area")).to_be_hidden()
+    expect(page.locator("[data-field='image_threshold']")).to_be_hidden()
+    expect(page.locator("#cz-rating-range")).to_have_attribute("step", "0.5")
+
+
+def test_rating_card_traces_a_local_image_and_never_stores_it(page: Page, base_url: str) -> None:
+    requests: list[str] = []
+    errors: list[str] = []
+    page.on("request", lambda r: requests.append(r.url))
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
+    page.goto(f"{base_url}/customize/g/rating-card/")
+    wait_ready(page)
+    page.get_by_label("Icon", exact=True).select_option("custom")
+    expect(page.locator("#cz-image-area")).to_be_visible()
+    expect(page.get_by_text("Your image stays in your browser. Only the traced outline goes into the model.")).to_be_visible()
+    expect(page.locator("[data-field='icon'] #cz-icon-error")).to_have_text("Choose an image below, or pick a built-in icon.", timeout=BUILD_TIMEOUT)
+    expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+    # A file that isn't an image is refused with a readable message.
+    page.locator("#cz-image-file").set_input_files({"name": "notes.txt", "mimeType": "text/plain", "buffer": b"hello"})
+    expect(page.locator("#cz-icon-error")).to_contain_text("isn't a PNG, JPEG, WebP or GIF image")
+    before = len(requests)
+    page.locator("#cz-image-file").set_input_files({"name": "secret-paw.png", "mimeType": "image/png", "buffer": paw_png()})
+    expect(page.locator("#cz-image-preview")).to_be_visible(timeout=BUILD_TIMEOUT)
+    wait_ready(page)
+    expect(page.locator("#cz-icon-error")).to_have_text("")
+    expect(page.locator("#cz-image-status")).to_contain_text("Traced from your 600 × 520 pixel image")
+    expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
+    # Tracing and building stay on this page: no network request carries the image.
+    assert not [u for u in requests[before:] if not u.startswith(("blob:", "data:"))], requests[before:]
+    draft = page.evaluate(f"sessionStorage.getItem({RATING_DRAFT_KEY!r}) || ''")
+    assert '"icon":"custom"' in draft and "paw" not in draft and "[[" not in draft, draft
+    assert "secret-paw" not in page.url
+    # The threshold re-traces the same image: a threshold of 0 leaves nothing dark to trace.
+    page.locator("#cz-image_threshold").fill("0")
+    page.locator("#cz-image_threshold").press("Tab")
+    expect(page.locator("#cz-icon-error")).to_contain_text("nothing to trace")
+    page.locator("#cz-image_threshold").fill("128")
+    page.locator("#cz-image_threshold").press("Tab")
+    wait_ready(page)
+    assert not errors, errors
+
+
+def test_rating_card_mobile_layout_has_no_horizontal_scroll(browser: Browser, base_url: str) -> None:
+    context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark", reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/customize/g/rating-card/")
+        wait_ready(page)
+        page.get_by_label("Icon", exact=True).select_option("custom")
+        page.locator("#cz-image-file").set_input_files({"name": "paw.png", "mimeType": "image/png", "buffer": paw_png()})
+        wait_ready(page)
+        overflow = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+        assert overflow <= 0, overflow
+    finally:
+        context.close()

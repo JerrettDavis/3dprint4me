@@ -5,7 +5,7 @@
 import qrcode from "qrcode-generator";
 import { roundedRect, circle } from "../../framework/shapes.js";
 import { qrCrossSection } from "../../framework/qr.js";
-import { blockText, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING } from "../../framework/text.js";
+import { splitBlockLines, blockTextLines, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING } from "../../framework/text.js";
 import { wifiPayload } from "../../../public/assets/js/customize/wifi.js";
 
 export const FORMAT = Object.freeze({ placard: [90, 120], keychain: [45, 60], card: [85.6, 54] });
@@ -15,10 +15,8 @@ const QUIET_PAD = 1;         // plus this much (mm), so the quiet zone never end
 const LOOP_R = 6, HOLE_R = 2.75, LOOP_OVERLAP = 3;   // 12 mm boss, 5.5 mm hole, 3 mm into the body
 const BAND = 15;             // placard text band height
 const TEXT_CLEAR = 1;        // clearance between a text band and the code's quiet zone
-const SPLIT_BELOW = 4;       // split a label line in two when one line would print under this cap height (mm)
 const MIN_TEXT = 2.5;        // below this cap height (mm) the label is not legible: fail, never print it
 const SMALL_TEXT = 3.5;      // warn below this cap height (mm)
-const CELL_H = 7.16, LINE_GAP = 2.5;   // block-font cell height (with gap) and line spacing, in cells
 const ARC_TOL = 0.05;        // the rounded corner is a polygon; keep this far inside the true arc
 
 const HEX_EVEN = /^(?:[0-9a-fA-F]{2})+$/;
@@ -67,31 +65,6 @@ function largestSquare(region, w, h, r) {
   if (fits(hi)) return { cx, cy, L: hi };
   for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; }
   return { cx, cy, L: lo };
-}
-
-const cellsWide = line => [...line].length * 6 - 1 + 0.16;
-
-// A label line too small on one row is split in two, at the space nearest the middle.
-function splitLines(text, box) {
-  const one = Math.min(box.maxW / cellsWide(text), box.maxH / CELL_H) * 7;
-  if (one >= SPLIT_BELOW || [...text].length < 2) return [text];
-  const chars = [...text], mid = chars.length / 2;
-  let at = -1;
-  chars.forEach((ch, i) => { if (ch === " " && (at < 0 || Math.abs(i - mid) < Math.abs(at - mid))) at = i; });
-  const lines = at > 0 ? [chars.slice(0, at), chars.slice(at + 1)] : [chars.slice(0, Math.ceil(mid)), chars.slice(Math.ceil(mid))];
-  return lines.map(l => l.join("").trim()).filter(Boolean);
-}
-
-// Lines of block text at one shared size, centered in the box. Returns the cross-section and cap height.
-function textBlock(CrossSection, lines, box, t) {
-  const k = lines.length;
-  const cell = Math.min(box.maxW / Math.max(...lines.map(cellsWide)), box.maxH / (CELL_H * k + LINE_GAP * (k - 1)));
-  const total = cell * (CELL_H * k + LINE_GAP * (k - 1));
-  const parts = lines.map((line, i) => {
-    const y = box.cy + total / 2 - cell * (CELL_H / 2 + i * (CELL_H + LINE_GAP));
-    return t(t(t(blockText(CrossSection, line)).scale([cell, cell])).translate([box.cx, y]));
-  });
-  return { cs: t(CrossSection.union(parts)), cap: cell * 7 };
 }
 
 // Where the code (its margin square) and the label boxes go, per format. Pure layout numbers.
@@ -168,7 +141,7 @@ export default async function build(p, { wasm } = {}) {
     const labels = [];
     let smallest = Infinity;
     for (const box of layout.boxes) {
-      const block = textBlock(CrossSection, splitLines(box.text, box), box, t);
+      const block = blockTextLines(CrossSection, splitBlockLines(box.text, box), box, t);
       // Fit or error: a label too small to read is never printed silently.
       if (block.cap < MIN_TEXT) throw new Error(TOO_LONG[box.kind]);
       labels.push(block.cs);

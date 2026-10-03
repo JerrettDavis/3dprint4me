@@ -115,3 +115,10 @@
   .cz-facts{grid-template-columns:1fr 1fr}
   .cz-preview,.cz-summary,.cz-controls{padding:.85rem}
 }
+.cz-image-area{margin:.75rem 0 0;padding:.85rem;border:1px dashed var(--line-strong);border-radius:var(--radius-sm)}
+.cz-image-area[hidden]{display:none}
+.cz-image-row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-top:.5rem}
+.cz-trace-preview{width:96px;height:96px;flex:none;border:1px solid var(--line);border-radius:8px;background:#fff;image-rendering:pixelated}
+.cz-trace-preview[hidden]{display:none}
+.cz-image-status{flex:1 1 10rem;min-width:0;margin:0;color:var(--ink);font-size:.82rem}
+.cz-image-status[data-state="error"]{color:var(--warning)}

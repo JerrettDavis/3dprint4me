@@ -78,6 +78,22 @@ test("custom font bytes are posted only for requests that actually run", () => {
   client.terminate();
 });
 
+test("traced image contours ride with the request that runs, by reference, never in params", () => {
+  const { create, workers } = fakeWorkerFactory();
+  const client = createWorkerClient({ createWorker: create });
+  const imageContours = [[[0, 0], [1, 0], [1, 1]]];
+  for (let i = 0; i < 3; i++) client.build("rating-card", { i }, { imageContours }).catch(() => {});
+  assert.equal(workers[0].posted.length, 1, "queued requests are not posted");
+  const [message] = workers[0].posted;
+  assert.equal(message.imageContours, imageContours);
+  assert.equal(Object.hasOwn(message.params, "imageContours"), false);
+  workers[0].reply({ id: message.id, ok: true, result: null });
+  assert.equal(workers[0].posted.length, 2, "only the latest queued request follows");
+  assert.equal(workers[0].posted[1].params.i, 2);
+  assert.equal(workers[0].posted[1].imageContours, imageContours);
+  client.terminate();
+});
+
 test("the timeout runs from post time, not queue time", async () => {
   const { create, workers } = fakeWorkerFactory();
   const clock = fakeClock();
