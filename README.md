@@ -32,8 +32,8 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 The delivered build passes:
 
 - Static validation of all public routes, local references, JavaScript syntax, Vercel output configuration, CSP hashes, generator pages/sitemap/rights, and the no-remote-request rule for `/customize/`
-- 531 Node unit and repository-contract tests covering domain, application, adapter, and integration boundaries (including the real Neon SQL executed on in-process PGlite and every generator built on real Manifold WASM)
-- 113 end-to-end scenarios covering real HTTP, browser flows, private model estimates, every Customize generator from edit to operator store, recovery, operator behavior, and accessibility
+- 532 Node unit and repository-contract tests covering domain, application, adapter, and integration boundaries (including the real Neon SQL executed on in-process PGlite and every generator built on real Manifold WASM)
+- 114 end-to-end scenarios covering real HTTP, browser flows, private model estimates, every Customize generator from edit to operator store, recovery, operator behavior, and accessibility
 - 241 automated UX, accessibility, responsive, browser-error, keyboard, and contrast checks
 - Desktop light, desktop dark, full-page, and mobile dark screenshot generation
 

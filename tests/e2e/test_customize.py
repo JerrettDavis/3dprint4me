@@ -1022,3 +1022,18 @@ def test_replacing_the_handed_off_model_drops_the_customization(browser: Browser
         assert [f["name"] for f in mine[0]["files"]] == ["three-color-bambu.3mf"], mine[0]["files"]
     finally:
         page.context.close()
+
+
+def test_the_catalog_page_has_no_csp_violations(browser: Browser, workspace: tuple[str, str, Path]) -> None:
+    storefront, _operator, _store = workspace
+    page = new_matrix_page(browser)
+    console: list[str] = []
+    page.on("console", lambda m: console.append(m.text) if m.type == "error" else None)
+    page.on("pageerror", lambda e: console.append(str(e)))
+    try:
+        page.goto(f"{storefront}/customize/", wait_until="networkidle")
+        expect(page.locator(".cz-card-link")).to_have_count(len(GENERATOR_IDS))
+        assert csp_violations(page) == [], csp_violations(page)
+        assert not console, console
+    finally:
+        page.context.close()

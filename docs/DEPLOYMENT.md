@@ -24,8 +24,8 @@ npm run screenshots
 Expected delivered baseline (recorded 2026-10-03; see [VERIFICATION.md](VERIFICATION.md)):
 
 - `npm run vercel-build` passes from a clean `public/customize/` (Vite build, asset versions, static validation)
-- 531 Node unit/contract tests pass
-- 113 E2E tests pass
+- 532 Node unit/contract tests pass
+- 114 E2E tests pass
 - 241 UX/accessibility checks pass
 - 56 screenshots and the preview board regenerate without browser errors
 
