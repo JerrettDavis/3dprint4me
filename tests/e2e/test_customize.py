@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import uuid
 from pathlib import Path
 from typing import Iterator
 
@@ -772,3 +773,252 @@ def test_picking_a_font_then_typing_a_name_keeps_both(page: Page, base_url: str)
     expect(page.locator("#cz-font-toggle")).to_have_text("Pacifico")
     draft = page.evaluate(f"sessionStorage.getItem({NAME_DRAFT_KEY!r}) || ''")
     assert '"name":"Mary Ann"' in draft and '"font":"pacifico"' in draft, draft
+
+
+# --- Full matrix: every generator, end to end -------------------------------------------------
+# One shared storefront + operator workspace for the matrix (the operator store accumulates, so
+# each test finds its own request by a value unique to that run).
+
+GENERATOR_IDS = sorted(p.name for p in (ROOT / "customizer/g").iterdir() if (p / "index.html").is_file())
+DEV_LOG = ROOT / "data/dev-requests.ndjson"
+CSP_PROBE = """
+window.__cspViolations = [];
+document.addEventListener('securitypolicyviolation', e => window.__cspViolations.push(`${e.violatedDirective} ${e.blockedURI}`));
+"""
+
+
+def test_the_matrix_covers_every_registered_generator() -> None:
+    registry = (ROOT / "public/assets/js/customize/registry.js").read_text(encoding="utf-8")
+    registered = sorted(re.findall(r'import \w+ from "\./generators/([a-z0-9-]+)\.js', registry))
+    assert registered and registered == GENERATOR_IDS, (registered, GENERATOR_IDS)
+
+
+@pytest.fixture(scope="module")
+def workspace() -> Iterator[tuple[str, str, Path]]:
+    if not BUILT_PAGE.is_file():
+        pytest.fail("The customizer bundle is not built. Run `npm run customizer:build && npm run assets:version` first.")
+    with running_operator_workspace() as running:
+        yield running
+
+
+def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dict[str, str]:
+    """Opens a generator page, makes it buildable, changes one field to a value unique to this run
+    and waits until the model for that value is ready. Returns the values typed (for the Wi-Fi tag
+    including the password, which the server must never hold)."""
+    page.goto(f"{origin}/customize/g/{generator_id}/")
+    expect(page.locator("body[data-build-state]")).to_be_attached(timeout=BUILD_TIMEOUT)
+    values: dict[str, str] = {}
+    if generator_id == "route-shield":
+        key, label, value = "top_text", "Upper text", f"R{token[:6].upper()}"
+    elif generator_id == "wifi-tag":
+        values["password"] = f"pw-{uuid.uuid4().hex}"
+        page.get_by_label("Network password", exact=True).fill(values["password"])
+        key, label, value = "ssid", "Network name (SSID)", f"Net {token[:8]}"
+    elif generator_id == "rating-card":
+        key, label, value = "caption", "Caption", f"GREAT {token[:6].upper()}"
+    elif generator_id == "name-plate":
+        key, label, value = "name", "Name", f"Robin {token[:4].upper()}"
+    else:  # a new generator needs a flow here (see test_the_matrix_covers_every_registered_generator)
+        pytest.fail(f"No matrix flow for generator {generator_id}")
+    page.get_by_label(label, exact=True).fill(value)
+    values[key] = value
+    draft_key = f"3dp-customize:{generator_id}:v1"
+    needle = json.dumps(value)[1:-1]
+    for _ in range(100):  # the draft is written in the same step that starts the rebuild
+        if needle in page.evaluate(f"sessionStorage.getItem({draft_key!r}) || ''"):
+            break
+        page.wait_for_timeout(50)
+    else:
+        pytest.fail(f"{generator_id}: the edit never reached the draft")
+    wait_ready(page)
+    return values
+
+
+def new_matrix_page(browser: Browser, **context_options) -> Page:
+    options = {"viewport": {"width": 1280, "height": 900}, **context_options}
+    context = browser.new_context(**options)
+    context.add_init_script(CSP_PROBE)
+    return context.new_page()
+
+
+def csp_violations(page: Page) -> list[str]:
+    return page.evaluate("window.__cspViolations || []")
+
+
+def submit_print_request(page: Page) -> None:
+    page.locator("#next-button").click()
+    page.locator("#name").fill("Taylor Customer")
+    page.locator("#email").fill("taylor@example.com")
+    page.locator("#next-button").click()
+    page.locator("#terms").check()
+    page.locator("#submit-button").click()
+    page.locator("#submission-state.visible").wait_for(state="visible", timeout=15000)
+
+
+def stored_requests(store_path: Path) -> list[dict]:
+    return [record["request"] for record in json.loads(store_path.read_text(encoding="utf-8"))["requests"]]
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_each_generator_flows_from_edit_to_operator_store(browser: Browser, workspace: tuple[str, str, Path], generator_id: str) -> None:
+    storefront, _operator, store_path = workspace
+    page = new_matrix_page(browser)
+    console_errors: list[str] = []
+    page.on("console", lambda m: console_errors.append(m.text) if m.type == "error" else None)
+    page.on("pageerror", lambda e: console_errors.append(str(e)))
+    log_offset = DEV_LOG.stat().st_size if DEV_LOG.is_file() else 0
+    try:
+        values = edit_and_wait(page, storefront, generator_id, uuid.uuid4().hex)
+        expect(page.locator("#cz-color-badge")).to_have_text(re.compile(r"^[1-5] colors?$"))
+        assert csp_violations(page) == [], csp_violations(page)
+        page.get_by_role("button", name="Continue to request").click()
+        expect(page).to_have_url(re.compile(r"/order\.html\?service=print&from=customize$"))
+        expect(page.locator("#customize-notice")).to_have_text("Loaded from the customizer — review and continue.")
+        expect(page.locator("#service-print")).to_be_checked()
+        page.locator("#next-button").click()
+        expect(page.locator("#file-list")).to_contain_text(".3mf")
+        submit_print_request(page)
+        assert csp_violations(page) == [], csp_violations(page)
+        assert not [e for e in console_errors if "Content Security Policy" in e], console_errors
+
+        public_values = {k: v for k, v in values.items() if k != "password"}
+        mine = [r for r in stored_requests(store_path) if (r.get("customization") or {}).get("generatorId") == generator_id
+                and all(r["customization"]["params"].get(k) == v for k, v in public_values.items())]
+        assert len(mine) == 1, [r.get("customization") for r in stored_requests(store_path)]
+        assert mine[0]["customization"]["generatorVersion"] == 1
+
+        # The local dev API logged this request (create and complete) with its generator id.
+        appended = DEV_LOG.read_bytes()[log_offset:].decode("utf-8")
+        events = [json.loads(line) for line in appended.splitlines() if line.strip()]
+        logged = [e for e in events if (e.get("request", {}).get("customization") or {}).get("generatorId") == generator_id]
+        assert {e["event"] for e in logged} == {"create", "complete"}, [e.get("event") for e in events]
+        if "password" in values:
+            secret = values["password"]
+            customization = mine[0]["customization"]
+            assert customization["params"]["password"] == "[redacted]" and customization["redacted"] == ["password"]
+            assert secret not in appended, "the Wi-Fi password reached data/dev-requests.ndjson"
+            assert secret not in store_path.read_text(encoding="utf-8"), "the Wi-Fi password reached the operator store"
+            for storage in ("localStorage", "sessionStorage"):
+                assert secret not in page.evaluate(f"JSON.stringify(Object.entries({storage}))"), storage
+    finally:
+        page.context.close()
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_each_generator_builds_with_every_other_origin_blocked(browser: Browser, workspace: tuple[str, str, Path], generator_id: str) -> None:
+    storefront, _operator, _store = workspace
+    page = new_matrix_page(browser)
+    aborted: list[str] = []
+
+    def only_this_origin(route) -> None:
+        if route.request.url.startswith(storefront + "/"):
+            route.continue_()
+        else:
+            aborted.append(route.request.url)
+            route.abort()
+    page.context.route("**/*", only_this_origin)
+    try:
+        edit_and_wait(page, storefront, generator_id, uuid.uuid4().hex)
+        if generator_id == "name-plate":  # a curated font is fetched by the worker: same origin only
+            page.locator("#cz-font-toggle").click()
+            page.locator("label[for='cz-font-bebas-neue']").click()
+            expect(page.locator("#cz-font-toggle")).to_have_text("Bebas Neue")
+            wait_ready(page)
+        expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
+        assert aborted == [], aborted
+    finally:
+        page.context.close()
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_each_generator_page_fits_390_px_without_csp_violations(browser: Browser, workspace: tuple[str, str, Path], generator_id: str) -> None:
+    storefront, _operator, _store = workspace
+    page = new_matrix_page(browser, viewport={"width": 390, "height": 844}, color_scheme="dark", reduced_motion="reduce")
+    console: list[str] = []
+    page.on("console", lambda m: console.append(m.text))
+    try:
+        edit_and_wait(page, storefront, generator_id, uuid.uuid4().hex)
+        page.get_by_role("tab", name="3D").click()
+        page.wait_for_timeout(300)
+        widths = page.evaluate("({ scroll: document.documentElement.scrollWidth, inner: window.innerWidth })")
+        assert widths["scroll"] <= widths["inner"], widths
+        assert csp_violations(page) == [], csp_violations(page)
+        assert not [m for m in console if "Content Security Policy" in m], console
+    finally:
+        page.context.close()
+
+
+def test_the_csp_probe_sees_a_violation(browser: Browser, workspace: tuple[str, str, Path]) -> None:
+    # Guards the guard: the listener used above does report a blocked request on these pages.
+    storefront, _operator, _store = workspace
+    page = new_matrix_page(browser)
+    try:
+        page.goto(f"{storefront}/customize/g/route-shield/")
+        page.evaluate("() => { const img = document.createElement('img'); img.src = 'https://evil.example/pixel.png'; document.body.append(img); }")
+        for _ in range(40):
+            if csp_violations(page):
+                break
+            page.wait_for_timeout(50)
+        assert any("evil.example" in v for v in csp_violations(page)), csp_violations(page)
+    finally:
+        page.context.close()
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_indexeddb_open_throwing_falls_back_to_a_download(browser: Browser, workspace: tuple[str, str, Path], generator_id: str) -> None:
+    storefront, _operator, _store = workspace
+    page = new_matrix_page(browser, accept_downloads=True)
+    page.context.add_init_script("IDBFactory.prototype.open = function () { throw new DOMException('Storage is blocked.', 'SecurityError'); };")
+    try:
+        edit_and_wait(page, storefront, generator_id, uuid.uuid4().hex)
+        with page.expect_download() as download_info:
+            page.get_by_role("button", name="Continue to request").click()
+        download = download_info.value
+        assert download.suggested_filename.endswith(".3mf"), download.suggested_filename
+        assert Path(download.path()).read_bytes()[:2] == b"PK"
+        expect(page).to_have_url(re.compile(r"/order\.html\?service=print&from=customize&handoff=download$"))
+        expect(page.locator("#customize-notice")).to_have_text("Your browser blocked the direct hand-off; attach the file you just downloaded.")
+    finally:
+        page.context.close()
+
+
+def hand_off_route_shield(page: Page, origin: str, title: str) -> None:
+    edit_and_wait(page, origin, "route-shield", uuid.uuid4().hex)
+    page.get_by_role("button", name="Continue to request").click()
+    expect(page.locator("#customize-notice")).to_have_text("Loaded from the customizer — review and continue.")
+    page.locator("#next-button").click()
+    expect(page.locator("#file-list")).to_contain_text(".3mf")
+    page.locator("#project-title").fill(title)
+
+
+def test_removing_the_handed_off_model_drops_the_customization(browser: Browser, workspace: tuple[str, str, Path]) -> None:
+    storefront, _operator, store_path = workspace
+    page = new_matrix_page(browser)
+    title = f"Removed model {uuid.uuid4().hex[:8]}"
+    try:
+        hand_off_route_shield(page, storefront, title)
+        page.get_by_role("button", name=re.compile(r"^Remove .*\.3mf$")).click()
+        expect(page.locator("#file-list")).not_to_contain_text(".3mf")
+        page.locator("#model-url").fill("https://example.com/my-model.stl")
+        submit_print_request(page)
+        mine = [r for r in stored_requests(store_path) if r.get("projectTitle") == title]
+        assert len(mine) == 1 and mine[0].get("customization") is None, mine
+    finally:
+        page.context.close()
+
+
+def test_replacing_the_handed_off_model_drops_the_customization(browser: Browser, workspace: tuple[str, str, Path]) -> None:
+    storefront, _operator, store_path = workspace
+    page = new_matrix_page(browser)
+    title = f"Replaced model {uuid.uuid4().hex[:8]}"
+    try:
+        hand_off_route_shield(page, storefront, title)
+        page.locator("#model-file").set_input_files(str(ROOT / "tests/fixtures/customize/three-color-bambu.3mf"))
+        expect(page.locator("#file-list")).to_contain_text("three-color-bambu.3mf")
+        expect(page.locator("#file-list")).not_to_contain_text("route-shield")
+        submit_print_request(page)
+        mine = [r for r in stored_requests(store_path) if r.get("projectTitle") == title]
+        assert len(mine) == 1 and mine[0].get("customization") is None, mine
+        assert [f["name"] for f in mine[0]["files"]] == ["three-color-bambu.3mf"], mine[0]["files"]
+    finally:
+        page.context.close()
