@@ -122,3 +122,10 @@
 .cz-trace-preview[hidden]{display:none}
 .cz-image-status{flex:1 1 10rem;min-width:0;margin:0;color:var(--ink);font-size:.82rem}
 .cz-image-status[data-state="error"]{color:var(--warning)}
+/* Native file inputs: the picker button matches the site's secondary buttons. The input itself
+   stays the focus target (keyboard: Tab, then Space/Enter), with the site focus ring. */
+.cz-file{padding:.15rem;border-radius:.9rem;cursor:pointer}
+.cz-file::file-selector-button{min-height:44px;margin-right:.75rem;padding:.6rem 1rem;border:1px solid var(--line);border-radius:.78rem;color:var(--ink);background:var(--surface);box-shadow:var(--shadow-xs);font:inherit;font-weight:780;cursor:pointer;transition:background-color 150ms ease,border-color 150ms ease}
+.cz-file:hover::file-selector-button{border-color:var(--line-strong);background:var(--surface-2)}
+.cz-file:focus-visible{outline:none;box-shadow:var(--focus)}
+@media (prefers-reduced-motion:reduce){.cz-file::file-selector-button{transition:none}}

@@ -7,7 +7,7 @@ import { clampParams, validateParams } from "../../public/assets/js/customize/sc
 import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geometry.js";
 import { browserInflateRaw } from "../../public/assets/js/print-estimation/controller.js";
 import { renderForm, restoreParams, storableParams, esc, isFieldVisible } from "./form.js";
-import { decodeImageFile, createTracer, drawTracePreview } from "./image-input.js";
+import { createImageLoader, createTracer, drawTracePreview } from "./image-input.js";
 import { createWorkerClient } from "./worker-client.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
@@ -102,6 +102,7 @@ function boot() {
   const imageField = imageSpec ? Object.keys(imageSpec.when)[0] : null;
   const image = { data: null, error: "" };
   const trace = createTracer();
+  const loadImage = createImageLoader();
   const client = createWorkerClient();
   let viewer = null;
   let viewerLoading = null;
@@ -298,14 +299,16 @@ function boot() {
 
   els.imageInput?.addEventListener("change", async () => {
     const file = els.imageInput.files?.[0];
+    // Clear the input so picking the same file again (e.g. after an error) fires a new change.
+    els.imageInput.value = "";
     if (!file) return;
     setImageStatus("Reading the image…");
-    try {
-      image.data = await decodeImageFile(file);
-      image.error = "";
-    } catch (error) {
-      image.data = null;
-      image.error = String(error?.message ?? "That image couldn't be read.");
+    // Latest pick wins: a slower earlier decode that finishes later is ignored.
+    const outcome = await loadImage(file);
+    if (outcome.stale) return;
+    image.data = outcome.data ?? null;
+    image.error = outcome.error ?? "";
+    if (!image.data) {
       showTrace(null, image.error);
       if (els.imagePreview) els.imagePreview.hidden = true;
     }

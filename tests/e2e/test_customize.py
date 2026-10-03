@@ -510,6 +510,13 @@ def test_rating_card_traces_a_local_image_and_never_stores_it(page: Page, base_u
     # A file that isn't an image is refused with a readable message.
     page.locator("#cz-image-file").set_input_files({"name": "notes.txt", "mimeType": "text/plain", "buffer": b"hello"})
     expect(page.locator("#cz-icon-error")).to_contain_text("isn't a PNG, JPEG, WebP or GIF image")
+    # A small file declaring a 30000 × 30000 image is refused from its header, before decoding.
+    import struct
+    bomb = b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 13) + b"IHDR" + struct.pack(">II", 30000, 30000) + bytes([8, 6, 0, 0, 0]) + bytes(4) + bytes(1000)
+    page.locator("#cz-image-file").set_input_files({"name": "bomb.png", "mimeType": "image/png", "buffer": bomb})
+    expect(page.locator("#cz-icon-error")).to_contain_text("too large")
+    # The input is cleared after each pick, so the same file can be picked again.
+    expect(page.locator("#cz-image-file")).to_have_value("")
     before = len(requests)
     page.locator("#cz-image-file").set_input_files({"name": "secret-paw.png", "mimeType": "image/png", "buffer": paw_png()})
     expect(page.locator("#cz-image-preview")).to_be_visible(timeout=BUILD_TIMEOUT)
