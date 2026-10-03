@@ -25,3 +25,4 @@ supabase/.temp/
 deploy/slicer-worker/.env.worker
 .env.worker
 .superpowers/
+public/customize/
