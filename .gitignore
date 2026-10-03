@@ -24,3 +24,4 @@ supabase/.temp/
 # Slicer worker secrets
 deploy/slicer-worker/.env.worker
 .env.worker
+.superpowers/
