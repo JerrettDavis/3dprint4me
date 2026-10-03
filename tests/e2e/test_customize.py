@@ -552,3 +552,145 @@ def test_rating_card_mobile_layout_has_no_horizontal_scroll(browser: Browser, ba
         assert overflow <= 0, overflow
     finally:
         context.close()
+
+
+# --- Name plate -------------------------------------------------------------------------------
+
+NAME_DRAFT_KEY = "3dp-customize:name-plate:v1"
+FONT_FILES = ["Pacifico-Regular.ttf", "Lobster-Regular.ttf", "BebasNeue-Regular.ttf", "Righteous-Regular.ttf", "CaveatBrush-Regular.ttf", "RubikMonoOne-Regular.ttf", "Bangers-Regular.ttf", "TitanOne-Regular.ttf"]
+
+
+def open_name_plate(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/name-plate/")
+    wait_ready(page)
+
+
+def test_catalog_lists_name_plate_and_the_default_plate_builds(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/")
+    page.get_by_role("link", name="Name plate").click()
+    expect(page).to_have_url(re.compile(r"/customize/g/name-plate/$"))
+    wait_ready(page)
+    expect(page.locator("#cz-color-badge")).to_have_text("2 colors")
+    expect(page.locator("#cz-facts-list")).to_contain_text("× 3 mm")
+    expect(page.locator("#cz-font-toggle")).to_have_text("Block (built-in)")
+    # Color controls follow the style and plate.
+    expect(page.locator("[data-field='outline_color']")).to_be_hidden()
+    page.get_by_label("Style", exact=True).select_option("outline")
+    expect(page.locator("[data-field='outline_color']")).to_be_visible()
+    wait_ready(page)
+    expect(page.locator("#cz-color-badge")).to_have_text("3 colors")
+    page.get_by_label("Plate", exact=True).select_option("none")
+    expect(page.locator("[data-field='plate_color']")).to_be_hidden()
+
+
+def test_fonts_are_served_same_origin_with_type_and_cache_headers(base_url: str) -> None:
+    for name in FONT_FILES:
+        status, headers, body = request(f"{base_url}/customize/fonts/{name}")
+        assert status == 200, name
+        assert headers.get("Content-Type") == "font/ttf", headers
+        assert headers.get("Cache-Control", "").startswith("public, max-age="), headers
+        assert body[:4] == b"\x00\x01\x00\x00", name
+    status, headers, body = request(f"{base_url}/customize/fonts/fonts.css")
+    assert status == 200 and headers.get("Content-Type", "").startswith("text/css")
+    assert b"http" not in body
+    status, _, body = request(f"{base_url}/customize/fonts/LICENSES.md")
+    assert status == 200 and b"SIL Open Font License, Version 1.1" in body
+
+
+def test_font_picker_is_keyboard_operable_and_fetches_fonts_same_origin(page: Page, base_url: str) -> None:
+    requests: list[str] = []
+    page.on("request", lambda r: requests.append(r.url))
+    open_name_plate(page, base_url)
+    toggle = page.locator("#cz-font-toggle")
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    expect(page.locator("#cz-font-list")).to_be_hidden()
+    toggle.focus()
+    page.keyboard.press("Enter")
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    expect(page.get_by_role("radio", name="Block (built-in)")).to_be_focused()
+    # Arrow keys move the choice (each is a build); the list stays open until Enter or Escape.
+    page.keyboard.press("ArrowDown")
+    expect(page.get_by_role("radio", name="Pacifico")).to_be_checked()
+    expect(page.locator("#cz-font-list")).to_be_visible()
+    page.keyboard.press("Enter")
+    expect(page.locator("#cz-font-list")).to_be_hidden()
+    expect(toggle).to_be_focused()
+    expect(toggle).to_have_text("Pacifico")
+    wait_ready(page)
+    # Each option is drawn in its own font, from this site.
+    toggle.click()
+    family = page.locator("label[for='cz-font-lobster']").evaluate("el => getComputedStyle(el).fontFamily")
+    assert "cz-lobster" in family, family
+    page.wait_for_function("document.fonts.check('16px \"cz-lobster\"')")
+    page.locator("label[for='cz-font-bebas-neue']").click()
+    expect(page.locator("#cz-font-list")).to_be_hidden()
+    expect(toggle).to_have_text("Bebas Neue")
+    wait_ready(page)
+    # Escape closes an open list and returns focus to the toggle.
+    toggle.click()
+    expect(page.locator("#cz-font-list")).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(page.locator("#cz-font-list")).to_be_hidden()
+    expect(toggle).to_be_focused()
+    font_requests = [u for u in requests if "/fonts/" in u]
+    assert font_requests and all(u.startswith(base_url + "/customize/fonts/") for u in font_requests), font_requests
+    assert not [u for u in requests if not u.startswith((base_url, "blob:", "data:"))], requests
+    draft = page.evaluate(f"sessionStorage.getItem({NAME_DRAFT_KEY!r}) || ''")
+    assert '"font":"bebas-neue"' in draft, draft
+
+
+def test_own_font_file_is_parsed_locally_and_never_uploaded(page: Page, base_url: str) -> None:
+    requests: list[tuple[str, str]] = []
+    page.on("request", lambda r: requests.append((r.method, r.url)))
+    open_name_plate(page, base_url)
+    page.locator("#cz-font-toggle").click()
+    page.locator("label[for='cz-font-custom']").click()
+    expect(page.locator("#cz-font-area")).to_be_visible()
+    expect(page.locator("#cz-font-error")).to_have_text("Choose a font file below, or pick one of the listed fonts.", timeout=BUILD_TIMEOUT)
+    expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+    # Not a font: a readable error next to the font control.
+    page.locator("#cz-font-file").set_input_files({"name": "notes.ttf", "mimeType": "font/ttf", "buffer": b"not a font at all"})
+    expect(page.locator("#cz-font-error")).to_contain_text("couldn't be read", timeout=BUILD_TIMEOUT)
+    before = len(requests)
+    font_bytes = (ROOT / "customizer/static/fonts/Righteous-Regular.ttf").read_bytes()
+    page.locator("#cz-font-file").set_input_files({"name": "secret-house-font.ttf", "mimeType": "font/ttf", "buffer": font_bytes})
+    wait_ready(page)
+    expect(page.locator("#cz-font-error")).to_have_text("")
+    expect(page.locator("#cz-font-status")).to_contain_text("secret-house-font.ttf")
+    assert not [r for r in requests[before:] if r[0] != "GET" or not r[1].startswith((base_url, "blob:", "data:"))], requests[before:]
+    draft = page.evaluate(f"sessionStorage.getItem({NAME_DRAFT_KEY!r}) || ''")
+    assert '"font":"custom"' in draft and "secret-house" not in draft, draft
+
+
+def test_name_plate_rules_coerce_inlay_and_report_disconnected_letters(page: Page, base_url: str) -> None:
+    open_name_plate(page, base_url)
+    page.get_by_label("Style", exact=True).select_option("inlay")
+    wait_ready(page)
+    page.get_by_label("Plate", exact=True).select_option("none")
+    expect(page.get_by_label("Style", exact=True)).to_have_value("raised")
+    wait_ready(page)
+    page.get_by_label("Name", exact=True).fill("A B")
+    page.get_by_label("Name", exact=True).press("Tab")
+    expect(page.locator("#cz-plate-error")).to_have_text("The letters aren't connected — choose a plate or a bolder font.", timeout=BUILD_TIMEOUT)
+    page.get_by_label("Plate", exact=True).select_option("rect")
+    wait_ready(page)
+    expect(page.locator("#cz-plate-error")).to_have_text("")
+    # Missing glyphs are skipped with a warning, never a crash.
+    page.get_by_label("Name", exact=True).fill("Zoë 🚽")
+    page.get_by_label("Name", exact=True).press("Tab")
+    expect(page.locator("#cz-warnings")).to_contain_text("Some characters aren't in this font and were skipped.", timeout=BUILD_TIMEOUT)
+
+
+def test_name_plate_mobile_picker_has_no_horizontal_scroll(browser: Browser, base_url: str) -> None:
+    context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark", reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        open_name_plate(page, base_url)
+        page.locator("#cz-font-toggle").click()
+        expect(page.locator("#cz-font-list")).to_be_visible()
+        overflow = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+        assert overflow <= 0, overflow
+        box = page.locator("label[for='cz-font-titan-one']").bounding_box()
+        assert box and box["height"] >= 44, box
+    finally:
+        context.close()

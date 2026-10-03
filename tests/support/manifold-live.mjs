@@ -11,6 +11,8 @@ export function trackLiveObjects(wasm) {
     const wrapped = function (...args) {
       const r = fn.apply(this, args);
       if (isInst(r)) live.add(r);
+      // decompose() and similar return arrays of new instances.
+      else if (Array.isArray(r)) for (const x of r) if (isInst(x)) live.add(x);
       return r;
     };
     const had = Object.getOwnPropertyDescriptor(holder, name);

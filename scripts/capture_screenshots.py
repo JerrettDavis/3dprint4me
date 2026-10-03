@@ -152,6 +152,13 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Rating card · mobile · dark", "/customize/g/rating-card/", "customize-rating-card-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, rating_card()),
             ("Rating card own image · desktop · light", "/customize/g/rating-card/", "customize-rating-card-image-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, rating_card(image=True)),
             ("Rating card own image · mobile · light", "/customize/g/rating-card/", "customize-rating-card-image-mobile-light.png", (390, 844), "light", GENERATOR_READY, rating_card(image=True, mobile=True)),
+            ("Name plate raised (Pacifico) · desktop · light", "/customize/g/name-plate/", "customize-name-plate-raised-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, name_plate(font="pacifico", name="Jordan")),
+            ("Name plate outline (Bebas Neue) · desktop · dark", "/customize/g/name-plate/", "customize-name-plate-outline-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, name_plate(font="bebas-neue", name="Jordan", style="outline")),
+            ("Name plate shadow (Bangers) · desktop · light", "/customize/g/name-plate/", "customize-name-plate-shadow-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, name_plate(font="bangers", name="Maya", style="shadow", plate="rect")),
+            ("Name plate inlay (Lobster) 3D · desktop · light", "/customize/g/name-plate/", "customize-name-plate-inlay-3d-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, name_plate(font="lobster", name="Alex", style="inlay", view="3D")),
+            ("Name plate keychain (Titan One) · desktop · dark", "/customize/g/name-plate/", "customize-name-plate-keychain-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, name_plate(font="titan-one", name="Sam", plate="none", loop=True)),
+            ("Name plate font picker · desktop · light", "/customize/g/name-plate/", "customize-name-plate-picker-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, name_plate(font="caveat-brush", name="Jordan", open_picker=True)),
+            ("Name plate font picker · mobile · dark", "/customize/g/name-plate/", "customize-name-plate-picker-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, name_plate(font="righteous", name="Jordan", open_picker=True)),
         ]:
             path = OUTPUT / filename
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
@@ -213,6 +220,31 @@ def rating_card(*, image: bool = False, mobile: bool = False):
         target = "#cz-image-area" if image and mobile else ".cz-preview"
         if mobile or image:
             page.evaluate(f"document.querySelector('{target}').scrollIntoView({{ block: 'start' }})")
+        page.wait_for_timeout(600)
+    return prepare
+
+
+def name_plate(*, font: str = "block", name: str = "Alex", style: str = "raised", plate: str = "pill", loop: bool = False, view: str | None = None, open_picker: bool = False):
+    """Pick a font from the picker, set the name, style and plate, wait for the model; optionally show 3D or the open picker."""
+    def prepare(page) -> None:
+        page.locator("#cz-font-toggle").click()
+        page.locator(f"label[for='cz-font-{font}']").click()
+        page.get_by_label("Name", exact=True).fill(name)
+        page.get_by_label("Name", exact=True).press("Tab")
+        page.get_by_label("Style", exact=True).select_option(style)
+        page.get_by_label("Plate", exact=True).select_option(plate)
+        if loop:
+            page.get_by_label("Keychain loop on the left").check()
+        page.wait_for_timeout(300)
+        page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        if view:
+            page.get_by_role("tab", name=view).click()
+        if open_picker:
+            page.locator("#cz-font-toggle").click()
+            page.evaluate("document.querySelector('[data-field=\"font\"]').scrollIntoView({ block: 'start' })")
+            page.evaluate("document.fonts.ready.then(() => true)")
+        elif page.viewport_size["width"] < 600:
+            page.evaluate("document.querySelector('.cz-preview').scrollIntoView({ block: 'start' })")
         page.wait_for_timeout(600)
     return prepare
 

@@ -2,5 +2,6 @@
 export const loadBuilder = {
   "route-shield": () => import("./route-shield/build.js"),
   "wifi-tag": () => import("./wifi-tag/build.js"),
-  "rating-card": () => import("./rating-card/build.js")
+  "rating-card": () => import("./rating-card/build.js"),
+  "name-plate": () => import("./name-plate/build.js")
 };

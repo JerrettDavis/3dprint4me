@@ -211,12 +211,16 @@ function glyphsPath(font, glyphs, scale, size) {
   return { commands };
 }
 
-export function fontText(CrossSection, font, text) {
+// fillRule: TrueType and CFF outlines are defined by non-zero winding, so 'NonZero' is correct
+// where contours overlap (script fonts whose joins overlap the next letter, or glyphs built from
+// overlapping strokes); 'EvenOdd' turns those overlaps into holes. EvenOdd stays the default
+// for the generators that already shipped with it.
+export function fontText(CrossSection, font, text, { fillRule = 'EvenOdd' } = {}) {
   if (!font) throw new Error('Choose a local font file first.');
   const path = fontTextPath(font, String(text || ''));
   const contours = flattenOpenTypePath(path, 12);
   if (!contours.length) return CrossSection.union([]);
-  const cs = CrossSection.ofPolygons(contours, 'EvenOdd');
+  const cs = CrossSection.ofPolygons(contours, fillRule);
   const b = cs.bounds();
   const centered = cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]);
   cs.delete?.();

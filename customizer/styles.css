@@ -129,3 +129,24 @@
 .cz-file:hover::file-selector-button{border-color:var(--line-strong);background:var(--surface-2)}
 .cz-file:focus-visible{outline:none;box-shadow:var(--focus)}
 @media (prefers-reduced-motion:reduce){.cz-file::file-selector-button{transition:none}}
+
+/* ---------- Font picker (radio group drawn in each font; see form.js fontPickerField) ---------- */
+.cz-picker-toggle{display:flex;align-items:center;justify-content:space-between;gap:.75rem;width:100%;min-height:52px;padding:.55rem .78rem;border:1px solid var(--line-strong);border-radius:.72rem;color:var(--ink);background:var(--surface);font:inherit;text-align:left;cursor:pointer;transition:border-color 150ms ease,box-shadow 150ms ease}
+.cz-picker-toggle::after{content:"";flex:none;width:.55rem;height:.55rem;margin-right:.2rem;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-25%) rotate(45deg)}
+.cz-picker-toggle[aria-expanded="true"]::after{transform:translateY(25%) rotate(225deg)}
+.cz-picker-toggle:hover{border-color:var(--accent)}
+.cz-picker-toggle:focus-visible{outline:none;box-shadow:var(--focus)}
+.cz-picker-current{min-width:0;overflow:hidden;font-size:1.35rem;line-height:1.25;white-space:nowrap;text-overflow:ellipsis}
+.cz-picker-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));gap:.4rem;min-width:0;margin:.45rem 0 0;padding:.45rem;border:1px solid var(--line);border-radius:.72rem;background:var(--surface-2)}
+.cz-picker-list[hidden]{display:none}
+.cz-picker-item{position:relative;min-width:0}
+/* The radio stays in the accessibility tree and keeps keyboard focus; its label is the pointer target. */
+.cz-picker-radio{position:absolute;top:50%;left:.5rem;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.cz-picker-option{display:flex;align-items:center;min-height:48px;padding:.35rem .7rem;border:2px solid transparent;border-radius:.6rem;color:var(--ink);background:var(--surface);font-size:1.3rem;line-height:1.2;overflow-wrap:anywhere;cursor:pointer}
+.cz-picker-option.cz-ff-custom{font-size:.92rem;font-weight:700}
+.cz-picker-option.cz-ff-block{font-size:1.05rem}
+.cz-picker-option:hover{border-color:var(--line-strong)}
+.cz-picker-radio:checked + .cz-picker-option{border-color:var(--accent);background:var(--teal-soft)}
+.cz-picker-radio:focus-visible + .cz-picker-option{box-shadow:var(--focus)}
+.cz-field-picker [aria-invalid="true"].cz-picker-toggle{border-color:var(--danger)}
+@media (prefers-reduced-motion:reduce){.cz-picker-toggle{transition:none}}
