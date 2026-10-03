@@ -5,6 +5,7 @@ import { dirname, extname, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkArchitecture } from "./check-architecture.mjs";
 import { scanBrowserSecrets } from "./browser-secret-scan.mjs";
+import { listPublicGenerators } from "../public/assets/js/customize/registry.js";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const publicRoot = resolve(root, "public");
@@ -35,6 +36,13 @@ function localTarget(file, ref) {
   return candidate;
 }
 
+// Every public generator needs a built page and a sitemap entry (entries are added by hand per generator).
+const sitemap = await readFile(join(publicRoot, "sitemap.xml"), "utf8").catch(() => "");
+for (const { id } of listPublicGenerators()) {
+  requiredBuilt.push(`customize/g/${id}/index.html`);
+  if (!sitemap.includes(`<loc>https://3dprint4.me/customize/g/${id}/</loc>`)) errors.push(`public/sitemap.xml: missing public generator /customize/g/${id}/`);
+}
+if (!sitemap.includes("<loc>https://3dprint4.me/customize/</loc>")) errors.push("public/sitemap.xml: missing /customize/");
 for (const name of requiredBuilt) if (!(await exists(join(publicRoot, name)))) errors.push(`Missing built file: ${name} (run npm run customizer:build)`);
 for (const name of requiredPublic) if (!(await exists(join(publicRoot, name)))) errors.push(`Missing public file: ${name}`);
 for (const name of requiredRoot) if (!(await exists(join(root, name)))) errors.push(`Missing root file: ${name}`);

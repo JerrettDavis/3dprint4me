@@ -125,23 +125,33 @@ function makeBadgeMesh(parts) {
   return group;
 }
 
-export function createViewer(container) {
+// One renderer serves every preview tab: "3d" orbits a perspective camera; "front" and
+// "back" look straight down/up the Z axis through an orthographic camera (a flat 2D view of
+// each face). Frames render on demand (no constant animation loop), which also keeps motion
+// to a minimum for visitors who prefer reduced motion.
+export function createViewer(container, { label = '3D model preview' } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   container.appendChild(renderer.domElement);
-  renderer.domElement.setAttribute('aria-label', '3D model preview');
+  renderer.domElement.setAttribute('role', 'img');
+  renderer.domElement.setAttribute('aria-label', label);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(35, 1, 1, 4000);
   camera.up.set(0, 0, 1);
+  const ortho = new THREE.OrthographicCamera(-50, 50, 50, -50, -2000, 2000);
+  ortho.up.set(0, 1, 0);
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+  controls.enableDamping = false;
   controls.maxPolarAngle = Math.PI;
 
   scene.add(new THREE.HemisphereLight(0xdfeeff, 0x1b2a38, 1.1));
   const sun = new THREE.DirectionalLight(0xffffff, 2);
   sun.position.set(-150, -250, 400);
   scene.add(sun);
+  const under = new THREE.DirectionalLight(0xffffff, 1.2);
+  under.position.set(120, 200, -400);
+  scene.add(under);
 
   const bed = makeBed();
   const benchy = makeBenchy();
@@ -162,7 +172,18 @@ export function createViewer(container) {
   let model = null;
   let dims = { w: 0, d: 0, h: 0 };
   let bedMode = false;
-  let running = false;
+  let view = '3d';
+  let queued = false;
+
+  function render() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      renderer.render(scene, view === '3d' ? camera : ortho);
+    });
+  }
+  controls.addEventListener('change', render);
 
   // Orbiting under the model is only blocked when the opaque bed is shown.
   function limitOrbit() { controls.maxPolarAngle = bedMode ? Math.PI / 2 - .02 : Math.PI; }
@@ -183,12 +204,28 @@ export function createViewer(container) {
     controls.update();
   }
 
+  function frameOrtho() {
+    const { clientWidth: w, clientHeight: h } = container;
+    const aspect = w && h ? w / h : 1;
+    const half = Math.max(dims.w, dims.d, 20) * .58;
+    const halfW = aspect >= 1 ? half * aspect : half;
+    const halfH = aspect >= 1 ? half : half / aspect;
+    Object.assign(ortho, { left: -halfW, right: halfW, top: halfH, bottom: -halfH });
+    // Back: look up from below; the image is mirrored exactly as the turned-over part reads.
+    ortho.position.set(0, 0, view === 'back' ? -1000 : 1000);
+    ortho.up.set(0, 1, 0);
+    ortho.lookAt(0, 0, 0);
+    ortho.updateProjectionMatrix();
+  }
+
   function layout() {
     limitOrbit();
-    bed.visible = refs.visible = bedMode;
-    stage.visible = !bedMode;
+    const flat = view !== '3d';
+    bed.visible = refs.visible = bedMode && !flat;
+    stage.visible = !bedMode && !flat;
+    controls.enabled = !flat;
     if (!model) return;
-    if (bedMode) model.position.set(-45, 0, 0);
+    if (bedMode && !flat) model.position.set(-45, 0, 0);
     else model.position.set(0, 0, 0);
   }
 
@@ -198,15 +235,11 @@ export function createViewer(container) {
     renderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    frameOrtho();
+    render();
   }
-  new ResizeObserver(resize).observe(container);
-
-  function loop() {
-    if (!running) return;
-    controls.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(loop);
-  }
+  const observer = new ResizeObserver(resize);
+  observer.observe(container);
 
   return {
     setParts(parts) {
@@ -225,17 +258,34 @@ export function createViewer(container) {
       dims = { w: size.x, d: size.y, h: size.z };
       layout();
       if (first) { resize(); frame(); }
+      frameOrtho();
+      render();
       return dims;
+    },
+    setView(next) {
+      view = next === 'front' || next === 'back' ? next : '3d';
+      layout();
+      frameOrtho();
+      render();
     },
     setBedMode(on) {
       bedMode = on;
       layout();
       resize();
       frame();
+      render();
     },
-    show() { resize(); if (!running) { running = true; loop(); } },
-    hide() { running = false; },
-    showSide(side) { if (bedMode) return false; frame(side); return true; },
+    show() { resize(); render(); },
+    hide() {},
+    showSide(side) { if (bedMode) return false; frame(side); render(); return true; },
+    resetCamera() { frame(); render(); },
+    dispose() {
+      observer.disconnect();
+      controls.dispose();
+      scene.traverse(o => { o.geometry?.dispose(); o.material?.map?.dispose?.(); o.material?.dispose?.(); });
+      renderer.dispose();
+      renderer.domElement.remove();
+    },
     get dims() { return dims; },
     BED
   };

@@ -219,6 +219,22 @@ class SiteBrowser:
         self.page.wait_for_timeout(80)
         return self.page
 
+    def goto(self, url: str, *, ready_selector: str | None = None, timeout: float = 30000) -> Page:
+        """Navigate over real HTTP (Vite-built /customize pages need WASM, workers and real CSP)."""
+        if not self.context:
+            raise RuntimeError("SiteBrowser must be used as a context manager")
+        if self.page:
+            self.page.close()
+        self.console.clear()
+        self.page_errors.clear()
+        self.page = self.context.new_page()
+        self._attach_page_listeners()
+        self.page.goto(url, wait_until="load")
+        if ready_selector:
+            self.page.locator(ready_selector).wait_for(state="attached", timeout=timeout)
+        self.page.wait_for_timeout(200)
+        return self.page
+
     def screenshot(self, path: Path, *, full_page: bool = True) -> None:
         if not self.page:
             raise RuntimeError("No page loaded")

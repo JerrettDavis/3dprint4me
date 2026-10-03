@@ -1,8 +1,8 @@
 # UX, Accessibility, and Responsive Audit
 
 **Result: PASS**  
-Generated: 2026-09-16T02:18:00.858320+00:00  
-Automated checks: **193/193 passed** across 8 routes, desktop light mode, mobile dark mode, and a separate keyboard-focus sequence.
+Generated: 2026-10-03T05:38:18.060966+00:00  
+Automated checks: **241/241 passed** across 10 routes, desktop light mode, mobile dark mode, and a separate keyboard-focus sequence.
 
 ## What was exercised
 
@@ -10,7 +10,7 @@ The audit executes the production HTML, CSS, SVG artwork, quote engine, navigati
 
 | Area | Result | Evidence |
 |---|---:|---|
-| Browser/render checks | Pass | 193 passed, 0 failed |
+| Browser/render checks | Pass | 241 passed, 0 failed |
 | Viewports | Pass | 1440×1000 light and 390×844 dark on every route |
 | Keyboard | Pass | Separate Tab-order sample |
 | Request UX | Separate E2E suite | Quick inquiry, project dialogs, four-service wizard, inline errors, recovery, email and JSON handoff |
