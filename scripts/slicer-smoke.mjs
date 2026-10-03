@@ -11,6 +11,6 @@ try {
   const result = await slicer.estimateSlice({ bytes, filename: path, options: { material, colors: Number(colors) } });
   console.log(JSON.stringify(result, null, 2));
 } catch (error) {
-  console.log(JSON.stringify({ error: { name: error.name, category: error.category ?? error.code ?? null, message: error.message } }, null, 2));
+  console.log(JSON.stringify({ error: { name: error.name, category: error.category ?? "unknown", message: String(error.message ?? "").slice(0, 300) } }, null, 2));
   process.exit(1);
 }
