@@ -15,8 +15,29 @@ export function activeProjectData(data) {
   return Object.fromEntries(Object.entries(data ?? {}).filter(([key]) => COMMON_FIELDS.has(key) || allowed.has(key)));
 }
 
-export function projectRequestFromData({ data, estimate, files, buildSummary }) {
-  return buildSummary(activeProjectData(data), estimate, files);
+const isPlainObject = value => value != null && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * Builds the request from the active service projection. Customizer provenance is print-only:
+ * other service paths never submit it. The server re-validates and redacts it again.
+ */
+export function projectRequestFromData({ data, estimate, files, buildSummary, customization = null }) {
+  const active = activeProjectData(data);
+  const summary = buildSummary(active, estimate, files);
+  if (active.service !== "print" || !customization) return summary;
+  return { ...summary, customization: { generatorId: customization.generatorId, generatorVersion: customization.generatorVersion, params: { ...customization.params } } };
+}
+
+/** Provenance from a customizer hand-off record (params are already redacted by the customizer). */
+export function customizationFromHandoff(record) {
+  if (!record) return null;
+  return { generatorId: record.generatorId, generatorVersion: record.generatorVersion, params: isPlainObject(record.params) ? { ...record.params } : {} };
+}
+
+/** Generated project text for empty fields when a customizer model arrives. */
+export function handoffPrefill(record) {
+  const name = `Custom ${String(record.generatorTitle || record.generatorId)}`.slice(0, 100);
+  return { projectTitle: name, description: `${name} — see attached model.` };
 }
 
 export function readProjectForm(form, { FormDataImpl = FormData, terms = form.querySelector?.("#terms") } = {}) {

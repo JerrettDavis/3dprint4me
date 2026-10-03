@@ -1,19 +1,20 @@
-import "./site.js?v=04d405c055e4e8d3";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=04d405c055e4e8d3";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=04d405c055e4e8d3";
-import { toast } from "./site.js?v=04d405c055e4e8d3";
-import { createProjectRequestClient } from "./order/client.js?v=04d405c055e4e8d3";
-import { createOrderController } from "./order/controller.js?v=04d405c055e4e8d3";
-import { createDraftStore } from "./order/draft-store.js?v=04d405c055e4e8d3";
-import { createFileManager } from "./order/files.js?v=04d405c055e4e8d3";
-import { activeProjectData, projectRequestFromData, readProjectForm } from "./order/model.js?v=04d405c055e4e8d3";
-import { createStepValidator } from "./order/validation.js?v=04d405c055e4e8d3";
-import { createOrderView } from "./order/view.js?v=04d405c055e4e8d3";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=04d405c055e4e8d3";
-import { modelFormat } from "./print-estimation/geometry.js?v=04d405c055e4e8d3";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=04d405c055e4e8d3";
-import { createModelPanelView } from "./print-estimation/view.js?v=04d405c055e4e8d3";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=04d405c055e4e8d3";
+import "./site.js?v=47cd786f3658a277";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=47cd786f3658a277";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=47cd786f3658a277";
+import { toast } from "./site.js?v=47cd786f3658a277";
+import { createProjectRequestClient } from "./order/client.js?v=47cd786f3658a277";
+import { createOrderController } from "./order/controller.js?v=47cd786f3658a277";
+import { createDraftStore } from "./order/draft-store.js?v=47cd786f3658a277";
+import { createFileManager } from "./order/files.js?v=47cd786f3658a277";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=47cd786f3658a277";
+import { takeHandoff } from "./order/customize-handoff.js?v=47cd786f3658a277";
+import { createStepValidator } from "./order/validation.js?v=47cd786f3658a277";
+import { createOrderView } from "./order/view.js?v=47cd786f3658a277";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=47cd786f3658a277";
+import { modelFormat } from "./print-estimation/geometry.js?v=47cd786f3658a277";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=47cd786f3658a277";
+import { createModelPanelView } from "./print-estimation/view.js?v=47cd786f3658a277";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=47cd786f3658a277";
 
 const form = document.querySelector("#project-form");
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
@@ -22,6 +23,9 @@ const draftStore = createDraftStore({ storage: () => localStorage, draftKey: "3d
 const view = createOrderView({ document, window, form, formatEstimate });
 let currentStep = 0;
 let latestEstimate = calculateEstimate({ service: "print" });
+// Customizer provenance for the handed-off model; dropped if that file is removed or replaced.
+let activeCustomization = null;
+let handoffFile = null;
 
 const getData = () => readProjectForm(form, { terms: document.querySelector("#terms") });
 
@@ -61,7 +65,10 @@ const files = createFileManager({
   client,
   notify: toast,
   render: selected => view.renderFiles(selected),
-  onChange: selected => { modelEstimates.sync(selected); updateEstimate(); saveDraft(); }
+  onChange: selected => {
+    if (handoffFile && !selected.includes(handoffFile)) { handoffFile = null; activeCustomization = null; }
+    modelEstimates.sync(selected); updateEstimate(); saveDraft();
+  }
 });
 
 function chooseModelFile(file) {
@@ -71,7 +78,7 @@ function chooseModelFile(file) {
   files.add([file]);
 }
 
-const buildRequest = () => projectRequestFromData({ data: getData(), estimate: latestEstimate, files: files.list(), buildSummary: buildRequestSummary });
+const buildRequest = () => projectRequestFromData({ data: getData(), estimate: latestEstimate, files: files.list(), buildSummary: buildRequestSummary, customization: activeCustomization });
 
 const validateStep = createStepValidator({
   document,
@@ -143,6 +150,42 @@ function restoreDraft() {
 
 function updateFormState() { view.updateConditionalFields(getData()); updateEstimate(); saveDraft(); }
 
+function showCustomizeNotice(text) {
+  const notice = document.querySelector("#customize-notice");
+  if (!notice) return;
+  notice.textContent = text;
+  notice.hidden = !text;
+}
+
+// Customizer hand-off: /order.html?service=print&from=customize. The record is read once
+// (takeHandoff deletes it); anything missing or stale leaves the page exactly as without it.
+async function applyCustomizeHandoff(integrationsReady) {
+  const query = new URLSearchParams(currentSearch());
+  if (query.get("from") !== "customize") return;
+  if (query.get("handoff") === "download") {
+    showCustomizeNotice("Your browser blocked the direct hand-off; attach the file you just downloaded.");
+    return;
+  }
+  const record = await takeHandoff();
+  if (!record) {
+    showCustomizeNotice("The customized model didn't arrive (it may have expired). Go back to the customizer and choose Continue again, or attach the downloaded file.");
+    return;
+  }
+  // Wait for the integration check so a configured private estimate starts for this file too.
+  await integrationsReady;
+  const file = new File([record.file], record.filename, { type: "model/3mf" });
+  handoffFile = file;
+  activeCustomization = customizationFromHandoff(record);
+  const prefill = handoffPrefill(record);
+  for (const [selector, value] of [["#project-title", prefill.projectTitle], ["#description", prefill.description]]) {
+    const field = form.querySelector(selector);
+    if (field && !field.value.trim()) field.value = value;
+  }
+  chooseModelFile(file);
+  updateFormState();
+  showCustomizeNotice("Loaded from the customizer — review and continue.");
+}
+
 function downloadRequest() {
   const request = controller.completedRequest();
   if (!request) return;
@@ -185,7 +228,7 @@ document.querySelector("#deadline").min = new Date().toISOString().slice(0, 10);
 view.updateConditionalFields(getData());
 updateEstimate();
 showStep(0, false);
-refreshIntegrationState();
+applyCustomizeHandoff(refreshIntegrationState()).catch(() => showCustomizeNotice("The customized model couldn't be loaded. Attach the 3MF from the customizer instead."));
 
 form.addEventListener("input", updateFormState);
 form.addEventListener("change", updateFormState);

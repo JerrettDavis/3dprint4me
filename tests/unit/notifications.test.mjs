@@ -226,3 +226,52 @@ test("postRequestWebhook throws on a non-2xx response so the caller can record t
     /Webhook returned 500/
   );
 });
+
+// Customizer provenance. The server has already redacted sensitive fields; the notifier
+// still withholds any key listed in `redacted`, so a value that slipped through never leaks.
+const customization = {
+  generatorId: "route-shield",
+  generatorVersion: 1,
+  params: { top_text: "ROUTE <66>", base_mm: 3.2, password: "hunter2" },
+  redacted: ["password"]
+};
+
+test("owner email lists the customizer provenance and withholds sensitive values", async () => {
+  resetEnv();
+  configureEmail();
+  const messages = [];
+  globalThis.fetch = async (_url, options) => { messages.push(JSON.parse(options.body)); return jsonResponse({ id: "email" }); };
+
+  await sendRequestEmails("3DP-20260901-ABC123", baseRequest({ customization }), []);
+
+  const owner = messages.find(message => message.to[0] === "hello@3dprint4.me");
+  assert.match(owner.html, /Customizer: route-shield v1/);
+  assert.match(owner.html, /Top text: ROUTE &lt;66&gt;/);
+  assert.match(owner.html, /Base mm: 3\.2/);
+  assert.match(owner.html, /Password: withheld \(in the model&#39;s QR code\)/);
+  for (const message of messages) assert.equal(JSON.stringify(message).includes("hunter2"), false);
+});
+
+test("owner email has no customizer block for an ordinary request", async () => {
+  resetEnv();
+  configureEmail();
+  const messages = [];
+  globalThis.fetch = async (_url, options) => { messages.push(JSON.parse(options.body)); return jsonResponse({ id: "email" }); };
+  await sendRequestEmails("3DP-20260901-ABC123", baseRequest({ customization: null }), []);
+  assert.doesNotMatch(messages.find(message => message.to[0] === "hello@3dprint4.me").html, /Customizer/);
+});
+
+test("webhook body carries the customization but never a sensitive value", async () => {
+  resetEnv();
+  process.env.REQUEST_WEBHOOK_URL = "https://automation.example/hooks/3dprint4me";
+  let body;
+  globalThis.fetch = async (_url, options) => { body = options.body; return jsonResponse({ ok: true }); };
+
+  await postRequestWebhook("3DP-20260901-ABC123", baseRequest({ customization }), []);
+
+  const parsed = JSON.parse(body);
+  assert.equal(parsed.request.customization.generatorId, "route-shield");
+  assert.equal(parsed.request.customization.params.top_text, "ROUTE <66>");
+  assert.equal(parsed.request.customization.params.password, "[redacted]");
+  assert.equal(body.includes("hunter2"), false);
+});
