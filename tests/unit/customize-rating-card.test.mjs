@@ -308,3 +308,13 @@ test("image files are checked by type and size before decoding", async () => {
   assert.throws(() => checkImageFile({ type: "image/jpeg", size: 0 }), /empty/);
   assert.throws(() => checkImageFile(null), /no image/i);
 });
+
+test("the browser hand-off payload carries the model and params, never the traced image", async () => {
+  const { continuePayload } = await import("../../customizer/framework/continue.js");
+  const out = await buildModel(gen, paramsFor({ icon: "custom" }), { wasm, font: null, imageContours: discContours() });
+  const payload = continuePayload(gen, paramsFor({ icon: "custom" }), out);
+  const { file, ...rest } = payload;
+  assert.ok(file instanceof Blob);
+  const text = JSON.stringify(rest);
+  assert.ok(!text.includes("[[") && !/contour|\.png/i.test(text), text);
+});
