@@ -1197,7 +1197,8 @@ export default async function build(p, { wasm, font }) {
   const warnings = [];
   if (q.module < 0.9) warnings.push(`QR module size is ${q.module.toFixed(2)} mm; a 0.4 mm nozzle and good first layer are recommended.`);
 
-  // QR and text are flush inlays: the base is a bottom skin with them removed plus a full core.
+  // QR and label are flush inlays on the TOP face (the face held to a phone when the tag lies flat), so they
+  // are never mirrored. Core below; a top skin with the inlay cut out; the inlay fills the cut.
   const make = t => (!t.trim() ? new CrossSection([]) : (font ? fontText(CrossSection, font, t) : blockText(CrossSection, t)));
   let label = new CrossSection([]);
   if (showText) {
@@ -1206,19 +1207,15 @@ export default async function build(p, { wasm, font }) {
   }
   const inlay = qr.add(label).intersect(body.offset(-1.2));
   const T = p.thickness_mm, D = p.qr_depth_mm;
-  const skin = body.subtract(inlay).extrude(D);
-  const core = body.extrude(T - D).translate([0, 0, D]);
-  const base = Manifold.union([skin, core]);
-  // Inlay is built on the BACK side (z = 0) and mirrored so it reads from the back after flipping: keep QR on the visible face instead.
+  const core = body.extrude(T - D);
+  const topSkin = body.subtract(inlay).extrude(D).translate([0, 0, T - D]);
   const solids = [
-    { name: "Tag body", solid: base, color: p.base_color },
-    { name: "QR and text inlay", solid: inlay.extrude(D).translate([0, 0, 0]), color: p.qr_color }
+    { name: "Tag body", solid: Manifold.union([core, topSkin]), color: p.base_color },
+    { name: "QR and text inlay", solid: inlay.extrude(D).translate([0, 0, T - D]), color: p.qr_color }
   ];
   return { solids, warnings, title: `Wi-Fi tag - ${p.format}`, filenameBase: `wifi-tag-${p.format}` };
 }
 ```
-
-**Orientation:** the inlay must be on the face the customer holds up to a phone. The Bambu build plate prints z=0 down, so the visible QR face is the **top** surface for a tag lying flat. Therefore place the inlay at the top: `skin` = full-thickness body minus inlay cut from the **top** `D` mm, i.e. build `core = body.extrude(T − D)` and `topSkin = body.subtract(inlay).extrude(D).translate([0, 0, T − D])`, with `inlay.extrude(D).translate([0, 0, T − D])`. Use that form (replace the skin/core lines above) and note the choice in the file header. The QR must **not** be mirrored in this orientation.
 
 Keychain: when `p.format === "keychain"` omit the text band entirely (the schema default `show_text: false` is forced for that format by `rules`).
 
@@ -1448,7 +1445,7 @@ export default async function build(p, ctx) {
   // Relief on top of a base plate: base, icon, empty stars (sit below filled), filled stars, text.
   const base = card.extrude(T - R);
   const raised = (cs, z0, h) => cs.isEmpty() ? null : cs.intersect(card.offset(-1)).extrude(h).translate([0, 0, z0]);
-  const solids = [{ name: "Card base", solid: base.add ? base : base, color: p.base_color }];
+  const solids = [{ name: "Card base", solid: base, color: p.base_color }];
   const push = (name, solid, color) => { if (solid) solids.push({ name, solid, color }); };
   push("Icon", raised(iconCS, T - R, R), p.icon_color);
   push("Empty stars", raised(empty.subtract(full), T - R, R), p.empty_star_color);
@@ -1458,7 +1455,7 @@ export default async function build(p, ctx) {
 }
 ```
 
-(Relief on a plate means each color piece sits flush on the base top and rises `R` above; the base thickness is `T − R` so total height is `T`. Import `safeName` from `../../framework/model.js`; the `base.add ? base : base` line above is a typo guard — write `solid: base`.) Overlaps between colored pieces must not occur: icon, stars and caption regions are disjoint by construction (assert in the test via total volume = sum of parts, within 0.5 %).
+(Relief on a plate: each color piece sits on the base top and rises `R` above it; the base is `T − R` thick so the total height is `T`. Import `safeName` from `../../framework/model.js`.) Overlaps between colored pieces must not occur: icon, stars and caption regions are disjoint by construction (assert in the test via total volume = sum of parts, within 0.5 %).
 
 - [ ] **Step 5: Page, registry, sitemap**
 
