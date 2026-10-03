@@ -51,8 +51,13 @@ function checkField(key, def, raw) {
   }
 }
 
+// Returns { ok, errors, value, fieldErrors }. `errors` lists every message (form summary);
+// `fieldErrors` maps a field key to its first message so the form can show it next to the
+// control. rules() may return its own `fieldErrors: { key: message }`; a rule error without
+// a key appears only in `errors`.
 export function validateParams(generator, input, { skipSensitive = false } = {}) {
   const errors = [];
+  const fieldErrors = {};
   const value = {};
   let source = {};
   if (Array.isArray(input)) {
@@ -65,10 +70,16 @@ export function validateParams(generator, input, { skipSensitive = false } = {})
     if (def.sensitive && skipSensitive) { value[key] = REDACTED; continue; }
     const raw = Object.hasOwn(source, key) ? source[key] : def.default;
     const result = checkField(key, def, raw);
-    if (result.error) errors.push(result.error); else value[key] = result.value;
+    if (result.error) { errors.push(result.error); fieldErrors[key] ??= result.error; } else value[key] = result.value;
   }
-  if (!errors.length && generator.rules) errors.push(...(generator.rules(value).errors ?? []));
-  return { ok: errors.length === 0, errors, value };
+  if (!errors.length && generator.rules) {
+    const ruled = generator.rules(value) ?? {};
+    errors.push(...(ruled.errors ?? []));
+    for (const [key, message] of Object.entries(ruled.fieldErrors ?? {})) {
+      if (Object.hasOwn(generator.schema, key) && typeof message === "string") fieldErrors[key] ??= message;
+    }
+  }
+  return { ok: errors.length === 0, errors, value, fieldErrors };
 }
 
 export function redactSensitive(generator, params) {

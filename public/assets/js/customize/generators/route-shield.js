@@ -41,36 +41,51 @@ function computeLimits(o) {
   };
 }
 
-// Every rule violated by `o`, as messages. Empty means the geometry is valid.
+// Every rule violated by `o`, as { key, message } (key = the field the message belongs next to).
+// Empty means the geometry is valid.
 function validateOptions(o) {
   const errors = [];
+  const add = (key, message) => errors.push({ key, message });
   const inRange = (v, [lo, hi]) => Number.isFinite(v) && v >= lo - EPS && v <= hi + EPS;
-  if (!inRange(o.width_mm, WIDTH_RANGE)) errors.push(`Width must be ${WIDTH_RANGE[0]}–${WIDTH_RANGE[1]} mm.`);
-  if (!inRange(o.base_thickness_mm, BASE_RANGE)) errors.push(`Base thickness must be ${BASE_RANGE[0]}–${BASE_RANGE[1]} mm.`);
-  if (!inRange(o.height_mm, HEIGHT_RANGE)) errors.push(`Height must be ${HEIGHT_RANGE[0]}–${HEIGHT_RANGE[1]} mm.`);
+  if (!inRange(o.width_mm, WIDTH_RANGE)) add("width_mm", `Width must be ${WIDTH_RANGE[0]}–${WIDTH_RANGE[1]} mm.`);
+  if (!inRange(o.base_thickness_mm, BASE_RANGE)) add("base_thickness_mm", `Base thickness must be ${BASE_RANGE[0]}–${BASE_RANGE[1]} mm.`);
+  if (!inRange(o.height_mm, HEIGHT_RANGE)) add("height_mm", `Height must be ${HEIGHT_RANGE[0]}–${HEIGHT_RANGE[1]} mm.`);
   for (const k of LAYOUT_KEYS) {
     const sc = o[`${k}_scale_pct`] ?? 100, off = o[`${k}_offset_mm`] ?? 0;
-    if (!inRange(sc, SCALE_RANGE)) errors.push(`${k} text size must be ${SCALE_RANGE[0]}–${SCALE_RANGE[1]}%.`);
-    if (!inRange(off, OFFSET_RANGE)) errors.push(`${k} text offset must be ${OFFSET_RANGE[0]} to ${OFFSET_RANGE[1]} mm.`);
+    if (!inRange(sc, SCALE_RANGE)) add(`${k}_scale_pct`, `${k} text size must be ${SCALE_RANGE[0]}–${SCALE_RANGE[1]}%.`);
+    if (!inRange(off, OFFSET_RANGE)) add(`${k}_offset_mm`, `${k} text offset must be ${OFFSET_RANGE[0]} to ${OFFSET_RANGE[1]} mm.`);
   }
   if (errors.length) return errors;
 
   const L = computeLimits(o);
-  if (!(o.inlay_depth_mm > 0)) errors.push("Back inlay must be recessed into the base; protrusions are not allowed.");
-  else if (!inRange(o.inlay_depth_mm, L.inlay_depth_mm)) errors.push(`Back inlay depth must be ${L.inlay_depth_mm[0]}–${L.inlay_depth_mm[1]} mm for this base and color inset.`);
+  if (!(o.inlay_depth_mm > 0)) add("inlay_depth_mm", "Back inlay must be recessed into the base; protrusions are not allowed.");
+  else if (!inRange(o.inlay_depth_mm, L.inlay_depth_mm)) add("inlay_depth_mm", `Back inlay depth must be ${L.inlay_depth_mm[0]}–${L.inlay_depth_mm[1]} mm for this base and color inset.`);
 
-  if (!Number.isFinite(o.field_height_mm) || Math.abs(o.field_height_mm) < STEP - EPS) errors.push(`Color field height can't be zero or smaller than ${STEP} mm (use + to raise, − to inset).`);
-  else if (!inRange(o.field_height_mm, L.field_height_mm)) errors.push(`Color field height must be ${L.field_height_mm[0]} to ${L.field_height_mm[1]} mm for this base and back inlay.`);
+  if (!Number.isFinite(o.field_height_mm) || Math.abs(o.field_height_mm) < STEP - EPS) add("field_height_mm", `Color field height can't be zero or smaller than ${STEP} mm (use + to raise, − to inset).`);
+  else if (!inRange(o.field_height_mm, L.field_height_mm)) add("field_height_mm", `Color field height must be ${L.field_height_mm[0]} to ${L.field_height_mm[1]} mm for this base and back inlay.`);
 
-  if (!Number.isFinite(o.text_height_mm) || Math.abs(o.text_height_mm) < STEP - EPS) errors.push(`Text height can't be zero or smaller than ${STEP} mm (use + to raise, − to cut).`);
-  else if (!inRange(o.text_height_mm, L.text_height_mm)) errors.push(`Text height must be ${L.text_height_mm[0]} to ${L.text_height_mm[1]} mm; text can only be cut as deep as the color is thick.`);
+  if (!Number.isFinite(o.text_height_mm) || Math.abs(o.text_height_mm) < STEP - EPS) add("text_height_mm", `Text height can't be zero or smaller than ${STEP} mm (use + to raise, − to cut).`);
+  else if (!inRange(o.text_height_mm, L.text_height_mm)) add("text_height_mm", `Text height must be ${L.text_height_mm[0]} to ${L.text_height_mm[1]} mm; text can only be cut as deep as the color is thick.`);
   return errors;
 }
 
 function rules(params) {
-  const errors = validateOptions(params);
-  if (!errors.length && params.qr_enabled && !String(params.qr_data || "").trim()) errors.push("QR content is required when QR is enabled.");
-  return { limits: computeLimits(params), errors };
+  const found = validateOptions(params);
+  if (!found.length && params.qr_enabled && !String(params.qr_data || "").trim()) found.push({ key: "qr_data", message: "QR content is required when QR is enabled." });
+  const fieldErrors = {};
+  for (const { key, message } of found) fieldErrors[key] ??= message;
+  return { limits: computeLimits(params), errors: found.map(e => e.message), fieldErrors };
+}
+
+// Maps a geometry (build) error message to the field it belongs next to, or null.
+function errorField(message) {
+  const text = String(message ?? "");
+  if (/^Upper text doesn't fit/i.test(text)) return "top_text";
+  if (/^Lower text doesn't fit/i.test(text)) return "lower_text";
+  if (/^Back text doesn't fit/i.test(text)) return "back_text";
+  if (/QR payload is too dense/i.test(text)) return "qr_data";
+  if (/font file/i.test(text)) return "font_mode";
+  return null;
 }
 
 const scale = (label, what) => ({ type: "number", label: `${label} text size`, min: SCALE_RANGE[0], max: SCALE_RANGE[1], step: 5, default: 100, unit: "%", group: what });
@@ -110,5 +125,6 @@ export default {
     back_color: { type: "color", label: "Back inlay", default: "#171717", group: "colors" }
   },
   rules,
+  errorField,
   presets: { default: {}, "small-66": { width_mm: 52, height_mm: 58 } }
 };

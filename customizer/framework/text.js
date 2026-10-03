@@ -49,8 +49,28 @@ const GLYPHS = {
   '+':['00000','00100','00100','11111','00100','00100','00000'],
   '?':['01110','10001','00001','00010','00100','00000','00100'],
   '!':['00100','00100','00100','00100','00100','00000','00100'],
+  // Glyphs fill the whole 7-row cell (row 6 is the baseline row), so the comma's tail uses
+  // the bottom row, stepping left of the dot; the apostrophe mirrors it at the top.
+  ',':['00000','00000','00000','00000','00110','00110','01100'],
+  "'":['00110','00110','01100','00000','00000','00000','00000'],
   ' ':[ '00000','00000','00000','00000','00000','00000','00000']
 };
+
+// Typographic variants drawn with an existing glyph.
+const ALIASES = { '’': "'", '‘': "'", '–': '-', '—': '-' };
+const glyphKey = ch => ALIASES[ch] ?? ch;
+
+/** Characters (after upper-casing) the built-in block font cannot draw; they render as '?'. */
+export function unsupportedBlockChars(text) {
+  const missing = new Set();
+  for (const ch of String(text || '').toUpperCase()) {
+    if (ch === '\n' || ch === '\r') continue;
+    if (!GLYPHS[glyphKey(ch)]) missing.add(ch);
+  }
+  return [...missing];
+}
+
+export const BLOCK_SUBSTITUTION_WARNING = "Some characters aren't available in the built-in font and were replaced with '?'.";
 
 function rect(x0, y0, x1, y1) {
   return [[x0,y0],[x1,y0],[x1,y1],[x0,y1]];
@@ -64,7 +84,7 @@ export function blockText(CrossSection, text) {
   const advance = 6;
   let x = 0;
   for (const ch of upper) {
-    const rows = GLYPHS[ch] || GLYPHS['?'];
+    const rows = GLYPHS[glyphKey(ch)] || GLYPHS['?'];
     for (let row = 0; row < 7; row++) {
       for (let col = 0; col < 5; col++) {
         if (rows[row][col] !== '1') continue;

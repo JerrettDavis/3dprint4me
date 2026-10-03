@@ -14,6 +14,8 @@ from tests.support.server import request, running_server
 ROOT = Path(__file__).resolve().parents[2]
 BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
+HANDOFF_NOTE = "Request hand-off arrives with the next update."
+DRAFT_KEY = "3dp-customize:route-shield:v1"
 
 
 @pytest.fixture(scope="module")
@@ -56,13 +58,18 @@ def test_catalog_lists_route_shield(page: Page, base_url: str) -> None:
     expect(page).to_have_url(re.compile(r"/customize/g/route-shield/$"))
 
 
-def test_route_shield_builds_and_enables_continue(page: Page, base_url: str) -> None:
+def test_route_shield_builds_and_continue_is_honest(page: Page, base_url: str) -> None:
+    # The E2E server serves the production bundle. Until the order hand-off registers a handler
+    # (setContinueHandler, next task), Continue stays disabled with an honest note instead of
+    # being a silent no-op. When the hand-off lands, this asserts to_be_enabled again.
     page.goto(f"{base_url}/customize/g/route-shield/")
     continue_button = page.get_by_role("button", name="Continue to request")
     expect(continue_button).to_be_disabled()
     page.get_by_label("Upper text", exact=True).fill("ROUTE")
     expect(page.locator("#cz-color-badge")).to_have_text(re.compile(r"^\d+ colors?$"), timeout=BUILD_TIMEOUT)
-    expect(continue_button).to_be_enabled(timeout=BUILD_TIMEOUT)
+    wait_ready(page)
+    expect(continue_button).to_be_disabled()
+    expect(page.locator("#cz-continue-note")).to_have_text(HANDOFF_NOTE)
     facts = page.locator("#cz-facts-list")
     expect(facts).to_contain_text("80 × 88")
     expect(facts).to_contain_text("cm³")
@@ -77,7 +84,7 @@ def test_csp_allows_wasm_and_blocks_remote(page: Page, base_url: str) -> None:
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.on("request", lambda r: requests.append(r.url))
     page.goto(f"{base_url}/customize/g/route-shield/")
-    expect(page.get_by_role("button", name="Continue to request")).to_be_enabled(timeout=BUILD_TIMEOUT)
+    wait_ready(page)
     page.get_by_role("tab", name="3D").click()
     page.wait_for_timeout(300)
     assert not [e for e in errors if "Content Security Policy" in e], errors
@@ -89,23 +96,47 @@ def test_csp_allows_wasm_and_blocks_remote(page: Page, base_url: str) -> None:
     assert "'wasm-unsafe-eval'" in csp and "connect-src 'self';" in csp
 
 
-def test_invalid_settings_explain_and_disable_continue(page: Page, base_url: str) -> None:
+def test_invalid_value_is_explained_inside_its_own_field(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/route-shield/")
     wait_ready(page)
-    page.locator("#cz-width_mm").fill("20")
-    expect(page.locator("#cz-form-errors")).to_contain_text("Width must be 50–250 mm", timeout=5000)
+    width = page.locator("#cz-width_mm")
+    width.fill("20")
+    field_error = page.locator("[data-field='width_mm'] #cz-width_mm-error")
+    expect(field_error).to_have_text("Width must be 50–250 mm.", timeout=5000)
+    expect(width).to_have_attribute("aria-invalid", "true")
+    expect(width).to_have_attribute("aria-describedby", re.compile(r"\bcz-width_mm-error\b"))
+    expect(page.locator("#cz-form-errors")).to_contain_text("One setting needs attention")
+    expect(page.locator("body[data-build-state='error']")).to_be_attached()
     expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
-    page.locator("#cz-width_mm").press("Tab")  # commit: the value is clamped back into range
-    expect(page.locator("#cz-width_mm")).to_have_value("50")
-    expect(page.get_by_role("button", name="Continue to request")).to_be_enabled(timeout=BUILD_TIMEOUT)
+    width.press("Tab")  # commit: the value is clamped back into range
+    expect(width).to_have_value("50")
+    wait_ready(page)
+    expect(field_error).to_have_text("")
+    expect(width).not_to_have_attribute("aria-invalid", "true")
+
+
+def test_build_error_is_shown_next_to_the_text_it_concerns(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    page.get_by_label("Upper text", exact=True).fill("WWWWWWWWWWWWWWWWWW")
+    page.locator("#cz-top_scale_pct").fill("150")
+    page.locator("#cz-top_scale_pct").press("Tab")
+    expect(page.locator("[data-field='top_text'] #cz-top_text-error")).to_contain_text("doesn't fit", timeout=BUILD_TIMEOUT)
+    expect(page.get_by_label("Upper text", exact=True)).to_have_attribute("aria-invalid", "true")
+    expect(page.locator("#cz-status")).to_contain_text("See the note in Settings")
 
 
 def test_draft_restores_from_session_storage_and_reset_clears_it(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/route-shield/")
     wait_ready(page)
     page.get_by_label("Lower text", exact=True).fill("101")
-    expect(page.locator("body[data-build-state='building'], body[data-build-state='ready']")).to_be_attached()
-    page.wait_for_timeout(400)
+    stored = ""
+    for _ in range(50):  # poll the draft written after the 150 ms debounce (no fixed sleep)
+        stored = page.evaluate(f"sessionStorage.getItem({DRAFT_KEY!r}) || ''")
+        if '"lower_text":"101"' in stored:
+            break
+        page.wait_for_timeout(50)
+    assert '"lower_text":"101"' in stored, stored
     page.reload()
     expect(page.get_by_label("Lower text", exact=True)).to_have_value("101")
     page.get_by_role("button", name="Reset to defaults").click()
