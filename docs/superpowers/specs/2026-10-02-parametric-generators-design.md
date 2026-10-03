@@ -99,7 +99,7 @@ Each catalog entry records `origin` (house design, or the client commission it d
 
 ### Sensitive parameters
 
-Schema fields may be flagged `sensitive` (e.g. the Wi-Fi password). Sensitive values are: excluded from owner/customer email and signed webhook payloads; masked in the operator list and revealed on demand in the work detail; excluded from local drafts; removed by the existing retention sweep and `--purge-request`; and omitted from the downloadable JSON unless the customer opts in. The 3MF necessarily embeds the QR, so the model file follows the existing private-asset retention rules, and the customer is told this in plain language before submitting.
+Schema fields may be flagged `sensitive` (e.g. the Wi-Fi password). Sensitive values are **never sent to the server**: the browser redacts them before hand-off, the server redacts them again defensively, and they are excluded from email, webhook payloads, local drafts and the downloadable JSON. The operator sees "withheld (in the model's QR code)". The 3MF necessarily embeds the QR, so the model file follows the existing private-asset retention rules, and the customer is told this in plain language before submitting. Nothing sensitive is stored in the request, so no retention-sweep change is needed.
 
 ## Request handoff
 
@@ -111,7 +111,7 @@ Schema fields may be flagged `sensitive` (e.g. the Wi-Fi password). Sensitive va
 2. **Continue to request** builds the 3MF, stores `{ file, customization }` in IndexedDB, and opens `/order.html?service=print&from=customize`. The order page loads the file through the existing `chooseModelFile` path, pre-selects the print service, and lets the customer finish intake. The private upload, verified estimate snapshot and queued slice job happen there, once, with all existing fallbacks (no integration: local draft, email handoff, download). The price range is first shown on the order page, as for any uploaded model.
 3. The request carries `customization = { generatorId, generatorVersion, params }` (sensitive fields per above). The server re-validates it against the generator's isomorphic schema and rules (bounded size; unknown generators/keys rejected); browser values stay non-binding.
 4. No new serverless function: validation hooks into the existing request handler. The operator work detail shows generator, version and parameters beside the model and estimate; "reopen in customizer" loads the parameters for a best-effort comparison and says clearly when inputs (local font, traced image) are unavailable.
-5. Storage: additive migration for a `customization` JSONB column on the request (details in the plan); rollback leaves it unused.
+5. Storage: no migration. `customization` is part of the request payload already persisted as `service_requests.payload` JSONB and returned to the operator as `request` in work detail.
 
 ## Slicing
 
