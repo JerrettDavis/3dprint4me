@@ -11,6 +11,8 @@ const publicRoot = resolve(root, "public");
 const operatorRoot = resolve(root, "operator");
 const errors = [];
 const requiredPublic = ["index.html", "services.html", "portfolio.html", "about.html", "order.html", "privacy.html", "terms.html", "404.html", "manifest.webmanifest", "robots.txt", "sitemap.xml", "favicon.svg"];
+// Produced by `npm run customizer:build` (Vite) before validation runs.
+const requiredBuilt = ["customize/index.html"];
 const requiredRoot = ["vercel.json", "package.json", ".env.example", "integrations/home-assistant/package.yaml", "integrations/home-assistant/dashboard.yaml", "integrations/home-assistant/README.md"];
 
 async function walk(path) {
@@ -33,6 +35,7 @@ function localTarget(file, ref) {
   return candidate;
 }
 
+for (const name of requiredBuilt) if (!(await exists(join(publicRoot, name)))) errors.push(`Missing built file: ${name} (run npm run customizer:build)`);
 for (const name of requiredPublic) if (!(await exists(join(publicRoot, name)))) errors.push(`Missing public file: ${name}`);
 for (const name of requiredRoot) if (!(await exists(join(root, name)))) errors.push(`Missing root file: ${name}`);
 for (const name of ["index.html", "manifest.webmanifest", "sw.js", "assets/operator.css", "assets/operator.js"]) if (!(await exists(join(operatorRoot, name)))) errors.push(`Missing operator file: ${name}`);

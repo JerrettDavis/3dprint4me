@@ -4,12 +4,18 @@ import { fileURLToPath } from 'node:url';
 import { join, relative } from 'node:path';
 
 const root = fileURLToPath(new URL('../public/', import.meta.url));
+const customizeRoot = join(root, 'customize');
 async function walk(dir) {
   const paths = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) paths.push(...await walk(path));
-    else if (/\.(html|css|js)$/.test(entry.name)) paths.push(path);
+    else if (/\.(html|css|js)$/.test(entry.name)) {
+      // Vite output under public/customize carries its own content hashes and relative chunk
+      // imports that must not gain ?v=; only its HTML (which references shared site assets) is versioned.
+      if (dir.startsWith(customizeRoot) && !entry.name.endsWith('.html')) continue;
+      paths.push(path);
+    }
   }
   return paths.sort();
 }
