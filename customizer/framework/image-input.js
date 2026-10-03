@@ -5,7 +5,9 @@ import { traceImage, checkContours, MAX_SOURCE_SIDE } from "./image-trace.js";
 
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 export const MAX_DECLARED_PIXELS = 64_000_000;   // second guard on the declared size
-export const HEADER_BYTES = 65536;               // dimensions are read from at most this much
+// Dimensions are read from at most this much. JPEG EXIF/XMP/ICC segments (up to 64 KB each) can
+// sit before the frame header, so the window is generous; the marker walk stays step-bounded.
+export const HEADER_BYTES = 512 * 1024;
 export const IMAGE_TYPES = Object.freeze(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 export const WORK_SIDE = 512;   // the image is decoded at most this large on its long edge
 

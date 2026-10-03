@@ -82,6 +82,7 @@ test("buildModel forwards the entire ctx to generator.build", async () => {
 const fake = (counter, over = {}) => ({
   boundingBox: () => ({ min: [0, 0, 0], max: [1, 1, 1] }),
   translate() { return fake(counter); },
+  simplify() { return fake(counter); },
   getMesh: () => ({ numVert: 0, numProp: 3, vertProperties: [], triVerts: [] }),
   delete() { counter.n++; },
   ...over
@@ -99,11 +100,12 @@ test("buildModel frees solids on every error path", async () => {
   await assert.rejects(buildModel(genOf([{ name: "Icon", color: "#xyz", solid: fake(c) }]), {}, {}), e => e.code === "invalid-color" && e.message === 'Part "Icon" has an invalid color "#xyz".');
   assert.equal(c.n, 1);
   await assert.rejects(buildModel(genOf([]), {}, {}), e => e.code === "no-geometry" && /no geometry/.test(e.message));
-  // throw in getMesh after a shifted copy exists: both original and shifted are freed
+  // throw in getMesh after the shifted and cleaned copies exist: original, shifted and cleaned are freed
   c = { n: 0 };
-  const shiftedBad = fake(c, { getMesh() { throw new Error("mesh"); } });
-  await assert.rejects(buildModel(genOf([{ name: "a", color: "#ffffff", solid: fake(c, { translate: () => shiftedBad }) }]), {}, {}), /mesh/);
-  assert.equal(c.n, 2);
+  const cleanBad = fake(c, { getMesh() { throw new Error("mesh"); } });
+  const shifted = fake(c, { simplify: () => cleanBad });
+  await assert.rejects(buildModel(genOf([{ name: "a", color: "#ffffff", solid: fake(c, { translate: () => shifted }) }]), {}, {}), /mesh/);
+  assert.equal(c.n, 3);
 });
 
 test("buildModel frees real solids and normalizes colors", async () => {
