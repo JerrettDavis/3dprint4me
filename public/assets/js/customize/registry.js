@@ -1,4 +1,4 @@
-import routeShield from "./generators/route-shield.js?v=39cb9320342a737f";
+import routeShield from "./generators/route-shield.js?v=eb3b24edb936d1c3";
 // Later tasks add: wifiTag, ratingCard, namePlate.
 export const GENERATORS = Object.freeze({ [routeShield.id]: routeShield });
 export const getGenerator = id => Object.prototype.hasOwnProperty.call(GENERATORS, id) ? GENERATORS[id] : undefined;
