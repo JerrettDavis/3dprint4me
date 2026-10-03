@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-03
+
+- Added the Customize section (`/customize/`): parametric generators that build a multi-color, Bambu-compatible 3MF in the browser (Manifold WASM in a worker) with a schema-driven form, 2D/3D preview and local planning facts. Launch generators: route shield, Wi-Fi QR tag (placard, keychain, business card), rating card (built-in icons or a locally traced image, half stars) and name plate (self-hosted OFL fonts or the customer's own font file).
+- **Continue to request** hands the model to the print request through IndexedDB (download fallback when storage is blocked); the server re-validates the `customization` provenance against the generator schema and stores it in the request payload (no migration, no new function or environment variable). The operator work detail shows a Customizer section.
+- Sensitive generator fields (the Wi-Fi password) are redacted in the browser, on the server and in 3MF metadata; they exist only as geometry in the model file.
+- `/customize/*` has its own CSP (`'wasm-unsafe-eval'`, `worker-src 'self' blob:`, `connect-src 'self'`); `vercel-build` runs the Vite build first.
+- Validation gates: every registered generator needs a page, builder, built page and rights note (publishable ones a sitemap entry, catalog card and screenshots), and `public/customize/` may contain no remote URL or remote request. A new all-generators test builds every default and preset on real Manifold (≤ 5 colors, analyzer-clean, under 20 s, no sensitive canary in the 3MF). A full E2E matrix runs every generator from edit to operator store, offline from other origins, at 390 px, under the real CSP. A new architecture rule stops server code from importing `customizer/`.
+- Fixed: generated meshes kept zero-area triangles, so the order page warned that Wi-Fi tags, rating cards and some name plates "may need repair"; JPEGs with more than 64 KB of EXIF/ICC data before the frame header were refused as unreadable.
+- Documentation: [GENERATORS.md](docs/GENERATORS.md) (contract, adding a generator, troubleshooting); architecture, deployment (owner-gated rollout), print-estimation (multi-color slicing) and verification updates.
+
 ## 2026-09-30
 
 - Added global and per-client DB-backed rate limiting for anonymous print-estimate session creation and upload-token issuance (additive migration 005, fails closed with 429; the storefront still uploads the file with the request).

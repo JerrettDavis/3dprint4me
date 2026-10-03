@@ -1,0 +1,328 @@
+# Parametric generators (Customize)
+
+A **generator** is a small plugin that turns a handful of validated parameters into a printable,
+multi-color 3MF, entirely in the customer's browser. The Customize section (`/customize/`) lists
+the public generators; each has a page (`/customize/g/<id>/`) with a schema-driven form, a 2D/3D
+preview, local planning facts, and **Continue to request**, which hands the built model to the
+ordinary print request on `/order.html`. The server never builds geometry; it re-validates the
+parameters as provenance. The uploaded 3MF is the object that is estimated and printed.
+
+Launch set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`.
+
+This document describes the contract **as implemented**. Where the design spec
+([2026-10-02-parametric-generators-design.md](superpowers/specs/2026-10-02-parametric-generators-design.md))
+differs, this document and the code win (see [Differences from the design spec](#differences-from-the-design-spec)).
+
+## Where the code lives
+
+| Path | Role | Runs in |
+|---|---|---|
+| `public/assets/js/customize/registry.js` | `GENERATORS` (id → definition), `getGenerator`, `listPublicGenerators` | browser, worker, server |
+| `public/assets/js/customize/generators/<id>.js` | The generator **definition**: schema, rules, presets, rights, hooks | browser, worker, server |
+| `public/assets/js/customize/schema.js` | `validateParams`, `clampParams`, `redactSensitive`, `sensitiveKeys` | browser, worker, server |
+| `public/assets/js/customize/{color,fonts,wifi}.js` | Shared isomorphic helpers (contrast, curated font list, WIFI: payload) | browser, worker, server |
+| `customizer/generators/index.js` | `loadBuilder` (id → dynamic `import()` of the builder) | worker |
+| `customizer/generators/<id>/build.js` | The generator **builder**: params → solids (Manifold) | worker only |
+| `customizer/framework/` | Engine loader, text/QR/shapes/icons/image tracing, 3MF writer, `buildModel`, worker + client, form, page app, catalog, hand-off writer | browser / worker |
+| `customizer/g/<id>/index.html` | The generator page (Vite entry) | — |
+| `customizer/static/fonts/` | Self-hosted OFL fonts, licenses, `SHA256SUMS`, `fonts.css` | served at `/customize/fonts/` |
+| `public/assets/js/order/customize-handoff.js` | Order-page reader of the hand-off record | browser |
+| `lib/customization/domain.js` | `normalizeCustomization` (server re-validation) | server |
+| `operator/assets/customization-detail.js` | Operator work-detail "Customizer" section | operator PWA |
+
+The definition is isomorphic: it must import nothing browser-only, because `lib/validation.js`
+imports it through the registry (the Vercel function bundle includes `public/assets/js/**`).
+Geometry code never ships to the server.
+
+## Definition
+
+`public/assets/js/customize/generators/<id>.js` default-exports a plain object:
+
+| Field | Required | Meaning |
+|---|---|---|
+| `id` | yes | URL-safe id; the registry key, page folder, `loadBuilder` key and draft key (`3dp-customize:<id>:v<version>`). |
+| `version` | yes | Positive integer. A request pins the version that produced its model; the server accepts `1..version`. Bump it when a parameter's meaning changes. |
+| `title`, `blurb` | yes | Catalog card text; `title` also prefills the order's project title ("Custom <title>"). |
+| `category` | yes | Catalog label key (`badges`, `tags`, `cards`, `plates`; anything else is title-cased). |
+| `origin` | yes | Where the design comes from (`"house"`, or the commission it derives from). |
+| `rights` | yes | `{ publishable: boolean, note: string }`. Only `publishable: true` generators appear in the catalog and sitemap (see [Provenance and rights](#provenance-and-rights)). |
+| `schema` | yes | Parameter fields (next section). |
+| `rules(params)` | no | Cross-field rules; returns `{ limits, errors, fieldErrors }`. |
+| `presets` | no | Named partial parameter sets. Today they are **data only**: the page does not offer a preset picker; the all-generators test builds every preset. |
+| `errorField(message)` | no | Maps a build (geometry) error message to the schema key it belongs next to, or `null` for the Settings summary. An unkeyed error keeps **Try again** visible. |
+| `onParamChange(key, params)` | no | Runs only for a committed edit of `key`; returns values derived from it (e.g. a format's own defaults), or `null`/`{}`. |
+| `image` | no | `{ when: { <field>: <value> }, threshold: <int field>, invert: <bool field> }` — while `when` holds, the page shows a local image picker under that field and traces the image (rating card). |
+| `font` | no | `{ key, custom, curated }` — the font control's key, the value meaning "my own font file", and whether other values are curated font ids fetched same-origin (name plate). Route shield uses the older `font_mode` field (`"font"` = own file, block otherwise). |
+| `publicParams(params)` | no | Last-chance filter for the parameters written into 3MF metadata (applied after redaction). No launch generator uses it. |
+
+### Schema fields
+
+`schema` maps a key to a field definition. Common options: `type`, `default` (required), `label`,
+`help` (replaces the generated help text), `group` (fieldset: `text`, `size`, `layout`, `back`,
+`colors`, or any word, title-cased), and `visibleWhen`.
+
+| `type` | Options | Validation (`validateParams`) | Control |
+|---|---|---|---|
+| `number` | `min`, `max`, `step`, `unit` | finite, within `[min, max]`, on the step grid counted from `min` | slider + number box |
+| `int` | same | as `number`, plus whole | slider + number box |
+| `enum` | `options: [{ value, label, face? }]`, `picker: "font"` | value is one of the options | `<select>`; `picker: "font"` renders the font picker (each option drawn in its own face) |
+| `bool` | — | boolean | checkbox |
+| `color` | — | `#rrggbb` (stored lower-case) | color input |
+| `text` | `max`, `optional`, `multiline`, `preserveWhitespace`, `sensitive` | string; no control characters (newlines allowed only when `multiline`; CRLF is normalized); at most `max` visible characters (zero-width characters are not counted; raw length is capped at `4 × max`); trimmed unless `preserveWhitespace`; whitespace alone never satisfies a required (non-`optional`) field | text box; `multiline` → textarea; `sensitive` → masked single-line box (never a textarea) with a fixed privacy note |
+
+`visibleWhen` hides a control (and the page ignores it) unless it holds: an object
+`{ key: value }` or `{ key: [values…] }` (all entries must match), or a function
+`params => boolean`. Visibility is presentation only; hidden fields are still validated and sent.
+
+`validateParams(generator, input, { skipSensitive })` returns `{ ok, errors, value, fieldErrors }`.
+Unknown keys and arrays are rejected; missing keys take their defaults. `rules()` runs only when
+every field is individually valid. With `skipSensitive` (the server), sensitive fields are not
+validated and become `"[redacted]"`.
+
+`clampParams(generator, params, changedKey)` is what the form applies on a committed edit: it runs
+`onParamChange`, snaps the changed number to its own field range and step, then makes every other
+number yield to the `limits` that `rules()` computes from the updated values ("the moved parameter
+wins"). Without `changedKey` every number is clamped to the current limits.
+
+### `rules(params)`
+
+Return `{ limits, errors, fieldErrors }`, all optional:
+
+- `limits`: `{ key: [min, max] }` — rule-derived ranges for numeric fields; the form also uses them
+  as the control's `min`/`max`.
+- `errors`: messages for the Settings summary (a rule error blocks the build and Continue).
+- `fieldErrors`: `{ key: message }` — shown under that control (`aria-invalid`,
+  `aria-describedby`); unknown keys are ignored.
+
+`rules` receives the working object and may **normalize** it in place (the Wi-Fi tag forces
+`show_text = false` for keychains); the same code runs in the browser, the build and on the
+server, so all three agree. Keep messages free of parameter values that could be sensitive.
+
+## Builder
+
+`customizer/generators/<id>/build.js` default-exports
+`async build(params, ctx) → { solids, warnings?, title?, filenameBase? }`:
+
+- `params`: the validated value from `validateParams` (sensitive fields included — the builder is
+  the only place a secret is used, e.g. encoded into QR geometry).
+- `ctx = { wasm, font, imageContours }`: the initialised Manifold module (`wasm.Manifold`,
+  `wasm.CrossSection`), an opentype.js `Font` or `null` (built-in block font), and a traced
+  customer image as plain `[[x, y], …]` contours or `null`.
+- `solids`: `[{ name, color, solid }]` where `solid` is a Manifold. Parts that share a color print
+  in the same filament; **at most 5 distinct colors** (`buildModel` throws `too-many-colors`).
+- `warnings`: plain-language strings shown under the facts (never containing sensitive values).
+- `title`, `filenameBase`: 3MF title and download name (`safeName` keeps `[A-Za-z0-9_-]`, 40 chars).
+  Never derive them from a sensitive field.
+
+Throw an `Error` with a customer-readable message for geometry that cannot be made (text that
+does not fit, a QR code too dense for the tag, disconnected letters); `errorField` decides where it
+is shown. Do not throw raw library errors.
+
+`buildModel(generator, params, ctx)` (`customizer/framework/model.js`) calls `build`, validates
+colors, moves the model onto the plate corner, removes zero-area triangles (Manifold `simplify`
+within 1e-6 mm; otherwise the site's analyzer would warn "the mesh may need repair"), writes the
+Bambu-compatible 3MF with `three-mf.js`, and **frees every solid it was given**, on success and on
+error. It returns `{ data, parts, warnings, filename, metrics: { part_count, unique_colors, triangles } }`.
+
+### Manifold rules (R11)
+
+- Never write `new CrossSection([])`: it throws in manifold-3d 3.5.4. Use `CrossSection.union([])`
+  for an empty cross-section.
+- WASM objects are not garbage-collected. Collect every temporary and delete it in a `finally`
+  (the pattern in `customizer/generators/route-shield/build.js`); only the returned solids may stay
+  alive, and nothing may stay alive after a throw.
+- Prove it with the leak guard: `trackLiveObjects(wasm)` in `tests/support/manifold-live.mjs`
+  instruments `Manifold`/`CrossSection` and returns `{ live, ctxWasm, restore }`. Build with
+  `ctx.wasm = ctxWasm`, then assert `live.size === solids.length` (and `0` after a failed build).
+  `new Manifold`, `decompose()` results and getters are not visible to the wrapper.
+
+### Worker and queue
+
+Builds run in a module Web Worker (`customizer/framework/worker.js`): it loads the engine once
+(the hashed `.wasm` URL from Vite), the builder through `loadBuilder`, and a font through
+`loadFont`, then posts the 3MF bytes back (transferred). `worker-client.js` keeps **one request in
+flight and at most one queued**: a newer edit supersedes older ones (their promises reject with
+`SupersededError` and are ignored), so rapid edits cost at most one extra build. A build that takes
+more than 30 s, or a worker crash, terminates and recreates the worker and shows **Try again**
+(retryable). Font bytes and image contours are cloned only for the request that actually runs.
+
+On the page (`app.js`): a field edit is validated first (field and rule errors appear without a
+build); typing rebuilds after a 150 ms debounce; a committed edit (change, slider release, select)
+is clamped, and a commit that changes nothing does not rebuild (`applyEdit`). Facts (size,
+volume, rough weight/time, color count) come from analysing the built 3MF with the site's own
+`print-estimation/geometry.js`. Drafts are kept in `sessionStorage` without sensitive fields.
+
+## Hand-off to the order page and server validation
+
+**Continue to request** (`continue.js`) stores one record in IndexedDB (`3dp-customize` /
+`handoff` / `pending`): `{ file (Blob), filename, generatorId, generatorVersion, generatorTitle,
+params, createdAt }`, where `params` holds only the schema's own keys with sensitive fields
+replaced by `"[redacted]"`. It then opens `/order.html?service=print&from=customize`.
+
+The order page reads the record once (read-and-delete in one transaction; older than 30 minutes or
+malformed reads as "no hand-off"), attaches the file through the normal model path, prefills an
+empty title/description, and shows "Loaded from the customizer — review and continue." From there
+the request is an ordinary print request: private upload, verified estimate, queued slice job,
+every existing fallback. The customization is dropped when the customer removes or replaces the
+handed-off file, and it is only ever sent for the print service.
+
+If IndexedDB is unavailable or throws, the 3MF is **downloaded** instead and the order page opens
+with `&handoff=download` and asks the customer to attach it.
+
+Server: `lib/validation.js` calls `normalizeCustomization(input.customization)` for print requests
+only (other services always get `null`). It rejects a non-object, an unknown generator, a version
+outside `1..version`, non-object params, params over 8000 bytes of JSON, unknown keys and any
+schema/rule violation (HTTP 400), and returns
+`{ generatorId, generatorVersion, params (sensitive → "[redacted]"), redacted: [keys] }`. That
+object is stored inside the request payload (`service_requests.payload` JSONB; no migration), sent
+in owner email and webhooks with sensitive values shown as withheld, and rendered on the operator
+work detail ("Customizer": generator, version, parameters, and "The attached 3MF is the model to
+print; these values are provenance."). The customer's local submitted copy keeps only
+`{ generatorId, generatorVersion }`.
+
+## Sensitive fields
+
+Mark a text field `sensitive: true` when its value must not leave the browser (the Wi-Fi
+password). Then:
+
+- It is **never stored**: not in the draft, the hand-off record, the request, the local dev log,
+  the operator store, email, webhooks or the customer's downloadable JSON. The browser sends
+  `"[redacted]"`, and the server replaces whatever arrives with `"[redacted]"` again.
+- `buildModel` redacts it from the 3MF metadata (`redactSensitive` via `generator.schema`).
+- The builder may use it only as geometry (the Wi-Fi password exists solely as QR modules).
+  Filenames, titles, part names and warnings must not contain it.
+- The form masks it, never writes it into markup, and shows a fixed note saying where it goes.
+- The 3MF itself necessarily encodes it, so the file follows the private-upload retention rules,
+  and the page says so before Continue.
+
+Tests that hold this line: `customize-all-generators.test.mjs` (a canary in every sensitive field
+never appears in any inflated 3MF entry, the filename or part names), `customize-wifi.test.mjs`,
+`customization-domain.test.mjs`, `project-request.test.mjs` (persisted, recorded, emailed and
+webhooked copies are redacted) and the E2E Wi-Fi flows (the typed password is absent from
+`data/dev-requests.ndjson`, the operator store and browser storage).
+
+## Provenance and rights
+
+Every definition records `origin` and `rights: { publishable, note }`. A design commissioned under
+a contract that does not allow reuse gets `publishable: false`: it stays out of the catalog and
+sitemap (validation fails if it is listed), though its page still builds and is reachable by
+direct URL. The site is static: nothing in a generator can be kept secret from a visitor, so do
+not add a generator whose geometry itself is confidential. All four launch generators are
+`origin: "house"`, `rights: { publishable: true, note: "House design." }`.
+
+## Fonts
+
+- Only fonts under the **SIL Open Font License 1.1**, self-hosted under `customizer/static/fonts/`
+  and served same-origin from `/customize/fonts/` (CSP `font-src 'self'`, `connect-src 'self'`).
+  No remote font services.
+- `LICENSES.md` lists each family, its upstream source and its license file; the OFL text ships
+  beside each font; `SHA256SUMS` pins every file. `customize-name-plate.test.mjs` checks all three.
+- A customer's own font file is parsed in the browser (opentype.js) and never uploaded or stored.
+
+To add a curated font: download the unmodified TTF from the OFL folder of the Google Fonts
+repository (`https://github.com/google/fonts/raw/main/ofl/<family>/`; check the license is OFL,
+not Apache), add the file and its `OFL.txt` (as `OFL-<family>.txt`) to `customizer/static/fonts/`,
+add a line to `SHA256SUMS` (`sha256sum`), a section to `LICENSES.md`, an `@font-face` with family `cz-<id>` to
+`fonts.css` (the picker draws each option in its own face; the test checks one rule per font),
+and an entry to `FONTS` in
+`public/assets/js/customize/fonts.js`. Run the name-plate tests and look at the picker.
+
+## Images
+
+The rating card's "My own image" is decoded and traced in the browser (`image-input.js`,
+`image-trace.js`); only the traced contours go to the worker and into the model. Nothing is
+uploaded, logged or stored, and the image is never a parameter.
+
+- The file is refused before reading when empty or over 8 MB, and before **decoding** when its
+  declared size (read from the header — PNG IHDR, GIF screen, WebP VP8/VP8L/VP8X, JPEG first SOF;
+  at most 512 KB of header is read, enough for large EXIF/ICC segments) exceeds 4096 px on a side
+  or 64 MP. The type is sniffed from the bytes, never trusted from the name or MIME type.
+- The browser decodes it resized to at most 512 px on the long side; tracing is bounded
+  (200 000 contour points) and failures are readable messages next to the control.
+
+## Build pipeline
+
+- `npm run customizer:build` — Vite (8.3.2, Rolldown) builds `customizer/` into
+  `public/customize/` (gitignored): hashed `assets/`, the catalog and one page per
+  `customizer/g/<id>/`, the Manifold `.wasm`, and `customizer/static/` (fonts) copied verbatim.
+  `npm run customizer:dev` serves it with hot reload.
+- `npm run assets:version` must run **after** the Vite build: it versions only the HTML under
+  `public/customize/` (Vite hashes its own assets) and rewrites `?v=` keys in tracked public files.
+  The release key includes the built customize HTML, so customizer changes can change `?v=` in
+  tracked files: commit those changes.
+- `npm run vercel-build` = `customizer:build && assets:version && validate`; `npm test` builds first.
+- Node: `package.json` pins `22.x`; Vite 8.3.2 and Rolldown require Node `^20.19.0 || >=22.12.0`
+  (verified on 22.22.0). esbuild was bumped from `^0.25.12` to `^0.28.0` because Vite 8.3.2's
+  optional peer range (`^0.27 || ^0.28`) conflicted at install (npm ERESOLVE); esbuild still builds
+  the operator auth bundle (`npm run operator:build`).
+- **CSP split** (`vercel.json`, source of truth `scripts/csp.mjs`, drift-tested): the global header
+  rule matches `/((?!customize/).*)`; `/customize/(.*)` has its own complete policy adding
+  `'wasm-unsafe-eval'` and `worker-src 'self' blob:`, with `connect-src 'self'` only. The dev server
+  applies the same split, so the E2E tests run under the real policy. `/customize/assets/*` is
+  cached immutably; `/customize/fonts/*` for a day.
+
+## Validation gates
+
+`npm run validate` (part of `vercel-build` and `npm test`) fails when a registered generator lacks
+`customizer/g/<id>/index.html` with `<meta name="generator-id" content="<id>">`, a `loadBuilder`
+entry, a built page, an `origin`, a positive integer `version`, or a `rights` record with a
+boolean `publishable` and a non-empty `note`; when a publishable generator is missing from the
+sitemap, the catalog or `scripts/capture_screenshots.py`; when an unpublishable one is listed; and
+when anything under `public/customize/` contains a remote URL or a remote request
+(`scanRemoteRequests` in `scripts/browser-secret-scan.mjs`: every absolute URL literal must be one
+of a short list of XML/SVG namespace strings or opentype.js message links, or start with
+`https://3dprint4.me/`; `fetch`, XHR, `import()`, `importScripts`, `sendBeacon`, `WebSocket`,
+`EventSource` and `Worker` calls with a literal remote or protocol-relative target are flagged).
+
+`tests/unit/customize-all-generators.test.mjs` builds every generator's defaults and every preset
+on real Manifold and requires: validation passes (defaults may fail only on sensitive fields, then
+must pass with a value there), a build under 20 s, 1–5 colors, no analyzer warning other than
+`embedded_settings_ignored`, and no sensitive canary anywhere in the 3MF text, filename or part
+names. The E2E matrix in `tests/e2e/test_customize.py` runs every generator page end to end.
+
+## Adding a generator
+
+1. **Definition** — `public/assets/js/customize/generators/<id>.js` (schema, rules, presets,
+   `origin`, `rights` with a real note, hooks). Isomorphic imports only, with `?v=` suffixes like
+   its neighbours (`npm run assets:version` maintains them).
+2. **Builder** — `customizer/generators/<id>/build.js` per [Builder](#builder): `CrossSection.union([])`
+   for empties, temporaries freed in `finally`, readable errors, ≤ 5 colors.
+3. **Registry** — import it in `registry.js` and add it to `GENERATORS`; add
+   `"<id>": () => import("./<id>/build.js")` to `customizer/generators/index.js`.
+4. **Page** — copy `customizer/g/<existing>/index.html` to `customizer/g/<id>/index.html`; set
+   `<meta name="generator-id">`, title, canonical, `<h1 class="cz-title">`, intro and any
+   generator-specific notes. No inline scripts (CSP). Vite picks the folder up automatically.
+5. **Sitemap** — add `<url><loc>https://3dprint4.me/customize/g/<id>/</loc>…</url>` to
+   `public/sitemap.xml` (publishable generators only).
+6. **Screenshots** — add views of the page to `scripts/capture_screenshots.py`.
+7. **Tests** — a `tests/unit/customize-<id>.test.mjs` with schema/rules cases, golden geometry
+   checks (bounds, part count, volumes, minimum web), a leak-guard test and failure messages; add
+   the generator's flow to `edit_and_wait` in `tests/e2e/test_customize.py` (the matrix fails until
+   you do); extend `customize-pages.test.mjs` if the page has special copy.
+8. **Rights** — confirm the design may be published and say why in `rights.note`.
+9. **Build and check** — `npm run customizer:build && npm run assets:version`, then `npm test`,
+   `npm run screenshots`, and look at the screenshots. Commit any `?v=` changes.
+
+## Troubleshooting
+
+| Symptom | Check |
+|---|---|
+| "Preparing the model builder…" never ends, or **Try again** right away; console `Refused to compile or instantiate WebAssembly` / `Refused to create a worker` | The page did not get the customize CSP. Inspect the `Content-Security-Policy` response header on `/customize/...`: it must include `'wasm-unsafe-eval'` and `worker-src 'self' blob:`. Link generator pages **with the trailing slash** — `/customize` without it falls under the global rule. |
+| A build fails with "too dense" (Wi-Fi tag, route shield QR) | The QR payload needs more modules than fit at the 0.82 mm/module floor. Shorten the network name/password or URL, or choose a larger format. |
+| A curated font shows "couldn't be loaded" | The worker fetches `/customize/fonts/<file>` same-origin. Check that the file is in `public/customize/fonts/` after the build, that it returns `200` with `font/ttf`, and that nothing (extension, proxy) blocks it. The page offers **Try again**. |
+| `npm run validate` reports a remote URL in `public/customize/` | A dependency or new code added an absolute URL. Remove it; if it is a harmless name (an XML namespace), add the exact string to `allowedUrlStrings` with a comment saying why. |
+| `npm run validate` says `?v=` keys are stale | Run `npm run customizer:build && npm run assets:version` and commit the changed files. |
+| The order page warns about the model's mesh | Run the all-generators test; `buildModel` should leave no zero-area triangles. |
+
+## Differences from the design spec
+
+- Layout: the definition lives in `public/assets/js/customize/generators/<id>.js`, not
+  `customizer/generators/<id>/schema.js`; there is no `preview.js` or `catalog.js` per generator
+  (the catalog is the registry).
+- `build` returns `{ solids: [{ name, color, solid }], … }` (Manifolds, freed by `buildModel`), not
+  meshes; `ctx` is `{ wasm, font, imageContours }`, not `text()/qr()/icon()/image()` helpers (those
+  are imported from `customizer/framework/`).
+- Adding a generator needs a page, a sitemap entry, registry and `loadBuilder` lines and a screenshot
+  entry — not "only a folder plus a catalog entry" (success criterion 3).
+- Presets are not offered in the UI yet.
+- "Reopen in customizer" from the operator detail is not implemented.

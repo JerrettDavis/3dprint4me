@@ -8,7 +8,7 @@ The implementation optimizes for a fast public site, low operating cost, few dep
 
 ## Feature-oriented boundaries
 
-The application is organized around four bounded contexts rather than technical-layer folders:
+The application is organized around bounded contexts rather than technical-layer folders:
 
 - `lib/project-request/` owns detailed customer intake, upload authorization, completion, and its server composition root. The browser half lives in `public/assets/js/order/` and separates the model, validation, persistence, API client, view, and controller.
 - `lib/quick-inquiry/` owns the lightweight homepage inquiry, attachment verification, durable completion, and bounded notification retry policy.
@@ -16,6 +16,25 @@ The application is organized around four bounded contexts rather than technical-
 - The read-only Home Assistant work snapshot is a separate machine client of `lib/work-management/`. Its API boundary uses a dedicated server-only bearer token; it cannot invoke operator commands or consume events and outbox entries.
 - `lib/print-estimation/` owns model-aware print estimates: the server-only dual-floor pricing policy, filament cost basis, capability-owned anonymous estimate sessions, private model assets, immutable estimate snapshots, the asynchronous slicer port and job runner, the operator print read model, and retention. Its bounded STL/3MF parsers live in `public/assets/js/print-estimation/` because the browser runs the same code for instant feedback; the server re-runs them and only the server result is persisted. It contributes to work *detail* through an optional read-model port and never to the work list or Home Assistant snapshot. See [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md).
 - `lib/checkout/` owns deposit eligibility, completion proofs, trusted return origins, and the Stripe adapter. A browser return URL is never payment verification.
+- **Customizer** owns parametric generators (see [GENERATORS.md](GENERATORS.md)). It has three parts with different runtimes: the isomorphic generator definitions and parameter-schema runtime in `public/assets/js/customize/` (browser, worker and server); the browser-only Vite workspace `customizer/` (framework, builders, pages; built into `public/customize/`); and the server-side provenance check `lib/customization/domain.js`. It produces a 3MF file plus `customization` provenance and hands both to project request; it owns no server function, table or migration.
+
+### Customizer dependency rules and data flow
+
+- `public/assets/js/customize/**` imports only its own siblings (no DOM, no Vite-only imports, nothing from `customizer/` or `lib/`). `lib/validation.js` reaches it through `lib/customization/domain.js`, which is the only server entry point into the context.
+- `customizer/**` may import `public/assets/js/customize/**` and the shared browser geometry module `public/assets/js/print-estimation/geometry.js` (facts come from the same analyzer the order page uses). Server code (`lib/`, `api/`) never imports `customizer/`: geometry never runs on the server. `check-architecture.mjs` enforces this (`server-customizer-import`).
+- The order feature knows the customizer only through the IndexedDB hand-off record (`public/assets/js/order/customize-handoff.js` reads what `customizer/framework/handoff.js` writes) and a `customization` field on the print request.
+
+```mermaid
+flowchart LR
+    Page[Generator page\n/customize/g/id/] -->|params| Worker[Build worker\nManifold WASM]
+    Worker -->|3MF bytes| Page
+    Page -->|IndexedDB record:\n3MF + redacted params| Order[/order.html print request/]
+    Order -->|existing private upload\nand estimate flow| Functions[api/request]
+    Functions -->|normalizeCustomization\nre-validate, redact| Store[(request payload JSON)]
+    Store --> Operator[Operator work detail:\nCustomizer section]
+```
+
+No network request happens on a generator page apart from same-origin assets and curated fonts; the model and the provenance travel with the ordinary request. Sensitive parameters (the Wi-Fi password) are redacted in the browser, again on the server, and in the 3MF metadata; they exist only as geometry inside the model file.
 
 Files directly under `api/` are transport entrypoints. Domain and application code point inward and provider SDKs remain in adapters/composition roots. `npm run validate` executes `scripts/check-architecture.mjs` to enforce the public/server, domain/provider, feature/transport, and API/provider boundaries. Transitional root modules such as `lib/work-store.js` are compatibility facades, not new extension points. See [ADR 0001](adr/0001-feature-oriented-bounded-contexts.md) and [DOMAIN-LANGUAGE.md](DOMAIN-LANGUAGE.md).
 
@@ -276,7 +295,9 @@ The delivered 25 MB limit suits common model and reference files. For significan
 | Decision | Rationale | Cost |
 |---|---|---|
 | Static-first public UI | Fast, cheap, durable, and easy to inspect | Repeated HTML shells are managed through shared JS rather than server rendering |
-| Vanilla ES modules | No build chain or client package exposure | Fewer off-the-shelf component abstractions |
+| Vanilla ES modules for the site | No build chain or client package exposure on the main pages | Fewer off-the-shelf component abstractions |
+| Vite only for `/customize/` | The customizer needs npm packages (Manifold WASM, three.js, opentype.js) bundled with hashed assets and a module worker; the rest of the site stays unbundled | A build step in `vercel-build`; a separate CSP for `/customize/*` (`'wasm-unsafe-eval'`, `worker-src`) |
+| Geometry in the browser, provenance on the server | No server-side CAD; the uploaded 3MF is what is estimated and printed | The server cannot prove a model matches its parameters; parameters are provenance only |
 | Serverless adapter layer | Secrets and provider calls stay off the client | Long-running work needs a queue or worker later |
 | Direct signed uploads | Avoids proxying binaries through functions | Requires storage CORS and careful signed-path handling |
 | JSON payload plus indexed columns | Flexible early-stage intake with practical search fields | Mature reporting may need normalized child tables |

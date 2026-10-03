@@ -16,6 +16,8 @@ Maintain 3dprint4.me as a trustworthy, accessible custom-fabrication storefront.
 8. External provider failures must not expose credentials or raw internal errors.
 9. Do not add a public analytics or tracking service without explicit product need and privacy updates.
 10. Do not treat a Stripe return URL as payment verification.
+11. No remote requests from `/customize/*`: generator pages, their worker and their fonts use the site's own origin only (enforced by `npm run validate` and the E2E offline run).
+12. Sensitive generator fields (`sensitive: true`, e.g. the Wi-Fi password) never leave the browser as values and never enter 3MF metadata, filenames, part names, drafts, the hand-off record, requests, logs, email or webhooks; they exist only as geometry in the model file (which is uploaded privately like any model).
 
 ## Primary files
 
@@ -27,7 +29,8 @@ Maintain 3dprint4.me as a trustworthy, accessible custom-fabrication storefront.
 - Server validation: `lib/validation.js`
 - Integrations: `lib/supabase.js`, `lib/notifications.js`, `api/checkout.js`
 - Print estimation (geometry, pricing policy, sessions, slicer, retention): `lib/print-estimation/`, `public/assets/js/print-estimation/`, `docs/PRINT-ESTIMATION.md`
-- Deployment headers/output: `vercel.json`
+- Customizer (parametric generators): definitions and schema runtime `public/assets/js/customize/`, builders and framework `customizer/`, server re-validation `lib/customization/domain.js`, order hand-off `public/assets/js/order/customize-handoff.js`, `docs/GENERATORS.md` (contract and "adding a generator" checklist). After changing `customizer/`, run `npm run customizer:build && npm run assets:version` and commit any `?v=` changes.
+- Deployment headers/output: `vercel.json` (CSP strings mirrored in `scripts/csp.mjs`)
 - Database/bucket: `supabase/migrations/001_service_requests.sql`
 
 ## Change workflow
@@ -42,7 +45,7 @@ Maintain 3dprint4.me as a trustworthy, accessible custom-fabrication storefront.
 
 ## CSP rule
 
-The home page contains inline JSON-LD. Production CSP uses a SHA-256 hash rather than `unsafe-inline` for scripts. When the structured data changes, run `npm run validate`; it reports the exact missing hash. Replace the old hash in `vercel.json` and rerun validation.
+The home page contains inline JSON-LD. Production CSP uses a SHA-256 hash rather than `unsafe-inline` for scripts. When the structured data changes, run `npm run validate`; it reports the exact missing hash. Replace the old hash in `vercel.json` (and `scripts/csp.mjs`) and rerun validation. `/customize/*` has its own policy (`'wasm-unsafe-eval'`, `worker-src 'self' blob:`, `connect-src 'self'`); never widen it to another origin, and never add inline scripts to generator pages.
 
 ## Provider changes
 
