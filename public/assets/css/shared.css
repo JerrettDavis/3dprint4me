@@ -129,6 +129,8 @@ html{scroll-padding-top:100px}
 .toast-region{position:fixed;right:20px;bottom:20px;z-index:500;display:grid;gap:8px;max-width:calc(100% - 40px)}
 .toast-region .toast{position:static;transform:none;padding:12px 18px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);box-shadow:var(--shadow);font-size:14px}
 @media(max-width:1000px){.container,.wrap{width:calc(100% - 48px)}.footer-grid{grid-template-columns:2fr 1fr 1fr}.footer-grid>div:last-child{grid-column:2 / -1}}
+/* Tablet: five nav items leave no room for the header CTA; it stays in the footer and page bodies. */
+@media(min-width:761px) and (max-width:960px){.nav-actions>.button{display:none}}
 @media(max-width:760px){
  :root{--header-height:72px}
  .container,.wrap{width:calc(100% - 40px)}
