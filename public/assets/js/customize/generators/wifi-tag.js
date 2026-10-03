@@ -22,6 +22,11 @@ export function contrastRatio(a, b) {
 const depthMax = o => round1(Math.min(DEPTH_RANGE[1], o.thickness_mm - MIN_WEB));
 
 function rules(o) {
+  // Keychain tags never carry text. validateParams and clampParams pass their own working
+  // object, so this forces the value in the browser (the form unchecks the box), in the build
+  // and in the server's provenance record alike. Switching back to another format leaves text
+  // off until it is turned on again.
+  if (o.format === "keychain") o.show_text = false;
   const fieldErrors = {};
   const errors = [];
   const add = (keys, message) => { errors.push(message); for (const k of keys) fieldErrors[k] ??= message; };
