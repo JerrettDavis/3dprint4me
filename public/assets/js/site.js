@@ -1,4 +1,4 @@
-import { SITE_CONFIG } from "./config.js?v=fae0822153da380f";
+import { SITE_CONFIG } from "./config.js?v=c69f9937b4eb3d23";
 
 const icons = {
   sun: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>`,
