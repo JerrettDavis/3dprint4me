@@ -439,3 +439,15 @@ def test_supabase_mode_uses_signed_formdata_upload_and_completes_live_request() 
         assert checkout["checkoutToken"] == "signed-completion-proof"
         assert checkout["requestId"] == "3DP-20260901-ABC123"
         site.assert_no_page_errors()
+
+
+def test_saved_draft_with_file_field_does_not_break_page_init() -> None:
+    # Drafts serialize the file input as `{}`; restoring that used to throw InvalidStateError and abort init.
+    draft = json.dumps({"service": "print", "projectTitle": "Returning visitor", "projectFiles": {}})
+    with SiteBrowser(viewport=(1280, 900)) as site:
+        page = site.load("/order.html?service=print", storage={"3dp-project-draft-v1": draft})
+        page.locator("#next-button").click()
+        assert page.locator("#project-title").input_value() == "Returning visitor"
+        site.assert_no_page_errors(allow_console_warnings=(
+            "Backend unavailable; preserving a local request copy.",
+        ))
