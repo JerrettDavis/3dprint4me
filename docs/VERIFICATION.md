@@ -7,12 +7,12 @@ Branch `feat/generator-section`, Node 22.22.0, Windows 11 host, Playwright Chrom
 ```text
 rm -rf public/customize && npm run vercel-build      exit 0
   Vite build of /customize, asset release 094c779c94cf087f (48 files verified, no ?v= change)
-  Static validation: 13 HTML pages, 129 local references, 257 JavaScript files;
+  Static validation: 13 HTML pages, 129 local references, 259 JavaScript files;
   architecture boundaries for 127 JavaScript files; generator and no-remote-request gates
 
 npm test                                             exit 0
   Static validation: PASS (same counts as above)
-  Node unit and contract tests: 532 passed, 0 failed
+  Node unit and contract tests: 543 passed, 0 failed
   End-to-end (pytest): 114 passed (tests/e2e/test_customize.py: 53 of them)
   UX/accessibility audit: 241/241 passed
 
@@ -23,12 +23,13 @@ npm run screenshots                                  exit 0
 What the new checks cover:
 
 - `tests/unit/customize-all-generators.test.mjs` builds every registered generator's defaults and every preset on real Manifold WASM. Each build must be analyzer-clean (no warning other than `embedded_settings_ignored`), use 1–5 colors and finish in under 20 s. In Node the defaults take 5–110 ms. A canary in every sensitive field never appears in any inflated 3MF entry, the filename or a part name. The Wi-Fi tag defaults validate only once a password is supplied; the test allows a failure only on sensitive fields.
-- `npm run validate` checks every generator for a page, a builder, a built page, `origin`, `version` and `rights`. A publishable generator also needs a sitemap entry, a catalog card and a screenshot entry. `public/customize/` may contain no remote URL or remote request. Each gate was shown to fail when its condition was broken: an injected `fetch("https://evil.example/x")`, a removed sitemap line, an empty `rights.note`, a missing screenshot entry.
+- `npm run validate` checks every generator for a page, a builder, a built page, `origin`, `version` and `rights`. A publishable generator also needs a sitemap entry, a catalog card and a screenshot entry. `public/customize/` may contain no remote URL or remote request, including protocol-relative `//host` URLs in HTML attributes (src, href, srcset, action, poster, data-src), CSS `url()`/`@import` and JS string literals; the site assets those pages load (site.css, shared.css, site.js and its imports, favicon, manifest) may not make a remote request either (their ordinary profile links are navigation, not requests). The gate logic lives in `scripts/generator-gates.mjs`, and `tests/unit/generator-gates.test.mjs` proves each gate fails on a fixture (missing built page, source page, sitemap entry, screenshot entry, rights note, publishable flag, origin, version, builder, catalog card; an unpublishable generator listed). Against the real tree each gate was also shown to fail when broken: an injected `fetch("https://evil.example/x")`, `url(//evil.example/…)` in the bundle CSS and in shared.css, an `<img src="//evil.example/…">` in a built page, a removed sitemap line, an empty `rights.note`, a missing screenshot entry.
 - The E2E matrix runs every generator through four checks:
   - Full flow: page, edit, color badge, Continue, order page (`.3mf` chip and notice), submission through the local dev API. The local operator store and `data/dev-requests.ndjson` (create and complete events) then hold `customization.generatorId`. The typed Wi-Fi password appears in neither, nor in browser storage.
-  - Offline: a build with every non-storefront request aborted; zero requests were attempted.
+  - Offline: a build with every non-storefront request aborted; zero requests were attempted. The route provably sees the build worker's requests: it records the Manifold `.wasm` (fetched only by the worker), and aborting that `.wasm` through the same route makes the build fail.
   - Layout: 390 px dark with no horizontal scroll.
   - CSP: a `securitypolicyviolation` listener records no violation, on every generator page, the order page and the `/customize/` catalog. The listener was itself shown to fire on a provoked violation. It cannot see violations raised inside the build worker; a worker-side failure would instead stop the build from reaching ready.
+- The all-generators test also builds a name plate in two curated fonts (Pacifico, Bebas Neue) and a rating card from a traced image, and checks warnings for sensitive canaries.
 - The Wi-Fi QR code is also read back and decoded (jsQR) from the finished `buildModel` mesh, after mesh cleanup.
 
   Separate E2E checks cover the IndexedDB fallback (`IDBFactory.prototype.open` throws, so the 3MF downloads and the order page explains) and removing or replacing the handed-off model, which drops `customization` from the stored request.

@@ -13,6 +13,10 @@ import { loadBuilder } from "../../customizer/generators/index.js";
 import { GENERATORS } from "../../public/assets/js/customize/registry.js";
 import { clampParams, sensitiveKeys, validateParams } from "../../public/assets/js/customize/schema.js";
 import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geometry.js";
+import { FONTS } from "../../public/assets/js/customize/fonts.js";
+import { traceImage, checkContours } from "../../customizer/framework/image-trace.js";
+import { readFile } from "node:fs/promises";
+import * as opentype from "opentype.js";
 
 const wasm = await loadEngine();
 const inflateRaw = async (b, max) => new Uint8Array(inflateRawSync(b, { maxOutputLength: max }));
@@ -53,10 +57,10 @@ function textEntries(data) {
   return Object.entries(entries).map(([name, bytes]) => [name, strFromU8(bytes)]);
 }
 
-async function buildAndCheck(g, params, label) {
+async function buildAndCheck(g, params, label, { font = null, imageContours = null } = {}) {
   const { default: build } = await loadBuilder[g.id]();
   const started = performance.now();
-  const out = await buildModel({ ...g, build }, params, { wasm, font: null, imageContours: null });
+  const out = await buildModel({ ...g, build }, params, { wasm, font, imageContours });
   const ms = performance.now() - started;
   assert.ok(ms < BUILD_BUDGET_MS, `${label}: built in ${Math.round(ms)} ms (budget ${BUILD_BUDGET_MS} ms)`);
   assert.ok(out.parts.length >= 1, `${label}: no parts`);
@@ -71,6 +75,7 @@ async function buildAndCheck(g, params, label) {
     for (const [name, text] of textEntries(out.data)) assert.ok(!text.includes(CANARY), `${label}: sensitive value in 3MF entry ${name}`);
     assert.ok(!out.filename.includes(CANARY), `${label}: sensitive value in filename ${out.filename}`);
     for (const part of out.parts) assert.ok(!String(part.name).includes(CANARY), `${label}: sensitive value in part name ${part.name}`);
+    for (const warning of out.warnings) assert.ok(!String(warning).includes(CANARY), `${label}: sensitive value in a warning: ${warning}`);
     const metadata = textEntries(out.data).filter(([name]) => /metadata|\.model$|\.config$/i.test(name)).map(([, text]) => text).join("\n");
     assert.match(metadata, /\[redacted\]/, `${label}: the redaction marker stands in for the sensitive value`);
   }
@@ -111,3 +116,33 @@ for (const g of generators) {
     }
   });
 }
+
+// The two inputs that never come from parameters: a curated font (parsed with opentype.js, as the
+// worker does) and a traced customer image (plain contours, as the page sends).
+const parseFont = opentype.parse ?? opentype.default.parse;
+async function curatedFont(id) {
+  const bytes = await readFile(new URL(`../../customizer/static/fonts/${FONTS.find(f => f.id === id).file}`, import.meta.url));
+  return parseFont(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+}
+
+test("name-plate with curated fonts (a script and a display face) builds analyzer-clean", async () => {
+  const g = GENERATORS["name-plate"];
+  for (const [fontId, style] of [["pacifico", "raised"], ["bebas-neue", "outline"]]) {
+    const params = validated(g, clampParams(g, { ...defaults(g), name: "Mary Ann", font: fontId, style }), `name-plate ${fontId}`);
+    await buildAndCheck(g, params, `name-plate ${fontId}`, { font: await curatedFont(fontId) });
+  }
+});
+
+test("rating-card with a traced customer image builds analyzer-clean", async () => {
+  // A dark ring with a dot on white, traced like a customer's picture.
+  const W = 160, H = 120, pixels = new Uint8ClampedArray(W * H * 4).fill(255);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const r = Math.hypot(x - 80, y - 60);
+    if ((r > 30 && r < 50) || r < 10) { const i = (y * W + x) * 4; pixels[i] = pixels[i + 1] = pixels[i + 2] = 0; }
+  }
+  const contours = checkContours(traceImage({ pixels, width: W, height: H }));
+  const g = GENERATORS["rating-card"];
+  const params = validated(g, clampParams(g, { ...defaults(g), icon: "custom" }), "rating-card image");
+  const { out } = await buildAndCheck(g, params, "rating-card image", { imageContours: contours });
+  assert.ok(out.parts.some(p => /icon/i.test(p.name)), out.parts.map(p => p.name).join(","));
+});

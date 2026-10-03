@@ -4,7 +4,8 @@ import { createHash } from "node:crypto";
 import { dirname, extname, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkArchitecture } from "./check-architecture.mjs";
-import { scanBrowserSecrets, scanRemoteRequests } from "./browser-secret-scan.mjs";
+import { scanBrowserSecrets } from "./browser-secret-scan.mjs";
+import { checkCustomizeNetwork, checkGenerators } from "./generator-gates.mjs";
 import { GENERATORS, listPublicGenerators } from "../public/assets/js/customize/registry.js";
 import { loadBuilder } from "../customizer/generators/index.js";
 import { renderCatalogHtml } from "../customizer/framework/catalog.js";
@@ -14,8 +15,6 @@ const publicRoot = resolve(root, "public");
 const operatorRoot = resolve(root, "operator");
 const errors = [];
 const requiredPublic = ["index.html", "services.html", "portfolio.html", "about.html", "order.html", "privacy.html", "terms.html", "404.html", "manifest.webmanifest", "robots.txt", "sitemap.xml", "favicon.svg"];
-// Produced by `npm run customizer:build` (Vite) before validation runs.
-const requiredBuilt = ["customize/index.html"];
 const requiredRoot = ["vercel.json", "package.json", ".env.example", "integrations/home-assistant/package.yaml", "integrations/home-assistant/dashboard.yaml", "integrations/home-assistant/README.md"];
 
 async function walk(path) {
@@ -38,37 +37,8 @@ function localTarget(file, ref) {
   return candidate;
 }
 
-// Generator gates (see docs/GENERATORS.md): every registered generator has a source page that
-// names it, a builder, a built page and a provenance/rights record; a publishable one is also in
-// the sitemap (entries are added by hand), the catalog and the screenshot set; one that is not
-// publishable stays out of the sitemap and catalog.
-const sitemap = await readFile(join(publicRoot, "sitemap.xml"), "utf8").catch(() => "");
-const screenshotScript = await readFile(join(root, "scripts/capture_screenshots.py"), "utf8").catch(() => "");
-const catalogHtml = renderCatalogHtml(listPublicGenerators());
-for (const generator of Object.values(GENERATORS)) {
-  const { id } = generator;
-  const where = `generator ${id}`;
-  const sitemapEntry = `<loc>https://3dprint4.me/customize/g/${id}/</loc>`;
-  const catalogLink = `href="/customize/g/${id}/"`;
-  requiredBuilt.push(`customize/g/${id}/index.html`);
-  const source = await readFile(join(root, "customizer/g", id, "index.html"), "utf8").catch(() => "");
-  if (!source.includes(`<meta name="generator-id" content="${id}">`)) errors.push(`customizer/g/${id}/index.html: missing page or <meta name="generator-id" content="${id}">`);
-  if (typeof loadBuilder[id] !== "function") errors.push(`customizer/generators/index.js: ${where} has no loadBuilder entry`);
-  if (typeof generator.rights?.publishable !== "boolean") errors.push(`${where}: rights.publishable must be true or false`);
-  if (typeof generator.rights?.note !== "string" || !generator.rights.note.trim()) errors.push(`${where}: rights.note must say where the design comes from and why it may (or may not) be published`);
-  if (typeof generator.origin !== "string" || !generator.origin.trim()) errors.push(`${where}: origin is required`);
-  if (!Number.isInteger(generator.version) || generator.version < 1) errors.push(`${where}: version must be a positive integer`);
-  if (generator.rights?.publishable === true) {
-    if (!sitemap.includes(sitemapEntry)) errors.push(`public/sitemap.xml: missing public generator /customize/g/${id}/`);
-    if (!catalogHtml.includes(catalogLink)) errors.push(`${where}: missing from the catalog`);
-    if (!screenshotScript.includes(`/customize/g/${id}/`)) errors.push(`scripts/capture_screenshots.py: no screenshot of /customize/g/${id}/`);
-  } else {
-    if (sitemap.includes(sitemapEntry)) errors.push(`public/sitemap.xml: unpublishable generator ${id} must not be listed`);
-    if (catalogHtml.includes(catalogLink)) errors.push(`${where}: unpublishable generator must not be in the catalog`);
-  }
-}
-if (!sitemap.includes("<loc>https://3dprint4.me/customize/</loc>")) errors.push("public/sitemap.xml: missing /customize/");
-for (const name of requiredBuilt) if (!(await exists(join(publicRoot, name)))) errors.push(`Missing built file: ${name} (run npm run customizer:build)`);
+// Generator gates and the /customize network rule live in generator-gates.mjs (unit-tested).
+errors.push(...await checkGenerators({ root, publicRoot, generators: GENERATORS, loadBuilder, catalogHtml: renderCatalogHtml(listPublicGenerators()) }));
 for (const name of requiredPublic) if (!(await exists(join(publicRoot, name)))) errors.push(`Missing public file: ${name}`);
 for (const name of requiredRoot) if (!(await exists(join(root, name)))) errors.push(`Missing root file: ${name}`);
 for (const name of ["index.html", "manifest.webmanifest", "sw.js", "assets/operator.css", "assets/operator.js"]) if (!(await exists(join(operatorRoot, name)))) errors.push(`Missing operator file: ${name}`);
@@ -116,13 +86,8 @@ for (const ref of [...operatorHtml.matchAll(/\b(?:href|src)="([^"]+)"/g)].map(ma
 for (const { file, secret } of await scanBrowserSecrets([publicRoot, operatorRoot])) {
   errors.push(`${file}: browser source contains forbidden secret name ${secret}`);
 }
-// The customizer works from its own origin alone: no remote URL or remote request in its bundle.
-const customizeRoot = join(publicRoot, "customize");
-if (await exists(customizeRoot)) {
-  for (const { file, url, reason } of await scanRemoteRequests([customizeRoot])) {
-    errors.push(`${file}: ${reason} ${url} (public/customize must not contact another origin; see scripts/browser-secret-scan.mjs)`);
-  }
-}
+// The customizer works from its own origin alone (its bundle and the site assets its pages load).
+errors.push(...await checkCustomizeNetwork({ publicRoot }));
 
 const homeAssistantPackagePath = join(root, "integrations/home-assistant/package.yaml");
 const homeAssistantDashboardPath = join(root, "integrations/home-assistant/dashboard.yaml");

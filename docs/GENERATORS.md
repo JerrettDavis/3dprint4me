@@ -120,7 +120,9 @@ is shown. Do not throw raw library errors.
 
 `buildModel(generator, params, ctx)` (`customizer/framework/model.js`) calls `build`, validates
 colors, moves the model onto the plate corner, removes zero-area triangles (Manifold `simplify`
-within 1e-6 mm; otherwise the site's analyzer would warn "the mesh may need repair"), writes the
+with a 1e-6 mm tolerance; otherwise the site's analyzer would warn "the mesh may need repair".
+Surfaces may move by up to that tolerance: measured over every default and preset, the relative
+volume change is at most 2e-7 and bounds shift at most 1e-6 mm), writes the
 Bambu-compatible 3MF with `three-mf.js`, and **frees every solid it was given**, on success and on
 error. It returns `{ data, parts, warnings, filename, metrics: { part_count, unique_colors, triangles } }`.
 
@@ -272,7 +274,7 @@ when anything under `public/customize/` contains a remote URL or a remote reques
 (`scanRemoteRequests` in `scripts/browser-secret-scan.mjs`: every absolute URL literal must be one
 of a short list of XML/SVG namespace strings or opentype.js message links, or start with
 `https://3dprint4.me/`; `fetch`, XHR, `import()`, `importScripts`, `sendBeacon`, `WebSocket`,
-`EventSource` and `Worker` calls with a literal remote or protocol-relative target are flagged).
+`EventSource` and `Worker` calls with a literal remote or protocol-relative target are flagged, as is any `//host` URL in an HTML resource attribute, a CSS `url()`/`@import` or a JS string literal). The shared site assets the generator pages load (site.css, shared.css, site.js and the modules it imports, favicon, manifest) are checked for remote *requests* only, since site.js legitimately contains profile links. The gate logic is `scripts/generator-gates.mjs` (`checkGenerators`, `checkCustomizeNetwork`), unit-tested on fixtures.
 
 `tests/unit/customize-all-generators.test.mjs` builds every generator's defaults and every preset
 on real Manifold and requires: validation passes (defaults may fail only on sensitive fields, then
@@ -326,3 +328,14 @@ names. The E2E matrix in `tests/e2e/test_customize.py` runs every generator page
   entry — not "only a folder plus a catalog entry" (success criterion 3).
 - Presets are not offered in the UI yet.
 - "Reopen in customizer" from the operator detail is not implemented.
+
+## Known notes
+
+- **Route shield maker mark reads mirrored in the 3D preview.** The fixed "3dprint4.me" mark is
+  inlaid in the lower vertical edge. The builder mirrors it (`mirror([1, 0])`) before rotating it
+  onto that face, exactly as the ported prototype does (`customizer/generators/route-shield/build.js`,
+  "Fixed 3dprint4.me mark"). In the 3D preview, seen from the front, the edge text therefore
+  reads right-to-left (see `screenshots/customize-route-shield-3d-desktop-dark.png`). The
+  behaviour was kept as-is to match the prototype's known-good output. Whether the mark should
+  read correctly on the printed edge is an open product decision; check it on a physical print
+  before changing the geometry, and update the route-shield golden checks if it changes.

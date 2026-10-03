@@ -128,6 +128,15 @@ test("a JPEG whose EXIF/ICC segments push the frame header past 64 KB is still s
   assert.deepEqual(calls[0], { resizeWidth: WORK_SIDE, resizeQuality: "low" });
 });
 
+test("a bomb-sized JPEG frame header beyond 64 KB (inside the 512 KB window) is refused before decoding", async () => {
+  const app = marker => [[0xff, marker], be16(65533), zeros(65531)];
+  const bomb = bytes([0xff, 0xd8], ...app(0xe1), ...app(0xe2), ...app(0xe2), [0xff, 0xc0], be16(17), [8], be16(30000), be16(30000), [3], zeros(9));
+  assert.deepEqual([bomb[196607], bomb[196608]], [0xff, 0xc0], "the SOF starts at 192 KB");
+  const { calls, decode, makeCanvas } = fakes({ width: 10, height: 10 });
+  await assert.rejects(() => decodeImageFile(fileOf(bomb, "image/jpeg"), { decode, makeCanvas }), /too large/i);
+  assert.equal(calls.length, 0, "the decoder was never called");
+});
+
 test("a decoder failure is a readable error", async () => {
   await assert.rejects(() => decodeImageFile(fileOf(png(10, 10)), { decode: async () => { throw new DOMException("bad"); }, makeCanvas: fakes().makeCanvas }), /couldn't be read/);
 });

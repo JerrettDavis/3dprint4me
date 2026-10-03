@@ -909,8 +909,10 @@ def test_each_generator_builds_with_every_other_origin_blocked(browser: Browser,
     storefront, _operator, _store = workspace
     page = new_matrix_page(browser)
     aborted: list[str] = []
+    routed: list[str] = []
 
     def only_this_origin(route) -> None:
+        routed.append(route.request.url)
         if route.request.url.startswith(storefront + "/"):
             route.continue_()
         else:
@@ -926,6 +928,11 @@ def test_each_generator_builds_with_every_other_origin_blocked(browser: Browser,
             wait_ready(page)
         expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
         assert aborted == [], aborted
+        # Not vacuous: the route also sees the build worker's own requests. Only the worker fetches
+        # the Manifold .wasm (instantiateStreaming), so the interception covers the worker.
+        assert any(u.endswith(".wasm") for u in routed), routed
+        if generator_id == "name-plate":
+            assert any(u.endswith("/customize/fonts/BebasNeue-Regular.ttf") for u in routed), routed
     finally:
         page.context.close()
 
@@ -939,7 +946,9 @@ def test_each_generator_page_fits_390_px_without_csp_violations(browser: Browser
     try:
         edit_and_wait(page, storefront, generator_id, uuid.uuid4().hex)
         page.get_by_role("tab", name="3D").click()
-        page.wait_for_timeout(300)
+        expect(page.get_by_role("tab", name="3D")).to_have_attribute("aria-selected", "true")
+        expect(page.locator("#cz-stage canvas")).to_be_visible()
+        expect(page.get_by_role("button", name="Show on print bed")).to_be_visible()
         widths = page.evaluate("({ scroll: document.documentElement.scrollWidth, inner: window.innerWidth })")
         assert widths["scroll"] <= widths["inner"], widths
         assert csp_violations(page) == [], csp_violations(page)

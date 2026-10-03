@@ -48,8 +48,9 @@ export async function buildModel(generator, params, ctx) {
       const shifted = s.solid.translate(delta);
       shiftedCopies.push(shifted);
       // Boolean results can keep zero-area (collinear) triangles; the site's analyzer flags them
-      // as "the mesh may need repair" on the order page. Collapsing edges within a nanometre
-      // removes them without moving any surface (volume and genus are unchanged).
+      // as "the mesh may need repair" on the order page. Collapsing edges within 1e-6 mm removes
+      // them; surfaces may move by up to that tolerance (measured over every default and preset:
+      // relative volume change <= 2e-7, bounds shift <= 1e-6 mm, genus unchanged).
       const clean = shifted.simplify(MESH_CLEAN_TOLERANCE_MM);
       shiftedCopies.push(clean);
       return { name: s.name, color: colorOf[i], mesh: manifoldToMesh(clean) };

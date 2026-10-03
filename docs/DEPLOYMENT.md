@@ -24,7 +24,7 @@ npm run screenshots
 Expected delivered baseline (recorded 2026-10-03; see [VERIFICATION.md](VERIFICATION.md)):
 
 - `npm run vercel-build` passes from a clean `public/customize/` (Vite build, asset versions, static validation)
-- 532 Node unit/contract tests pass
+- 543 Node unit/contract tests pass
 - 114 E2E tests pass
 - 241 UX/accessibility checks pass
 - 56 screenshots and the preview board regenerate without browser errors
@@ -82,14 +82,15 @@ The Customize section (`/customize/`, [GENERATORS.md](GENERATORS.md)) adds **no 
 The steps below are **not executed by the repository or its agents**. Each outward-facing step waits for the owner's explicit go-ahead, and the owner enters every credential. Record each executed step, with its date and result, in [VERIFICATION.md](VERIFICATION.md).
 
 1. **Pre-flight (read-only).** Confirm migration 005 is applied in production and that `/api/health` reports `printEstimation: true`. Check the Vercel project's Node version (22.x) and branch settings.
-2. **Preview.** Push `feat/generator-section` and open a PR. Let Vercel build a preview, then on it:
+2. **OWNER-GATED — Preview.** Push `feat/generator-section` and open a PR. Let Vercel build a preview, then on it:
    - run the four generator flows;
    - confirm the `/customize/g/<id>/` response carries the customize CSP;
    - print one Wi-Fi tag and scan it with a phone.
-3. **Slicer worker on jdh-docker-00.** Deploy the Portainer git stack from `deploy/slicer-worker/docker-compose.yml` (branch `main` after merge). The owner enters `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` and `SLICER_PROFILE_ID` in Portainer. Run the one-batch check: `docker compose -f deploy/slicer-worker/docker-compose.yml run --rm slicer-worker node scripts/print-estimate-worker.mjs --once`. See [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md#slicer-worker-container) for the host steps.
-4. **Enable slicing.** In Vercel Production, set `SLICER_PROVIDER=bambu-cli` and redeploy. The owner does this, or approves it explicitly.
-5. **Merge and smoke.** Merge the PR and run `npm run smoke:live -- https://3dprint4.me`. Then submit one real customizer request end to end and confirm the operator sees three things: the model, the Customizer parameters, and a slicer-backed estimate. That request is also the first real slice of generator output; compare its grams and time with the multi-color note in PRINT-ESTIMATION.md.
-6. **Rollback.** To roll back the code, promote the previous Vercel deployment; there is no migration to undo. To roll back the worker, run `docker compose … down`; queued jobs stay queued.
+3. **OWNER-GATED — Merge and deploy.** Merge the PR to `main` and let Vercel deploy production. Run `npm run smoke:live -- https://3dprint4.me`. The Customize section works without a slicer: estimates stay geometry-only until step 5.
+4. **OWNER-GATED — Slicer worker on jdh-docker-00.** Deploy the Portainer git stack from `deploy/slicer-worker/docker-compose.yml` on branch `main` (which now has the merged code). The owner enters `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` and `SLICER_PROFILE_ID` in Portainer. Run the one-batch check: `docker compose -f deploy/slicer-worker/docker-compose.yml run --rm slicer-worker node scripts/print-estimate-worker.mjs --once`. See [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md#slicer-worker-container) for the host steps.
+5. **OWNER-GATED — Enable slicing.** In Vercel Production, set `SLICER_PROVIDER=bambu-cli` and redeploy. The owner does this, or approves it explicitly.
+6. **OWNER-GATED — End-to-end smoke.** Submit one real customizer request and confirm the operator sees three things: the model, the Customizer parameters, and a slicer-backed estimate. That request is also the first production slice of generator output; compare its grams and time with the multi-color note in PRINT-ESTIMATION.md.
+7. **Rollback (OWNER-GATED when executed).** To roll back the code, promote the previous Vercel deployment; there is no migration to undo. To roll back the worker, run `docker compose … down`; queued jobs stay queued. To stop slicing only, unset `SLICER_PROVIDER` and redeploy.
 
 ### Legacy Supabase option
 
