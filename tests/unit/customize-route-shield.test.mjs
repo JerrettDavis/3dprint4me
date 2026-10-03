@@ -7,6 +7,7 @@ import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geome
 import { getGenerator, listPublicGenerators } from "../../public/assets/js/customize/registry.js";
 import { validateParams } from "../../public/assets/js/customize/schema.js";
 import build from "../../customizer/generators/route-shield/build.js";
+import { trackLiveObjects } from "../support/manifold-live.mjs";
 
 const wasm = await loadEngine();
 const gen = { ...getGenerator("route-shield"), build };
@@ -55,7 +56,7 @@ test("registry rejects inherited ids and lists public generators", () => {
   assert.equal(getGenerator("toString"), undefined);
   assert.equal(getGenerator("constructor"), undefined);
   assert.equal(getGenerator("nope"), undefined);
-  assert.deepEqual(listPublicGenerators().map(g => g.id), ["route-shield"]);
+  assert.deepEqual(listPublicGenerators().map(g => g.id), ["route-shield", "wifi-tag"]);
 });
 
 test("listPublicGenerators filters on rights.publishable", () => {
@@ -78,45 +79,6 @@ test("rules reject out-of-range inlay, zero field height and out-of-range scale"
   assert.equal(validateParams(gen, { top_scale_pct: 19 }).ok, false);
   assert.equal(validateParams(gen, { top_scale_pct: 151 }).ok, false);
 });
-
-// Embind exposes no live-instance counter, so instrument the classes: every Manifold /
-// CrossSection returned by a constructor, static or prototype method is recorded as live
-// and removed again on delete(). After build() only the returned solids may remain live.
-function trackLiveObjects(wasm) {
-  const live = new Set();
-  const restore = [];
-  const classes = [wasm.CrossSection, wasm.Manifold];
-  const isInst = v => classes.some(C => v instanceof C);
-  const wrap = (holder, name, fn) => {
-    const wrapped = function (...args) {
-      const r = fn.apply(this, args);
-      if (isInst(r)) live.add(r);
-      return r;
-    };
-    const had = Object.getOwnPropertyDescriptor(holder, name);
-    Object.defineProperty(holder, name, { value: wrapped, writable: true, configurable: true });
-    restore.push(() => had ? Object.defineProperty(holder, name, had) : delete holder[name]);
-  };
-  for (const C of classes) {
-    for (const name of Object.getOwnPropertyNames(C)) {
-      if (typeof C[name] === "function" && !["prototype", "length", "name"].includes(name)) wrap(C, name, C[name]);
-    }
-    for (let proto = C.prototype; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto)) {
-      for (const name of Object.getOwnPropertyNames(proto)) {
-        const d = Object.getOwnPropertyDescriptor(proto, name);
-        if (name === "constructor" || typeof d.value !== "function") continue;
-        if (name === "delete") {
-          const orig = d.value;
-          Object.defineProperty(proto, name, { value: function (...a) { live.delete(this); return orig.apply(this, a); }, writable: true, configurable: true });
-          restore.push(() => Object.defineProperty(proto, name, d));
-        } else wrap(proto, name, d.value);
-      }
-    }
-  }
-  const proxied = C => new Proxy(C, { construct(target, args) { const o = new target(...args); live.add(o); return o; } });
-  const ctxWasm = new Proxy(wasm, { get: (t, k) => (k === "CrossSection" ? proxied(wasm.CrossSection) : t[k]) });
-  return { live, ctxWasm, restore: () => restore.reverse().forEach(f => f()) };
-}
 
 test("build() frees every temporary: only the returned solids stay alive", async () => {
   for (const extra of [{}, { field_height_mm: -1, text_height_mm: -0.6 }, { qr_enabled: false, back_text: "" }]) {

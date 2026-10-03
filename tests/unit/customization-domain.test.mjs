@@ -95,3 +95,19 @@ test("customization is print provenance only; other services never carry it", ()
   const r = normalizeProjectRequest({ ...base, service: "design", customization: { generatorId: "route-shield", generatorVersion: 1, params: {} } });
   assert.equal(r.customization, null);
 });
+
+test("the real wifi-tag generator withholds its password and keeps everything else", () => {
+  const out = normalizeCustomization({ generatorId: "wifi-tag", generatorVersion: 1, params: { ssid: "Cafe", password: "hunter2", security: "WEP", format: "keychain" } });
+  assert.equal(out.params.ssid, "Cafe");
+  assert.equal(out.params.format, "keychain");
+  assert.equal(out.params.password, "[redacted]");
+  assert.deepEqual(out.redacted, ["password"]);
+  assert.equal(JSON.stringify(out).includes("hunter2"), false);
+  // An invalid secret is never even looked at on the server: it is replaced, not validated.
+  const odd = normalizeCustomization({ generatorId: "wifi-tag", generatorVersion: 1, params: { ssid: "Cafe", password: "x".repeat(500) } });
+  assert.equal(odd.params.password, "[redacted]");
+});
+
+test("wifi-tag provenance is still re-validated: a low-contrast QR is rejected with 400", () => {
+  assert.throws(() => normalizeCustomization({ generatorId: "wifi-tag", generatorVersion: 1, params: { ssid: "Cafe", password: "hunter2", base_color: "#ffffff", qr_color: "#eeeeee" } }), err => err.status === 400 && !err.message.includes("hunter2"));
+});

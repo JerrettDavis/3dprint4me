@@ -79,6 +79,30 @@ test("restoreParams keeps only current schema keys, falls back to defaults when 
   assert.deepEqual(restoreParams(gen, null), defaults);
 });
 
+test("a draft restores even though it can never hold a required secret, which stays empty", () => {
+  // Drafts never store sensitive fields. A generator whose rules need the secret (Wi-Fi: WPA needs
+  // a password) must still get the rest of the draft back; the secret starts empty and its rule
+  // error shows in the form instead of the whole draft being discarded.
+  const g = {
+    schema: {
+      ssid: { type: "text", max: 32, default: "Guest" },
+      password: { type: "text", max: 63, default: "", optional: true, sensitive: true },
+      size: { type: "number", min: 1, max: 9, step: 1, default: 5 }
+    },
+    rules: o => (o.password ? { errors: [] } : { errors: ["Enter the password."], fieldErrors: { password: "Enter the password." } })
+  };
+  const restored = restoreParams(g, JSON.stringify({ ssid: "Cafe", size: 7, password: "should-not-be-here" }));
+  assert.deepEqual(restored, { ssid: "Cafe", password: "", size: 7 });
+  assert.equal(restoreParams(g, JSON.stringify({ ssid: "Cafe", size: 99 })).size, 5, "a field-invalid draft still falls back");
+});
+
+test("a field's own help text replaces the generic optional/length line", () => {
+  const g = { schema: { pw: { type: "text", label: "Password", max: 63, optional: true, sensitive: true, default: "", help: "Required unless the network is open. Up to 63 characters." } } };
+  const html = renderFormHtml(g, {});
+  assert.match(html, /<p class="help" id="cz-pw-help">Required unless the network is open\. Up to 63 characters\.<\/p>/);
+  assert.doesNotMatch(html, /Optional\./);
+});
+
 test("readControlValue converts control values to schema types", () => {
   assert.equal(readControlValue({ type: "number" }, { value: "12.5" }), 12.5);
   assert.ok(Number.isNaN(readControlValue({ type: "number" }, { value: "" })));

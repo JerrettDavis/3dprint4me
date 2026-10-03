@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import test, { afterEach } from "node:test";
 import { hasEmailDelivery, hasWebhookDelivery, postRequestWebhook, sendRequestEmails } from "../../lib/notifications.js";
+import { normalizeCustomization } from "../../lib/customization/domain.js";
 
 const originalFetch = globalThis.fetch;
 const watchedEnv = [
@@ -274,4 +275,26 @@ test("webhook body carries the customization but never a sensitive value", async
   assert.equal(parsed.request.customization.params.top_text, "ROUTE <66>");
   assert.equal(parsed.request.customization.params.password, "[redacted]");
   assert.equal(body.includes("hunter2"), false);
+});
+
+test("a real wifi-tag customization with a real password never reaches email or webhook bodies", async () => {
+  resetEnv();
+  configureEmail();
+  process.env.REQUEST_WEBHOOK_URL = "https://automation.example/hooks/3dprint4me";
+  process.env.REQUEST_WEBHOOK_SECRET = "webhook-secret";
+  const wifi = normalizeCustomization({ generatorId: "wifi-tag", generatorVersion: 1, params: { ssid: "Cafe Guest", password: "hunter2", security: "WPA", format: "card" } });
+  const sent = [];
+  globalThis.fetch = async (url, options) => { sent.push({ url: String(url), body: options.body, headers: options.headers }); return jsonResponse({ id: "ok" }); };
+
+  await sendRequestEmails("3DP-20260901-ABC123", baseRequest({ customization: wifi }), []);
+  await postRequestWebhook("3DP-20260901-ABC123", baseRequest({ customization: wifi }), []);
+
+  assert.equal(sent.length, 3, "owner email, customer email, webhook");
+  const owner = JSON.parse(sent.find(s => s.url.includes("resend") && JSON.parse(s.body).to[0] === "hello@3dprint4.me").body);
+  assert.match(owner.html, /Customizer: wifi-tag v1/);
+  assert.match(owner.html, /Ssid: Cafe Guest/);
+  assert.match(owner.html, /Password: withheld \(in the model&#39;s QR code\)/);
+  const hook = JSON.parse(sent.find(s => s.url.includes("automation")).body);
+  assert.equal(hook.request.customization.params.password, "[redacted]");
+  for (const s of sent) assert.equal(JSON.stringify(s).includes("hunter2"), false, s.url);
 });

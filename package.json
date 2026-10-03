@@ -49,6 +49,7 @@
     "@electric-sql/pglite": "^0.5.8",
     "esbuild": "^0.28.0",
     "fflate": "0.8.3",
+    "jsqr": "1.4.0",
     "manifold-3d": "3.5.4",
     "opentype.js": "2.0.0",
     "qrcode-generator": "2.0.4",

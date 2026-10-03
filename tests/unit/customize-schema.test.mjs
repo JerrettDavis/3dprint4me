@@ -411,3 +411,24 @@ test("number field with no min or max does not produce NaN", () => {
   assert(!Number.isNaN(result2.a), "Should not produce NaN");
   assert.equal(result2.a, -9999, "Negative value should stay as-is (no min/max constraints)");
 });
+
+test("single-line text is trimmed unless the field preserves whitespace", () => {
+  const g = { id: "ws", schema: { a: { type: "text", max: 10, default: "x" }, b: { type: "text", max: 10, default: "x", preserveWhitespace: true } } };
+  const r = validateParams(g, { a: "  pad  ", b: "  pad  " });
+  assert.equal(r.value.a, "pad");
+  assert.equal(r.value.b, "  pad  ");
+  assert.equal(validateParams(g, { b: "a\tb" }).ok, false, "control characters are still rejected");
+});
+
+test("clamping to a rule limit on the step grid is not lost to floating-point error", () => {
+  const g = {
+    id: "fp", schema: {
+      t: { type: "number", min: 2, max: 6, step: 0.2, default: 3 },
+      d: { type: "number", min: 0.6, max: 1.6, step: 0.2, default: 1 }
+    },
+    rules: o => ({ limits: { d: [0.6, Math.round(Math.min(1.6, o.t - 0.8) * 10) / 10] } })
+  };
+  // (1.2 - 0.6) / 0.2 is 2.9999999999999996 in floating point; the top step must still be reachable.
+  assert.equal(clampParams(g, { t: 2, d: 1.6 }, "t").d, 1.2);
+  assert.equal(clampParams(g, { t: 2, d: 1.6 }).d, 1.2);
+});

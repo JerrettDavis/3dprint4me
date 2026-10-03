@@ -294,3 +294,136 @@ def test_stale_or_missing_hand_off_leaves_the_order_page_usable(page: Page, base
     page.locator("#next-button").click()
     expect(page.locator("#file-list")).not_to_contain_text("old.3mf")
     expect(page.locator("#project-title")).to_have_value("")
+
+
+# --- Wi-Fi tag ---------------------------------------------------------------------------------
+
+WIFI_DRAFT_KEY = "3dp-customize:wifi-tag:v1"
+WIFI_SECRET = "correct-horse-battery"
+
+
+def open_wifi(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/wifi-tag/")
+    # No password yet: the page explains what is missing instead of building.
+    expect(page.locator("[data-field='password'] #cz-password-error")).to_have_text("Enter the network password, or choose 'No password'.", timeout=BUILD_TIMEOUT)
+
+
+def test_catalog_lists_wifi_tag(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/")
+    link = page.get_by_role("link", name=re.compile("Wi-Fi tag"))
+    expect(link).to_be_visible()
+    link.click()
+    expect(page).to_have_url(re.compile(r"/customize/g/wifi-tag/$"))
+
+
+def test_wifi_password_is_masked_explained_and_never_drafted(page: Page, base_url: str) -> None:
+    open_wifi(page, base_url)
+    password = page.get_by_label("Network password", exact=True)
+    expect(password).to_have_attribute("type", "password")
+    expect(page.locator("#cz-password-note")).to_be_visible()
+    expect(page.get_by_text("The password is encoded in the QR code inside your model file. We don't store it separately.")).to_be_visible()
+    expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+    page.get_by_label("Network name (SSID)", exact=True).fill("Cafe Guest")
+    password.fill(WIFI_SECRET)
+    wait_ready(page)
+    expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
+    expect(page.locator("#cz-color-badge")).to_have_text("2 colors")
+    stored = ""
+    for _ in range(50):
+        stored = page.evaluate(f"sessionStorage.getItem({WIFI_DRAFT_KEY!r}) || ''")
+        if "Cafe Guest" in stored:
+            break
+        page.wait_for_timeout(50)
+    assert "Cafe Guest" in stored, stored
+    assert WIFI_SECRET not in stored and "password" not in stored, stored
+    page.reload()
+    expect(page.get_by_label("Network name (SSID)", exact=True)).to_have_value("Cafe Guest")
+    expect(page.get_by_label("Network password", exact=True)).to_have_value("")
+
+
+def test_wifi_keychain_builds_and_a_too_dense_code_is_explained_at_the_network_name(page: Page, base_url: str) -> None:
+    open_wifi(page, base_url)
+    page.get_by_label("Tag format").select_option("keychain")
+    page.get_by_label("Network password", exact=True).fill(WIFI_SECRET)
+    wait_ready(page)
+    expect(page.locator("#cz-facts-list")).to_contain_text("45 × 69")
+    page.get_by_label("Network name (SSID)", exact=True).fill(";" * 32)
+    page.get_by_label("Network password", exact=True).fill(";" * 63)
+    error = page.locator("[data-field='ssid'] #cz-ssid-error")
+    expect(error).to_contain_text("too dense", timeout=BUILD_TIMEOUT)
+    expect(error).to_contain_text("choose a larger tag format")
+    expect(page.get_by_label("Network name (SSID)", exact=True)).to_have_attribute("aria-invalid", "true")
+    page.get_by_label("Tag format").select_option("placard")
+    wait_ready(page)
+    expect(error).to_have_text("")
+
+
+def test_wifi_low_contrast_colors_are_rejected_next_to_both_fields(page: Page, base_url: str) -> None:
+    open_wifi(page, base_url)
+    page.get_by_label("Network password", exact=True).fill(WIFI_SECRET)
+    wait_ready(page)
+    page.locator("#cz-qr_color").evaluate("(el) => { el.value = '#eeeeee'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }")
+    for key in ("base_color", "qr_color"):
+        expect(page.locator(f"#cz-{key}-error")).to_contain_text("too similar", timeout=5000)
+    expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+
+
+def test_wifi_mobile_layout_has_no_horizontal_scroll(browser: Browser, base_url: str) -> None:
+    context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark", reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        open_wifi(page, base_url)
+        page.get_by_label("Network password", exact=True).fill(WIFI_SECRET)
+        wait_ready(page)
+        overflow = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+        assert overflow <= 0, overflow
+    finally:
+        context.close()
+
+
+def test_wifi_hand_off_stores_the_model_but_never_the_password(browser: Browser) -> None:
+    with running_operator_workspace() as (storefront, operator, store_path):
+        context = browser.new_context(viewport={"width": 1280, "height": 900})
+        page = context.new_page()
+        errors: list[str] = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        try:
+            open_wifi(page, storefront)
+            page.get_by_label("Network name (SSID)", exact=True).fill("Cafe Guest")
+            page.get_by_label("Network password", exact=True).fill(WIFI_SECRET)
+            wait_ready(page)
+            page.get_by_role("button", name="Continue to request").click()
+            expect(page).to_have_url(re.compile(r"/order\.html\?service=print&from=customize$"))
+            page.locator("#next-button").click()
+            expect(page.locator("#file-list")).to_contain_text("wifi-tag-placard.3mf")
+            page.locator("#next-button").click()
+            page.locator("#name").fill("Taylor Customer")
+            page.locator("#email").fill("taylor@example.com")
+            page.locator("#next-button").click()
+            page.locator("#terms").check()
+            page.locator("#submit-button").click()
+            page.locator("#submission-state.visible").wait_for(state="visible", timeout=15000)
+
+            raw_store = store_path.read_text(encoding="utf-8")
+            assert WIFI_SECRET not in raw_store
+            state = json.loads(raw_store)
+            stored = [r["request"] for r in state["requests"] if r["request"].get("customization")]
+            assert stored, state["requests"]
+            customization = stored[0]["customization"]
+            assert customization["generatorId"] == "wifi-tag"
+            assert customization["params"]["ssid"] == "Cafe Guest"
+            assert customization["params"]["password"] == "[redacted]"
+            assert customization["redacted"] == ["password"]
+            for storage in ("localStorage", "sessionStorage"):
+                dump = page.evaluate(f"JSON.stringify(Object.entries({storage}))")
+                assert WIFI_SECRET not in dump, storage
+
+            page.goto(operator, wait_until="networkidle")
+            page.locator("#work-list .work-row").first.click()
+            sheet = page.locator(".customization-sheet")
+            sheet.wait_for()
+            text = sheet.inner_text()
+            assert "wifi-tag" in text and "Cafe Guest" in text and WIFI_SECRET not in text, text
+            assert not errors, errors
+        finally:
+            context.close()

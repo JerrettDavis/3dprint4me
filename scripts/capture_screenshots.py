@@ -141,6 +141,13 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Route shield 3D · desktop · dark", "/customize/g/route-shield/", "customize-route-shield-3d-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, show_3d_preview),
             ("Route shield · mobile · light", "/customize/g/route-shield/", "customize-route-shield-mobile-light.png", (390, 844), "light", GENERATOR_READY, None),
             ("Route shield facts · mobile · dark", "/customize/g/route-shield/", "customize-route-shield-facts-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, show_facts),
+            ("Wi-Fi placard · desktop · light", "/customize/g/wifi-tag/", "customize-wifi-placard-desktop-light.png", (1440, 1000), "light", None, wifi_tag("placard")),
+            ("Wi-Fi keychain · desktop · dark", "/customize/g/wifi-tag/", "customize-wifi-keychain-desktop-dark.png", (1440, 1000), "dark", None, wifi_tag("keychain")),
+            ("Wi-Fi card · desktop · light", "/customize/g/wifi-tag/", "customize-wifi-card-desktop-light.png", (1440, 1000), "light", None, wifi_tag("card")),
+            ("Wi-Fi placard · mobile · light", "/customize/g/wifi-tag/", "customize-wifi-placard-mobile-light.png", (390, 844), "light", None, wifi_tag("placard", mobile=True)),
+            ("Wi-Fi keychain · mobile · dark", "/customize/g/wifi-tag/", "customize-wifi-keychain-mobile-dark.png", (390, 844), "dark", None, wifi_tag("keychain", mobile=True)),
+            ("Wi-Fi card · mobile · light", "/customize/g/wifi-tag/", "customize-wifi-card-mobile-light.png", (390, 844), "light", None, wifi_tag("card", mobile=True)),
+            ("Wi-Fi form · mobile · dark", "/customize/g/wifi-tag/", "customize-wifi-form-mobile-dark.png", (390, 844), "dark", None, wifi_tag("placard", mobile=True, show="form")),
         ]:
             path = OUTPUT / filename
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
@@ -161,6 +168,21 @@ def show_3d_preview(page) -> None:
 
 def show_facts(page) -> None:
     page.evaluate("document.querySelector('.cz-summary').scrollIntoView({ block: 'start' })")
+
+
+def wifi_tag(fmt: str, *, mobile: bool = False, show: str = "preview"):
+    """The Wi-Fi page needs a password before it builds; type a sample one, pick the format, wait for the model."""
+    def prepare(page) -> None:
+        page.get_by_label("Tag format").select_option(fmt)
+        page.get_by_label("Network name (SSID)", exact=True).fill("Cafe Guest")
+        page.get_by_label("Network password", exact=True).fill("correct-horse-battery")
+        page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        if show == "form":
+            page.evaluate("document.querySelector('[data-field=\"ssid\"]').scrollIntoView({ block: 'start' })")
+        elif mobile:
+            page.evaluate("document.querySelector('.cz-preview').scrollIntoView({ block: 'start' })")
+        page.wait_for_timeout(600)
+    return prepare
 
 
 def capture_operator_states() -> list[tuple[str, Path]]:

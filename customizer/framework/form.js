@@ -49,10 +49,13 @@ function textField(key, def, value, error) {
   if (def.sensitive) base.push(`${id}-note`);
   const multiline = def.multiline && !def.sensitive;
   const common = `id="${id}" name="${esc(key)}"${attr("maxlength", def.max)}${describe(base, key, error)}`;
-  const help = `<p class="help" id="${id}-help">${def.optional ? "Optional. " : ""}Up to ${esc(def.max)} characters${multiline ? ", one line per row" : ""}.</p>`;
+  // def.help: the field's own wording (e.g. a secret that is required only in some cases).
+  const helpText = def.help ? esc(def.help) : `${def.optional ? "Optional. " : ""}Up to ${esc(def.max)} characters${multiline ? ", one line per row" : ""}.`;
+  const help = `<p class="help" id="${id}-help">${helpText}</p>`;
   const control = multiline
     ? `<textarea class="textarea cz-textarea" ${common} rows="4" spellcheck="false">${esc(value)}</textarea>`
-    : `<input class="input" type="${def.sensitive ? "password" : "text"}" ${common} autocomplete="off" spellcheck="false"${attr("value", value)}>`;
+    // A secret is never written into markup; setValues() sets the live .value property instead.
+    : `<input class="input" type="${def.sensitive ? "password" : "text"}" ${common} autocomplete="off" spellcheck="false"${def.sensitive ? "" : attr("value", value)}>`;
   return `<div class="cz-field cz-field-text" data-field="${esc(key)}">
   <label class="cz-label" for="${id}">${esc(def.label ?? key)}</label>
   ${control}
@@ -147,8 +150,10 @@ export function restoreParams(generator, raw) {
   try { saved = JSON.parse(raw); } catch { return defaults; }
   if (!saved || typeof saved !== "object" || Array.isArray(saved)) return defaults;
   const merged = { ...defaults, ...storableParams(generator, saved) };
-  const result = validateParams(generator, merged);
-  return result.ok ? result.value : defaults;
+  // Sensitive fields are never in a draft, so judge the draft as the server would (secrets
+  // withheld). The secret itself restores to its default (empty) and the form asks for it.
+  if (!validateParams(generator, merged, { skipSensitive: true }).ok) return defaults;
+  return validateParams(generator, merged).value;
 }
 
 /**
