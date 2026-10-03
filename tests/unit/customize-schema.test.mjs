@@ -432,3 +432,19 @@ test("clamping to a rule limit on the step grid is not lost to floating-point er
   assert.equal(clampParams(g, { t: 2, d: 1.6 }, "t").d, 1.2);
   assert.equal(clampParams(g, { t: 2, d: 1.6 }).d, 1.2);
 });
+
+test("a whitespace-preserving required field still needs a visible character", () => {
+  const g = { id: "ws2", schema: { s: { type: "text", label: "Name", max: 10, default: "x", preserveWhitespace: true } } };
+  assert.equal(validateParams(g, { s: "   " }).ok, false);
+  assert.equal(validateParams(g, { s: " a " }).value.s, " a ");
+});
+
+test("clampParams applies a generator's onParamChange only for the field that changed", () => {
+  const g = {
+    id: "pc", schema: { kind: { type: "enum", options: [{ value: "a" }, { value: "b" }], default: "a" }, flag: { type: "bool", default: true } },
+    onParamChange: (key, o) => (key === "kind" ? { flag: o.kind === "a" } : {})
+  };
+  assert.equal(clampParams(g, { kind: "b", flag: true }, "kind").flag, false);
+  assert.equal(clampParams(g, { kind: "b", flag: true }, "flag").flag, true);
+  assert.equal(clampParams(g, { kind: "b", flag: true }).flag, true);
+});

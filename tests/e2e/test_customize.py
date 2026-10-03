@@ -321,7 +321,7 @@ def test_wifi_password_is_masked_explained_and_never_drafted(page: Page, base_ur
     password = page.get_by_label("Network password", exact=True)
     expect(password).to_have_attribute("type", "password")
     expect(page.locator("#cz-password-note")).to_be_visible()
-    expect(page.get_by_text("The password is encoded in the QR code inside your model file. We don't store it separately.")).to_be_visible()
+    expect(page.get_by_text("The password is encoded in the QR code inside your model file. The file is stored privately like any upload and seen by us when we print it. It is not copied into our request records, emails or your saved draft.")).to_be_visible()
     expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
     page.get_by_label("Network name (SSID)", exact=True).fill("Cafe Guest")
     password.fill(WIFI_SECRET)
@@ -427,3 +427,35 @@ def test_wifi_hand_off_stores_the_model_but_never_the_password(browser: Browser)
             assert not errors, errors
         finally:
             context.close()
+
+
+def test_wifi_loop_checkbox_follows_format_and_text_comes_back_after_keychain(page: Page, base_url: str) -> None:
+    open_wifi(page, base_url)
+    loop = page.get_by_label("Key-ring loop", exact=True)
+    show_text = page.get_by_label(re.compile("^Show title and network name"))
+    expect(loop).to_be_hidden()
+    expect(show_text).to_be_checked()
+    page.get_by_label("Tag format").select_option("keychain")
+    expect(loop).to_be_visible()
+    expect(loop).to_be_checked()
+    expect(show_text).not_to_be_checked()
+    page.get_by_label("Tag format").select_option("card")
+    expect(loop).to_be_hidden()
+    expect(show_text).to_be_checked()
+    # A sensitive field's note says plainly where the value goes.
+    note = page.locator("#cz-password-note")
+    expect(note).to_contain_text("model file")
+    expect(note).to_contain_text("stored privately")
+
+
+def test_wifi_label_too_small_to_read_is_an_error_at_the_network_name(page: Page, base_url: str) -> None:
+    open_wifi(page, base_url)
+    page.get_by_label("Tag format").select_option("card")
+    page.get_by_label("Title", exact=True).fill("")
+    page.get_by_label("Network name (SSID)", exact=True).fill("S" * 32)
+    page.get_by_label("Network password", exact=True).fill(WIFI_SECRET)
+    error = page.locator("[data-field='ssid'] #cz-ssid-error")
+    expect(error).to_have_text("The network name is too long to print legibly at this tag size. Shorten it, turn the label off, or choose a larger format.", timeout=BUILD_TIMEOUT)
+    page.get_by_label("Tag format").select_option("placard")
+    wait_ready(page)
+    expect(error).to_have_text("")
