@@ -12,8 +12,8 @@ rm -rf public/customize && npm run vercel-build      exit 0
 
 npm test                                             exit 0
   Static validation: PASS (same counts as above)
-  Node unit and contract tests: 531 passed, 0 failed
-  End-to-end (pytest): 113 passed (tests/e2e/test_customize.py: 52 of them)
+  Node unit and contract tests: 532 passed, 0 failed
+  End-to-end (pytest): 114 passed (tests/e2e/test_customize.py: 53 of them)
   UX/accessibility audit: 241/241 passed
 
 npm run screenshots                                  exit 0
@@ -28,7 +28,8 @@ What the new checks cover:
   - Full flow: page, edit, color badge, Continue, order page (`.3mf` chip and notice), submission through the local dev API. The local operator store and `data/dev-requests.ndjson` (create and complete events) then hold `customization.generatorId`. The typed Wi-Fi password appears in neither, nor in browser storage.
   - Offline: a build with every non-storefront request aborted; zero requests were attempted.
   - Layout: 390 px dark with no horizontal scroll.
-  - CSP: a `securitypolicyviolation` listener records no violation. The listener was itself shown to fire on a provoked violation.
+  - CSP: a `securitypolicyviolation` listener records no violation, on every generator page, the order page and the `/customize/` catalog. The listener was itself shown to fire on a provoked violation. It cannot see violations raised inside the build worker; a worker-side failure would instead stop the build from reaching ready.
+- The Wi-Fi QR code is also read back and decoded (jsQR) from the finished `buildModel` mesh, after mesh cleanup.
 
   Separate E2E checks cover the IndexedDB fallback (`IDBFactory.prototype.open` throws, so the 3MF downloads and the order page explains) and removing or replacing the handed-off model, which drops `customization` from the stored request.
 - Local slicing of each generator's default model in the Bambu Studio worker image is recorded in [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md#customizer-models).

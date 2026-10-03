@@ -110,6 +110,28 @@ function decodeImage(width, height, dark) {
   return jsQR(data, width, height, { inversionAttempts: "dontInvert" });
 }
 
+// The shipped file, not just build(): buildModel moves and cleans the meshes (Manifold simplify),
+// so read the code back from the QR part of buildModel's output too.
+test("the QR part of the finished 3MF mesh still reads back exactly and decodes", async () => {
+  const params = paramsFor({ format: "card" });
+  const payload = wifiPayload(params);
+  const expected = expectedMatrix(payload);
+  const out = await buildModel(gen, params, { wasm, font: null });
+  const part = out.parts.find(p => /QR/.test(p.name));
+  const mesh = new wasm.Mesh({ numProp: 3, vertProperties: Float32Array.from(part.mesh.vertices.flat()), triVerts: Uint32Array.from(part.mesh.triangles.flat()) });
+  const solid = new wasm.Manifold(mesh);
+  try {
+    const got = readQr({ solids: [{ name: "QR", solid }] }, expected.length);
+    assert.deepEqual(got.matrix, expected);
+    const ppm = 4, q = 2, size = (expected.length + 2 * q) * ppm;
+    const x0 = got.box.min[0] - q * got.m, y1 = got.box.max[1] + q * got.m;
+    const decoded = decodeImage(size, size, (px, py) => inside(got.polys, x0 + (px + 0.5) * got.m / ppm, y1 - (py + 0.5) * got.m / ppm));
+    assert.equal(decoded?.data, payload);
+  } finally {
+    solid.delete();
+  }
+});
+
 for (const format of Object.keys(FORMATS)) {
   test(`${format}: the QR on the top face reads back as the exact, unmirrored code for the payload`, async () => {
     const params = paramsFor({ format });
