@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Make a name plate or keychain: your name in one of eight decorative fonts or your own font file, raised, outlined, shadowed or inlaid. Preview it in 3D and send it as a print request.">
+  <meta name="robots" content="index,follow">
+  <meta name="generator-id" content="name-plate">
+  <meta name="theme-color" content="#101923" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)">
+  <title>Name plate | Customize | 3dprint4.me</title>
+  <link rel="canonical" href="https://3dprint4.me/customize/g/name-plate/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" vite-ignore><link rel="manifest" href="/manifest.webmanifest" vite-ignore>
+  <link rel="stylesheet" href="/assets/css/site.css?v=0113086731b32eb7" vite-ignore>
+  <link rel="stylesheet" href="/assets/css/shared.css?v=0113086731b32eb7" vite-ignore>
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="/customize/fonts/fonts.css" vite-ignore>
+</head>
+<body>
+  <div id="site-header"></div>
+  <main id="main" class="cz-page">
+    <header class="cz-hero"><div class="container">
+      <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span><a href="/customize/">Customize</a></span><span>Name plate</span></nav>
+      <h1 class="cz-title">Name plate</h1>
+      <p class="cz-intro">A name for a desk, a door or a keyring. Pick a font, a style and a plate; up to three colors. The fonts are open-licensed and served from this site.</p>
+    </div></header>
+
+    <div class="container cz-workspace">
+      <div class="cz-side">
+        <section class="cz-preview" aria-labelledby="cz-preview-title">
+          <div class="cz-preview-head">
+            <h2 class="cz-panel-title" id="cz-preview-title">Preview</h2>
+            <div class="cz-tabs" role="tablist" aria-label="Preview view">
+              <button class="cz-tab" type="button" role="tab" id="cz-tab-front" data-view="front" aria-controls="cz-stage" aria-selected="true">Front</button>
+              <button class="cz-tab" type="button" role="tab" id="cz-tab-back" data-view="back" aria-controls="cz-stage" aria-selected="false" tabindex="-1">Back</button>
+              <button class="cz-tab" type="button" role="tab" id="cz-tab-3d" data-view="3d" aria-controls="cz-stage" aria-selected="false" tabindex="-1">3D</button>
+            </div>
+          </div>
+          <div class="cz-stage" id="cz-stage" role="tabpanel" aria-labelledby="cz-tab-front">
+            <p class="cz-stage-message" id="cz-stage-message">The preview appears after the first build.</p>
+          </div>
+          <div class="cz-preview-foot">
+            <p class="cz-hint">3D view: drag to turn, scroll or pinch to zoom.</p>
+            <button class="button secondary small-button" type="button" id="cz-bed-toggle" aria-pressed="false" hidden>Show on print bed</button>
+          </div>
+        </section>
+
+        <section class="cz-summary" aria-labelledby="cz-summary-title">
+          <div class="cz-summary-head">
+            <h2 class="cz-panel-title" id="cz-summary-title">Local facts</h2>
+            <span class="cz-badge" id="cz-color-badge" hidden></span>
+          </div>
+          <p class="cz-status" id="cz-status" role="status" aria-live="polite">Preparing the model builder…</p>
+          <div class="cz-recover" id="cz-fallback" hidden>
+            <button class="button secondary small-button" type="button" id="cz-retry">Try again</button>
+            <a class="cz-recover-link" href="/order.html?service=design">Ask for this design by request instead</a>
+          </div>
+          <dl class="cz-facts" id="cz-facts-list"></dl>
+          <p class="cz-facts-note" id="cz-facts-note">Planning figures only; we confirm before printing.</p>
+          <ul class="cz-warnings" id="cz-warnings" aria-label="Model warnings" hidden></ul>
+          <button class="button primary block" type="button" id="cz-continue" disabled>Continue to request</button>
+          <p class="cz-continue-help">Next, on the request page, you'll choose quantity and add contact details. The model file goes with your request.</p>
+          <p class="cz-continue-note" id="cz-continue-note" role="status" hidden></p>
+        </section>
+      </div>
+
+      <section class="cz-controls" aria-labelledby="cz-controls-title">
+        <div class="cz-controls-head">
+          <h2 class="cz-panel-title" id="cz-controls-title">Settings</h2>
+          <button class="button ghost small-button" type="button" id="cz-reset">Reset to defaults</button>
+        </div>
+        <form id="cz-form" class="cz-form" novalidate></form>
+        <div class="cz-font-area" id="cz-font-area" hidden>
+          <label class="cz-label" for="cz-font-file">Your font file</label>
+          <input class="cz-file" type="file" id="cz-font-file" accept=".ttf,.otf,.woff,font/ttf,font/otf,font/woff" aria-describedby="cz-font-help cz-font-status">
+          <p class="help" id="cz-font-help">TTF, OTF or WOFF. The file stays on this device; it is never uploaded. Make sure its license lets you use it for a printed item.</p>
+          <p class="cz-font-status" id="cz-font-status" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script type="module" src="/assets/js/site.js?v=0113086731b32eb7" vite-ignore></script>
+  <script type="module" src="../../framework/app.js"></script>
+</body>
+</html>

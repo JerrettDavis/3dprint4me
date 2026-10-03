@@ -65,11 +65,39 @@ function textField(key, def, value, error) {
 }
 
 function enumField(key, def, value, error) {
+  if (def.picker === "font") return fontPickerField(key, def, value, error);
   const id = controlId(key);
+  const base = def.help ? [`${id}-help`] : [];
   const options = (def.options ?? []).map(o => `<option value="${esc(o.value)}"${o.value === value ? " selected" : ""}>${esc(o.label ?? o.value)}</option>`).join("");
   return `<div class="cz-field cz-field-enum" data-field="${esc(key)}">
   <label class="cz-label" for="${id}">${esc(def.label ?? key)}</label>
-  <select class="select" id="${id}" name="${esc(key)}"${describe([], key, error)}>${options}</select>
+  <select class="select" id="${id}" name="${esc(key)}"${describe(base, key, error)}>${options}</select>
+  ${errorSlot(key, error)}${def.help ? `\n  <p class="help" id="${id}-help">${esc(def.help)}</p>` : ""}
+</div>`;
+}
+
+// Font picker: a toggle button showing the current font (drawn in that font) that opens a
+// radio group whose labels are each drawn in their own font (classes cz-ff-<face>, declared
+// by the page's same-origin @font-face sheet). Radios give native keyboard behavior: Tab
+// enters the group, arrows move the choice. The list stays out of the DOM's rendering (and
+// its fonts are not downloaded) until it is opened.
+const faceClass = o => `cz-ff-${slug(o.face ?? o.value)}`;
+function fontPickerField(key, def, value, error) {
+  const id = controlId(key);
+  const options = def.options ?? [];
+  const current = options.find(o => o.value === value) ?? options[0];
+  const radios = options.map(o => {
+    const rid = `${id}-${slug(o.value)}`;
+    return `<div class="cz-picker-item"><input class="cz-picker-radio" type="radio" name="${esc(key)}" id="${rid}" value="${esc(o.value)}"${o.value === value ? " checked" : ""}${describe([], key, error)}>
+    <label for="${rid}" class="cz-picker-option ${faceClass(o)}">${esc(o.label ?? o.value)}</label></div>`;
+  }).join("\n    ");
+  return `<div class="cz-field cz-field-picker" data-field="${esc(key)}" data-picker="${esc(def.picker)}">
+  <span class="cz-label" id="${id}-label">${esc(def.label ?? key)}</span>
+  <button class="cz-picker-toggle" type="button" id="${id}-toggle" aria-expanded="false" aria-controls="${id}-list" aria-labelledby="${id}-label ${id}-toggle"><span class="cz-picker-current ${faceClass(current)}">${esc(current?.label ?? "")}</span></button>
+  <fieldset class="cz-picker-list" id="${id}-list" hidden>
+    <legend class="visually-hidden">${esc(def.label ?? key)}</legend>
+    ${radios}
+  </fieldset>
   ${errorSlot(key, error)}
 </div>`;
 }
@@ -98,8 +126,17 @@ function colorField(key, def, value, error) {
 
 const RENDERERS = { number: numberField, int: numberField, text: textField, enum: enumField, bool: boolField, color: colorField };
 
-/** visibleWhen: { key: value, ... } shows a field only while every listed parameter has that value (display only; validation ignores it). */
-export const isFieldVisible = (def, params) => !def.visibleWhen || Object.entries(def.visibleWhen).every(([k, v]) => params?.[k] === v);
+/**
+ * visibleWhen shows a field only while it holds (display only; validation ignores it):
+ * { key: value | [values], ... } needs every listed parameter to have that value (or one of
+ * those values); a function (params) => boolean decides on its own.
+ */
+export const isFieldVisible = (def, params) => {
+  const when = def.visibleWhen;
+  if (!when) return true;
+  if (typeof when === "function") return Boolean(when(params ?? {}));
+  return Object.entries(when).every(([k, v]) => (Array.isArray(v) ? v.includes(params?.[k]) : params?.[k] === v));
+};
 
 /** Summary text for the form-level live region: unkeyed messages in full, keyed ones as a pointer. */
 export function summaryHtml(errors = [], fieldErrors = {}) {
@@ -172,6 +209,10 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   container.innerHTML = renderFormHtml(generator, params);
   const timers = new Map();
   const named = key => container.querySelector(`[name="${CSS.escape(key)}"]`);
+  // A radio group (the font picker) shares one name: its value is the checked radio's.
+  const allNamed = key => [...container.querySelectorAll(`[name="${CSS.escape(key)}"]`)];
+  const current = key => container.querySelector(`[name="${CSS.escape(key)}"]:checked`) ?? named(key);
+  const toggleOf = key => container.querySelector(`#${CSS.escape(controlId(key))}-toggle`);
   const range = key => container.querySelector(`[data-for="${CSS.escape(key)}"]`);
   const errorBox = container.querySelector("#cz-form-errors");
 
@@ -179,7 +220,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     clearTimeout(timers.get(key));
     timers.delete(key);
     const def = generator.schema[key];
-    const element = named(key);
+    const element = def?.picker ? current(key) : named(key);
     if (def && element) onChange(key, readControlValue(def, element), { final });
   };
   const schedule = (key, final) => {
@@ -226,6 +267,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       const element = named(key);
       if (!element) continue;
       const value = values[key];
+      if (def.picker) { setPicker(key, def, value); continue; }
       if (def.type === "bool") element.checked = Boolean(value);
       else if (isNumeric(def)) {
         if (Number.isFinite(value) && Number(element.value) !== value) element.value = String(value);
@@ -247,7 +289,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       const message = Object.hasOwn(fieldErrors, key) ? String(fieldErrors[key]) : "";
       const slot = container.querySelector(`#${CSS.escape(errorId(key))}`);
       if (slot && slot.textContent !== message) slot.textContent = message;
-      for (const control of [named(key), range(key)]) {
+      for (const control of [...allNamed(key), range(key), toggleOf(key)]) {
         if (!control) continue;
         const base = (control.dataset.describedby ?? "").split(" ").filter(Boolean);
         const ids = message ? [...base, errorId(key)] : base;
@@ -261,6 +303,45 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       const html = summaryHtml(errors, fieldErrors);
       if (errorBox.innerHTML !== html) errorBox.innerHTML = html;
     }
+  }
+
+  // ---- Picker fields (font): open/close, keyboard and pointer behavior ----
+  function setPicker(key, def, value) {
+    for (const radio of allNamed(key)) radio.checked = radio.value === String(value);
+    const option = (def.options ?? []).find(o => o.value === value);
+    const label = toggleOf(key)?.querySelector(".cz-picker-current");
+    if (option && label) {
+      label.textContent = option.label ?? option.value;
+      label.className = `cz-picker-current ${faceClass(option)}`;
+    }
+  }
+  function openPicker(field, open, { focus = false } = {}) {
+    const toggle = field.querySelector(".cz-picker-toggle");
+    const list = field.querySelector(".cz-picker-list");
+    if (!toggle || !list) return;
+    toggle.setAttribute("aria-expanded", String(open));
+    list.hidden = !open;
+    if (open && focus) (list.querySelector("input:checked") ?? list.querySelector("input"))?.focus();
+    if (!open && focus) toggle.focus();
+  }
+  for (const field of container.querySelectorAll("[data-picker]")) {
+    const toggle = field.querySelector(".cz-picker-toggle");
+    toggle?.addEventListener("click", () => openPicker(field, toggle.getAttribute("aria-expanded") !== "true", { focus: true }));
+    field.addEventListener("keydown", event => {
+      if (event.key === "Escape" && toggle?.getAttribute("aria-expanded") === "true") { event.preventDefault(); openPicker(field, false, { focus: true }); }
+      // Enter on a choice confirms it, like a select.
+      if (event.key === "Enter" && event.target.matches?.(".cz-picker-radio")) { event.preventDefault(); openPicker(field, false, { focus: true }); }
+    });
+    // Pressing a choice must not blur the group first (that would close it before the click).
+    field.addEventListener("mousedown", event => { if (event.target.closest?.(".cz-picker-option")) event.preventDefault(); });
+    // A pointer pick closes the list once the radio is checked (arrow keys and Space only move
+    // the choice: their clicks have detail 0, so the list stays open).
+    field.addEventListener("click", event => {
+      if (event.detail > 0 && event.target.closest?.(".cz-picker-option, .cz-picker-radio")) setTimeout(() => openPicker(field, false, { focus: true }), 0);
+    });
+    field.addEventListener("focusout", event => {
+      if (!field.contains(event.relatedTarget)) openPicker(field, false);
+    });
   }
 
   setLimits(limits ?? generator.rules?.(params).limits ?? {});

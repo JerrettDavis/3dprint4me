@@ -1,0 +1,21 @@
+/* Same-origin @font-face rules for the font picker (each option is drawn in its own font).
+   Fonts load only when text in that face is shown. Licenses: LICENSES.md. Generated from
+   public/assets/js/customize/fonts.js; tests/unit/customize-name-plate.test.mjs checks it. */
+@font-face { font-family: "cz-pacifico"; src: url("Pacifico-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-lobster"; src: url("Lobster-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-bebas-neue"; src: url("BebasNeue-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-righteous"; src: url("Righteous-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-caveat-brush"; src: url("CaveatBrush-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-rubik-mono-one"; src: url("RubikMonoOne-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-bangers"; src: url("Bangers-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-titan-one"; src: url("TitanOne-Regular.ttf") format("truetype"); font-display: swap; }
+
+.cz-ff-pacifico { font-family: "cz-pacifico", system-ui, sans-serif; }
+.cz-ff-lobster { font-family: "cz-lobster", system-ui, sans-serif; }
+.cz-ff-bebas-neue { font-family: "cz-bebas-neue", system-ui, sans-serif; }
+.cz-ff-righteous { font-family: "cz-righteous", system-ui, sans-serif; }
+.cz-ff-caveat-brush { font-family: "cz-caveat-brush", system-ui, sans-serif; }
+.cz-ff-rubik-mono-one { font-family: "cz-rubik-mono-one", system-ui, sans-serif; }
+.cz-ff-bangers { font-family: "cz-bangers", system-ui, sans-serif; }
+.cz-ff-titan-one { font-family: "cz-titan-one", system-ui, sans-serif; }
+.cz-ff-block { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
