@@ -7,3 +7,7 @@
 *.zip binary
 *.stl binary
 *.3mf binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
