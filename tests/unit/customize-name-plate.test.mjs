@@ -133,6 +133,8 @@ test("loadFont fetches curated fonts same-origin once, rejects unknown ids, trea
   let fail = true;
   const flaky = async () => (fail ? { ok: false } : { ok: true, arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) });
   await assert.rejects(() => loadFont({ fontId: "bangers", fetchImpl: flaky }), /couldn't be loaded/);
+  // A network error (fetch rejects) gets the same readable message, never the raw one.
+  await assert.rejects(() => loadFont({ fontId: "lobster", fetchImpl: async () => { throw new TypeError("Failed to fetch"); } }), err => /couldn't be loaded/.test(err.message) && !/Failed to fetch/.test(err.message));
   fail = false;
   // (Bangers bytes are not needed: any valid font proves the retry.)
   assert.ok(await loadFont({ fontId: "bangers", fetchImpl: flaky }));
@@ -247,6 +249,11 @@ test("errorField maps geometry errors to the control they concern", () => {
   assert.equal(gen.errorField("The name would print only 2.1 mm tall at the 150 mm width limit, too small to read. Shorten it."), "name");
   assert.equal(gen.errorField("That font file couldn't be read. Try a TTF, OTF or WOFF file."), "font");
   assert.equal(gen.errorField("Choose a font file below, or pick one of the listed fonts."), "font");
+  assert.equal(gen.errorField("That font isn't available."), "font");
+  // A download failure is transient: unkeyed, so the page shows "Try again" (re-picking the
+  // same font would not rebuild).
+  assert.equal(gen.errorField("The font couldn't be loaded. Check your connection and try again."), null);
+  assert.equal(gen.errorField("The selected font isn't loaded. Try again, or pick another font."), null);
   assert.equal(gen.errorField("something else"), null);
 });
 

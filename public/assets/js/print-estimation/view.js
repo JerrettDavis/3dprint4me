@@ -1,4 +1,4 @@
-import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=0113086731b32eb7";
+import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=121a507eb6ca2ceb";
 
 const modelPanelNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 const modelPanelInteger = new Intl.NumberFormat("en-US");

@@ -694,3 +694,24 @@ def test_name_plate_mobile_picker_has_no_horizontal_scroll(browser: Browser, bas
         assert box and box["height"] >= 44, box
     finally:
         context.close()
+
+
+def test_a_font_that_fails_to_download_offers_try_again(page: Page, base_url: str) -> None:
+    open_name_plate(page, base_url)
+    failing = {"on": True}
+
+    def handle(route) -> None:
+        if failing["on"]:
+            route.abort()
+        else:
+            route.continue_()
+    page.context.route("**/customize/fonts/Righteous-Regular.ttf", handle)
+    page.locator("#cz-font-toggle").click()
+    page.locator("label[for='cz-font-righteous']").click()
+    expect(page.locator("#cz-retry")).to_be_visible(timeout=BUILD_TIMEOUT)
+    expect(page.locator("#cz-form-errors")).to_contain_text("couldn't be loaded")
+    expect(page.locator("#cz-font-error")).to_have_text("")
+    failing["on"] = False
+    page.locator("#cz-retry").click()
+    wait_ready(page)
+    expect(page.locator("#cz-form-errors")).to_have_text("")
