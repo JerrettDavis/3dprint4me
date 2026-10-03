@@ -2,7 +2,7 @@ export function roundedRect(CrossSection, w, h, r = 0) {
   const rr = Math.min(r, w / 2 - 1e-3, h / 2 - 1e-3);
   if (rr <= 0) return CrossSection.square([w, h], true);
   const inner = CrossSection.square([w - 2 * rr, h - 2 * rr], true);
-  return inner.offset(rr, "Round", 2, 12);
+  return inner.offset(rr, "Round", 2, 48);
 }
 
 export function star(CrossSection, outerR, points = 5, innerRatio = 0.4) {
