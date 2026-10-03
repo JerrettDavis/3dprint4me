@@ -85,8 +85,8 @@ export default {
   origin: "house",
   rights: { publishable: true, note: "House design." },
   schema: {
-    top_text: { type: "text", label: "Upper text", max: 30, optional: true, default: "ROUTE", group: "text" },
-    lower_text: { type: "text", label: "Lower text", max: 30, optional: true, default: "66", group: "text" },
+    top_text: { type: "text", label: "Upper text", max: 18, optional: true, default: "ROUTE", group: "text" },
+    lower_text: { type: "text", label: "Lower text", max: 18, optional: true, default: "66", group: "text" },
     font_mode: { type: "enum", label: "Font", options: [{ value: "block", label: "Built-in block font" }, { value: "font", label: "Font file" }], default: "block", group: "text" },
     width_mm: { type: "number", label: "Width", min: WIDTH_RANGE[0], max: WIDTH_RANGE[1], step: 1, default: 80, unit: "mm", group: "size" },
     height_mm: { type: "number", label: "Height", min: HEIGHT_RANGE[0], max: HEIGHT_RANGE[1], step: 1, default: 88, unit: "mm", group: "size" },

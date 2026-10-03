@@ -16,7 +16,7 @@ const bounds2 = pts => ({
 });
 
 function makeTextCS(CrossSection, text, o, font) {
-  if (!String(text || "").trim()) return new CrossSection([]);
+  if (!String(text || "").trim()) return CrossSection.union([]);
   if (o.font_mode === "block") return blockText(CrossSection, text);
   if (!font) throw new Error("Choose a font file first, or switch back to the built-in block font.");
   return fontText(CrossSection, font, text);
@@ -33,7 +33,7 @@ const QR_EDGE = 3;         // clearance between the QR code and the badge edge
 const STEM_X = [-19.071, 17.9];
 const FIT_EPS = 1e-3;      // mm^2 of tolerated overhang (numeric noise)
 
-const textFits = (cs, region) => cs.isEmpty() || cs.subtract(region).area() <= FIT_EPS;
+const textFits = (cs, region, t) => cs.isEmpty() || t(cs.subtract(region)).area() <= FIT_EPS;
 
 // `t` registers a temporary for release when build() finishes.
 function buildLayout(wasm, options, font, t) {
@@ -103,18 +103,18 @@ function buildLayout(wasm, options, font, t) {
 const pctOf = (o, key) => (o[`${key}_scale_pct`] ?? 100) / 100;
 const offOf = (o, key) => o[`${key}_offset_mm`] ?? 0;
 
-function fitFront(spec, o, pct = pctOf(o, spec.key), off = offOf(o, spec.key)) {
-  return fitCrossSection(spec.text, {
+function fitFront(spec, o, t, pct = pctOf(o, spec.key), off = offOf(o, spec.key)) {
+  return t(fitCrossSection(spec.text, {
     maxWidth: spec.box.w * pct, maxHeight: spec.box.h * pct, centerX: 0, centerY: spec.baseY + off
-  });
+  }));
 }
 
 // Unmirrored back text (the caller mirrors it with the QR).
-function fitBack(b, o, pct = pctOf(o, "back"), off = offOf(o, "back")) {
-  return b.CrossSection.union(b.lines.map((cs, i) => fitCrossSection(cs, {
+function fitBack(b, o, t, pct = pctOf(o, "back"), off = offOf(o, "back")) {
+  return b.CrossSection.union(b.lines.map((cs, i) => t(fitCrossSection(cs, {
     maxWidth: b.box.w * pct, maxHeight: b.box.h * pct, centerX: 0,
     centerY: b.lineCenterTop + off - i * b.step
-  })));
+  }))));
 }
 
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
@@ -137,11 +137,11 @@ export default async function build(options, { wasm, font = null } = {}) {
 
     // Reaching here with text that doesn't fit is an error, never a silent crop.
     const fitOrThrow = (name, cs, region) => {
-      if (!textFits(cs, region)) throw new Error(`${name} doesn't fit at this size/position; reduce its size or move it back toward center.`);
+      if (!textFits(cs, region, t)) throw new Error(`${name} doesn't fit at this size/position; reduce its size or move it back toward center.`);
       return cs;
     };
     const frontText = spec => spec.text.isEmpty() ? spec.text
-      : fitOrThrow(`${spec.key === "top" ? "Upper" : "Lower"} text`, t(fitFront(spec, options)), spec.region);
+      : fitOrThrow(`${spec.key === "top" ? "Upper" : "Lower"} text`, fitFront(spec, options, t), spec.region);
     const topText = frontText(layout.front.top);
     const lowerText = frontText(layout.front.lower);
 
@@ -149,12 +149,12 @@ export default async function build(options, { wasm, font = null } = {}) {
     // is flipped like a page) so they read normally from the back.
     const backSections = [];
     if (layout.back.lines.length) {
-      const backText = t(fitBack(layout.back, options));
-      if (!textFits(t(backText.mirror([1, 0])), layout.back.region)) throw new Error("Back text doesn't fit at this size/position; reduce its size or move it back toward center.");
+      const backText = t(fitBack(layout.back, options, t));
+      if (!textFits(t(backText.mirror([1, 0])), layout.back.region, t)) throw new Error("Back text doesn't fit at this size/position; reduce its size or move it back toward center.");
       backSections.push(backText);
     }
     if (qr) backSections.push(qr.cs);
-    let backCS = backSections.length ? t(CrossSection.union(backSections)) : t(new CrossSection([]));
+    let backCS = backSections.length ? t(CrossSection.union(backSections)) : t(CrossSection.union([]));
     if (!backCS.isEmpty()) backCS = t(backCS.mirror([1, 0]));
     if (!backCS.isEmpty()) backCS = t(backCS.intersect(safeBack));
 

@@ -75,10 +75,12 @@ export function blockText(CrossSection, text) {
     }
     x += advance;
   }
-  if (!polygons.length) return new CrossSection([]);
+  if (!polygons.length) return CrossSection.union([]);
   const cs = CrossSection.ofPolygons(polygons);
   const b = cs.bounds();
-  return cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]);
+  const centered = cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]);
+  cs.delete?.();
+  return centered;
 }
 
 function quad(p0, p1, p2, t) {
@@ -156,10 +158,12 @@ export function fontText(CrossSection, font, text) {
   if (!font) throw new Error('Choose a local font file first.');
   const path = fontTextPath(font, String(text || ''));
   const contours = flattenOpenTypePath(path, 12);
-  if (!contours.length) return new CrossSection([]);
+  if (!contours.length) return CrossSection.union([]);
   const cs = CrossSection.ofPolygons(contours, 'EvenOdd');
   const b = cs.bounds();
-  return cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]);
+  const centered = cs.translate([-(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2]);
+  cs.delete?.();
+  return centered;
 }
 
 export function fitCrossSection(cs, { maxWidth, maxHeight, centerX = 0, centerY = 0 }) {
@@ -171,5 +175,7 @@ export function fitCrossSection(cs, { maxWidth, maxHeight, centerX = 0, centerY 
   const scale = Math.min(maxWidth / w, maxHeight / h);
   const scaled = cs.scale([scale, scale]);
   const sb = scaled.bounds();
-  return scaled.translate([centerX - (sb.min[0]+sb.max[0])/2, centerY - (sb.min[1]+sb.max[1])/2]);
+  const placed = scaled.translate([centerX - (sb.min[0]+sb.max[0])/2, centerY - (sb.min[1]+sb.max[1])/2]);
+  scaled.delete?.();
+  return placed;
 }
