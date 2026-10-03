@@ -1,4 +1,4 @@
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=baf191b49177a732";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=a984a83c5ec96522";
 
 const money = new Intl.NumberFormat(SITE_CONFIG.defaults.locale, {
   style: "currency",
