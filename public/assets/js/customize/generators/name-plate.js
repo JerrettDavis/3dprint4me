@@ -2,8 +2,8 @@
 // self-hosted OFL fonts or the customer's own font file (parsed in the browser, never uploaded),
 // raised, outlined, shadowed or inlaid on a pill or rectangle plate, or cut out with a backing
 // outline (no plate). Optional keychain loop at the left end.
-import { contrastRatio } from "../color.js?v=094c779c94cf087f";
-import { FONTS } from "../fonts.js?v=094c779c94cf087f";
+import { contrastRatio } from "../color.js?v=295d8d664ce2c0cd";
+import { FONTS } from "../fonts.js?v=295d8d664ce2c0cd";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // plate kept under the relief (and under an inlay)

@@ -84,7 +84,18 @@ The steps below are **not executed by the repository or its agents**. Each outwa
 1. **Pre-flight (read-only).** Confirm migration 005 is applied in production and that `/api/health` reports `printEstimation: true`. Check the Vercel project's Node version (22.x) and branch settings.
 2. **OWNER-GATED — Preview.** Push `feat/generator-section` and open a PR. Let Vercel build a preview, then on it:
    - run the four generator flows;
-   - confirm the `/customize/g/<id>/` response carries the customize CSP;
+   - check the headers on the preview. The negative-lookahead header source `/((?!customize/).*)` has not yet been verified on a real Vercel deployment. If Vercel rejected or ignored it, every page would lose its security headers, so do not merge until all of these hold (`<preview>` is the preview host):
+     ```sh
+     curl -sI https://<preview>/ | grep -i content-security-policy
+     curl -sI https://<preview>/customize/g/wifi-tag/ | grep -i content-security-policy
+     curl -sI https://<preview>/customize | grep -i -E '^HTTP|^location'
+     curl -sI https://<preview>/customize/assets/<manifold-hash>.wasm | grep -i content-type
+     curl -sI https://<preview>/customize/fonts/Pacifico-Regular.ttf | grep -i content-type
+     ```
+     - The first header must equal `GLOBAL_CSP` and the second `CUSTOMIZE_CSP` in `scripts/csp.mjs`, character for character (`node -e "import('./scripts/csp.mjs').then(m => console.log(m.GLOBAL_CSP + '\n\n' + m.CUSTOMIZE_CSP))"`). Also check that `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` and `Permissions-Policy` are present on both responses.
+     - `/customize` (no slash) must answer `308` with `location: /customize/`.
+     - The `.wasm` file must be served as `application/wasm`; take its hashed name from the page's network panel or from `public/customize/assets/`.
+     - The font must be served as a font type (`font/ttf`), not as `application/octet-stream` or `text/html`.
    - print one Wi-Fi tag and scan it with a phone.
 3. **OWNER-GATED — Merge and deploy.** Merge the PR to `main` and let Vercel deploy production. Run `npm run smoke:live -- https://3dprint4.me`. The Customize section works without a slicer: estimates stay geometry-only until step 5.
 4. **OWNER-GATED — Slicer worker on jdh-docker-00.** Deploy the Portainer git stack from `deploy/slicer-worker/docker-compose.yml` on branch `main` (which now has the merged code). The owner enters `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` and `SLICER_PROFILE_ID` in Portainer. Run the one-batch check: `docker compose -f deploy/slicer-worker/docker-compose.yml run --rm slicer-worker node scripts/print-estimate-worker.mjs --once`. See [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md#slicer-worker-container) for the host steps.

@@ -43,8 +43,18 @@ function numberField(key, def, value, error) {
 </div>`;
 }
 
-// Sensitive text always renders as a single-line password box, even when the schema marks
-// it multiline: a <textarea> cannot be masked, and secrets (Wi-Fi passwords) are one line.
+// Sensitive text (a Wi-Fi password) is a secret for the customer's network, not a login for
+// this site. A type="password" box (or a field named like a credential) makes browsers offer to
+// save it as the 3dprint4.me password and autofill a saved site login into the form, so the
+// control is a plain single-line text box masked by CSS (-webkit-text-security, class
+// cz-secret), with no form name and every password-manager opt-out. Browsers without CSS
+// masking get a password box with autocomplete="new-password" at runtime (secretInputAttributes),
+// which is never autofilled. A <textarea> cannot be masked, so multiline is ignored for secrets.
+const SECRET_ATTRS = ' autocomplete="off" data-lpignore="true" data-1p-ignore data-form-type="other" spellcheck="false" autocapitalize="off" autocorrect="off"';
+
+/** The masked control's type/autocomplete for a browser with (true) or without CSS text masking. */
+export const secretInputAttributes = cssMasking => (cssMasking ? { type: "text", autocomplete: "off" } : { type: "password", autocomplete: "new-password" });
+
 function textField(key, def, value, error) {
   const id = controlId(key);
   const base = [`${id}-help`];
@@ -55,10 +65,12 @@ function textField(key, def, value, error) {
   // def.help: the field's own wording (e.g. a secret that is required only in some cases).
   const helpText = def.help ? esc(def.help) : `${def.optional ? "Optional. " : ""}Up to ${esc(def.max)} characters${multiline ? ", one line per row" : ""}.`;
   const help = `<p class="help" id="${id}-help">${helpText}</p>`;
-  const control = multiline
-    ? `<textarea class="textarea cz-textarea" ${common} rows="4" spellcheck="false">${esc(value)}</textarea>`
+  const control = def.sensitive
     // A secret is never written into markup; setValues() sets the live .value property instead.
-    : `<input class="input" type="${def.sensitive ? "password" : "text"}" ${common} autocomplete="off" spellcheck="false"${def.sensitive ? "" : attr("value", value)}>`;
+    ? `<input type="text" class="input cz-secret" id="${id}" data-key="${esc(key)}"${attr("maxlength", def.max)}${describe(base, key, error)}${SECRET_ATTRS}>`
+    : multiline
+      ? `<textarea class="textarea cz-textarea" ${common} rows="4" spellcheck="false">${esc(value)}</textarea>`
+      : `<input class="input" type="text" ${common} autocomplete="off" spellcheck="false"${attr("value", value)}>`;
   return `<div class="cz-field cz-field-text" data-field="${esc(key)}">
   <label class="cz-label" for="${id}">${esc(def.label ?? key)}</label>
   ${control}
@@ -202,33 +214,54 @@ export function restoreParams(generator, raw) {
   return validateParams(generator, merged).value;
 }
 
+/** True when the browser masks text boxes via CSS (Chromium, Safari, Firefox 114+). */
+export function cssTextMasking() {
+  try { return Boolean(globalThis.CSS?.supports?.("-webkit-text-security", "disc")); } catch { return false; }
+}
+
 /**
  * Renders the form into `container` and reports edits as onChange(key, value, { final }).
  * `final` is true for committed edits (change events, sliders, selects, checkboxes, colors);
  * typing into a number or text box is reported debounced with final=false so the page can
  * validate without snapping a half-typed number.
  */
-export function renderForm(container, generator, params, { onChange = () => {}, limits } = {}) {
+export function renderForm(container, generator, params, { onChange = () => {}, limits, cssMasking = cssTextMasking() } = {}) {
   container.innerHTML = renderFormHtml(generator, params);
+  const secret = secretInputAttributes(cssMasking);
+  for (const input of container.querySelectorAll("input.cz-secret")) {
+    input.type = secret.type;
+    input.setAttribute("autocomplete", secret.autocomplete);
+  }
   const timers = new Map();
-  const named = key => container.querySelector(`[name="${CSS.escape(key)}"]`);
+  // Controls are found by form name, or by data-key for a secret (which has no name).
+  const byKey = key => `[name="${CSS.escape(key)}"], [data-key="${CSS.escape(key)}"]`;
+  const keyOf = element => element?.name || element?.dataset?.key || "";
+  const named = key => container.querySelector(byKey(key));
   // A radio group (the font picker) shares one name: its value is the checked radio's.
-  const allNamed = key => [...container.querySelectorAll(`[name="${CSS.escape(key)}"]`)];
+  const allNamed = key => [...container.querySelectorAll(byKey(key))];
   const current = key => container.querySelector(`[name="${CSS.escape(key)}"]:checked`) ?? named(key);
   const toggleOf = key => container.querySelector(`#${CSS.escape(controlId(key))}-toggle`);
   const range = key => container.querySelector(`[data-for="${CSS.escape(key)}"]`);
   const errorBox = container.querySelector("#cz-form-errors");
 
+  // data-settling marks the form while an edit waits on its debounce/settle timer (tests and
+  // anything else that must know every edit has been reported).
+  const syncSettling = () => container.toggleAttribute?.("data-settling", timers.size > 0);
   const emit = (key, final) => {
     clearTimeout(timers.get(key));
     timers.delete(key);
     const def = generator.schema[key];
     const element = def?.picker ? current(key) : named(key);
-    if (def && element) onChange(key, readControlValue(def, element), { final });
+    try {
+      if (def && element) onChange(key, readControlValue(def, element), { final });
+    } finally {
+      syncSettling();
+    }
   };
   const schedule = (key, final, delay = DEBOUNCE_MS) => {
     clearTimeout(timers.get(key));
     timers.set(key, setTimeout(() => emit(key, final), delay));
+    syncSettling();
   };
 
   function onInput(event) {
@@ -240,7 +273,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       schedule(forKey, true);
       return;
     }
-    const key = target.name;
+    const key = keyOf(target);
     if (!key || !generator.schema[key]) return;
     const def = generator.schema[key];
     if (def.picker) { schedule(key, true, PICKER_SETTLE_MS); return; }
@@ -249,7 +282,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     schedule(key, !typing);
   }
   function onCommit(event) {
-    const key = event.target.name;
+    const key = keyOf(event.target);
     if (!key || !generator.schema[key]) return;
     if (generator.schema[key].picker) {
       // A pointer pick commits at once (and closes the list); arrow keys wait to settle.
@@ -261,8 +294,11 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       } else schedule(key, true, PICKER_SETTLE_MS);
     } else emit(key, true);
   }
+  // The settings are never submitted anywhere: Enter in a field must not submit or navigate.
+  const onSubmit = event => event.preventDefault();
   container.addEventListener("input", onInput);
   container.addEventListener("change", onCommit);
+  container.addEventListener("submit", onSubmit);
 
   function setLimits(next = {}) {
     for (const [key, [lo, hi]] of Object.entries(next)) {
@@ -379,8 +415,10 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     destroy() {
       for (const timer of timers.values()) clearTimeout(timer);
       timers.clear();
+      syncSettling();
       container.removeEventListener("input", onInput);
       container.removeEventListener("change", onCommit);
+      container.removeEventListener("submit", onSubmit);
       container.innerHTML = "";
     }
   };

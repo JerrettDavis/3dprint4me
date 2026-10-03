@@ -111,3 +111,42 @@ test("the real wifi-tag generator withholds its password and keeps everything el
 test("wifi-tag provenance is still re-validated: a low-contrast QR is rejected with 400", () => {
   assert.throws(() => normalizeCustomization({ generatorId: "wifi-tag", generatorVersion: 1, params: { ssid: "Cafe", password: "hunter2", base_color: "#ffffff", qr_color: "#eeeeee" } }), err => err.status === 400 && !err.message.includes("hunter2"));
 });
+
+const STALE_HINT = "This design was made with an older version of the generator. Remove the attached model and open the customizer again.";
+
+test("a customization that no longer validates says how to recover, without echoing any value", () => {
+  const SENTINEL = "SENTINEL-9f3a";
+  for (const input of [
+    { generatorId: "route-shield", generatorVersion: 1, params: { width_mm: 9999, top_text: SENTINEL } },
+    { generatorId: "route-shield", generatorVersion: 1, params: { retired_field: SENTINEL } },
+    { generatorId: "route-shield", generatorVersion: 99, params: { top_text: SENTINEL } },
+    { generatorId: "route-shield", generatorVersion: 1, params: { top_text: `${SENTINEL}\u0007` } }
+  ]) {
+    assert.throws(() => normalizeCustomization(input), err => {
+      assert.equal(err.status, 400);
+      assert.ok(err.message.endsWith(STALE_HINT), err.message);
+      assert.deepEqual(err.details, { code: "customization-stale" });
+      assert.ok(!err.message.includes(SENTINEL) && !JSON.stringify(err.details).includes(SENTINEL), err.message);
+      assert.ok(!err.message.includes("9999"), err.message);
+      return true;
+    }, JSON.stringify(input));
+  }
+});
+
+test("malformed customization payloads get no stale-design hint", () => {
+  for (const input of ["route-shield", { generatorId: "nope", generatorVersion: 1, params: {} }, { generatorId: "route-shield", generatorVersion: 1, params: [] }, { generatorId: "route-shield", generatorVersion: 1, params: { back_text: "x".repeat(20000) } }]) {
+    assert.throws(() => normalizeCustomization(input), err => err.status === 400 && !err.message.includes(STALE_HINT) && err.details === undefined, JSON.stringify(input).slice(0, 80));
+  }
+});
+
+test("the request API answers a stale customization with 400 and the hint code, not 500", async () => {
+  const { handleApiError } = await import("../../lib/http.js");
+  let error;
+  try { normalizeProjectRequest({ ...base, customization: { generatorId: "route-shield", generatorVersion: 1, params: { width_mm: 9999 } } }); } catch (e) { error = e; }
+  const res = { headers: {}, setHeader(k, v) { this.headers[k] = v; }, end(body) { this.body = body; } };
+  handleApiError(res, error);
+  assert.equal(res.statusCode, 400);
+  const payload = JSON.parse(res.body);
+  assert.match(payload.error, /open the customizer again/);
+  assert.deepEqual(payload.details, { code: "customization-stale" });
+});

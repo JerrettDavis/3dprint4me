@@ -50,3 +50,14 @@ test("the serverless bundle includes the isomorphic customize modules", () => {
   assert.ok(!/[{}]/.test(include), "avoid brace globs; Vercel includeFiles takes one glob");
   assert.equal(include, "public/assets/js/**");
 });
+
+test("/customize without a trailing slash redirects permanently to /customize/ (never the global CSP)", () => {
+  assert.deepEqual(vercel.redirects, [{ source: "/customize", destination: "/customize/", permanent: true }]);
+  assert.equal(vercel.routes, undefined, "Vercel rejects `redirects` alongside legacy `routes`");
+});
+
+test("the dev server mirrors the /customize redirect", async () => {
+  const source = await readFile(new URL("../../scripts/dev-server.mjs", import.meta.url), "utf8");
+  assert.match(source, /url\.pathname === "\/customize"/);
+  assert.match(source, /308/);
+});

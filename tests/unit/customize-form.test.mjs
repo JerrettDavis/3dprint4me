@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { renderFormHtml, storableParams, restoreParams, readControlValue } from "../../customizer/framework/form.js";
+import { renderFormHtml, storableParams, restoreParams, readControlValue, secretInputAttributes } from "../../customizer/framework/form.js";
 import { getGenerator } from "../../public/assets/js/customize/registry.js";
 import { validateParams } from "../../public/assets/js/customize/schema.js";
 
@@ -24,17 +24,31 @@ test("user-supplied defaults are HTML-escaped", () => {
   assert.ok(!evil.includes("<img"));
 });
 
-test("sensitive text fields are password-style, non-autofilled and say plainly where the value goes", () => {
+test("sensitive text fields are masked text boxes that password managers don't treat as credentials", () => {
   const wifi = { schema: { pw: { type: "text", label: "Password", max: 20, default: "", sensitive: true, optional: true } } };
   const out = renderFormHtml(wifi, { pw: "" });
-  assert.match(out, /type="password"/);
-  assert.match(out, /autocomplete="off"/);
+  const input = out.match(/<input[^>]*id="cz-pw"[^>]*>/)?.[0];
+  assert.ok(input, out);
+  // type=password (or a credential-looking name) makes browsers offer to save it and autofill a
+  // saved site login into it; a text box masked by CSS does neither.
+  assert.doesNotMatch(out, /type="password"/);
+  assert.match(input, /type="text"/);
+  assert.match(input, /class="input cz-secret"/);
+  assert.doesNotMatch(input, /\sname=/, "no form name at all, so nothing credential-like is submitted or remembered");
+  assert.match(input, /data-key="pw"/);
+  for (const attr of ['autocomplete="off"', 'data-lpignore="true"', "data-1p-ignore", 'data-form-type="other"', 'spellcheck="false"', 'autocapitalize="off"', 'autocorrect="off"']) assert.ok(input.includes(attr), attr);
+  assert.doesNotMatch(input, /\svalue=/);
   assert.match(out, /<p class="cz-sensitive-note" id="cz-pw-note">/);
   assert.match(out, /model file/i);
   assert.match(out, /stored privately/i);
   assert.match(out, /not copied into our request records, emails or your saved draft/i);
   // Never the old, untrue claim: the uploaded model file is on our private storage.
   assert.doesNotMatch(out, /never on our servers|only inside the model file/i);
+});
+
+test("browsers without CSS text masking fall back to a password box that is never autofilled", () => {
+  assert.deepEqual(secretInputAttributes(true), { type: "text", autocomplete: "off" });
+  assert.deepEqual(secretInputAttributes(false), { type: "password", autocomplete: "new-password" });
 });
 
 test("each control has a unique id, every label points at one, and only one control per field carries the name", () => {

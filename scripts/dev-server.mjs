@@ -48,6 +48,8 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url || "/", `http://${req.headers.host || `${host}:${port}`}`);
     const apiHandler = apiRoutes.get(url.pathname);
     if (apiHandler) { securityHeaders(res, url); await apiHandler(req, res); return; }
+    // Mirrors vercel.json "redirects" (permanent: true is a 308 on Vercel).
+    if (url.pathname === "/customize") { securityHeaders(res, url); res.writeHead(308, { Location: `/customize/${url.search}` }); res.end(); return; }
     if (!["GET", "HEAD"].includes(req.method || "GET")) { res.writeHead(405, { "Content-Type": "text/plain; charset=utf-8", Allow: "GET, HEAD" }); res.end("Method not allowed"); return; }
     let pathname; try { pathname = decodeURIComponent(url.pathname); } catch { pathname = "/404.html"; }
     if (pathname.endsWith("/")) pathname += "index.html";

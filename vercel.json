@@ -9,6 +9,13 @@
       "includeFiles": "public/assets/js/**"
     }
   },
+  "redirects": [
+    {
+      "source": "/customize",
+      "destination": "/customize/",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/((?!customize/).*)",

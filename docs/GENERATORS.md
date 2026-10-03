@@ -148,6 +148,17 @@ flight and at most one queued**: a newer edit supersedes older ones (their promi
 more than 30 s, or a worker crash, terminates and recreates the worker and shows **Try again**
 (retryable). Font bytes and image contours are cloned only for the request that actually runs.
 
+Failures are classified (`worker-core.js`, `build-status.js`). If the builder itself does not
+load (the Manifold WASM, the generator's builder module, or a curated font from `/customize/fonts/`
+fails to fetch or parse), the worker answers `{ retryable: true, code: "load-failed" }`, and the
+client replaces the worker, because a failed module import can stay cached inside it. A worker
+that does not start or that crashes gives `code: "worker-failed"`. In both cases the page says
+"We couldn't load the model builder. Check your connection and try again." with **Try again**,
+and the Settings panel shows no error. A timeout (`code: "timeout"`) keeps its own message.
+Everything else (geometry, rule, or the customer's own unreadable font file) is a build error:
+the message goes next to the field it concerns, and the status says "The model couldn't be built
+with these settings".
+
 On the page (`app.js`): a field edit is validated first (field and rule errors appear without a
 build); typing rebuilds after a 150 ms debounce; a committed edit (change, slider release, select)
 is clamped, and a commit that changes nothing does not rebuild (`applyEdit`). Facts (size,
@@ -174,7 +185,12 @@ with `&handoff=download` and asks the customer to attach it.
 Server: `lib/validation.js` calls `normalizeCustomization(input.customization)` for print requests
 only (other services always get `null`). It rejects a non-object, an unknown generator, a version
 outside `1..version`, non-object params, params over 8000 bytes of JSON, unknown keys and any
-schema/rule violation (HTTP 400), and returns
+schema/rule violation (HTTP 400). A version mismatch or a schema/rule violation is usually a stale
+design, made before the generator changed. For those, the message ends with "This design was made
+with an older version of the generator. Remove the attached model and open the customizer again."
+and the response carries `details.code: "customization-stale"`; it never includes a submitted
+value. The order page then shows that message inside the handed-off model's row in the file list,
+next to its Remove button. Otherwise it returns
 `{ generatorId, generatorVersion, params (sensitive → "[redacted]"), redacted: [keys] }`. That
 object is stored inside the request payload (`service_requests.payload` JSONB; no migration), sent
 in owner email and webhooks with sensitive values shown as withheld, and rendered on the operator
@@ -194,6 +210,14 @@ password). Then:
 - The builder may use it only as geometry (the Wi-Fi password exists solely as QR modules).
   Filenames, titles, part names and warnings must not contain it.
 - The form masks it, never writes it into markup, and shows a fixed note saying where it goes.
+  The control is **not** `type="password"`: a password box next to a text field reads as a login
+  form, so browsers would offer to save the Wi-Fi password as this site's password and autofill a
+  saved site login into the form. It is a `type="text"` box masked by CSS (`.cz-secret`,
+  `-webkit-text-security: disc`, supported by Chromium, Safari and Firefox 114+). It has no form
+  `name` (it is found by `data-key`) and carries `autocomplete="off"` plus the LastPass, 1Password
+  and Dashlane opt-outs. `#cz-form` has `autocomplete="off"` and never submits. A browser
+  without CSS masking gets `type="password"` with `autocomplete="new-password"` at runtime, which
+  is never autofilled.
 - The 3MF itself necessarily encodes it, so the file follows the private-upload retention rules,
   and the page says so before Continue.
 

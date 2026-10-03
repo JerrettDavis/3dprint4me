@@ -80,7 +80,8 @@ test("sensitive multiline text still renders as a masked single-line field", () 
   const gen = { schema: { pw: { type: "text", label: "Secret", max: 40, multiline: true, sensitive: true, optional: true, default: "" } } };
   const out = renderFormHtml(gen, { pw: "" });
   assert.ok(!out.includes("<textarea"));
-  assert.match(out, /<input[^>]*type="password"[^>]*name="pw"/);
+  assert.match(out, /<input[^>]*type="text"[^>]*class="input cz-secret"[^>]*data-key="pw"/);
+  assert.doesNotMatch(out, /type="password"|name="pw"/);
 });
 
 test("continue state: Continue is enabled only for a ready model (the order hand-off is always wired)", () => {

@@ -1,20 +1,20 @@
-import "./site.js?v=094c779c94cf087f";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=094c779c94cf087f";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=094c779c94cf087f";
-import { toast } from "./site.js?v=094c779c94cf087f";
-import { createProjectRequestClient } from "./order/client.js?v=094c779c94cf087f";
-import { createOrderController } from "./order/controller.js?v=094c779c94cf087f";
-import { createDraftStore } from "./order/draft-store.js?v=094c779c94cf087f";
-import { createFileManager } from "./order/files.js?v=094c779c94cf087f";
-import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=094c779c94cf087f";
-import { takeHandoff } from "./order/customize-handoff.js?v=094c779c94cf087f";
-import { createStepValidator } from "./order/validation.js?v=094c779c94cf087f";
-import { createOrderView } from "./order/view.js?v=094c779c94cf087f";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=094c779c94cf087f";
-import { modelFormat } from "./print-estimation/geometry.js?v=094c779c94cf087f";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=094c779c94cf087f";
-import { createModelPanelView } from "./print-estimation/view.js?v=094c779c94cf087f";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=094c779c94cf087f";
+import "./site.js?v=295d8d664ce2c0cd";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=295d8d664ce2c0cd";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=295d8d664ce2c0cd";
+import { toast } from "./site.js?v=295d8d664ce2c0cd";
+import { createProjectRequestClient } from "./order/client.js?v=295d8d664ce2c0cd";
+import { createOrderController } from "./order/controller.js?v=295d8d664ce2c0cd";
+import { createDraftStore } from "./order/draft-store.js?v=295d8d664ce2c0cd";
+import { createFileManager } from "./order/files.js?v=295d8d664ce2c0cd";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=295d8d664ce2c0cd";
+import { takeHandoff } from "./order/customize-handoff.js?v=295d8d664ce2c0cd";
+import { createStepValidator } from "./order/validation.js?v=295d8d664ce2c0cd";
+import { createOrderView } from "./order/view.js?v=295d8d664ce2c0cd";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=295d8d664ce2c0cd";
+import { modelFormat } from "./print-estimation/geometry.js?v=295d8d664ce2c0cd";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=295d8d664ce2c0cd";
+import { createModelPanelView } from "./print-estimation/view.js?v=295d8d664ce2c0cd";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=295d8d664ce2c0cd";
 
 const form = document.querySelector("#project-form");
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
@@ -121,6 +121,7 @@ const controller = createOrderController({
     showSubmission(request, stored) { view.showSubmission(request, stored, mailtoFor(request)); },
     submissionError(error) {
       view.submissionError(error);
+      showStaleDesignProblem(error);
       if (error.kind !== "correctable") console.error(error);
       toast(error.message || "The request could not be submitted.");
     }
@@ -128,6 +129,17 @@ const controller = createOrderController({
   newLocalId: () => `LOCAL-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
   printEstimate: privateEstimates
 });
+
+// The server rejected the handed-off design (made with an older generator version): show its
+// message next to that model in the file list, where its Remove button is.
+function showStaleDesignProblem(error) {
+  if (error?.code !== "customization-stale" || !handoffFile) return;
+  const index = files.list().indexOf(handoffFile);
+  const step = view.fileStepIndex();
+  if (index < 0 || step < 0) return;
+  showStep(step);
+  view.showFileProblem(index, error.message);
+}
 
 function renderReview() { view.renderReview(buildRequest(), getData(), files.list()); }
 function showStep(index, focus = true) {

@@ -371,7 +371,8 @@ test("failed builds do not leak either", async () => {
 test("the form renders the password as a masked field that doesn't claim to be optional", async () => {
   const { renderFormHtml, storableParams } = await import("../../customizer/framework/form.js");
   const html = renderFormHtml(gen, paramsFor());
-  assert.match(html, /<input class="input" type="password" id="cz-password"/);
+  assert.match(html, /<input type="text" class="input cz-secret" id="cz-password" data-key="password"/);
+  assert.doesNotMatch(html, /type="password"|name="password"/, "nothing a password manager would treat as a site login");
   assert.match(html, /id="cz-password-help">Needed unless the network is open/);
   assert.match(html, /id="cz-password-note"/);
   assert.ok(!html.includes(NETWORK.password), "the typed password is never echoed into the markup");
