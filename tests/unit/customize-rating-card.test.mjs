@@ -47,8 +47,8 @@ test("generator definition: id, version, category, provenance", () => {
   assert.equal(gen.category, "cards");
   assert.equal(gen.origin, "house");
   assert.deepEqual(gen.rights, { publishable: true, note: "House design." });
-  assert.deepEqual(Object.keys(gen.presets).sort(), ["heart", "house", "mug", "toilet"]);
-  for (const [name, preset] of Object.entries(gen.presets)) assert.equal(paramsFor(preset).icon, name);
+  assert.deepEqual(Object.keys(gen.presets).sort(), ["dark", "heart", "house", "mug", "toilet"]);
+  for (const name of ["heart", "house", "mug", "toilet"]) assert.equal(paramsFor(gen.presets[name]).icon, name);
 });
 
 test("defaults: toilet, 3.5 stars, the caption, business-card colors", () => {
@@ -299,22 +299,40 @@ test("the server re-validates a rating-card customization", () => {
   assert.throws(() => normalizeCustomization({ generatorId: "rating-card", generatorVersion: 1, params: { rating: 3.3 } }), err => err.status === 400);
 });
 
-test("image files are checked by type and size before decoding", async () => {
-  const { checkImageFile, MAX_IMAGE_BYTES } = await import("../../customizer/framework/image-input.js");
-  assert.doesNotThrow(() => checkImageFile({ type: "image/png", size: 1000 }));
-  assert.throws(() => checkImageFile({ type: "image/svg+xml", size: 1000 }), /PNG, JPEG, WebP or GIF/);
-  assert.throws(() => checkImageFile({ type: "text/html", size: 1000 }), /isn't a PNG/);
-  assert.throws(() => checkImageFile({ type: "image/jpeg", size: MAX_IMAGE_BYTES + 1 }), /8 MB/);
-  assert.throws(() => checkImageFile({ type: "image/jpeg", size: 0 }), /empty/);
-  assert.throws(() => checkImageFile(null), /no image/i);
+test("the hand-off record never carries traced contours, even if they leak into the page state", async () => {
+  // The image check moved to customize-image-input.test.mjs (sniffed bytes, not the claimed type).
+  const { continuePayload, continueToOrder } = await import("../../customizer/framework/continue.js");
+  const contours = discContours();
+  const marker = JSON.stringify(contours[0]);
+  const out = await buildModel(gen, paramsFor({ icon: "custom" }), { wasm, font: null, imageContours: contours });
+  // Worst case: a careless page put the contours (and a file name) into its params and result.
+  const pageParams = { ...paramsFor({ icon: "custom" }), imageContours: contours, imageName: "secret-paw.png" };
+  const pageResult = { ...out, imageContours: contours };
+  const payload = continuePayload(gen, pageParams, pageResult);
+  let written = null;
+  await continueToOrder(payload, { writeHandoff: async record => { written = record; }, download() {}, navigate() {} });
+  const { file, ...record } = written;
+  assert.ok(file instanceof Blob);
+  const text = JSON.stringify(record);
+  assert.ok(!text.includes(marker) && !text.includes("[[") && !/contour|secret-paw/i.test(text), text);
+  assert.deepEqual(Object.keys(record.params).sort(), Object.keys(gen.schema).sort(), "only schema parameters are handed off");
 });
 
-test("the browser hand-off payload carries the model and params, never the traced image", async () => {
-  const { continuePayload } = await import("../../customizer/framework/continue.js");
-  const out = await buildModel(gen, paramsFor({ icon: "custom" }), { wasm, font: null, imageContours: discContours() });
-  const payload = continuePayload(gen, paramsFor({ icon: "custom" }), out);
-  const { file, ...rest } = payload;
-  assert.ok(file instanceof Blob);
-  const text = JSON.stringify(rest);
-  assert.ok(!text.includes("[[") && !/contour|\.png/i.test(text), text);
+test("the dark preset passes every contrast rule and builds with no warnings", async () => {
+  const value = paramsFor(gen.presets.dark);
+  assert.equal(value.base_color, "#1d2733");
+  const out = await buildModel(gen, value, { wasm, font: null });
+  assert.deepEqual(out.warnings, []);
+  assert.equal(out.metrics.unique_colors, 5);
+});
+
+test("filled and empty stars that look alike are a warning naming both colors, not an error", async () => {
+  assert.equal(validateParams(gen, { empty_star_color: "#bf8300" }).ok, true);
+  const out = await buildModel(gen, paramsFor({ empty_star_color: "#c08401" }), { wasm, font: null });
+  assert.ok(out.warnings.some(w => /Star color and Empty star color are very similar/.test(w)), out.warnings.join("|"));
+  const ok = await buildModel(gen, paramsFor(), { wasm, font: null });
+  assert.ok(contrastRatio(gen.schema.star_color.default, gen.schema.empty_star_color.default) >= 1.5);
+  assert.deepEqual(ok.warnings, []);
+  const hidden = await buildModel(gen, paramsFor({ show_stars: false, empty_star_color: "#bf8300" }), { wasm, font: null });
+  assert.deepEqual(hidden.warnings, [], "no stars, no star warning");
 });

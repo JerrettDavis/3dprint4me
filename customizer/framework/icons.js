@@ -6,6 +6,7 @@
 // Every icon is checked by tests at 28 mm: no positive feature and no gap thinner than 0.8 mm.
 
 const TAU = 2 * Math.PI;
+const CORNER_ROUND = 1.5;   // corner radius in authoring units (see iconCrossSection)
 
 function signedArea2(points) {
   let a = 0;
@@ -129,6 +130,10 @@ export function iconCrossSection(CrossSection, id) {
   try {
     let cs = t(CrossSection.ofPolygons(icon.contours.filter(c => c.length >= 3).map(positiveContour), "Positive"));
     if (icon.holes.length) cs = t(cs.subtract(t(CrossSection.ofPolygons(icon.holes.map(positiveContour), "Positive"))));
+    // Round every convex and concave corner (opening, then closing) so no tip or notch is
+    // finer than the nozzle at icon size: 1.5 units is about 0.42 mm at 28 mm.
+    const r = CORNER_ROUND;
+    cs = t(t(t(t(cs.offset(-r, "Round", 2, 24)).offset(r, "Round", 2, 24)).offset(r, "Round", 2, 24)).offset(-r, "Round", 2, 24));
     const b = cs.bounds();
     const s = 100 / Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1]);
     const scaled = t(cs.scale([s, s]));

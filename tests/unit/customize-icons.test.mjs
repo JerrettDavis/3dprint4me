@@ -41,16 +41,17 @@ test("each icon prints as its intended number of pieces with no feature thinner 
     const expected = icon.pieces ?? 1;
     assert.equal(pieces(cs, t), expected, `${id} pieces`);
     // Morphological opening by a 0.4 mm radius disc erases every part thinner than 0.8 mm (two
-    // nozzle widths); closing fills every gap narrower than 0.8 mm. What they change must be only
-    // corner slivers: nothing in the difference may be thick (it would survive a 0.15 mm
-    // erosion; a 0.35 mm tail or slot leaves 0.13 mm², icons leave under 0.02 mm²).
+    // nozzle widths); closing fills every gap narrower than 0.8 mm. Icons have rounded corners,
+    // so every piece either operation changes must be a negligible sliver: under 0.01 mm² each,
+    // and nothing left after a 0.1 mm erosion. (A 0.25 mm × 1.5 mm tail or slot is 0.37 mm².)
     const opened = t(t(cs.offset(-0.4, "Round", 2, 32)).offset(0.4, "Round", 2, 32));
     assert.equal(pieces(opened, t), expected, `${id}: a thin part was erased or split off`);
-    const lost = t(cs.subtract(opened));
-    assert.ok(lost.area() < 1, `${id}: opening removed ${lost.area().toFixed(2)} mm²`);
-    assert.ok(t(lost.offset(-0.15, "Round")).area() < 0.05, `${id}: a part thinner than 0.8 mm`);
     const closed = t(t(cs.offset(0.4, "Round", 2, 32)).offset(-0.4, "Round", 2, 32));
-    assert.ok(t(t(closed.subtract(cs)).offset(-0.15, "Round")).area() < 0.05, `${id}: a gap narrower than 0.8 mm`);
+    for (const [what, diff] of [["part thinner", t(cs.subtract(opened))], ["gap narrower", t(closed.subtract(cs))]]) {
+      const bits = diff.decompose(); bits.forEach(t);
+      for (const bit of bits) assert.ok(bit.area() < 0.01, `${id}: a ${what} than 0.8 mm (${bit.area().toFixed(4)} mm²)`);
+      assert.ok(t(diff.offset(-0.1, "Round")).isEmpty(), `${id}: a ${what} than 0.8 mm survives a 0.1 mm erosion`);
+    }
   });
 });
 
@@ -126,14 +127,19 @@ test("hostile images are bounded or rejected with readable errors", () => {
   assert.throws(() => traceImage({ pixels: blank(4, 4), width: 4, height: 4, threshold: 300 }), /threshold/i);
 });
 
-test("traced contours are bounded in count", () => {
-  // A worst-case checkerboard at full resolution still yields a bounded number of points.
+test("traced contours are bounded in count and still build", () => scope(t => {
+  // Worst case that survives smoothing: a checkerboard of 2×2-cell blocks at the full 96 cells.
+  // Rows merge in pairs, so it is exactly 48 × 48 / 2 = 1152 rectangles (4608 points).
   const W = 96, H = 96, px = blank(W, H);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if ((x + y) % 2) paint(px, W, x, y, x + 1, y + 1);
-  let contours = [];
-  try { contours = traceImage({ pixels: px, width: W, height: H }); } catch (e) { assert.match(e.message, /nothing to trace|whole image/i); }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if ((Math.floor(x / 2) + Math.floor(y / 2)) % 2) paint(px, W, x, y, x + 1, y + 1);
+  const contours = traceImage({ pixels: px, width: W, height: H });
+  assert.equal(contours.length, 1152);
+  assert.equal(contours.flat().length, 4608);
   assert.ok(contours.flat().length <= MAX_CONTOUR_POINTS);
-});
+  assert.ok(contours.every(c => c.length === 4 && c.every(([x, y]) => x >= 0 && x <= 96 && y >= 0 && y <= 96)));
+  const cs = t(imageCrossSection(CrossSection, contours));
+  assert.ok(cs.area() > 0.4 * 4608 && cs.area() < 1.1 * 4608, `area ${cs.area()}`);
+}));
 
 test("checkContours accepts traced output and rejects malformed or oversized contour data", () => {
   assert.doesNotThrow(() => checkContours([[[0, 0], [1, 0], [1, 1]]]));

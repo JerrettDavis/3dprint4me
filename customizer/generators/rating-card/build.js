@@ -8,6 +8,7 @@ import { fitCrossSection, splitBlockLines, blockTextLines, unsupportedBlockChars
 import { iconCrossSection } from "../../framework/icons.js";
 import { imageCrossSection } from "../../framework/image-trace.js";
 import { safeName } from "../../framework/model.js";
+import { contrastRatio } from "../../../public/assets/js/customize/color.js";
 
 export const CARD = Object.freeze({ w: 85.6, h: 54 });
 const MARGIN = 4;            // clear border inside the card edge (mm)
@@ -24,6 +25,7 @@ const SPLIT_BELOW = 4;       // split the caption onto two lines below this cap 
 const MIN_TEXT = 2.5;        // below this cap height the caption is not legible: fail
 const SMALL_TEXT = 3.5;      // warn below this cap height
 const MIN_FEATURE = 0.8;     // thinnest printable part of a traced image (mm)
+const STAR_PAIR_CONTRAST = 1.5; // below this, filled and empty stars may look alike: warn
 const CLIP_INSET = 1;        // relief is clipped to the card inset by this much (safety net only)
 
 const TOO_LONG = "The caption is too long to print legibly on the card. Shorten it, or split it into words.";
@@ -85,6 +87,9 @@ export default async function build(p, { wasm, imageContours = null } = {}) {
     }
 
     // Stars: five outlines; the filled ones (whole or half) are cut out of the empty row.
+    // Printability note: star points taper to a sharp tip, so the last few tenths of a
+    // millimetre of each point (and the cut edge of a half star) are thinner than a 0.4 mm
+    // nozzle prints; the slicer rounds those tips off. The tips are deliberately not blunted.
     let filled = null, empty = null;
     if (L.stars) {
       const units = Math.round(p.rating * 2);    // half-star units, 0..10
@@ -95,6 +100,8 @@ export default async function build(p, { wasm, imageContours = null } = {}) {
         if (fraction > 0) full.push(t(t(partialStar(CrossSection, L.stars.r, fraction)).translate(c)));
       });
       filled = t(CrossSection.union(full));
+      const pair = contrastRatio(p.star_color, p.empty_star_color);
+      if (pair < STAR_PAIR_CONTRAST) warnings.push(`Star color and Empty star color are very similar (${pair.toFixed(2)}:1), so filled and empty stars may look the same. Choose colors that differ more.`);
       empty = t(t(CrossSection.union(all)).subtract(filled));
     }
 

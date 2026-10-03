@@ -3,7 +3,7 @@
 // A customer image is never a parameter: the page traces it in the browser and passes only the
 // outline to the build (ctx.imageContours), so it never reaches drafts, the hand-off record or
 // the server.
-import { contrastRatio } from "../color.js?v=92faae6a95b0378f";
+import { contrastRatio } from "../color.js?v=7db462c2276a5051";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // card kept under the relief
@@ -61,7 +61,7 @@ const SCHEMA = {
   base_color: { type: "color", label: "Base color", default: "#ffffff", group: "colors" },
   icon_color: { type: "color", label: "Icon color", default: "#6b4a2f", group: "colors" },
   star_color: { type: "color", label: "Star color", default: "#bf8300", group: "colors" },
-  empty_star_color: { type: "color", label: "Empty star color", default: "#d9d9d9", group: "colors" },
+  empty_star_color: { type: "color", label: "Empty star color", default: "#b8b8b8", group: "colors" },
   text_color: { type: "color", label: "Text color", default: "#111111", group: "colors" }
 };
 
@@ -69,7 +69,9 @@ const PRESETS = {
   toilet: { icon: "toilet" },
   heart: { icon: "heart" },
   house: { icon: "house" },
-  mug: { icon: "mug" }
+  mug: { icon: "mug" },
+  // A dark card: light icon and caption, bright gold stars, slate empty stars.
+  dark: { base_color: "#1d2733", icon_color: "#e8d5bf", star_color: "#f5b301", empty_star_color: "#5b6675", text_color: "#f2f2f2" }
 };
 
 export default {
