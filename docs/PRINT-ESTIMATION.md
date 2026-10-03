@@ -155,6 +155,21 @@ In Vercel (Production), set `SLICER_PROVIDER` (any provider value, e.g. `bambu-c
 
 The PrusaSlicer AppImage version is overridable at build time (`--build-arg PRUSASLICER_APPIMAGE_URL=... --build-arg PRUSASLICER_SHA256=...`). Newer PrusaSlicer releases no longer publish an AppImage on GitHub, so 2.8.1 is pinned. The Bambu Studio AppImage is overridable with `SLICER_APPIMAGE_URL` / `SLICER_APPIMAGE_SHA256`; GitHub release assets list their SHA-256 digest.
 
+## Customizer models
+
+Models made on a `/customize/` generator page ([GENERATORS.md](GENERATORS.md)) enter this flow unchanged: **Continue to request** hands the 3MF to `/order.html?service=print&from=customize`, the order page attaches it through the same model path as a chosen file (browser geometry, private upload and verified estimate when configured, a queued slice job when a slicer is configured), and the request carries `customization` provenance next to it. The generator page itself uploads nothing and never touches estimate sessions or their rate limits; its "Local facts" come from the same browser geometry module and are planning figures only. Generated 3MFs are Bambu-compatible packages: the analyzer flags their embedded settings with `embedded_settings_ignored` (loaded presets win, see above) and must report no other warning (`tests/unit/customize-all-generators.test.mjs`).
+
+**Multi-color slicing (verified 2026-10-02, [note](superpowers/notes/2026-10-02-multicolor-slicing.md)).** Generators produce 1-5 colors as separate objects with per-object filament assignments. A three-color fixture (three touching 18 mm cubes) sliced in the Bambu Studio 02.08.04.57 worker image with one `--load-filaments` entry gave 69.22 g, 20,917 s and 224 tool changes. Passing one filament or three identical filament slots gave identical grams and tool changes (time within about 6 s), so the slot count is irrelevant and the adapter was not changed. `purgeGrams` is reported as `null`: purge and prime-tower waste are **not separated**, but they are evidently included, since 69.22 g is far above the roughly 21.7 g of solid PLA in the cubes. The estimate is therefore total filament consumed. The fixture changes color on every layer, so it is a worst case. Generator inlays and raised details span only a few layers (measured below). Each launch generator's default output was then sliced locally on 2026-10-03, in the local `3dprint4me-slicer-worker:bambu` image (engine 02.08.04.57, profile `machine.json+process.json:pla`), with `scripts/slicer-smoke.mjs` as in the note. The Wi-Fi tag used a sample password.
+
+| Generator (defaults) | Colors | Tool changes | Grams | Time |
+|---|---:|---:|---:|---:|
+| route-shield | 4 | 25 | 27.37 | 6,836 s (1.9 h) |
+| wifi-tag (placard) | 2 | 6 | 30.50 | 6,247 s (1.7 h) |
+| rating-card | 5 | 13 | 8.31 | 2,135 s (0.6 h) |
+| name-plate | 2 | 1 | 7.71 | 1,522 s (0.4 h) |
+
+All four exited cleanly with no warnings and `purgeGrams: null`. Real generator output needs one to two orders of magnitude fewer tool changes than the fixture. The production worker has not sliced these files yet: that happens in the owner-gated rollout in [DEPLOYMENT.md](DEPLOYMENT.md#customize-section-rollout-owner-gated).
+
 ## Slicer contract
 
 `estimateSlice({ bytes | blobPath, filename, options, timeoutMs })` returns `engine`, `engineVersion`, `profileId`, `elapsedSeconds`, `materialGrams`, and optionally `materialMm`, `purgeGrams`, `supportGrams`, `toolChanges`, `layerCount`, `warnings`. Results are validated before pricing. Errors use categories `unavailable`, `timeout`, `slicer_failed`, `invalid_output` (retried with 1, 2, 4… minute backoff capped at 1 hour, 4 attempts) or `asset_missing`, `unsupported` (not retried). Jobs are leased with `FOR UPDATE SKIP LOCKED`; only the lease owner can complete or fail a job. Provider output and error detail stay private.

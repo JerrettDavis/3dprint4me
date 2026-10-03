@@ -14,6 +14,7 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 - Four-step intake with service-specific questions and inline validation
 - Live rough estimates driven by material, time, quality, quantity, complexity, finishing, and delivery inputs
 - Model-aware print estimates: bounded in-browser STL/3MF geometry, private model upload with server verification, immutable estimate snapshots, an asynchronous slicer contract, and a private dual-floor (market vs. economic floor) pricing policy with operator cost/margin views ([PRINT-ESTIMATION.md](docs/PRINT-ESTIMATION.md))
+- A Customize section with four parametric generators (route shield, Wi-Fi QR tag, rating card, name plate): a schema-driven form, live 2D/3D preview and local facts, multi-color 3MF built in the browser with Manifold WASM, self-hosted OFL fonts, local image tracing, and a hand-off into the normal print request with server-revalidated provenance ([GENERATORS.md](docs/GENERATORS.md))
 - File selection for STL, 3MF, STEP, OBJ, Fusion, ZIP, image, PDF, and text references
 - Private, direct-to-Vercel Blob uploads with Neon persistence, plus a supported legacy Supabase mode
 - Feature-oriented server slices with automated dependency-boundary checks
@@ -30,10 +31,10 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 
 The delivered build passes:
 
-- Static validation of all public routes, local references, JavaScript syntax, Vercel output configuration, and CSP hashes
-- 220 Node unit and repository-contract tests covering domain, application, adapter, and integration boundaries (including the real Neon SQL executed on in-process PGlite)
-- 61 end-to-end scenarios covering real HTTP, browser flows, private model estimates, recovery, operator behavior, and accessibility
-- 193 automated UX, accessibility, responsive, browser-error, keyboard, and contrast checks
+- Static validation of all public routes, local references, JavaScript syntax, Vercel output configuration, CSP hashes, generator pages/sitemap/rights, and the no-remote-request rule for `/customize/`
+- 531 Node unit and repository-contract tests covering domain, application, adapter, and integration boundaries (including the real Neon SQL executed on in-process PGlite and every generator built on real Manifold WASM)
+- 113 end-to-end scenarios covering real HTTP, browser flows, private model estimates, every Customize generator from edit to operator store, recovery, operator behavior, and accessibility
+- 241 automated UX, accessibility, responsive, browser-error, keyboard, and contrast checks
 - Desktop light, desktop dark, full-page, and mobile dark screenshot generation
 
 See [`docs/UX-AUDIT.md`](docs/UX-AUDIT.md) and [`docs/VERIFICATION.md`](docs/VERIFICATION.md).
@@ -57,6 +58,8 @@ npm run dev:workspace
 Open the printed storefront and operator URLs (defaults: ports `4173` and `4180`). Local work persists in ignored `data/operator-dev.json`. This mode generates ephemeral VAPID keys and never sends external Push traffic.
 
 The development API records create and complete events in `data/dev-requests.ndjson`. That file is ignored by Git.
+
+The Customize pages are a Vite bundle: `npm run customizer:build` writes `public/customize/` (gitignored; `npm test` and `npm run vercel-build` build it first), and `npm run customizer:dev` serves the workspace with hot reload. Node 22 is required.
 
 For the browser tests, audit, and screenshots:
 
@@ -162,6 +165,7 @@ The calculator intentionally returns a range. A human confirms geometry, risk, m
 ```text
 3dprint4me/
 ├── api/                         Vercel Node functions
+├── customizer/                  Vite workspace for /customize (generator builders, framework, pages, fonts)
 ├── data/                        Local development request log
 ├── docs/                        Product, architecture, deployment, and audit docs
 ├── lib/                         Validation and integration adapters
@@ -171,7 +175,8 @@ The calculator intentionally returns a range. A human confirms geometry, risk, m
 │   ├── assets/css/              Theme and responsive component system
 │   ├── assets/icons/            Brand mark and logo
 │   ├── assets/images/           Original hero and portfolio SVG artwork
-│   └── assets/js/               Site UI, intake, configuration, and quote engine
+│   ├── assets/js/               Site UI, intake, configuration, quote engine, generator schemas
+│   └── customize/               Built Customize bundle (generated, gitignored)
 ├── screenshots/                 Generated visual evidence
 ├── scripts/                     Dev server, validation, and screenshot tooling
 ├── supabase/migrations/         Database and private bucket setup

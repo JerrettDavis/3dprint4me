@@ -21,13 +21,13 @@ npm test
 npm run screenshots
 ```
 
-Expected delivered baseline:
+Expected delivered baseline (recorded 2026-10-03; see [VERIFICATION.md](VERIFICATION.md)):
 
-- Static validation passes
-- 35 Node tests pass
-- 25 E2E tests pass
-- 193 UX/accessibility checks pass
-- Screenshot board regenerates without browser errors
+- `npm run vercel-build` passes from a clean `public/customize/` (Vite build, asset versions, static validation)
+- 531 Node unit/contract tests pass
+- 113 E2E tests pass
+- 241 UX/accessibility checks pass
+- 56 screenshots and the preview board regenerate without browser errors
 
 ## 2. Create request storage
 
@@ -71,6 +71,25 @@ A GitHub Actions workflow runs `npm run estimate:cleanup` hourly to clean up exp
 - `VERCEL_BLOB_TOKEN`: The production Vercel Blob token (same as the storefront's `BLOB_READ_WRITE_TOKEN`)
 
 The workflow runs on an hourly schedule (`0 * * * *`) and can also be triggered manually via `workflow_dispatch` from the Actions tab. If cleanup is already running from another trusted host, disable or remove `.github/workflows/estimate-cleanup.yml` to avoid concurrent execution.
+
+### Customize section rollout (owner-gated)
+
+The Customize section (`/customize/`, [GENERATORS.md](GENERATORS.md)) adds **no environment variable, no serverless function, no table and no migration**: generator pages are static Vite output, and the model and its provenance travel with the existing print request (`customization` lives in the request payload JSON). What it changes in deployment:
+
+- `vercel-build` runs `npm run customizer:build` (Vite) first, then `assets:version`, then `validate`. The build needs Node 22 (`engines: 22.x`; Vite 8.3.2 requires `^20.19.0 || >=22.12.0`) and the dev dependencies Vercel installs by default.
+- `vercel.json` splits the CSP: the global header rule excludes `/customize/` (`/((?!customize/).*)`) and `/customize/(.*)` has its own complete policy with `'wasm-unsafe-eval'` and `worker-src 'self' blob:` and `connect-src 'self'`. `/customize/assets/*` is cached immutably and `/customize/fonts/*` for a day. `api/*.js` functions include `public/assets/js/**`, so the server can import the generator schemas.
+
+The steps below are **not executed by the repository or its agents**. Each outward-facing step waits for the owner's explicit go-ahead, and the owner enters every credential. Record each executed step, with its date and result, in [VERIFICATION.md](VERIFICATION.md).
+
+1. **Pre-flight (read-only).** Confirm migration 005 is applied in production and that `/api/health` reports `printEstimation: true`. Check the Vercel project's Node version (22.x) and branch settings.
+2. **Preview.** Push `feat/generator-section` and open a PR. Let Vercel build a preview, then on it:
+   - run the four generator flows;
+   - confirm the `/customize/g/<id>/` response carries the customize CSP;
+   - print one Wi-Fi tag and scan it with a phone.
+3. **Slicer worker on jdh-docker-00.** Deploy the Portainer git stack from `deploy/slicer-worker/docker-compose.yml` (branch `main` after merge). The owner enters `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` and `SLICER_PROFILE_ID` in Portainer. Run the one-batch check: `docker compose -f deploy/slicer-worker/docker-compose.yml run --rm slicer-worker node scripts/print-estimate-worker.mjs --once`. See [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md#slicer-worker-container) for the host steps.
+4. **Enable slicing.** In Vercel Production, set `SLICER_PROVIDER=bambu-cli` and redeploy. The owner does this, or approves it explicitly.
+5. **Merge and smoke.** Merge the PR and run `npm run smoke:live -- https://3dprint4.me`. Then submit one real customizer request end to end and confirm the operator sees three things: the model, the Customizer parameters, and a slicer-backed estimate. That request is also the first real slice of generator output; compare its grams and time with the multi-color note in PRINT-ESTIMATION.md.
+6. **Rollback.** To roll back the code, promote the previous Vercel deployment; there is no migration to undo. To roll back the worker, run `docker compose … down`; queued jobs stay queued.
 
 ### Legacy Supabase option
 
@@ -174,7 +193,7 @@ Before deposits influence scheduling or fulfillment:
 
 The API function timeout is 45 seconds. Request completion can make successive private-storage and notification calls, each with its own 10-second timeout; the previous 15-second function cap could terminate a valid submission before its result reached the browser. Confirm the deployed project accepts this setting and inspect function duration during smoke testing.
 
-`npm run vercel-build` performs static, reference, JavaScript, output-directory, and CSP-hash validation. A bad inline-script edit fails the deployment instead of silently breaking under the production content security policy.
+`npm run vercel-build` builds the Customize bundle with Vite (`public/customize/`, gitignored), stamps asset versions, then performs static, reference, JavaScript, output-directory, CSP-hash, generator (page, sitemap, rights, catalog) and no-remote-request validation. A bad inline-script edit fails the deployment instead of silently breaking under the production content security policy.
 
 ## 7. Connect the domain
 

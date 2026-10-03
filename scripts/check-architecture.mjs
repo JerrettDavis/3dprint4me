@@ -38,6 +38,7 @@ export async function checkArchitecture({ root }) {
   const publicRoot = resolve(absoluteRoot, "public");
   const apiRoot = resolve(absoluteRoot, "api");
   const libRoot = resolve(absoluteRoot, "lib");
+  const customizerRoot = resolve(absoluteRoot, "customizer");
   const files = [
     ...await walk(publicRoot),
     ...await walk(apiRoot),
@@ -61,6 +62,11 @@ export async function checkArchitecture({ root }) {
       }
       if (isInside(file, libRoot) && importedPath && isInside(importedPath, apiRoot)) {
         violations.push({ file: relativeFile, rule: "feature-transport-import", import: specifier });
+      }
+      // Generator geometry is browser-only: the server knows generators through the isomorphic
+      // definitions in public/assets/js/customize/, never through the customizer workspace.
+      if ((isInside(file, libRoot) || isInside(file, apiRoot)) && importedPath && isInside(importedPath, customizerRoot)) {
+        violations.push({ file: relativeFile, rule: "server-customizer-import", import: specifier });
       }
     }
   }

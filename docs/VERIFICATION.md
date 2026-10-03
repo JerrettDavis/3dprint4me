@@ -1,5 +1,40 @@
 # Release Verification
 
+## Customize section (parametric generators) — local verification (2026-10-03; production gate pending)
+
+Branch `feat/generator-section`, Node 22.22.0, Windows 11 host, Playwright Chromium. Every number below comes from a run on this date.
+
+```text
+rm -rf public/customize && npm run vercel-build      exit 0
+  Vite build of /customize, asset release 094c779c94cf087f (48 files verified, no ?v= change)
+  Static validation: 13 HTML pages, 129 local references, 257 JavaScript files;
+  architecture boundaries for 127 JavaScript files; generator and no-remote-request gates
+
+npm test                                             exit 0
+  Static validation: PASS (same counts as above)
+  Node unit and contract tests: 531 passed, 0 failed
+  End-to-end (pytest): 113 passed (tests/e2e/test_customize.py: 52 of them)
+  UX/accessibility audit: 241/241 passed
+
+npm run screenshots                                  exit 0
+  56 screenshots and screenshots/preview-board.png
+```
+
+What the new checks cover:
+
+- `tests/unit/customize-all-generators.test.mjs` builds every registered generator's defaults and every preset on real Manifold WASM. Each build must be analyzer-clean (no warning other than `embedded_settings_ignored`), use 1–5 colors and finish in under 20 s. In Node the defaults take 5–110 ms. A canary in every sensitive field never appears in any inflated 3MF entry, the filename or a part name. The Wi-Fi tag defaults validate only once a password is supplied; the test allows a failure only on sensitive fields.
+- `npm run validate` checks every generator for a page, a builder, a built page, `origin`, `version` and `rights`. A publishable generator also needs a sitemap entry, a catalog card and a screenshot entry. `public/customize/` may contain no remote URL or remote request. Each gate was shown to fail when its condition was broken: an injected `fetch("https://evil.example/x")`, a removed sitemap line, an empty `rights.note`, a missing screenshot entry.
+- The E2E matrix runs every generator through four checks:
+  - Full flow: page, edit, color badge, Continue, order page (`.3mf` chip and notice), submission through the local dev API. The local operator store and `data/dev-requests.ndjson` (create and complete events) then hold `customization.generatorId`. The typed Wi-Fi password appears in neither, nor in browser storage.
+  - Offline: a build with every non-storefront request aborted; zero requests were attempted.
+  - Layout: 390 px dark with no horizontal scroll.
+  - CSP: a `securitypolicyviolation` listener records no violation. The listener was itself shown to fire on a provoked violation.
+
+  Separate E2E checks cover the IndexedDB fallback (`IDBFactory.prototype.open` throws, so the 3MF downloads and the order page explains) and removing or replacing the handed-off model, which drops `customization` from the stored request.
+- Local slicing of each generator's default model in the Bambu Studio worker image is recorded in [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md#customizer-models).
+
+**Pending before production use:** the owner-gated rollout in [DEPLOYMENT.md](DEPLOYMENT.md#customize-section-rollout-owner-gated). That covers a preview deployment and its live CSP, a printed and phone-scanned Wi-Fi tag, the slicer worker on jdh-docker-00, `SLICER_PROVIDER`, and a real customizer request end to end. None of these were performed.
+
 ## Print estimation — scheduled cleanup (production deployment pending)
 
 The GitHub Actions workflow `.github/workflows/estimate-cleanup.yml` runs `npm run estimate:cleanup` on an hourly schedule. To enable it:

@@ -53,6 +53,14 @@ test("Given an API transport, when it imports provider SDKs directly, then the c
   assert.deepEqual(found.map(item => item.rule), ["transport-provider-import", "transport-provider-import"]);
 });
 
+test("Given server code, when it imports the browser-only customizer workspace, then the customizer boundary rejects it", async () => {
+  const found = await violations({
+    "lib/customization/domain.js": 'import build from "../../customizer/generators/x/build.js";\nimport { getGenerator } from "../../public/assets/js/customize/registry.js";\n',
+    "api/request.js": 'import { buildModel } from "../customizer/framework/model.js";\n'
+  });
+  assert.deepEqual(found.map(item => `${item.file} ${item.rule}`).sort(), ["api/request.js server-customizer-import", "lib/customization/domain.js server-customizer-import"]);
+});
+
 test("Given inward dependencies, when architecture is checked, then no violation is reported", async () => {
   const found = await violations({
     "api/request.js": 'import handler from "../lib/project-request/handler.js";\nexport default handler;\n',
