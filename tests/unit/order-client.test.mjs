@@ -62,3 +62,15 @@ test("Given the browser transport is replaced after startup, when a request is m
     globalThis.fetch = original;
   }
 });
+
+test("Given a stale customizer design, when create is rejected, then the client keeps the server's hint code", async () => {
+  const client = createProjectRequestClient({
+    fetchImpl: async () => new Response(JSON.stringify({ error: "Customization is invalid: Width must be 50–250 mm. This design was made with an older version of the generator. Remove the attached model and open the customizer again.", details: { code: "customization-stale" } }), { status: 400 })
+  });
+  await assert.rejects(() => client.create({ request: {} }), error => error.kind === "correctable" && error.code === "customization-stale" && /open the customizer again/.test(error.message));
+});
+
+test("Given a rejection without a code, then the client error has no code", async () => {
+  const client = createProjectRequestClient({ fetchImpl: async () => new Response(JSON.stringify({ error: "Choose a service.", details: { code: { nested: true } } }), { status: 400 }) });
+  await assert.rejects(() => client.create({ request: {} }), error => error.code === undefined);
+});

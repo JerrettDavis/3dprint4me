@@ -52,6 +52,14 @@ def wait_ready(page: Page) -> None:
     expect(page.locator("body[data-build-state='ready']")).to_be_attached(timeout=BUILD_TIMEOUT)
 
 
+def wait_settled(page: Page) -> None:
+    """Every edit has been reported (no debounce/settle timer pending: the form drops
+    data-settling) and the model for it is ready. A timer that fires starts its build in the same
+    task, so once the attribute is gone the page is already building or done."""
+    expect(page.locator("#cz-form:not([data-settling])")).to_be_attached(timeout=BUILD_TIMEOUT)
+    wait_ready(page)
+
+
 def test_catalog_lists_route_shield(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/")
     link = page.get_by_role("link", name=re.compile("Route shield"))
@@ -87,7 +95,10 @@ def test_csp_allows_wasm_and_blocks_remote(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/route-shield/")
     wait_ready(page)
     page.get_by_role("tab", name="3D").click()
-    page.wait_for_timeout(300)
+    # The 3D view is drawn synchronously when its tab is selected: wait for that state.
+    expect(page.get_by_role("tab", name="3D")).to_have_attribute("aria-selected", "true")
+    expect(page.locator("#cz-stage canvas")).to_be_attached()
+    expect(page.get_by_role("button", name="Show on print bed")).to_be_visible()
     assert not [e for e in errors if "Content Security Policy" in e], errors
     assert not errors, errors
     foreign = [url for url in requests if not url.startswith(base_url) and not url.startswith(("blob:", "data:"))]
@@ -320,7 +331,10 @@ def test_catalog_lists_wifi_tag(page: Page, base_url: str) -> None:
 def test_wifi_password_is_masked_explained_and_never_drafted(page: Page, base_url: str) -> None:
     open_wifi(page, base_url)
     password = page.get_by_label("Network password", exact=True)
-    expect(password).to_have_attribute("type", "password")
+    # Masked by CSS, not type=password: browsers neither offer to save it as this site's login
+    # nor autofill a saved one into it (see test_wifi_password_field_is_invisible_to_password_managers).
+    expect(password).to_have_attribute("type", "text")
+    assert password.evaluate("el => getComputedStyle(el).webkitTextSecurity") == "disc"
     expect(page.locator("#cz-password-note")).to_be_visible()
     expect(page.get_by_text("The password is encoded in the QR code inside your model file. The file is stored privately like any upload and seen by us when we print it. It is not copied into our request records, emails or your saved draft.")).to_be_visible()
     expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
@@ -340,6 +354,37 @@ def test_wifi_password_is_masked_explained_and_never_drafted(page: Page, base_ur
     page.reload()
     expect(page.get_by_label("Network name (SSID)", exact=True)).to_have_value("Cafe Guest")
     expect(page.get_by_label("Network password", exact=True)).to_have_value("")
+
+
+def test_wifi_password_field_is_invisible_to_password_managers(page: Page, base_url: str) -> None:
+    # A type=password box next to a text field reads as a login form: browsers offer to save the
+    # Wi-Fi password as this site's password and autofill a saved site login into the form. The
+    # page must have no password box and nothing named like a credential; the secret field opts
+    # out of autofill and password managers, and only Continue ever navigates.
+    open_wifi(page, base_url)
+    navigations: list[str] = []
+    page.on("framenavigated", lambda frame: navigations.append(frame.url) if frame == page.main_frame else None)
+    assert page.locator("input[type='password']").count() == 0
+    assert page.locator("[name*='pass' i], [autocomplete~='current-password'], [autocomplete~='username']").count() == 0
+    expect(page.locator("#cz-form")).to_have_attribute("autocomplete", "off")
+    secret = page.locator("#cz-password")
+    for name, value in {"type": "text", "autocomplete": "off", "data-lpignore": "true", "data-1p-ignore": "", "data-form-type": "other",
+                        "spellcheck": "false", "autocapitalize": "off", "autocorrect": "off"}.items():
+        expect(secret).to_have_attribute(name, value)
+    assert secret.get_attribute("name") is None
+    assert secret.evaluate("el => getComputedStyle(el).webkitTextSecurity") == "disc", "the value is masked on screen"
+    page.get_by_label("Network name (SSID)", exact=True).fill("Cafe Guest")
+    secret.fill(WIFI_SECRET)
+    secret.press("Enter")  # implicit form submission must do nothing
+    wait_settled(page)
+    expect(page).to_have_url(re.compile(r"/customize/g/wifi-tag/$"))
+    assert secret.evaluate("el => el.value") == WIFI_SECRET
+    assert WIFI_SECRET not in page.content(), "the secret is never written into the markup"
+    assert navigations == [], navigations
+    page.get_by_role("button", name="Continue to request").click()
+    expect(page).to_have_url(re.compile(r"/order\.html\?service=print&from=customize$"))
+    expect(page.locator("#customize-notice")).to_have_text("Loaded from the customizer — review and continue.")
+    assert len(navigations) == 1 and re.search(r"/order\.html\?service=print&from=customize$", navigations[0]), navigations
 
 
 def test_wifi_keychain_builds_and_a_too_dense_code_is_explained_at_the_network_name(page: Page, base_url: str) -> None:
@@ -715,12 +760,98 @@ def test_a_font_that_fails_to_download_offers_try_again(page: Page, base_url: st
     page.locator("#cz-font-toggle").click()
     page.locator("label[for='cz-font-righteous']").click()
     expect(page.locator("#cz-retry")).to_be_visible(timeout=BUILD_TIMEOUT)
-    expect(page.locator("#cz-form-errors")).to_contain_text("couldn't be loaded")
+    # A font that didn't download is the connection, not the settings: the status says so and
+    # the Settings panel shows no error.
+    expect(page.locator("#cz-status")).to_have_text("We couldn't load the model builder. Check your connection and try again.")
+    expect(page.locator("#cz-form-errors")).to_have_text("")
     expect(page.locator("#cz-font-error")).to_have_text("")
     failing["on"] = False
     page.locator("#cz-retry").click()
     wait_ready(page)
     expect(page.locator("#cz-form-errors")).to_have_text("")
+
+
+def test_a_model_builder_that_fails_to_load_is_not_blamed_on_the_settings(browser: Browser, base_url: str) -> None:
+    context = browser.new_context(viewport={"width": 1280, "height": 900})
+    blocked = {"on": True, "hits": 0}
+
+    def handle(route) -> None:
+        if blocked["on"]:
+            blocked["hits"] += 1
+            route.abort()
+        else:
+            route.continue_()
+    # Registered before the page loads so the worker's first WASM fetch is the one refused.
+    context.route("**/*.wasm", handle)
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/customize/g/route-shield/")
+        status = page.locator("#cz-status")
+        expect(status).to_have_text("We couldn't load the model builder. Check your connection and try again.", timeout=BUILD_TIMEOUT)
+        assert blocked["hits"] >= 1, "the WASM request was really intercepted"
+        expect(page.locator("#cz-retry")).to_be_visible()
+        expect(page.locator("#cz-form-errors")).to_have_text("")
+        assert "settings" not in status.inner_text().lower()
+        expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+        blocked["on"] = False
+        page.locator("#cz-retry").click()
+        wait_ready(page)
+        expect(page.locator("#cz-retry")).to_be_hidden()
+        expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
+    finally:
+        context.close()
+
+
+def test_customize_without_a_trailing_slash_redirects(base_url: str) -> None:
+    from http.client import HTTPConnection
+    from urllib.parse import urlparse
+    parsed = urlparse(base_url)
+    connection = HTTPConnection(parsed.hostname, parsed.port, timeout=5)
+    try:
+        connection.request("GET", "/customize")
+        response = connection.getresponse()
+        response.read()
+        assert response.status == 308, response.status
+        assert response.getheader("Location") == "/customize/"
+    finally:
+        connection.close()
+    status, _, body = request(f"{base_url}/customize/")
+    assert status == 200 and b"<title>" in body
+
+
+def test_a_stale_customizer_design_is_explained_next_to_the_attached_model(page: Page, base_url: str) -> None:
+    # A hand-off whose parameters no longer validate (the generator changed since) is refused by
+    # the server; the order page says why and how to recover next to that model's Remove button.
+    page.goto(f"{base_url}/order.html?service=print")
+    page.evaluate("""() => new Promise((resolve, reject) => {
+      const open = indexedDB.open('3dp-customize', 1);
+      open.onupgradeneeded = () => open.result.createObjectStore('handoff');
+      open.onsuccess = () => {
+        const db = open.result;
+        const tx = db.transaction('handoff', 'readwrite');
+        tx.objectStore('handoff').put({ file: new Blob(['PK']), filename: 'route-shield-old.3mf', generatorId: 'route-shield', generatorVersion: 1, generatorTitle: 'Route shield', params: { width_mm: 9999 }, createdAt: Date.now() }, 'pending');
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => reject(tx.error);
+      };
+    })""")
+    page.goto(f"{base_url}/order.html?service=print&from=customize")
+    expect(page.locator("#customize-notice")).to_have_text("Loaded from the customizer — review and continue.")
+    page.locator("#next-button").click()
+    expect(page.locator("#file-list")).to_contain_text("route-shield-old.3mf")
+    page.locator("#next-button").click()
+    page.locator("#name").fill("Taylor Customer")
+    page.locator("#email").fill("taylor@example.com")
+    page.locator("#next-button").click()
+    page.locator("#terms").check()
+    page.locator("#submit-button").click()
+    row = page.locator("#file-list .file-item", has_text="route-shield-old.3mf")
+    problem = row.locator(".file-item-error")
+    expect(problem).to_contain_text("This design was made with an older version of the generator. Remove the attached model and open the customizer again.", timeout=15000)
+    expect(problem).to_be_visible()
+    assert "9999" not in problem.inner_text()
+    shot(page, "order-stale-design.png")
+    row.get_by_role("button", name="Remove route-shield-old.3mf").click()
+    expect(page.locator("#file-list .file-item-error")).to_have_count(0)
 
 
 def test_arrowing_through_the_font_picker_builds_once(page: Page, base_url: str) -> None:
@@ -739,16 +870,14 @@ def test_arrowing_through_the_font_picker_builds_once(page: Page, base_url: str)
     expect(page.get_by_role("radio", name="Caveat Brush")).to_be_checked()
     page.keyboard.press("Enter")
     expect(page.locator("#cz-font-toggle")).to_have_text("Caveat Brush")
-    wait_ready(page)
-    page.wait_for_timeout(700)
+    wait_settled(page)
     assert page.evaluate("window.__builds") == 1, page.evaluate("window.__builds")
     # Arrowing and pausing (no Enter) commits the settled choice once, too.
     page.keyboard.press("Enter")
     page.keyboard.press("ArrowDown")
     page.keyboard.press("ArrowDown")
     expect(page.locator("#cz-font-toggle")).to_have_text("Bangers", timeout=BUILD_TIMEOUT)
-    wait_ready(page)
-    page.wait_for_timeout(700)
+    wait_settled(page)
     assert page.evaluate("window.__builds") == 2, page.evaluate("window.__builds")
 
 
@@ -767,8 +896,7 @@ def test_picking_a_font_then_typing_a_name_keeps_both(page: Page, base_url: str)
     # No pause: a late font commit must not overwrite what is being typed.
     page.get_by_label("Name", exact=True).fill("Mary Ann")
     page.get_by_label("Name", exact=True).press("Tab")
-    wait_ready(page)
-    page.wait_for_timeout(700)
+    wait_settled(page)
     expect(page.get_by_label("Name", exact=True)).to_have_value("Mary Ann")
     expect(page.locator("#cz-font-toggle")).to_have_text("Pacifico")
     draft = page.evaluate(f"sessionStorage.getItem({NAME_DRAFT_KEY!r}) || ''")

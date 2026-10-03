@@ -93,6 +93,8 @@
 .cz-color:focus-visible,.cz-checkbox:focus-visible{outline:3px solid var(--focus-color);outline-offset:2px}
 .cz-field .help{margin:.3rem 0 0;color:var(--muted);font-size:.78rem}
 .cz-sensitive-note{margin:.4rem 0 0;padding:.5rem .65rem;border-left:3px solid var(--teal);border-radius:0 8px 8px 0;color:var(--ink);background:var(--teal-soft);font-size:.8rem}
+/* A secret (Wi-Fi password) is a masked text box, not type=password: see form.js textField. */
+.cz-secret{-webkit-text-security:disc;text-security:disc;font-family:inherit;letter-spacing:.08em}
 /* Persistent live region: collapses visually when empty but stays rendered so updates are announced. */
 .cz-form-errors{padding:.7rem .85rem;border-radius:.6rem;color:var(--warning);background:var(--warning-soft);font-size:.86rem}
 .cz-form-errors:empty{margin-bottom:-1rem;padding:0;background:none}

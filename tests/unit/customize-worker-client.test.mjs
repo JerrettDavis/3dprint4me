@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createWorkerClient, SupersededError } from "../../customizer/framework/worker-client.js";
+import { handleBuildRequest } from "../../customizer/framework/worker-core.js";
+import { buildFailureStatus, LOAD_FAILURE_MESSAGE, SETTINGS_FAILURE_MESSAGE } from "../../customizer/framework/build-status.js";
 
 function fakeWorkerFactory() {
   const workers = [];
@@ -155,4 +157,120 @@ test("a crash rejects the in-flight build as retryable, recreates the worker, an
   workers[2].reply({ id: workers[2].posted[0].id, ok: true, result: "after crash" });
   assert.equal(await queued, "after crash");
   client.terminate();
+});
+
+// ---- Load failures vs build errors ----------------------------------------------------------
+
+test("a worker load failure keeps retryable + code, and the next build runs on a fresh worker", async () => {
+  const { create, workers } = fakeWorkerFactory();
+  const client = createWorkerClient({ createWorker: create });
+  const failed = settled(client.build("route-shield", {}));
+  workers[0].reply({ id: workers[0].posted[0].id, ok: false, error: "WebAssembly.instantiate(): network error", retryable: true, code: "load-failed" });
+  const { error } = await failed;
+  assert.equal(error.retryable, true);
+  assert.equal(error.code, "load-failed");
+  // A failed module import can stay cached inside a worker, so the worker is replaced.
+  assert.equal(workers[0].terminated, true);
+  const retry = client.build("route-shield", {});
+  assert.equal(workers.length, 2);
+  workers[1].reply({ id: workers[1].posted[0].id, ok: true, result: "built" });
+  assert.equal(await retry, "built");
+  client.terminate();
+});
+
+test("a build (geometry) error stays non-retryable and keeps the worker", async () => {
+  const { create, workers } = fakeWorkerFactory();
+  const client = createWorkerClient({ createWorker: create });
+  const failed = settled(client.build("route-shield", {}));
+  workers[0].reply({ id: workers[0].posted[0].id, ok: false, error: "Text doesn't fit." });
+  const { error } = await failed;
+  assert.equal(error.retryable, undefined);
+  assert.equal(error.code, undefined);
+  assert.equal(workers[0].terminated, false);
+  client.terminate();
+});
+
+test("timeouts, crashes and failed posts carry codes", async () => {
+  const { create, workers } = fakeWorkerFactory();
+  const clock = fakeClock();
+  const client = createWorkerClient({ createWorker: create, timeoutMs: 10, setTimer: clock.setTimer, clearTimer: clock.clearTimer });
+  const slow = settled(client.build("route-shield", {}));
+  clock.advance(11);
+  assert.equal((await slow).error.code, "timeout");
+  const crashed = settled(client.build("route-shield", {}));
+  workers[1].crash();
+  assert.equal((await crashed).error.code, "worker-failed");
+  const broken = createWorkerClient({ createWorker: () => { throw new Error("Failed to construct 'Worker'"); } });
+  const { error } = await settled(broken.build("route-shield", {}));
+  assert.equal(error.retryable, true);
+  assert.equal(error.code, "worker-failed");
+  client.terminate();
+});
+
+// ---- The worker's own classification (worker-core.js) --------------------------------------
+
+const fakeDeps = (overrides = {}) => ({
+  getGenerator: id => (id === "route-shield" ? { id, schema: {} } : undefined),
+  loadBuilder: { "route-shield": async () => ({ default: () => null }) },
+  loadEngine: async () => ({ wasm: true }),
+  loadFont: async () => null,
+  buildModel: async () => ({ data: new Uint8Array([1, 2]), filename: "x.3mf" }),
+  ...overrides
+});
+const LOAD_FAILED = { ok: false, retryable: true, code: "load-failed" };
+const pick = (message, keys) => Object.fromEntries(keys.map(k => [k, message[k]]));
+
+test("worker: WASM, builder-import and curated-font failures are retryable load failures", async () => {
+  const cases = {
+    wasm: fakeDeps({ loadEngine: async () => { throw new TypeError("WebAssembly.instantiateStreaming(): Failed to fetch"); } }),
+    builder: fakeDeps({ loadBuilder: { "route-shield": async () => { throw new TypeError("Failed to fetch dynamically imported module"); } } }),
+    font: fakeDeps({ loadFont: async () => { throw Object.assign(new Error("The font couldn't be loaded. Check your connection and try again."), { retryable: true, code: "load-failed" }); } })
+  };
+  for (const [name, deps] of Object.entries(cases)) {
+    const { message, transfer } = await handleBuildRequest({ id: 7, generatorId: "route-shield", params: {} }, deps);
+    assert.deepEqual(pick(message, ["ok", "retryable", "code"]), LOAD_FAILED, name);
+    assert.equal(message.id, 7, name);
+    assert.deepEqual(transfer, [], name);
+  }
+});
+
+test("worker: geometry errors, unknown generators and a customer's unreadable font are build errors", async () => {
+  const cases = {
+    geometry: fakeDeps({ buildModel: async () => { throw new Error("Text doesn't fit."); } }),
+    customerFont: fakeDeps({ loadFont: async () => { throw new Error("That font file couldn't be read. Try a TTF, OTF or WOFF file."); } }),
+    unknown: fakeDeps({ getGenerator: () => undefined })
+  };
+  for (const [name, deps] of Object.entries(cases)) {
+    const { message } = await handleBuildRequest({ id: 1, generatorId: "route-shield", params: {} }, deps);
+    assert.equal(message.ok, false, name);
+    assert.equal(Object.hasOwn(message, "retryable"), false, name);
+    assert.equal(Object.hasOwn(message, "code"), false, name);
+  }
+});
+
+test("worker: a successful build transfers the model bytes", async () => {
+  const { message, transfer } = await handleBuildRequest({ id: 3, generatorId: "route-shield", params: {} }, fakeDeps());
+  assert.equal(message.ok, true);
+  assert.equal(transfer.length, 1);
+  assert.equal(transfer[0], message.result.data.buffer);
+});
+
+// ---- What the page says (build-status.js) ---------------------------------------------------
+
+test("load failures never blame the settings; only genuine build errors do", () => {
+  for (const code of ["load-failed", "worker-failed"]) {
+    const s = buildFailureStatus(Object.assign(new Error("raw browser text"), { retryable: true, code }));
+    assert.equal(s.message, LOAD_FAILURE_MESSAGE);
+    assert.equal(s.retryable, true);
+    assert.equal(s.settings, false);
+    assert.ok(!/settings/i.test(s.message));
+  }
+  const slow = buildFailureStatus(Object.assign(new Error("Building the model took too long. Try simpler settings, or try again."), { retryable: true, code: "timeout" }));
+  assert.equal(slow.retryable, true);
+  assert.equal(slow.settings, false);
+  assert.match(slow.message, /took too long/);
+  const geometry = buildFailureStatus(new Error("Text doesn't fit."));
+  assert.equal(geometry.settings, true);
+  assert.equal(geometry.message, SETTINGS_FAILURE_MESSAGE);
+  assert.match(SETTINGS_FAILURE_MESSAGE, /these settings/);
 });

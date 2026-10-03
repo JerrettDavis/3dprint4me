@@ -1,9 +1,11 @@
 export class ProjectRequestClientError extends Error {
-  constructor(message, { status = 0, kind = "unavailable", cause } = {}) {
+  constructor(message, { status = 0, kind = "unavailable", cause, code } = {}) {
     super(message, { cause });
     this.name = "ProjectRequestClientError";
     this.status = status;
     this.kind = kind;
+    // A machine-readable reason from the server (e.g. "customization-stale"), when it sent one.
+    if (typeof code === "string") this.code = code;
   }
 }
 
@@ -21,7 +23,7 @@ export function createProjectRequestClient({ fetchImpl = (...args) => fetch(...a
       throw new ProjectRequestClientError("The service could not be reached.", { kind: kindFor(0, operation), cause });
     }
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new ProjectRequestClientError(payload.error || `Request failed (${response.status})`, { status: response.status, kind: kindFor(response.status, operation) });
+    if (!response.ok) throw new ProjectRequestClientError(payload.error || `Request failed (${response.status})`, { status: response.status, kind: kindFor(response.status, operation), code: payload.details?.code });
     return payload;
   }
 

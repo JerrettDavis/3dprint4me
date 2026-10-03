@@ -1,4 +1,4 @@
-import { formatBytes } from "./files.js?v=094c779c94cf087f";
+import { formatBytes } from "./files.js?v=295d8d664ce2c0cd";
 
 export function createOrderView({ document, window, form, formatEstimate }) {
   const elements = {
@@ -88,6 +88,20 @@ export function createOrderView({ document, window, form, formatEstimate }) {
         return row;
       }));
     },
+    // Shows a problem with one listed file (e.g. a stale customizer design) inside its row, next
+    // to its Remove button; the next renderFiles (removing or adding a file) clears it.
+    showFileProblem(index, message) {
+      const row = elements.fileList.children[index];
+      if (!row) return false;
+      row.querySelector(".file-item-error")?.remove();
+      const note = document.createElement("p");
+      note.className = "file-item-error";
+      note.setAttribute("role", "alert");
+      note.textContent = message;
+      row.append(note);
+      return true;
+    },
+    fileStepIndex() { return elements.steps.findIndex(step => step.contains(elements.fileList)); },
     showStep(index, { focus = true, review } = {}) {
       elements.steps.forEach((step, position) => { step.classList.toggle("active", position === index); step.setAttribute("aria-hidden", String(position !== index)); });
       elements.progressBar.style.width = `${((index + 1) / elements.steps.length) * 100}%`;

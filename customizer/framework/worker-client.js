@@ -10,7 +10,11 @@
 // The timeout is measured from the moment a request is posted to the worker, not from when
 // it was queued. On timeout or crash the worker is terminated and recreated; the in-flight
 // request rejects (error.retryable = true) and a queued request survives and is posted to the
-// fresh worker. Request payloads (custom font bytes, traced image contours) are only
+// fresh worker. Errors carry a `code` for the page: "timeout", "worker-failed" (the worker
+// script didn't start or crashed) and, from the worker itself, "load-failed" (WASM, builder
+// module or curated font didn't load; the worker is then replaced, because a failed module
+// import can stay cached inside it). A geometry error has no code and is not retryable.
+// Request payloads (custom font bytes, traced image contours) are only
 // structured-cloned by postMessage for requests that actually run.
 export const BUILD_TIMEOUT_MS = 30_000;
 
@@ -18,7 +22,7 @@ export class SupersededError extends Error {
   constructor() { super("A newer build replaced this one."); this.name = "SupersededError"; this.superseded = true; }
 }
 
-const retryable = message => Object.assign(new Error(message), { retryable: true });
+const retryable = (message, code) => Object.assign(new Error(message), { retryable: true, code });
 const defaultCreateWorker = () => new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
 
 export function createWorkerClient({
@@ -61,13 +65,13 @@ export function createWorkerClient({
       ensure().postMessage({ id: entry.id, ...entry.message });
     } catch (error) {
       reset();
-      finish(entry, "reject", retryable(String(error?.message ?? error)));
+      finish(entry, "reject", retryable(String(error?.message ?? error), "worker-failed"));
       return;
     }
     entry.timer = setTimer(() => {
       if (inFlight !== entry) return;
       reset();
-      finish(entry, "reject", retryable("Building the model took too long. Try simpler settings, or try again."));
+      finish(entry, "reject", retryable("Building the model took too long. Try simpler settings, or try again.", "timeout"));
     }, timeoutMs);
   }
 
@@ -86,12 +90,16 @@ export function createWorkerClient({
   function onMessage({ data }) {
     if (!inFlight || !data || data.id !== inFlight.id) return;
     if (data.ok) finish(inFlight, "resolve", data.result);
-    else finish(inFlight, "reject", new Error(data.error || "The model could not be built."));
+    else if (data.retryable) {
+      const entry = inFlight;
+      if (data.code === "load-failed") reset();
+      finish(entry, "reject", retryable(data.error || "The model builder couldn't be loaded.", typeof data.code === "string" ? data.code : "load-failed"));
+    } else finish(inFlight, "reject", new Error(data.error || "The model could not be built."));
   }
   function onError(event) {
     event?.preventDefault?.();
     reset();
-    if (inFlight) finish(inFlight, "reject", retryable("The model builder stopped unexpectedly. Try again."));
+    if (inFlight) finish(inFlight, "reject", retryable("The model builder stopped unexpectedly. Try again.", "worker-failed"));
   }
 
   return {

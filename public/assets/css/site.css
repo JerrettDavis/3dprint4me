@@ -121,3 +121,5 @@ img,svg{display:block;max-width:100%}button,input,select,textarea{font:inherit}b
 .model-private{margin:.6rem 0 0;color:var(--muted);font-size:.8rem}
 .model-private-verified{color:var(--success)}
 @media (max-width:720px){.model-intake{grid-template-columns:1fr}.model-intake-actions{justify-items:start;text-align:left}}
+
+.file-item-error{grid-column:1/-1;margin:0;color:var(--danger);font-size:.75rem;font-weight:650}

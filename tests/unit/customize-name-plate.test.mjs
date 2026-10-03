@@ -147,6 +147,15 @@ test("a customer's font bytes are parsed locally; bad bytes give a readable erro
   await assert.rejects(() => loadFont({ fontBytes: new Uint8Array([1, 2, 3, 4]) }), /couldn't be read/);
 });
 
+test("a curated font that can't be fetched or parsed is a retryable load failure; a customer's bad file is not", async () => {
+  const isLoadFailure = err => err.retryable === true && err.code === "load-failed" && /couldn't be loaded/.test(err.message);
+  await assert.rejects(() => loadFont({ fontId: "rubik-mono-one", fetchImpl: async () => ({ ok: false, status: 503 }) }), isLoadFailure);
+  await assert.rejects(() => loadFont({ fontId: "rubik-mono-one", fetchImpl: async () => { throw new TypeError("Failed to fetch"); } }), isLoadFailure);
+  // A truncated/corrupted download of our own font is environmental too.
+  await assert.rejects(() => loadFont({ fontId: "rubik-mono-one", fetchImpl: async () => ({ ok: true, arrayBuffer: async () => new Uint8Array([0, 1, 0, 0, 9]).buffer }) }), isLoadFailure);
+  await assert.rejects(() => loadFont({ fontBytes: new Uint8Array([1, 2, 3, 4]), fontKey: "bad-file" }), err => /couldn't be read/.test(err.message) && !err.retryable && err.code === undefined);
+});
+
 // ---- Schema and rules -----------------------------------------------------------------------
 
 test("generator definition: id, version, category, provenance, registered", () => {

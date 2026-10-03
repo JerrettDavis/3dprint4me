@@ -9,6 +9,7 @@ import { browserInflateRaw } from "../../public/assets/js/print-estimation/contr
 import { renderForm, restoreParams, storableParams, esc, isFieldVisible } from "./form.js";
 import { createImageLoader, createTracer, drawTracePreview } from "./image-input.js";
 import { createWorkerClient } from "./worker-client.js";
+import { buildFailureStatus } from "./build-status.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
 import { writeHandoff } from "./handoff.js";
@@ -251,8 +252,10 @@ function boot() {
       renderWarnings([]);
       clearFacts();
       const message = error?.message || "The model could not be built.";
-      if (error?.retryable) {
-        setStatus("error", message);
+      const failure = buildFailureStatus(error);
+      if (!failure.settings) {
+        // The builder didn't load (or timed out): the settings are fine, so the form shows no error.
+        setStatus("error", failure.message, { retryable: failure.retryable });
         return;
       }
       // Geometry errors go next to the control they concern when the generator can tell
@@ -260,7 +263,7 @@ function boot() {
       const key = generator.errorField?.(message);
       if (key && Object.hasOwn(generator.schema, key)) form.setErrors([], { [key]: message });
       else form.setErrors([message], {});
-      setStatus("error", "The model couldn't be built with these settings. See the note in Settings.", { retryable: !key });
+      setStatus("error", failure.message, { retryable: !key });
     }
   }
 
