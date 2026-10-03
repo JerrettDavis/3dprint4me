@@ -17,7 +17,8 @@
     <div class="session-strip"><span id="connection-status" class="connection" data-state="checking">Checking connection</span><span id="operator-name"></span><button id="sign-out" class="quiet" type="button" hidden>Sign out</button></div>
   </header>
   <main>
-    <section id="auth-view" class="auth-view" aria-labelledby="auth-title">
+    <section id="session-view" class="auth-view session-view" role="status" aria-live="polite"><span class="spinner" aria-hidden="true"></span><p>Checking your sign-in…</p></section>
+    <section id="auth-view" class="auth-view" aria-labelledby="auth-title" hidden>
       <p class="kicker">Private operations</p><h1 id="auth-title">Keep every build moving.</h1>
       <p>Sign in to review new requests, plan the work, and keep a private activity record.</p>
       <button id="sign-in" class="primary" type="button">Continue with GitHub</button>
