@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { activeProjectData, projectRequestFromData } from "../../public/assets/js/order/model.js";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData } from "../../public/assets/js/order/model.js";
 import { createDraftStore } from "../../public/assets/js/order/draft-store.js";
 
 const serviceFields = {
@@ -61,4 +61,50 @@ test("Given browser storage is resolved lazily, when the store is constructed, t
   assert.equal(resolutions, 0);
   assert.equal(store.saveDraft({ projectTitle: "Lazy" }), true);
   assert.equal(resolutions, 1);
+});
+
+const handoffRecord = () => ({ file: new Blob(["x"]), filename: "route-shield.3mf", generatorId: "route-shield", generatorVersion: 1, generatorTitle: "Route shield", params: { top_text: "ROUTE", password: "[redacted]" }, createdAt: 1 });
+const summarize = (data, estimate, files) => ({ service: data.service, files });
+
+test("Given a customizer hand-off, when the print request is built, then it carries the provenance only", () => {
+  const customization = customizationFromHandoff(handoffRecord());
+  assert.deepEqual(customization, { generatorId: "route-shield", generatorVersion: 1, params: { top_text: "ROUTE", password: "[redacted]" } });
+  const request = projectRequestFromData({ data: { service: "print" }, estimate: {}, files: [], buildSummary: summarize, customization });
+  assert.deepEqual(request.customization, customization);
+  assert.notEqual(request.customization.params, customization.params, "the request holds its own copy");
+});
+
+test("Given a customizer hand-off, when another service is chosen, then the request carries no customization", () => {
+  const customization = customizationFromHandoff(handoffRecord());
+  for (const service of ["design", "repair", "consult"]) {
+    const request = projectRequestFromData({ data: { service }, estimate: {}, files: [], buildSummary: summarize, customization });
+    assert.equal("customization" in request, false, service);
+  }
+  assert.equal("customization" in projectRequestFromData({ data: { service: "print" }, estimate: {}, files: [], buildSummary: summarize }), false);
+});
+
+test("Given a malformed hand-off, when it is converted, then params are reduced to a plain object", () => {
+  assert.deepEqual(customizationFromHandoff({ ...handoffRecord(), params: ["x"] }).params, {});
+  assert.deepEqual(customizationFromHandoff({ ...handoffRecord(), params: null }).params, {});
+  assert.equal(customizationFromHandoff(null), null);
+});
+
+test("Given a hand-off, when the project text is prefilled, then a generated line names the model", () => {
+  assert.deepEqual(handoffPrefill(handoffRecord()), { projectTitle: "Custom Route shield", description: "Custom Route shield — see attached model." });
+  assert.deepEqual(handoffPrefill({ ...handoffRecord(), generatorTitle: undefined }), { projectTitle: "Custom route-shield", description: "Custom route-shield — see attached model." });
+});
+
+test("Given a request with customization, when drafts and submitted copies are stored, then parameters never reach storage", () => {
+  const values = new Map();
+  const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+  const store = createDraftStore({ storage, draftKey: "draft", submittedKey: "submitted" });
+  const customization = { generatorId: "route-shield", generatorVersion: 1, params: { top_text: "SECRET-ISH", password: "[redacted]" } };
+  assert.equal(store.saveDraft({ projectTitle: "Tag", customization }), true);
+  assert.deepEqual(JSON.parse(values.get("draft")), { projectTitle: "Tag", customization: { generatorId: "route-shield", generatorVersion: 1 } });
+  assert.equal(store.saveSubmitted({ id: "LOCAL-12345678", customization }), true);
+  assert.deepEqual(JSON.parse(values.get("submitted"))[0].customization, { generatorId: "route-shield", generatorVersion: 1 });
+  assert.equal([...values.values()].join("").includes("SECRET-ISH"), false);
+  assert.equal(customization.params.top_text, "SECRET-ISH", "the in-memory request is not mutated");
+  assert.equal(store.saveSubmitted({ id: "LOCAL-87654321" }), true);
+  assert.equal("customization" in JSON.parse(values.get("submitted"))[0], false);
 });

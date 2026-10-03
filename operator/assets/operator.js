@@ -3,6 +3,7 @@ import { allowedTransitions, formatRelativeTime } from "./work-state.js";
 import { createPushClient } from "./push-client.js";
 import { createAuthClient } from "./auth-client.js";
 import { renderPrintEstimation } from "./print-detail.js";
+import { renderCustomization } from "./customization-detail.js";
 
 export function createOperatorController({ api, view }) {
   const model = { state: "checking-session", operator: null, items: [], detail: null, selectedId: null, noteDraft: "" };
@@ -51,7 +52,8 @@ function createDomView() {
       const form = el("form", "note-form"), note = el("textarea"); note.id = "private-note"; note.maxLength = 4000; note.rows = 4; note.value = options.noteDraft ?? ""; const noteLabel = el("label", "", "Private note"); noteLabel.htmlFor = note.id; const save = el("button", "primary", "Add private note"); save.type = "submit"; form.append(noteLabel, note, save); form.onsubmit = event => { event.preventDefault(); controller.command({ type: "add-note", body: note.value, revision: item.revision }); };
       const activity = el("section", "history"); activity.append(el("h3", "", "Activity")); for (const event of events) activity.append(el("p", "", `${title(event.type)} · ${new Date(event.occurredAt).toLocaleString()}`)); for (const savedNote of notes) activity.append(el("blockquote", "", savedNote.body));
       const print = renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) });
-      detail.append(back, heading, actions, facts, ...(print ? [print] : []), form, activity); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
+      const customization = request?.customization ? renderCustomization(request) : null;
+      detail.append(back, heading, actions, facts, ...(customization ? [customization] : []), ...(print ? [print] : []), form, activity); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
     }, announce(message) { status.textContent = message; }, openDownload(url) { location.assign(url); }
   }; filters.onchange = () => controller.loadList(); return view;
 }

@@ -3,7 +3,7 @@ import test from "node:test";
 import { validateParams } from "../../public/assets/js/customize/schema.js";
 import { getGenerator } from "../../public/assets/js/customize/registry.js";
 import { renderFormHtml, summaryHtml } from "../../customizer/framework/form.js";
-import { continuePayload, continueState, HANDOFF_PENDING_NOTE } from "../../customizer/framework/continue.js";
+import { continuePayload, continueState } from "../../customizer/framework/continue.js";
 
 const shield = getGenerator("route-shield");
 
@@ -83,12 +83,11 @@ test("sensitive multiline text still renders as a masked single-line field", () 
   assert.match(out, /<input[^>]*type="password"[^>]*name="pw"/);
 });
 
-test("continue state: production without a hand-off handler stays disabled with an honest note", () => {
-  assert.deepEqual(continueState({ status: "ready", hasResult: true, handlerSet: false, production: true }), { disabled: true, note: HANDOFF_PENDING_NOTE });
-  assert.equal(HANDOFF_PENDING_NOTE, "Request hand-off arrives with the next update.");
-  assert.deepEqual(continueState({ status: "ready", hasResult: true, handlerSet: true, production: true }), { disabled: false, note: "" });
-  assert.deepEqual(continueState({ status: "ready", hasResult: true, handlerSet: false, production: false }), { disabled: false, note: "" });
-  assert.equal(continueState({ status: "building", hasResult: false, handlerSet: true, production: true }).disabled, true);
+test("continue state: Continue is enabled only for a ready model (the order hand-off is always wired)", () => {
+  assert.deepEqual(continueState({ status: "ready", hasResult: true }), { disabled: false, note: "" });
+  assert.equal(continueState({ status: "ready", hasResult: false }).disabled, true);
+  assert.equal(continueState({ status: "building", hasResult: false }).disabled, true);
+  assert.equal(continueState({ status: "error", hasResult: false }).disabled, true);
 });
 
 test("the continue payload redacts sensitive params", async () => {
@@ -97,6 +96,7 @@ test("the continue payload redacts sensitive params", async () => {
   assert.deepEqual(payload.params, { ssid: "Home", pw: "[redacted]" });
   assert.equal(payload.generatorId, "wifi-double");
   assert.equal(payload.generatorVersion, 2);
+  assert.equal(payload.generatorTitle, "wifi-double", "falls back to the id when the generator has no title");
   assert.equal(payload.filename, "x.3mf");
   assert.deepEqual(payload.warnings, ["w"]);
   assert.equal(payload.file.size, 2);

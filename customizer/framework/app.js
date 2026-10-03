@@ -9,7 +9,8 @@ import { browserInflateRaw } from "../../public/assets/js/print-estimation/contr
 import { renderForm, restoreParams, storableParams, esc } from "./form.js";
 import { createWorkerClient } from "./worker-client.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
-import { continuePayload, continueState } from "./continue.js";
+import { continuePayload, continueState, continueToOrder } from "./continue.js";
+import { writeHandoff } from "./handoff.js";
 
 const STATUS_TEXT = {
   idle: "Preparing the model builder…",
@@ -19,19 +20,28 @@ const STATUS_TEXT = {
 };
 const EMPTY_FACTS = ["Size", "Volume", "Rough weight", "Rough print time"].map(label => `<div><dt>${label}</dt><dd>—</dd></div>`).join("");
 
-// Request hand-off hook: onContinue({ file, filename, generatorId, generatorVersion, params, warnings }).
-// The order integration replaces the default with the IndexedDB hand-off writer.
-// Until a handler is registered, a production build keeps the button disabled with an honest note.
-let continueHandler = defaultContinueHandler;
-let handlerSet = false;
-let refreshContinue = () => {};
+// Request hand-off hook: onContinue({ file, filename, generatorId, generatorVersion, generatorTitle, params, warnings }).
+// The default writes the IndexedDB hand-off and opens the print request (or, when the browser
+// blocks IndexedDB, downloads the 3MF and opens the order page with a note). setContinueHandler
+// is kept as a seam for tests and future pages.
+let continueHandler = orderHandoff;
 export function setContinueHandler(fn) {
-  handlerSet = typeof fn === "function";
-  continueHandler = handlerSet ? fn : defaultContinueHandler;
-  refreshContinue();
+  continueHandler = typeof fn === "function" ? fn : orderHandoff;
 }
-function defaultContinueHandler() {
-  if (import.meta.env?.DEV) setNote("Development build: the request hand-off is not wired yet.");
+function orderHandoff(payload) {
+  return continueToOrder(payload, { writeHandoff, download: downloadFile, navigate: url => location.assign(url) });
+}
+function downloadFile(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.hidden = true;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  // Revoke later: the download must start before the URL goes away.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 const $ = selector => document.querySelector(selector);
@@ -101,11 +111,10 @@ function boot() {
   }
 
   function updateContinue() {
-    const next = continueState({ status: state.status, hasResult: !!state.result, handlerSet, production: !!import.meta.env?.PROD });
+    const next = continueState({ status: state.status, hasResult: !!state.result });
     if (els.continueButton) els.continueButton.disabled = next.disabled;
     if (next.note) setNote(next.note);
   }
-  refreshContinue = () => { setNote(""); updateContinue(); };
 
   function renderWarnings(list) {
     if (!els.warnings) return;
@@ -216,6 +225,9 @@ function boot() {
       next = clampParams(generator, next, key);
       form.setValues(next);
     }
+    // A commit that changes nothing (typing, then leaving the field, e.g. by clicking Continue)
+    // must not rebuild: that would drop the click while the identical model rebuilds.
+    if (JSON.stringify(next) === JSON.stringify(state.params)) return;
     state.params = next;
     saveDraft(generator, state.params);
     syncFontArea();
@@ -285,13 +297,17 @@ function boot() {
     viewer?.setBedMode(on);
   });
 
+  let continuing = false;
   els.continueButton?.addEventListener("click", async () => {
     const result = state.result;
-    if (!result || state.status !== "ready") return;
+    if (!result || state.status !== "ready" || continuing) return;
+    continuing = true;
     try {
       await continueHandler(continuePayload(generator, state.params, result));
     } catch (error) {
       setNote(String(error?.message ?? "Couldn't continue. Try again."));
+    } finally {
+      continuing = false;
     }
   });
 

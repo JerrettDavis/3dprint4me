@@ -1,3 +1,10 @@
+// Customizer parameters are never stored in the browser: only which generator and version.
+function withoutCustomizationParams(value) {
+  if (!value?.customization) return value;
+  const { generatorId, generatorVersion } = value.customization;
+  return { ...value, customization: { generatorId, generatorVersion } };
+}
+
 export function createDraftStore({ storage, draftKey, submittedKey }) {
   const resolveStorage = () => typeof storage === "function" ? storage() : storage;
   return {
@@ -6,7 +13,7 @@ export function createDraftStore({ storage, draftKey, submittedKey }) {
       catch { return {}; }
     },
     saveDraft(data) {
-      const safe = { ...data };
+      const safe = { ...withoutCustomizationParams(data) };
       delete safe.terms;
       delete safe.website;
       try { resolveStorage().setItem(draftKey, JSON.stringify(safe)); return true; }
@@ -20,7 +27,7 @@ export function createDraftStore({ storage, draftKey, submittedKey }) {
       let target;
       try { target = resolveStorage(); prior = JSON.parse(target.getItem(submittedKey) || "[]"); } catch { prior = []; }
       try {
-        (target ?? resolveStorage()).setItem(submittedKey, JSON.stringify([request, ...prior].slice(0, 10)));
+        (target ?? resolveStorage()).setItem(submittedKey, JSON.stringify([withoutCustomizationParams(request), ...prior].slice(0, 10)));
         return true;
       } catch { return false; }
     }

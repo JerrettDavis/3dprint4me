@@ -50,7 +50,7 @@ def _bundle(order: bool, *, home: bool = False) -> str:
             "mesh.js", "stl.js", "three-mf.js", "geometry.js", "controller.js", "view.js", "client.js",
         ))
         paths.extend(SITE_ROOT / "assets/js/order" / name for name in (
-            "model.js", "draft-store.js", "client.js", "files.js",
+            "model.js", "draft-store.js", "customize-handoff.js", "client.js", "files.js",
             "validation.js", "view.js", "controller.js",
         ))
         paths.append(SITE_ROOT / "assets/js/order.js")
