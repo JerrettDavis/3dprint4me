@@ -104,7 +104,7 @@ export function clampParams(generator, params, changedKey) {
         out[changedKey] = def.default;
       } else {
         // Clamp changedKey against field's own limits, not rule limits
-        const [lo, hi] = [def.min, def.max];
+        const [lo, hi] = [def.min ?? -Infinity, def.max ?? +Infinity];
         out[changedKey] = snapToStep(v, def, lo, hi);
       }
     }
@@ -116,7 +116,7 @@ export function clampParams(generator, params, changedKey) {
       if (typeof v !== "number" || !Number.isFinite(v)) {
         out[key] = def.default;
       } else {
-        const [lo, hi] = updatedLimits[key] ?? [def.min, def.max];
+        const [lo, hi] = updatedLimits[key] ?? [def.min ?? -Infinity, def.max ?? +Infinity];
         out[key] = snapToStep(v, def, lo, hi);
       }
     }
@@ -127,7 +127,7 @@ export function clampParams(generator, params, changedKey) {
       if (typeof v !== "number" || !Number.isFinite(v)) {
         out[key] = def.default;
       } else {
-        const [lo, hi] = initialLimits[key] ?? [def.min, def.max];
+        const [lo, hi] = initialLimits[key] ?? [def.min ?? -Infinity, def.max ?? +Infinity];
         out[key] = snapToStep(v, def, lo, hi);
       }
     }

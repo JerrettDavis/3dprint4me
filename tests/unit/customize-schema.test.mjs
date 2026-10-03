@@ -107,10 +107,10 @@ test("multiline text allows newlines but rejects tab and other controls", () => 
 });
 
 test("zero-width characters only treated as blank", () => {
-  // Zero-width characters: U+200B (ZWJ), U+200C (ZWNJ), U+200D (ZWM), U+2060 (WJ), U+FEFF (ZWNBSP)
-  assert.equal(validateParams(gen, { name: "​" }).ok, false, "U+200B (ZWJ) only should be blank");
+  // Zero-width characters: U+200B (ZWSP), U+200C (ZWNJ), U+200D (ZWJ), U+2060 (WJ), U+FEFF (ZWNBSP)
+  assert.equal(validateParams(gen, { name: "​" }).ok, false, "U+200B (ZWSP) only should be blank");
   assert.equal(validateParams(gen, { name: "‌" }).ok, false, "U+200C (ZWNJ) only should be blank");
-  assert.equal(validateParams(gen, { name: "‍" }).ok, false, "U+200D (ZWM) only should be blank");
+  assert.equal(validateParams(gen, { name: "‍" }).ok, false, "U+200D (ZWJ) only should be blank");
   assert.equal(validateParams(gen, { name: "⁠" }).ok, false, "U+2060 (WJ) only should be blank");
   assert.equal(validateParams(gen, { name: "﻿" }).ok, false, "U+FEFF (ZWNBSP) only should be blank");
   // But visible char with zero-width should work
@@ -255,115 +255,109 @@ test("skipSensitive ignores invalid sensitive values and does not error", () => 
   assert(!result.errors.some(e => e.includes("12345")), "Should not error on number in sensitive field");
 });
 
-test("changedKey discriminates: changed key movement updates dependent limits", () => {
-  const g = {
-    id: "depend", version: 1,
+test("out-of-range changed key clamps to its field range and the dependent follows the RECOMPUTED limit", () => {
+  const gDep = {
     schema: {
-      a: { type: "number", label: "A", min: 0, max: 100, step: 1, default: 50 },
-      b: { type: "number", label: "B", min: 0, max: 100, step: 1, default: 50 }
+      a: { type: "number", label: "a", min: 0, max: 100, default: 50 },
+      b: { type: "number", label: "b", min: 0, max: 100, default: 50 }
     },
-    rules: p => ({ limits: { b: [0, p.a] } })
+    rules: p => ({ limits: { b: [0, 100 - p.a] } })
   };
-
-  // Case 1: a changes to 100, stays within range, b follows
-  const r1 = clampParams(g, { a: 90, b: 80 }, "a");
-  assert.equal(r1.a, 90, "a stays 90 (within range)");
-  assert.equal(r1.b, 80, "b stays 80 (within new limit [0, 90])");
-
-  // Case 2: a changes to 40, b must shrink
-  const r2 = clampParams(g, { a: 90, b: 80 }, "a");
-  // Wait, let me reconsider. If changedKey is "a" and a is currently 90 in the input,
-  // and we call clampParams with those params, a stays 90.
-  // But I think the test wants: what if we CHANGE a to 40?
-  // The issue is clampParams doesn't SET values, it CLAMPS them.
-  // So if input is {a: 90, b: 80} and changedKey is "a", a gets clamped against its limits (0-100) so stays 90,
-  // then b gets clamped against its limit [0, p.a] = [0, 90] so stays 80.
-  // The test case wants to change a to 40 and see if b goes to 40.
-  const r2b = clampParams(g, { a: 40, b: 80 }, "a");
-  assert.equal(r2b.a, 40, "a becomes 40");
-  assert.equal(r2b.b, 40, "b shrinks to 40 (new limit [0, 40])");
+  // incoming a=150 would give b limit [0,-50]; after clamping a to 100 the limit is [0,0].
+  const out = clampParams(gDep, { a: 150, b: 30 }, "a");
+  assert.equal(out.a, 100);
+  assert.equal(out.b, 0); // a clamp-everything-against-initial-limits implementation yields -50 and fails here
 });
 
-test("changedKey discriminates: non-changed key yields priority", () => {
-  const g = {
-    id: "yeild", version: 1,
+test("changed key keeps a value beyond its rule limit; the others yield", () => {
+  const gDep = {
     schema: {
-      a: { type: "number", label: "A", min: 0, max: 100, step: 1, default: 50 },
-      b: { type: "number", label: "B", min: 0, max: 100, step: 1, default: 50 }
-    },
-    rules: p => ({ limits: { b: [0, p.a] } })
+      a: { type: "number", label: "a", min: 0, max: 100, default: 50 },
+      b: { type: "number", label: "b", min: 0, max: 100, default: 50 }
+    }
   };
-
-  // changedKey is "b", so b is clamped first against its original limits
-  // Then rules are recomputed from the params WITH clamped b
-  // Then other fields (a) are clamped against updated limits
-  // Since there's no rule that depends on b affecting a, a stays as-is
-  const result = clampParams(g, { a: 90, b: 95 }, "b");
-  assert.equal(result.b, 95, "b (changed key) should be clamped within its limits [0, 100]");
-  assert.equal(result.a, 90, "a should not be reduced below 90 (no rule limiting a based on b)");
+  const g = { ...gDep, rules: p => ({ limits: { a: [0, 50], b: [0, 100 - p.a] } }) };
+  const out = clampParams(g, { a: 80, b: 40 }, "a");
+  assert.equal(out.a, 80); // applying rule limits to the changed key would give 50 and fail
+  assert.equal(out.b, 20); // b yields to recomputed limit 100-80
 });
 
-test("changedKey with rule-dependent limits: upstream change limits downstream", () => {
-  const g = {
-    id: "upstream", version: 1,
+test("with no changedKey every field is clamped", () => {
+  const gDep = {
     schema: {
-      cap: { type: "number", label: "Cap", min: 0, max: 100, step: 1, default: 50 },
-      val: { type: "number", label: "Val", min: 0, max: 100, step: 1, default: 50 }
+      a: { type: "number", label: "a", min: 0, max: 100, default: 50 },
+      b: { type: "number", label: "b", min: 0, max: 100, default: 50 }
     },
-    rules: p => ({ limits: { val: [0, p.cap] } })
+    rules: p => ({ limits: { b: [0, 100 - p.a] } })
   };
-
-  // Change cap downward, val should follow
-  const result = clampParams(g, { cap: 30, val: 80 }, "cap");
-  assert.equal(result.cap, 30, "cap becomes 30");
-  assert.equal(result.val, 30, "val clamped to new limit [0, 30]");
+  const out = clampParams(gDep, { a: 70, b: 90 });
+  assert.equal(out.a, 70);
+  assert.equal(out.b, 30);
 });
 
-test("changedKey with step and rule limits: step-down and step-up branches exercised", () => {
-  let stepDownCount = 0, stepUpCount = 0;
-
-  // Monkey-patch snapToStep to count branches (for testing only)
-  const originalSnapToStep = global.snapToStep;
-
+test("stepped field with rule-dependent limits: step-down and step-up branches exercised", () => {
   const g = {
-    id: "stepped", version: 1,
     schema: {
-      x: { type: "number", label: "X", min: 2.4, max: 20, step: 0.5, default: 5 },
-      cap: { type: "number", label: "Cap", min: 0, max: 10, step: 1, default: 5 }
+      lo: { type: "number", label: "lo", min: 2.4, max: 10.1, default: 2.4 },
+      hi: { type: "number", label: "hi", min: 2.4, max: 10.1, default: 7.7 },
+      x: { type: "number", label: "x", min: 2.4, max: 12, step: 0.5, default: 2.4 }
     },
-    rules: p => ({ limits: { x: [2.4, p.cap] } })
+    rules: p => {
+      const lo = Math.min(p.lo, p.hi);
+      const hi = Math.max(p.lo, p.hi);
+      return { limits: { x: [lo, hi] } };
+    }
   };
 
-  let seed = 42;
+  let seed = 99;
   const random = () => {
     seed = (seed * 1103515245 + 12345) % (2 ** 31);
     return seed / (2 ** 31);
   };
 
-  let hitStepDown = false, hitStepUp = false;
+  const loChoices = [2.4, 2.6, 3.1];
+  const hiChoices = [3.1, 3.3, 7.7, 10.1];
 
-  // Run 200 iterations with varied params
-  for (let i = 0; i < 200; i++) {
-    const cap = 3 + random() * 7; // 3 to 10
-    const xVal = random() * 20; // can be anywhere 0-20, often outside [2.4, cap]
+  let stepDownCount = 0, stepUpCount = 0;
 
-    const result = clampParams(g, { x: xVal, cap }, "cap");
+  // Generate 300+ cases
+  for (let i = 0; i < 320; i++) {
+    let lo = loChoices[Math.floor(random() * loChoices.length)];
+    let hi = hiChoices[Math.floor(random() * hiChoices.length)];
+    if (lo > hi) [lo, hi] = [hi, lo];
+    const xInput = random() * 15; // 0-15, may be outside range
 
-    // Check if clamping happened correctly
-    const [lo, hi] = [2.4, cap];
+    const params = { lo, hi, x: xInput };
+    const result = clampParams(g, params);
 
-    // If xVal < 2.4, should snap up: step up branch
-    if (xVal < 2.4) hitStepUp = true;
-    // If xVal > cap, should snap down: step down branch
-    if (xVal > cap) hitStepDown = true;
+    // x should be finite
+    assert(Number.isFinite(result.x), `Iter ${i}: output x should be finite, got ${result.x}`);
 
-    // Verify result passes validation
-    const validated = validateParams(g, result);
-    assert.equal(validated.ok, true, `Iter ${i}: clamped should validate: ${JSON.stringify(result)}`);
+    // For non-NaN inputs, compute what naive rounding would give
+    if (!Number.isNaN(xInput)) {
+      const clamped = Math.min(hi, Math.max(lo, xInput));
+      const naive = 2.4 + Math.round((clamped - 2.4) / 0.5) * 0.5;
+
+      if (result.x < naive - 1e-9) stepDownCount++;
+      if (result.x > naive + 1e-9) stepUpCount++;
+
+      // Check that a grid point exists in [lo, hi]
+      const gridPointExists = (hi - lo + 1e-9) / 0.5 > 0.5; // At least one step fits
+      if (gridPointExists) {
+        // Output should be on grid
+        const gridResidue = Math.abs((result.x - 2.4) / 0.5 - Math.round((result.x - 2.4) / 0.5));
+        assert(gridResidue < 1e-6, `Iter ${i}: output should be on grid, residue=${gridResidue}, x=${result.x}`);
+      }
+      // Output must be within [lo, hi]
+      assert(result.x >= lo - 1e-9 && result.x <= hi + 1e-9, `Iter ${i}: output ${result.x} outside [${lo}, ${hi}]`);
+    } else {
+      // NaN input should fall back to default and clamp
+      assert.equal(result.x, 2.4, `Iter ${i}: NaN input should fall back to default 2.4`);
+    }
   }
 
-  assert.equal(hitStepDown, true, "Should have exercised step-down branch (xVal > cap)");
-  assert.equal(hitStepUp, true, "Should have exercised step-up branch (xVal < 2.4)");
+  assert(stepDownCount > 0, `Should have exercised step-down branch, got ${stepDownCount} step-downs`);
+  assert(stepUpCount > 0, `Should have exercised step-up branch, got ${stepUpCount} step-ups`);
 });
 
 test("NaN and Infinity in numeric fields fall back to default", () => {
@@ -399,4 +393,21 @@ test("Non-number values in numeric fields fall back to default", () => {
   // Object
   result = clampParams(g, { a: {} });
   assert.equal(result.a, 50, "Object should fall back to default");
+});
+
+test("number field with no min or max does not produce NaN", () => {
+  const g = {
+    id: "nometa", version: 1,
+    schema: {
+      a: { type: "number", label: "A", default: 0 }
+    }
+  };
+
+  const result = clampParams(g, { a: 9999 });
+  assert(!Number.isNaN(result.a), "Should not produce NaN");
+  assert.equal(result.a, 9999, "Large value should stay as-is (no min/max constraints)");
+
+  const result2 = clampParams(g, { a: -9999 });
+  assert(!Number.isNaN(result2.a), "Should not produce NaN");
+  assert.equal(result2.a, -9999, "Negative value should stay as-is (no min/max constraints)");
 });
