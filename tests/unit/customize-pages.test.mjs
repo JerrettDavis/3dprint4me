@@ -51,5 +51,5 @@ test("every registered generator has a page, a builder, a sitemap entry and a ca
 test("the Wi-Fi tag page states where the password goes", async () => {
   const { readFile } = await import("node:fs/promises");
   const html = await readFile(new URL("../../customizer/g/wifi-tag/index.html", import.meta.url), "utf8");
-  assert.ok(html.includes("The password is encoded in the QR code inside your model file. We don't store it separately."));
+  assert.ok(html.includes("The password is encoded in the QR code inside your model file. The file is stored privately like any upload and seen by us when we print it. It is not copied into our request records, emails or your saved draft."));
 });

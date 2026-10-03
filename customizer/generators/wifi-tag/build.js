@@ -16,9 +16,33 @@ const LOOP_R = 6, HOLE_R = 2.75, LOOP_OVERLAP = 3;   // 12 mm boss, 5.5 mm hole,
 const BAND = 15;             // placard text band height
 const TEXT_CLEAR = 1;        // clearance between a text band and the code's quiet zone
 const SPLIT_BELOW = 4;       // split a label line in two when one line would print under this cap height (mm)
-const SMALL_TEXT = 2.5;      // warn below this cap height (mm)
+const MIN_TEXT = 2.5;        // below this cap height (mm) the label is not legible: fail, never print it
+const SMALL_TEXT = 3.5;      // warn below this cap height (mm)
 const CELL_H = 7.16, LINE_GAP = 2.5;   // block-font cell height (with gap) and line spacing, in cells
 const ARC_TOL = 0.05;        // the rounded corner is a polygon; keep this far inside the true arc
+
+const HEX_EVEN = /^(?:[0-9a-fA-F]{2})+$/;
+const TOO_LONG = {
+  ssid: "The network name is too long to print legibly at this tag size. Shorten it, turn the label off, or choose a larger format.",
+  title: "The title is too long to print legibly at this tag size. Shorten it, turn the label off, or choose a larger format."
+};
+
+// Credentials that are valid input but may not let a phone join. Never quotes the password.
+export function credentialWarnings(p) {
+  const out = [];
+  const pw = p.security === "nopass" ? "" : String(p.password ?? "");
+  const len = [...pw].length;
+  if (p.security === "WPA" && pw) {
+    if (len < 8 || len > 63) out.push("WPA passwords are normally 8–63 characters; check this one if phones can't connect.");
+    if (/[^\x20-\x7e]/.test(pw)) out.push("The password has characters outside plain ASCII; some phones and routers can't use them. Check it if phones can't connect.");
+  }
+  if (p.security === "WEP" && pw && ![5, 13, 10, 26].includes(len)) out.push("WEP keys are 5 or 13 characters (or 10 or 26 hex digits); check this one if phones can't connect.");
+  const wepHexKey = p.security === "WEP" && (len === 10 || len === 26);
+  if (HEX_EVEN.test(String(p.ssid ?? "")) || (pw && !wepHexKey && HEX_EVEN.test(pw))) {
+    out.push("Some phones may read this as a raw hex key; if it does not connect, change the name or password.");
+  }
+  return out;
+}
 
 // Module count the framework's qrCrossSection will use (same library, auto version, level M).
 function moduleCount(payload) {
@@ -138,12 +162,15 @@ export default async function build(p, { wasm } = {}) {
     const qr = t(q.cs.translate([square.cx, square.cy]));
     if (q.module < 0.9) warnings.push(`QR module size is ${q.module.toFixed(2)} mm. A 0.4 mm nozzle and a well-calibrated first layer are recommended.`);
     if (p.security === "nopass" && p.password) warnings.push("The password is not used because Security is set to No password.");
+    warnings.push(...credentialWarnings(p));
 
     // Label (never the password).
     const labels = [];
     let smallest = Infinity;
     for (const box of layout.boxes) {
       const block = textBlock(CrossSection, splitLines(box.text, box), box, t);
+      // Fit or error: a label too small to read is never printed silently.
+      if (block.cap < MIN_TEXT) throw new Error(TOO_LONG[box.kind]);
       labels.push(block.cs);
       smallest = Math.min(smallest, block.cap);
     }

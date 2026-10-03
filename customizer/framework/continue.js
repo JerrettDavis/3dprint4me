@@ -10,7 +10,7 @@ export function continueState({ status, hasResult }) {
   return { disabled: !(status === "ready" && hasResult), note: "" };
 }
 
-/** The hand-off record. Sensitive values live only inside the model file, never here. */
+/** The hand-off record. Sensitive values are encoded in the model file only; this record carries the redaction marker. */
 export function continuePayload(generator, params, result) {
   return {
     file: new Blob([result.data], { type: "model/3mf" }),

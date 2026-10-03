@@ -45,7 +45,8 @@ function checkField(key, def, raw) {
       }
       const visibleValue = value.replace(ZERO_WIDTH, "");
       if ([...visibleValue].length > def.max) return { error: `${label} must be at most ${def.max} characters.` };
-      if (!visibleValue && !def.optional) return { error: `${label} is required.` };
+      // Whitespace alone never satisfies a required field, even when the stored value keeps it.
+      if (!visibleValue.trim() && !def.optional) return { error: `${label} is required.` };
       return { value };
     }
     default: return { error: `${label} has an unknown field type.` };
@@ -104,8 +105,11 @@ const snapToStep = (v, def, lo, hi) => {
   return Number(snapped.toFixed(6));
 };
 
+// generator.onParamChange(changedKey, params) may return values derived from a committed edit
+// (e.g. a format's own defaults when the format changes). It runs only for that edit.
 export function clampParams(generator, params, changedKey) {
   const out = { ...params };
+  if (changedKey && generator.onParamChange) Object.assign(out, generator.onParamChange(changedKey, out) ?? {});
   const initialLimits = generator.rules?.(out).limits ?? {};
 
   if (changedKey) {

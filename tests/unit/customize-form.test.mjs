@@ -24,12 +24,17 @@ test("user-supplied defaults are HTML-escaped", () => {
   assert.ok(!evil.includes("<img"));
 });
 
-test("sensitive text fields are password-style, non-autofilled and labelled as stored only in the model", () => {
+test("sensitive text fields are password-style, non-autofilled and say plainly where the value goes", () => {
   const wifi = { schema: { pw: { type: "text", label: "Password", max: 20, default: "", sensitive: true, optional: true } } };
   const out = renderFormHtml(wifi, { pw: "" });
   assert.match(out, /type="password"/);
   assert.match(out, /autocomplete="off"/);
-  assert.match(out, /only inside the model file/i);
+  assert.match(out, /<p class="cz-sensitive-note" id="cz-pw-note">/);
+  assert.match(out, /model file/i);
+  assert.match(out, /stored privately/i);
+  assert.match(out, /not copied into our request records, emails or your saved draft/i);
+  // Never the old, untrue claim: the uploaded model file is on our private storage.
+  assert.doesNotMatch(out, /never on our servers|only inside the model file/i);
 });
 
 test("each control has a unique id, every label points at one, and only one control per field carries the name", () => {

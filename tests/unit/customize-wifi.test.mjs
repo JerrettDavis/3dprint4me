@@ -364,3 +364,105 @@ test("rules force show_text off for keychain everywhere the schema runs: browser
   const server = normalizeCustomization({ generatorId: "wifi-tag", generatorVersion: 1, params: { ssid: "Cafe", password: "hunter2", format: "keychain", show_text: true } });
   assert.equal(server.params.show_text, false, "the operator record matches the model: no text on a keychain");
 });
+
+// ---- Review round 1 -----------------------------------------------------------------------------
+
+test("a card label that would print under 2.5 mm fails with a readable error mapped to the network name", async () => {
+  const long = "S".repeat(32);
+  const value = paramsFor({ format: "card", ssid: long, title: "" });
+  await assert.rejects(() => buildModel(gen, value, { wasm, font: null }), error => {
+    assert.equal(error.message, "The network name is too long to print legibly at this tag size. Shorten it, turn the label off, or choose a larger format.");
+    assert.equal(gen.errorField(error.message), "ssid");
+    return true;
+  });
+  // The same name fits the placard; the card works with the label off.
+  await buildModel(gen, paramsFor({ format: "placard", ssid: long, title: "" }), { wasm, font: null });
+  await buildModel(gen, paramsFor({ format: "card", ssid: long, show_text: false }), { wasm, font: null });
+});
+
+test("a card label between 2.5 and 3.5 mm builds with a small-label warning", async () => {
+  // 22 characters split into two 11-character lines: about 2.9 mm cap height in the card column.
+  const out = await buildModel(gen, paramsFor({ format: "card", ssid: "S".repeat(22), title: "" }), { wasm, font: null });
+  const w = out.warnings.find(x => /label prints only/.test(x));
+  assert.ok(w, out.warnings.join("|"));
+  const mm = Number(/only ([\d.]+) mm/.exec(w)[1]);
+  assert.ok(mm >= 2.5 && mm < 3.5, w);
+});
+
+test("a maximum-length title still fits the card (with a warning); a title error would map to the title field", async () => {
+  // Card titles split onto two lines, so the 20-character maximum prints at about 2.9 mm.
+  const out = await buildModel(gen, paramsFor({ format: "card", title: "W".repeat(20) }), { wasm, font: null });
+  assert.ok(out.warnings.some(w => /label prints only/.test(w)), out.warnings.join("|"));
+  assert.equal(gen.errorField("The title is too long to print legibly at this tag size. Shorten it, turn the label off, or choose a larger format."), "title");
+});
+
+test("an SSID of only spaces is still required; a password keeps its spaces", () => {
+  const r = validateParams(gen, { ssid: "   ", password: "x" });
+  assert.equal(r.ok, false);
+  assert.equal(r.fieldErrors.ssid, "Network name (SSID) is required.");
+  assert.equal(validateParams(gen, { ssid: " Cafe ", password: " pw  pw " }).value.password, " pw  pw ");
+  assert.equal(validateParams(gen, { ssid: " Cafe ", password: " pw  pw " }).value.ssid, " Cafe ");
+});
+
+test("contrast boundaries: 3:1 passes, just under fails, for the QR and for the label (when shown)", async () => {
+  const { contrastRatio } = await import("../../public/assets/js/customize/generators/wifi-tag.js");
+  // Verified pairs around the boundary (WCAG relative luminance): 3.033 / 2.995 and 3.045 / 2.998.
+  assert.ok(contrastRatio("#ffffff", "#949494") >= 3 && contrastRatio("#ffffff", "#959595") < 3);
+  assert.ok(contrastRatio("#000000", "#5a5a5a") >= 3 && contrastRatio("#000000", "#595959") < 3);
+  assert.equal(validateParams(gen, { ...NETWORK, qr_color: "#949494", text_color: "#111111" }).ok, true);
+  assert.equal(validateParams(gen, { ...NETWORK, qr_color: "#959595", text_color: "#111111" }).ok, false);
+  assert.equal(validateParams(gen, { ...NETWORK, text_color: "#949494" }).ok, true);
+  const low = validateParams(gen, { ...NETWORK, text_color: "#959595" });
+  assert.equal(low.ok, false);
+  assert.match(low.fieldErrors.text_color, /Base color and Text color are too similar/);
+  assert.equal(low.fieldErrors.base_color, low.fieldErrors.text_color);
+  // The label may be lighter than the base (no polarity rule), but still needs 3:1.
+  const dark = { ...NETWORK, base_color: "#000000", qr_color: "#000000" };
+  assert.equal(validateParams(gen, { ...dark, text_color: "#5a5a5a" }).fieldErrors.text_color, undefined);
+  assert.match(validateParams(gen, { ...dark, text_color: "#595959" }).fieldErrors.text_color, /too similar/);
+  assert.equal(validateParams(gen, { ...NETWORK, text_color: "#ffffff", show_text: false }).ok, true, "no label, no label contrast rule");
+  assert.equal(validateParams(gen, { ...NETWORK, format: "keychain", text_color: "#ffffff", show_text: true }).ok, true, "keychain has no label");
+});
+
+test("the key-ring loop is keychain-only: hidden in the form and forced off by rules for other formats", async () => {
+  assert.deepEqual(gen.schema.hole.visibleWhen, { format: "keychain" });
+  assert.equal(validateParams(gen, { ...NETWORK, format: "placard", hole: true }).value.hole, false);
+  assert.equal(validateParams(gen, { ...NETWORK, format: "keychain", hole: true }).value.hole, true);
+  const { renderFormHtml } = await import("../../customizer/framework/form.js");
+  assert.match(renderFormHtml(gen, paramsFor({ format: "placard" })), /<div class="cz-field cz-field-bool" data-field="hole" hidden>/);
+  assert.match(renderFormHtml(gen, paramsFor({ format: "keychain" })), /<div class="cz-field cz-field-bool" data-field="hole">/);
+});
+
+test("changing the format restores that format's text and loop defaults; other edits do not", () => {
+  const placard = paramsFor();
+  const key = clampParams(gen, { ...placard, format: "keychain" }, "format");
+  assert.equal(key.show_text, false);
+  assert.equal(key.hole, true);
+  const back = clampParams(gen, { ...key, format: "card" }, "format");
+  assert.equal(back.show_text, true, "keychain -> card turns text back on");
+  assert.equal(back.hole, false);
+  // Turning text off on a placard sticks through other edits.
+  const off = clampParams(gen, { ...placard, show_text: false }, "show_text");
+  assert.equal(clampParams(gen, { ...off, thickness_mm: 4 }, "thickness_mm").show_text, false);
+  assert.equal(clampParams(gen, { ...off, corner_radius_mm: 2 }).show_text, false);
+});
+
+test("credentials that may not join produce warnings that never echo the password", async () => {
+  const warn = async extra => (await buildModel(gen, paramsFor(extra), { wasm, font: null })).warnings;
+  const cases = [
+    [{ password: "short12" }, /WPA passwords are normally 8–63/],
+    [{ password: "pässwörd-long" }, /plain ASCII/],
+    [{ security: "WEP", password: "abcdef" }, /WEP keys are 5 or 13 characters/],
+    [{ ssid: "CAFE" }, /raw hex key/],
+    [{ password: "deadbeefcafe" }, /raw hex key/]
+  ];
+  for (const [extra, re] of cases) {
+    const ws = await warn(extra);
+    assert.ok(ws.some(w => re.test(w)), `${JSON.stringify(extra)}: ${ws.join("|")}`);
+    if (extra.password) for (const w of ws) assert.ok(!w.includes(extra.password), w);
+  }
+  for (const extra of [{}, { security: "WEP", password: "abcde" }, { security: "WEP", password: "0123456789" }, { security: "nopass", password: "" }, { ssid: "CAF" }]) {
+    const ws = await warn(extra);
+    assert.ok(!ws.some(w => /WPA passwords|WEP keys|plain ASCII|raw hex/.test(w)), `${JSON.stringify(extra)}: ${ws.join("|")}`);
+  }
+});

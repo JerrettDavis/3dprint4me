@@ -2,7 +2,7 @@
 // renderForm wires it to the DOM. No Vite-only imports here.
 import { sensitiveKeys, validateParams } from "../../public/assets/js/customize/schema.js";
 
-export const SENSITIVE_NOTE = "This is stored only inside the model file you send us — never on our servers or in your saved draft.";
+export const SENSITIVE_NOTE = "This is encoded in your model file. The file is stored privately like any upload and seen by us when we print it. It is not copied into our request records, emails or your saved draft.";
 const GROUP_LABELS = { text: "Text", size: "Size and depth", layout: "Text layout", back: "Back", colors: "Colors" };
 const DEBOUNCE_MS = 150;
 
@@ -98,6 +98,9 @@ function colorField(key, def, value, error) {
 
 const RENDERERS = { number: numberField, int: numberField, text: textField, enum: enumField, bool: boolField, color: colorField };
 
+/** visibleWhen: { key: value, ... } shows a field only while every listed parameter has that value (display only; validation ignores it). */
+export const isFieldVisible = (def, params) => !def.visibleWhen || Object.entries(def.visibleWhen).every(([k, v]) => params?.[k] === v);
+
 /** Summary text for the form-level live region: unkeyed messages in full, keyed ones as a pointer. */
 export function summaryHtml(errors = [], fieldErrors = {}) {
   const keyed = new Set(Object.values(fieldErrors));
@@ -110,13 +113,16 @@ export function summaryHtml(errors = [], fieldErrors = {}) {
 
 export function renderFormHtml(generator, params = {}, { errors = [], fieldErrors = {} } = {}) {
   const groups = new Map();
+  const current = Object.fromEntries(Object.entries(generator.schema).map(([k, d]) => [k, Object.hasOwn(params, k) ? params[k] : d.default]));
   for (const [key, def] of Object.entries(generator.schema)) {
     const render = RENDERERS[def.type];
     if (!render) continue;
     const value = Object.hasOwn(params, key) ? params[key] : def.default;
     const group = def.group ?? "";
     if (!groups.has(group)) groups.set(group, []);
-    groups.get(group).push(render(key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : ""));
+    let field = render(key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : "");
+    if (!isFieldVisible(def, current)) field = field.replace(`data-field="${esc(key)}">`, `data-field="${esc(key)}" hidden>`);
+    groups.get(group).push(field);
   }
   const fieldsets = [...groups].map(([group, fields]) => `<fieldset class="cz-group cz-group-${esc(slug(group || "options"))}">
 <legend class="cz-legend">${esc(groupLabel(group))}</legend>
@@ -226,6 +232,11 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
         const slider = range(key);
         if (slider && Number.isFinite(value)) slider.value = String(value);
       } else if (element.value !== String(value ?? "")) element.value = String(value ?? "");
+    }
+    for (const [key, def] of Object.entries(generator.schema)) {
+      if (!def.visibleWhen) continue;
+      const wrapper = container.querySelector(`[data-field="${CSS.escape(key)}"]`);
+      if (wrapper) wrapper.hidden = !isFieldVisible(def, values);
     }
     if (generator.rules) setLimits(generator.rules(values).limits ?? {});
   }
