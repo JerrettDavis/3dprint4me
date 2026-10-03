@@ -42,9 +42,11 @@ export async function loadFont({ fontId, fontBytes, fontKey, fetchImpl = (...a) 
   const entry = Object.hasOwn(CURATED_FONTS, fontId) ? CURATED_FONTS[fontId] : null;
   if (!entry) throw new Error("That font isn't available.");
   if (!curatedCache.has(fontId)) {
+    const unreachable = () => new Error("The font couldn't be loaded. Check your connection and try again.");
     const pending = Promise.resolve()
-      .then(() => fetchImpl(`/customize/fonts/${encodeURIComponent(entry.file)}`, { credentials: "same-origin" }))
-      .then(response => { if (!response.ok) throw new Error("The font couldn't be loaded. Check your connection and try again."); return response.arrayBuffer(); })
+      // A network failure rejects with a raw browser message; the customer sees ours instead.
+      .then(() => fetchImpl(`/customize/fonts/${encodeURIComponent(entry.file)}`, { credentials: "same-origin" }).catch(() => { throw unreachable(); }))
+      .then(response => { if (!response.ok) throw unreachable(); return response.arrayBuffer(); })
       .then(parseFont)
       .catch(error => { curatedCache.delete(fontId); throw error; });
     curatedCache.set(fontId, pending);

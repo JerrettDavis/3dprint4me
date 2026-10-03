@@ -2,8 +2,8 @@
 // self-hosted OFL fonts or the customer's own font file (parsed in the browser, never uploaded),
 // raised, outlined, shadowed or inlaid on a pill or rectangle plate, or cut out with a backing
 // outline (no plate). Optional keychain loop at the left end.
-import { contrastRatio } from "../color.js?v=0113086731b32eb7";
-import { FONTS } from "../fonts.js?v=0113086731b32eb7";
+import { contrastRatio } from "../color.js?v=121a507eb6ca2ceb";
+import { FONTS } from "../fonts.js?v=121a507eb6ca2ceb";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // plate kept under the relief (and under an inlay)
@@ -40,10 +40,12 @@ function onParamChange(key, o) {
   return null;
 }
 
-// Maps a geometry (build) error to the control it belongs next to.
+// Maps a geometry (build) error to the control it belongs next to. A curated font that failed
+// to download is not a settings problem: it stays unkeyed, so the page offers "Try again".
 function errorField(message) {
   const text = String(message ?? "");
-  if (/font file|font couldn't|font isn't/i.test(text)) return "font";
+  if (/couldn't be loaded|isn't loaded/i.test(text)) return null;
+  if (/font file|font isn't available/i.test(text)) return "font";
   if (/aren't connected/i.test(text)) return "plate";
   if (/characters|too small to read|name/i.test(text)) return "name";
   return null;
