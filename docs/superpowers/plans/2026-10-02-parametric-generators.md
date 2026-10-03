@@ -1478,7 +1478,7 @@ git add -A && git commit -m "feat: rating card generator with icon library, half
 - Modify: `registry.js`, `customizer/generators/index.js`, `public/sitemap.xml`, `customizer/framework/fonts.js`
 
 **Interfaces:**
-- Produces: `FONTS` from `public/assets/js/customize/fonts.js`: `[{ id, label, file, license }]` for 8 curated OFL fonts — Pacifico, Lobster, Bebas Neue, Righteous, Permanent Marker, Rubik Mono One, Bangers, Chewy. `name-plate` params: `name` (text 1–20, default "Alex"), `font` (enum of the 8 ids plus `block`), `style` (`raised|outline|shadow|inlay`), `plate` (`none|pill|rect`), `keychain_loop` (bool), `height_mm` (14–60, default 24), `thickness_mm` (2–6, default 3), `relief_mm` (0.6–2, default 1.2), colors `text_color`, `outline_color`, `plate_color` (≤ 3 colors total).
+- Produces: `FONTS` from `public/assets/js/customize/fonts.js`: `[{ id, label, file, license }]` for 8 curated OFL fonts — Pacifico, Lobster, Bebas Neue, Righteous, Caveat Brush, Rubik Mono One, Bangers, Titan One (Permanent Marker and Chewy were dropped: they are Apache-2.0, under `apache/` in google/fonts, not OFL). `name-plate` params: `name` (text 1–20, default "Alex"), `font` (enum of the 8 ids plus `block`), `style` (`raised|outline|shadow|inlay`), `plate` (`none|pill|rect`), `keychain_loop` (bool), `height_mm` (14–60, default 24), `thickness_mm` (2–6, default 3), `relief_mm` (0.6–2, default 1.2), colors `text_color`, `outline_color`, `plate_color` (≤ 3 colors total).
 
 - [ ] **Step 1: Download and verify fonts**
 
@@ -1489,10 +1489,10 @@ curl -fsSL -o Pacifico-Regular.ttf        $base/pacifico/Pacifico-Regular.ttf
 curl -fsSL -o Lobster-Regular.ttf         $base/lobster/Lobster-Regular.ttf
 curl -fsSL -o BebasNeue-Regular.ttf       $base/bebasneue/BebasNeue-Regular.ttf
 curl -fsSL -o Righteous-Regular.ttf       $base/righteous/Righteous-Regular.ttf
-curl -fsSL -o PermanentMarker-Regular.ttf $base/permanentmarker/PermanentMarker-Regular.ttf
+curl -fsSL -o CaveatBrush-Regular.ttf     $base/caveatbrush/CaveatBrush-Regular.ttf
 curl -fsSL -o RubikMonoOne-Regular.ttf    $base/rubikmonoone/RubikMonoOne-Regular.ttf
 curl -fsSL -o Bangers-Regular.ttf         $base/bangers/Bangers-Regular.ttf
-curl -fsSL -o Chewy-Regular.ttf           $base/chewy/Chewy-Regular.ttf
+curl -fsSL -o TitanOne-Regular.ttf        $base/titanone/TitanOne-Regular.ttf
 ls -l *.ttf && sha256sum *.ttf > SHA256SUMS && head -c 4 Pacifico-Regular.ttf | xxd | head -1
 ```
 
@@ -1522,7 +1522,7 @@ test("the font list matches the files on disk and each has a recorded license", 
   for (const f of FONTS) { await loadFontFile(f.id); assert.ok(licenses.includes(f.label), `license entry for ${f.label}`); }
 });
 
-for (const font of ["pacifico", "bebas-neue", "permanent-marker"]) for (const style of ["raised", "outline", "shadow", "inlay"]) {
+for (const font of ["pacifico", "bebas-neue", "caveat-brush"]) for (const style of ["raised", "outline", "shadow", "inlay"]) {
   test(`${font} / ${style} builds a valid multi-part model`, async () => {
     const { ok, errors, value } = validateParams(gen, { name: "Jordan", font, style });
     assert.ok(ok, errors.join(";"));
@@ -1553,7 +1553,7 @@ Run → FAIL.
 
 - [ ] **Step 3: Font list, schema and geometry**
 
-`fonts.js`: `export const FONTS = [{ id: "pacifico", label: "Pacifico", file: "Pacifico-Regular.ttf", license: "OFL-1.1" }, …]` for all eight (ids kebab-case: `pacifico lobster bebas-neue righteous permanent-marker rubik-mono-one bangers chewy`). The schema's `font` enum is `[{ value: "block", label: "Block (built-in)" }, …FONTS.map(f => ({ value: f.id, label: f.label }))]`.
+`fonts.js`: `export const FONTS = [{ id: "pacifico", label: "Pacifico", file: "Pacifico-Regular.ttf", license: "OFL-1.1" }, …]` for all eight (ids kebab-case: `pacifico lobster bebas-neue righteous caveat-brush rubik-mono-one bangers titan-one`). The schema's `font` enum is `[{ value: "block", label: "Block (built-in)" }, …FONTS.map(f => ({ value: f.id, label: f.label }))]`.
 
 `build.js`: text outline from `font ? fontText : blockText`, fit into `height_mm` tall box with width cap 150 mm, then by `style`:
 

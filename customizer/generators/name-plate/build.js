@@ -33,6 +33,11 @@ export const SKIPPED = "Some characters aren't in this font and were skipped.";
 export const NONE_AVAILABLE = "None of these characters are available in this font.";
 export const SAME_COLOR = "With no plate, the backing is printed in the outline color too, so the outline or shadow shows only as a step in height. Choose a plate to give it its own color.";
 export const DISCONNECTED = "The letters aren't connected — choose a plate or a bolder font.";
+export const DISCONNECTED_BLOCK = "The letters aren't connected — choose a plate.";
+export const THIN_STROKES = "Some strokes are thinner than 0.8 mm and may not print cleanly; increase the height or pick a bolder font.";
+const MIN_STROKE = 0.8;       // strokes thinner than this may not print cleanly: warn
+const THIN_LOSS = 0.02;       // ... when opening the letters by MIN_STROKE loses more than 2 % of their area
+const BRIDGE_OVERLAP = 1;     // a backing bridge reaches this far into each piece it joins (mm)
 const NO_FILE = "Choose a font file below, or pick one of the listed fonts.";
 const NOT_LOADED = "The selected font isn't loaded. Try again, or pick another font.";
 const tooSmall = h => `The name would print only ${h.toFixed(1)} mm tall at the ${MAX_WIDTH} mm width limit, too small to read. Shorten it.`;
@@ -50,6 +55,40 @@ export function drawableName(name, font) {
 }
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+/**
+ * Joins the pieces of a no-plate backing (letters a word gap apart, or letters whose closing
+ * didn't meet) with horizontal bars at the name's vertical centre: a band max(2 × rim,
+ * 0.25 × name height) tall spans each gap between neighbouring pieces, left to right, reaching
+ * 1 mm into each. Only the backing changes; the letters stay as designed. Pieces that never
+ * cross the centre band (stacked vertically) stay apart, and the caller reports them.
+ * `t` registers temporaries; the result is registered too.
+ */
+export function bridgeBacking(CrossSection, backing, { cy, height }, t) {
+  const pieces = backing.decompose();
+  try {
+    if (pieces.length < 2) return backing;
+    const half = Math.max(2 * BACKING, 0.25 * height) / 2;
+    const bb = backing.bounds();
+    const band = t(t(CrossSection.square([bb.max[0] - bb.min[0] + 2, 2 * half], false)).translate([bb.min[0] - 1, cy - half]));
+    const spans = [];
+    for (const piece of pieces) {
+      const part = t(piece.intersect(band));
+      if (!part.isEmpty()) { const b = part.bounds(); spans.push([b.min[0], b.max[0]]); }
+    }
+    spans.sort((a, b) => a[0] - b[0]);
+    const bars = [];
+    for (let i = 1; i < spans.length; i++) {
+      const [left, right] = [spans[i - 1], spans[i]];
+      if (right[0] <= left[1]) continue;   // already side by side across the band
+      const x0 = left[1] - BRIDGE_OVERLAP, x1 = right[0] + BRIDGE_OVERLAP;
+      bars.push(t(t(CrossSection.square([x1 - x0, 2 * half], false)).translate([x0, cy - half])));
+    }
+    return bars.length ? t(CrossSection.union([backing, ...bars])) : backing;
+  } finally {
+    pieces.forEach(free);
+  }
+}
 
 /**
  * The shortest pill (height = name height + 2 pad, fully round ends) that keeps every point of
@@ -97,12 +136,17 @@ export default async function build(p, { wasm, font = null } = {}) {
     const w = tb.max[0] - tb.min[0], h = tb.max[1] - tb.min[1];
     if (h < MIN_HEIGHT) throw new Error(tooSmall(h));
     const cx = (tb.min[0] + tb.max[0]) / 2, cy = (tb.min[1] + tb.max[1]) / 2;
+    // Strokes thinner than the nozzle comfortably prints vanish under an opening (erode, then
+    // dilate, by half the minimum stroke): warn when that loses a noticeable share of the area.
+    const opened = t(t(text.offset(-MIN_STROKE / 2, "Round", 2, SEGMENTS)).offset(MIN_STROKE / 2, "Round", 2, SEGMENTS));
+    if (text.area() - opened.area() > THIN_LOSS * text.area()) warnings.push(THIN_STROKES);
 
     // ---- Plate (or backing) outline ----
     let plate;
     if (p.plate === "none") {
       const grow = clamp(BRIDGE[0] * h, BACKING, BRIDGE[1]);
-      plate = t(t(text.offset(grow, "Round", 2, SEGMENTS)).offset(-(grow - BACKING), "Round", 2, SEGMENTS));
+      const closed = t(t(text.offset(grow, "Round", 2, SEGMENTS)).offset(-(grow - BACKING), "Round", 2, SEGMENTS));
+      plate = bridgeBacking(CrossSection, closed, { cy, height: h }, t);
     } else if (p.plate === "pill") {
       plate = t(pillAround(CrossSection, text, PAD));
     } else {
@@ -148,7 +192,7 @@ export default async function build(p, { wasm, font = null } = {}) {
     const pieces = base.decompose();
     const count = pieces.length;
     pieces.forEach(free);
-    if (count !== 1) throw new Error(DISCONNECTED);
+    if (count !== 1) throw new Error(face ? DISCONNECTED : DISCONNECTED_BLOCK);
 
     const extras = [];
     if (p.style === "outline") {

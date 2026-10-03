@@ -669,9 +669,14 @@ def test_name_plate_rules_coerce_inlay_and_report_disconnected_letters(page: Pag
     page.get_by_label("Plate", exact=True).select_option("none")
     expect(page.get_by_label("Style", exact=True)).to_have_value("raised")
     wait_ready(page)
-    page.get_by_label("Name", exact=True).fill("A B")
+    # A word gap is bridged in the backing: an ordinary two-word name builds with no plate.
+    page.get_by_label("Name", exact=True).fill("Mary Ann")
     page.get_by_label("Name", exact=True).press("Tab")
-    expect(page.locator("#cz-plate-error")).to_have_text("The letters aren't connected — choose a plate or a bolder font.", timeout=BUILD_TIMEOUT)
+    wait_ready(page)
+    # An apostrophe over a full stop never reaches the centre line: the build says so.
+    page.get_by_label("Name", exact=True).fill("'.")
+    page.get_by_label("Name", exact=True).press("Tab")
+    expect(page.locator("#cz-plate-error")).to_have_text("The letters aren't connected — choose a plate.", timeout=BUILD_TIMEOUT)
     page.get_by_label("Plate", exact=True).select_option("rect")
     wait_ready(page)
     expect(page.locator("#cz-plate-error")).to_have_text("")
@@ -715,3 +720,55 @@ def test_a_font_that_fails_to_download_offers_try_again(page: Page, base_url: st
     page.locator("#cz-retry").click()
     wait_ready(page)
     expect(page.locator("#cz-form-errors")).to_have_text("")
+
+
+def test_arrowing_through_the_font_picker_builds_once(page: Page, base_url: str) -> None:
+    open_name_plate(page, base_url)
+    # Count every transition into "building" from here on.
+    page.evaluate("""() => {
+        window.__builds = 0;
+        new MutationObserver(() => { if (document.body.dataset.buildState === 'building') window.__builds++; })
+            .observe(document.body, { attributes: true, attributeFilter: ['data-build-state'] });
+    }""")
+    page.locator("#cz-font-toggle").focus()
+    page.keyboard.press("Enter")
+    for _ in range(5):
+        page.keyboard.press("ArrowDown")
+        page.wait_for_timeout(80)
+    expect(page.get_by_role("radio", name="Caveat Brush")).to_be_checked()
+    page.keyboard.press("Enter")
+    expect(page.locator("#cz-font-toggle")).to_have_text("Caveat Brush")
+    wait_ready(page)
+    page.wait_for_timeout(700)
+    assert page.evaluate("window.__builds") == 1, page.evaluate("window.__builds")
+    # Arrowing and pausing (no Enter) commits the settled choice once, too.
+    page.keyboard.press("Enter")
+    page.keyboard.press("ArrowDown")
+    page.keyboard.press("ArrowDown")
+    expect(page.locator("#cz-font-toggle")).to_have_text("Bangers", timeout=BUILD_TIMEOUT)
+    wait_ready(page)
+    page.wait_for_timeout(700)
+    assert page.evaluate("window.__builds") == 2, page.evaluate("window.__builds")
+
+
+def test_name_plate_page_links_the_font_licenses(page: Page, base_url: str) -> None:
+    open_name_plate(page, base_url)
+    link = page.get_by_role("link", name="Font licenses")
+    expect(link).to_have_attribute("href", "/customize/fonts/LICENSES.md")
+    status, _, _ = request(f"{base_url}/customize/fonts/LICENSES.md")
+    assert status == 200
+
+
+def test_picking_a_font_then_typing_a_name_keeps_both(page: Page, base_url: str) -> None:
+    open_name_plate(page, base_url)
+    page.locator("#cz-font-toggle").click()
+    page.locator("label[for='cz-font-pacifico']").click()
+    # No pause: a late font commit must not overwrite what is being typed.
+    page.get_by_label("Name", exact=True).fill("Mary Ann")
+    page.get_by_label("Name", exact=True).press("Tab")
+    wait_ready(page)
+    page.wait_for_timeout(700)
+    expect(page.get_by_label("Name", exact=True)).to_have_value("Mary Ann")
+    expect(page.locator("#cz-font-toggle")).to_have_text("Pacifico")
+    draft = page.evaluate(f"sessionStorage.getItem({NAME_DRAFT_KEY!r}) || ''")
+    assert '"name":"Mary Ann"' in draft and '"font":"pacifico"' in draft, draft

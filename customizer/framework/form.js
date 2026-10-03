@@ -5,6 +5,9 @@ import { sensitiveKeys, validateParams } from "../../public/assets/js/customize/
 export const SENSITIVE_NOTE = "This is encoded in your model file. The file is stored privately like any upload and seen by us when we print it. It is not copied into our request records, emails or your saved draft.";
 const GROUP_LABELS = { text: "Text", size: "Size and depth", layout: "Text layout", back: "Back", colors: "Colors" };
 const DEBOUNCE_MS = 150;
+// Arrow keys in a picker move the choice one step at a time; the choice commits (and the model
+// rebuilds) once they settle, or at once on Enter or a click.
+const PICKER_SETTLE_MS = 450;
 
 const ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" };
 export const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ESCAPES[ch]);
@@ -223,9 +226,9 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     const element = def?.picker ? current(key) : named(key);
     if (def && element) onChange(key, readControlValue(def, element), { final });
   };
-  const schedule = (key, final) => {
+  const schedule = (key, final, delay = DEBOUNCE_MS) => {
     clearTimeout(timers.get(key));
-    timers.set(key, setTimeout(() => emit(key, final), DEBOUNCE_MS));
+    timers.set(key, setTimeout(() => emit(key, final), delay));
   };
 
   function onInput(event) {
@@ -240,13 +243,23 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     const key = target.name;
     if (!key || !generator.schema[key]) return;
     const def = generator.schema[key];
+    if (def.picker) { schedule(key, true, PICKER_SETTLE_MS); return; }
     if (isNumeric(def)) { const slider = range(key); if (slider && target.value !== "") slider.value = target.value; }
     const typing = def.type === "text" || isNumeric(def);
     schedule(key, !typing);
   }
   function onCommit(event) {
     const key = event.target.name;
-    if (key && generator.schema[key]) emit(key, true);
+    if (!key || !generator.schema[key]) return;
+    if (generator.schema[key].picker) {
+      // A pointer pick commits at once (and closes the list); arrow keys wait to settle.
+      const field = event.target.closest?.("[data-picker]");
+      if (field?.dataset.pointerPick) {
+        delete field.dataset.pointerPick;
+        emit(key, true);
+        openPicker(field, false, { focus: true });
+      } else schedule(key, true, PICKER_SETTLE_MS);
+    } else emit(key, true);
   }
   container.addEventListener("input", onInput);
   container.addEventListener("change", onCommit);
@@ -326,21 +339,34 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   }
   for (const field of container.querySelectorAll("[data-picker]")) {
     const toggle = field.querySelector(".cz-picker-toggle");
+    const key = field.dataset.field;
     toggle?.addEventListener("click", () => openPicker(field, toggle.getAttribute("aria-expanded") !== "true", { focus: true }));
     field.addEventListener("keydown", event => {
+      delete field.dataset.pointerPick;
       if (event.key === "Escape" && toggle?.getAttribute("aria-expanded") === "true") { event.preventDefault(); openPicker(field, false, { focus: true }); }
       // Enter on a choice confirms it, like a select.
-      if (event.key === "Enter" && event.target.matches?.(".cz-picker-radio")) { event.preventDefault(); openPicker(field, false, { focus: true }); }
+      if (event.key === "Enter" && event.target.matches?.(".cz-picker-radio")) { event.preventDefault(); emit(key, true); openPicker(field, false, { focus: true }); }
     });
-    // Pressing a choice must not blur the group first (that would close it before the click).
-    field.addEventListener("mousedown", event => { if (event.target.closest?.(".cz-picker-option")) event.preventDefault(); });
-    // A pointer pick closes the list once the radio is checked (arrow keys and Space only move
-    // the choice: their clicks have detail 0, so the list stays open).
+    // Pressing a choice must not blur the group first (that would close it before the click),
+    // and marks the coming change as a pointer pick (committed at once in onCommit).
+    field.addEventListener("mousedown", event => {
+      if (!event.target.closest?.(".cz-picker-option")) return;
+      event.preventDefault();
+      field.dataset.pointerPick = "1";
+    });
+    // Clicking the choice that is already checked changes nothing: just close the list.
     field.addEventListener("click", event => {
-      if (event.detail > 0 && event.target.closest?.(".cz-picker-option, .cz-picker-radio")) setTimeout(() => openPicker(field, false, { focus: true }), 0);
+      const option = event.detail > 0 ? event.target.closest?.(".cz-picker-option") : null;
+      if (option && container.querySelector(`#${CSS.escape(option.htmlFor)}`)?.checked) {
+        delete field.dataset.pointerPick;
+        openPicker(field, false, { focus: true });
+      }
     });
+    // Leaving the picker commits a choice still settling, before another control can commit.
     field.addEventListener("focusout", event => {
-      if (!field.contains(event.relatedTarget)) openPicker(field, false);
+      if (field.contains(event.relatedTarget)) return;
+      if (timers.has(key)) emit(key, true);
+      openPicker(field, false);
     });
   }
 

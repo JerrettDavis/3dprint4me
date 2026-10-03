@@ -1,6 +1,6 @@
-import { ModelAnalysisError, resolveModelLimits } from "./mesh.js?v=121a507eb6ca2ceb";
-import { parseStl } from "./stl.js?v=121a507eb6ca2ceb";
-import { parseThreeMf } from "./three-mf.js?v=121a507eb6ca2ceb";
+import { ModelAnalysisError, resolveModelLimits } from "./mesh.js?v=094c779c94cf087f";
+import { parseStl } from "./stl.js?v=094c779c94cf087f";
+import { parseThreeMf } from "./three-mf.js?v=094c779c94cf087f";
 
 export const GEOMETRY_ANALYZER = Object.freeze({ engine: "3dprint4me-geometry", version: "1.0.0" });
 

@@ -19,7 +19,8 @@ function makeTextCS(CrossSection, text, o, font) {
   if (!String(text || "").trim()) return CrossSection.union([]);
   if (o.font_mode === "block") return blockText(CrossSection, text);
   if (!font) throw new Error("Choose a font file first, or switch back to the built-in block font.");
-  return fontText(CrossSection, font, text);
+  // Non-zero fill: overlapping contours (script joins) stay solid instead of becoming holes.
+  return fontText(CrossSection, font, text, { fillRule: "NonZero" });
 }
 
 // ---- Text layout -----------------------------------------------------------

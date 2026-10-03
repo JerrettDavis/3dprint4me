@@ -245,6 +245,7 @@ test("the font picker is a labelled radio group, each option drawn in its own fo
 
 test("errorField maps geometry errors to the control they concern", () => {
   assert.equal(gen.errorField("The letters aren't connected — choose a plate or a bolder font."), "plate");
+  assert.equal(gen.errorField("The letters aren't connected — choose a plate."), "plate");
   assert.equal(gen.errorField("None of these characters are available in this font."), "name");
   assert.equal(gen.errorField("The name would print only 2.1 mm tall at the 150 mm width limit, too small to read. Shorten it."), "name");
   assert.equal(gen.errorField("That font file couldn't be read. Try a TTF, OTF or WOFF file."), "font");
@@ -326,7 +327,6 @@ test("the plate (or backing) is one connected piece for every font", async () =>
 test("the letters sit at least 3 mm inside a pill or rectangle plate (and inside the backing)", async () => {
   for (const [font, name] of [["block", "Alex"], ["block", "AW"], ["lobster", "Alex"], ["pacifico", "Jordan"], ["rubik-mono-one", "MAX"], ["bebas-neue", "I"], ["titan-one", "Maximiliana Rosalind"]]) {
     for (const plate of ["pill", "rect", "none"]) {
-      if (plate === "none" && name.includes(" ")) continue; // a word gap is never bridged (see below)
       const p = paramsFor({ name, font, plate });
       const built = await build(p, { wasm, font: await fontFor(p) });
       const temps = [];
@@ -342,12 +342,82 @@ test("the letters sit at least 3 mm inside a pill or rectangle plate (and inside
   }
 });
 
-test("disconnected letters with no plate fail with a readable message", async () => {
-  // Block letters a full space apart cannot be bridged by the backing outline.
-  const p = paramsFor({ name: "A B", plate: "none" });
-  await assert.rejects(() => buildModel(gen, p, { wasm, font: null }), { message: "The letters aren't connected — choose a plate or a bolder font." });
+test("letters that stay apart even after bridging fail with a readable message, worded per font", async () => {
+  // An apostrophe over a full stop: the two pieces never reach the name's centre line, so no
+  // horizontal bridge can join them.
+  await assert.rejects(() => buildModel(gen, paramsFor({ name: "'.", plate: "none" }), { wasm, font: null }), { message: "The letters aren't connected — choose a plate." });
+  const bebas = await loadFontFile("bebas-neue");
+  await assert.rejects(() => buildModel(gen, paramsFor({ name: "'.", font: "bebas-neue", plate: "none" }), { wasm, font: bebas }), { message: "The letters aren't connected — choose a plate or a bolder font." });
   // The same name on a plate is fine.
-  assert.ok((await buildModel(gen, paramsFor({ name: "A B", plate: "rect" }), { wasm, font: null })).parts.length >= 2);
+  assert.ok((await buildModel(gen, paramsFor({ name: "'.", plate: "rect" }), { wasm, font: null })).parts.length >= 2);
+});
+
+test("no-plate backings bridge ordinary names into one piece; only the backing changes", async () => {
+  const { CrossSection } = wasm;
+  const cases = [["block", "Lily", 16], ["block", "Lily", 24], ["block", "Lily", 40], ["block", "LILY", 24], ["block", "Mary Ann", 24], ["rubik-mono-one", "Lily", 24], ["rubik-mono-one", "WILLIAM", 24]];
+  for (const f of FONTS) cases.push([f.id, "Mary Ann", 16]);
+  for (const [font, name, height] of cases) {
+    // The keychain preset (no plate, loop on) as a customer would pick it.
+    const p = paramsFor({ ...gen.presets.keychain, name, font, height_mm: height });
+    assert.equal(p.plate, "none");
+    assert.equal(p.keychain_loop, true);
+    const f = await fontFor(p);
+    const bridged = await build(p, { wasm, font: f });
+    const onPlate = await build({ ...p, plate: "rect" }, { wasm, font: f });
+    const temps = [];
+    const t = o => { temps.push(o); return o; };
+    try {
+      const label = `${font} "${name}" ${height} mm`;
+      const pieces = bridged.solids[0].solid.decompose();
+      try { assert.equal(pieces.length, 1, `${label}: backing is one piece`); } finally { pieces.forEach(x => x.delete()); }
+      assert.ok(bridged.loop, `${label}: loop present`);
+      // Letters are exactly as designed: the bridge is backing only.
+      const nameOf = b => b.solids.find(s => s.name === "Name").solid;
+      assert.ok(Math.abs(nameOf(bridged).volume() - nameOf(onPlate).volume()) < 1e-6, `${label}: letters unchanged`);
+      // The bridge never reaches into the keychain hole.
+      const { cx, cy, holeR } = bridged.loop;
+      const hole = t(t(t(t(CrossSection.circle(holeR - 0.05, 48)).translate([cx, cy])).extrude(p.thickness_mm + 2)).translate([0, 0, -1]));
+      assert.ok(t(hole.intersect(bridged.solids[0].solid)).volume() < 1e-6, `${label}: hole is clear`);
+    } finally {
+      temps.forEach(o => o.delete());
+      [...bridged.solids, ...onPlate.solids].forEach(s => s.solid.delete());
+    }
+  }
+});
+
+test("bridging adds backing volume only", async () => {
+  // The bridged backing still sits under every letter, and no other part overlaps it.
+  for (const style of ["raised", "outline", "shadow"]) {
+    const p = paramsFor({ name: "Lily", plate: "none", style });
+    const built = await build(p, { wasm, font: null });
+    try {
+      const backing = built.solids[0].solid;
+      assert.equal(built.solids[0].name, "Backing");
+      // The backing covers the letters and is one piece.
+      const letters = built.solids.find(s => s.name === "Name").solid;
+      const lettersUnder = letters.translate([0, 0, -(p.thickness_mm - p.relief_mm) + 0.01]);
+      const under = lettersUnder.subtract(backing);
+      try { assert.ok(under.volume() < 1e-3, `${style}: backing under all letters`); } finally { lettersUnder.delete(); under.delete(); }
+      for (const s of built.solids.slice(1)) {
+        const both = s.solid.intersect(backing);
+        try { assert.ok(both.volume() < 1e-3, `${style}: ${s.name} does not overlap the backing`); } finally { both.delete(); }
+      }
+    } finally { built.solids.forEach(s => s.solid.delete()); }
+  }
+});
+
+test("thin strokes give a warning, not an error", async () => {
+  // Lobster's hairlines at 14 mm are thinner than 0.8 mm; at 40 mm they are not.
+  const lobster = await loadFontFile("lobster");
+  const thin = await buildModel(gen, paramsFor({ name: "Wolf", font: "lobster", height_mm: 14, plate: "rect" }), { wasm, font: lobster });
+  assert.deepEqual(thin.warnings, ["Some strokes are thinner than 0.8 mm and may not print cleanly; increase the height or pick a bolder font."]);
+  assert.ok(thin.parts.length >= 2, "a warning, not an error");
+  const larger = await buildModel(gen, paramsFor({ name: "Wolf", font: "lobster", height_mm: 40, plate: "rect" }), { wasm, font: lobster });
+  assert.deepEqual(larger.warnings, []);
+  const bold = await buildModel(gen, paramsFor({ name: "Jordan", font: "titan-one", height_mm: 24, plate: "rect" }), { wasm, font: await loadFontFile("titan-one") });
+  assert.deepEqual(bold.warnings, []);
+  const block = await buildModel(gen, paramsFor({ name: "Jordan" }), { wasm, font: null });
+  assert.deepEqual(block.warnings, []);
 });
 
 test("text fits a 150 mm × height box; too small to read is an error", async () => {
@@ -510,6 +580,8 @@ test("build() frees every temporary: only the returned solids stay alive", async
     cases.push({ style, plate, keychain_loop, font: "pacifico" });
   }
   cases.push({ font: "block", plate: "none", keychain_loop: true }, { name: "Zoë 🚽", font: "bebas-neue" }, { name: "Zoë 🚽" });
+  // Bridged no-plate backings (keychain preset).
+  cases.push({ ...gen.presets.keychain, name: "Lily" }, { ...gen.presets.keychain, name: "Mary Ann", font: "pacifico" }, { ...gen.presets.keychain, name: "WILLIAM", font: "rubik-mono-one", style: "outline" });
   for (const extra of cases) {
     const value = paramsFor(extra);
     const font = await fontFor(value);
@@ -528,7 +600,7 @@ test("failed builds do not leak either", async () => {
   const bebas = await loadFontFile("bebas-neue");
   const tracker = trackLiveObjects(wasm);
   try {
-    await assert.rejects(() => build(paramsFor({ name: "A B", plate: "none", keychain_loop: true }), { wasm: tracker.ctxWasm, font: null }), /aren't connected/);
+    await assert.rejects(() => build(paramsFor({ name: "'.", plate: "none", keychain_loop: true }), { wasm: tracker.ctxWasm, font: null }), /aren't connected/);
     assert.equal(tracker.live.size, 0, "disconnected");
     await assert.rejects(() => build(paramsFor({ name: "🚽", font: "bebas-neue" }), { wasm: tracker.ctxWasm, font: bebas }), /None of these/);
     assert.equal(tracker.live.size, 0, "all missing");
@@ -561,4 +633,5 @@ test("the name plate page offers a local font file and links the self-hosted fon
   assert.match(html, /id="cz-font-area" hidden/);
   assert.ok(html.includes("The file stays on this device; it is never uploaded."));
   assert.doesNotMatch(html, /fonts\.googleapis|fonts\.gstatic|fontsource/i);
+  assert.match(html, /<a href="\/customize\/fonts\/LICENSES\.md">Font licenses<\/a>/);
 });

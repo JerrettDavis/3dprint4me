@@ -2,7 +2,7 @@
 // the TOP face. The password is sensitive: it lives only in the QR geometry of the model file
 // and is redacted from drafts, the hand-off record, the server, email and webhooks.
 
-import { luminance, contrastRatio } from "../color.js?v=121a507eb6ca2ceb";
+import { luminance, contrastRatio } from "../color.js?v=094c779c94cf087f";
 
 export { contrastRatio };
 
