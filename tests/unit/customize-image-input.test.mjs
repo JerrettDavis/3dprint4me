@@ -116,6 +116,18 @@ test("a size-OK image is decoded resized by the browser, long side at most 512, 
   assert.deepEqual([big.width, big.height], [512, 171]);
 });
 
+test("a JPEG whose EXIF/ICC segments push the frame header past 64 KB is still sized from its header", async () => {
+  // Camera and phone JPEGs carry large APP1 (EXIF, XMP) and APP2 (ICC) segments before the SOF.
+  // Each segment is at most 65535 bytes, so two near-full ones put the frame header beyond 64 KB.
+  const app = marker => [[0xff, marker], be16(65533), zeros(65531)];
+  const big = bytes([0xff, 0xd8], ...app(0xe1), ...app(0xe2), [0xff, 0xc0], be16(17), [8], be16(900), be16(1200), [3], zeros(9));
+  assert.deepEqual([big[131072], big[131073]], [0xff, 0xc0], "the SOF starts at 128 KB, beyond the first 64 KB");
+  const { calls, decode, makeCanvas } = fakes({ width: 512, height: 384 });
+  const out = await decodeImageFile(fileOf(big, "image/jpeg"), { decode, makeCanvas });
+  assert.deepEqual([out.sourceWidth, out.sourceHeight], [1200, 900]);
+  assert.deepEqual(calls[0], { resizeWidth: WORK_SIDE, resizeQuality: "low" });
+});
+
 test("a decoder failure is a readable error", async () => {
   await assert.rejects(() => decodeImageFile(fileOf(png(10, 10)), { decode: async () => { throw new DOMException("bad"); }, makeCanvas: fakes().makeCanvas }), /couldn't be read/);
 });

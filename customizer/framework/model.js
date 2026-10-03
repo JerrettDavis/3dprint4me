@@ -24,6 +24,8 @@ function normalizeColor(value) {
   return `#${h.slice(0, 6)}`;
 }
 
+export const MESH_CLEAN_TOLERANCE_MM = 1e-6;
+
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 
 export async function buildModel(generator, params, ctx) {
@@ -45,7 +47,12 @@ export async function buildModel(generator, params, ctx) {
     const parts = solids.map((s, i) => {
       const shifted = s.solid.translate(delta);
       shiftedCopies.push(shifted);
-      return { name: s.name, color: colorOf[i], mesh: manifoldToMesh(shifted) };
+      // Boolean results can keep zero-area (collinear) triangles; the site's analyzer flags them
+      // as "the mesh may need repair" on the order page. Collapsing edges within a nanometre
+      // removes them without moving any surface (volume and genus are unchanged).
+      const clean = shifted.simplify(MESH_CLEAN_TOLERANCE_MM);
+      shiftedCopies.push(clean);
+      return { name: s.name, color: colorOf[i], mesh: manifoldToMesh(clean) };
     });
     let meta = generator.schema ? redactSensitive(generator, params) : { ...params };
     if (generator.publicParams) meta = generator.publicParams(meta);

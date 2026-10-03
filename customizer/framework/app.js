@@ -45,6 +45,19 @@ function downloadFile(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
+/**
+ * Applies one form edit to the current params. A committed edit (`final`) is clamped and may
+ * derive other values (onParamChange). Returns { params, committed, changed }: `changed` is false
+ * when the edit leaves every value as it was, and then the page must not rebuild (typing, then
+ * leaving the field, e.g. by clicking Continue, would otherwise drop the click while the
+ * identical model rebuilds).
+ */
+export function applyEdit(generator, current, key, value, { final = false } = {}) {
+  let params = { ...current, [key]: value };
+  if (final) params = clampParams(generator, params, key);
+  return { params, committed: final, changed: JSON.stringify(params) !== JSON.stringify(current) };
+}
+
 const $ = selector => document.querySelector(selector);
 let noteEl = null;
 function setNote(text) { if (noteEl) { noteEl.textContent = text; noteEl.hidden = !text; } }
@@ -272,14 +285,10 @@ function boot() {
   }
 
   function onChange(key, value, { final }) {
-    let next = { ...state.params, [key]: value };
-    if (final) {
-      next = clampParams(generator, next, key);
-      form.setValues(next);
-    }
-    // A commit that changes nothing (typing, then leaving the field, e.g. by clicking Continue)
-    // must not rebuild: that would drop the click while the identical model rebuilds.
-    if (JSON.stringify(next) === JSON.stringify(state.params)) return;
+    const { params: next, committed, changed } = applyEdit(generator, state.params, key, value, { final });
+    if (committed) form.setValues(next);
+    // A commit that changes nothing must not rebuild (see applyEdit).
+    if (!changed) return;
     state.params = next;
     saveDraft(generator, state.params);
     syncFontArea();

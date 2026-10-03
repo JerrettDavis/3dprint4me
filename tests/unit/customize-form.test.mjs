@@ -115,3 +115,29 @@ test("readControlValue converts control values to schema types", () => {
   assert.equal(readControlValue({ type: "bool" }, { checked: true }), true);
   assert.equal(readControlValue({ type: "text" }, { value: "hi" }), "hi");
 });
+
+test("a committed edit that changes nothing is not a rebuild; a real change is", async () => {
+  const { applyEdit } = await import("../../customizer/framework/app.js");
+  const gen = getGenerator("route-shield");
+  const current = validateParams(gen, {}).value;
+  // Typing, then leaving the field (e.g. by clicking Continue) commits the same value again.
+  const same = applyEdit(gen, current, "top_text", current.top_text, { final: true });
+  assert.equal(same.committed, true);
+  assert.equal(same.changed, false, "an identical commit must not rebuild");
+  assert.deepEqual(same.params, current);
+  // A value that clamps back to the current one is no change either.
+  const atMin = { ...current, width_mm: 50 };
+  const clamped = applyEdit(gen, atMin, "width_mm", 20, { final: true });
+  assert.equal(clamped.params.width_mm, 50);
+  assert.equal(clamped.changed, false);
+  // A real edit is a change, committed or not.
+  const typed = applyEdit(gen, current, "top_text", "ROUTE 9", { final: false });
+  assert.deepEqual([typed.committed, typed.changed, typed.params.top_text], [false, true, "ROUTE 9"]);
+  const committed = applyEdit(gen, current, "width_mm", 120, { final: true });
+  assert.deepEqual([committed.changed, committed.params.width_mm], [true, 120]);
+  // A committed edit may derive other values (onParamChange) and that is a change too.
+  const wifi = getGenerator("wifi-tag");
+  const placard = validateParams(wifi, {}).value;
+  const keychain = applyEdit(wifi, placard, "format", "keychain", { final: true });
+  assert.deepEqual([keychain.changed, keychain.params.show_text, keychain.params.hole], [true, false, true]);
+});
