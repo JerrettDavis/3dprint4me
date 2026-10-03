@@ -207,7 +207,8 @@ test("text is printed on placard and card, never on the keychain, and never incl
     assert.equal(partOf(off, /text/i), undefined);
     off.solids.forEach(s => s.solid.delete());
   }
-  const key = await build(paramsFor({ format: "keychain", show_text: true }), { wasm, font: null });
+  // Bypasses the rule on purpose: the build itself is the backstop.
+  const key = await build({ ...paramsFor({ format: "keychain" }), show_text: true }, { wasm, font: null });
   assert.equal(partOf(key, /text/i), undefined, "text is not shown on keychain tags");
   key.solids.forEach(s => s.solid.delete());
 });
@@ -353,4 +354,13 @@ test("the form renders the password as a masked field that doesn't claim to be o
   assert.match(html, /id="cz-password-note"/);
   assert.ok(!html.includes(NETWORK.password), "the typed password is never echoed into the markup");
   assert.equal(Object.hasOwn(storableParams(gen, paramsFor()), "password"), false);
+});
+
+test("rules force show_text off for keychain everywhere the schema runs: browser value, clamp and server", () => {
+  assert.equal(validateParams(gen, { ...NETWORK, format: "keychain", show_text: true }).value.show_text, false);
+  assert.equal(validateParams(gen, { ...NETWORK, format: "placard", show_text: true }).value.show_text, true);
+  const switched = clampParams(gen, { ...paramsFor(), format: "keychain" }, "format");
+  assert.equal(switched.show_text, false, "the form unchecks the box when the format changes to keychain");
+  const server = normalizeCustomization({ generatorId: "wifi-tag", generatorVersion: 1, params: { ssid: "Cafe", password: "hunter2", format: "keychain", show_text: true } });
+  assert.equal(server.params.show_text, false, "the operator record matches the model: no text on a keychain");
 });
