@@ -6,14 +6,14 @@ Branch `feat/generator-section`, Node 22.22.0, Windows 11 host, Playwright Chrom
 
 ```text
 rm -rf public/customize && npm run vercel-build      exit 0
-  Vite build of /customize, asset release 094c779c94cf087f (48 files verified, no ?v= change)
-  Static validation: 13 HTML pages, 129 local references, 259 JavaScript files;
+  Vite build of /customize, asset release 295d8d664ce2c0cd (48 files verified, no ?v= change)
+  Static validation: 13 HTML pages, 129 local references, 261 JavaScript files;
   architecture boundaries for 127 JavaScript files; generator and no-remote-request gates
 
 npm test                                             exit 0
   Static validation: PASS (same counts as above)
-  Node unit and contract tests: 543 passed, 0 failed
-  End-to-end (pytest): 114 passed (tests/e2e/test_customize.py: 53 of them)
+  Node unit and contract tests: 559 passed, 0 failed
+  End-to-end (pytest): 118 passed (tests/e2e/test_customize.py: 57 of them)
   UX/accessibility audit: 241/241 passed
 
 npm run screenshots                                  exit 0
