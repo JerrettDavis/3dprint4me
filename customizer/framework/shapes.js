@@ -19,7 +19,7 @@ export function star(CrossSection, outerR, points = 5, innerRatio = 0.4) {
 export function partialStar(CrossSection, outerR, fraction) {
   const full = star(CrossSection, outerR);
   if (fraction >= 1) return full;
-  if (fraction <= 0) return new CrossSection([]);
+  if (fraction <= 0) return CrossSection.union([]);
   const b = full.bounds();
   const x = b.min[0] + (b.max[0] - b.min[0]) * fraction;
   const keep = CrossSection.square([x - b.min[0] + 1e-6, b.max[1] - b.min[1] + 2], false).translate([b.min[0], b.min[1] - 1]);
