@@ -1,13 +1,31 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Customize | 3dprint4.me</title>
-  <link rel="stylesheet" href="/assets/css/site.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Customize a ready-made 3dprint4.me design in your browser: change the text, size and colors, preview it in 3D, then send it as a print request.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#101923" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)">
+  <title>Customize a model | 3dprint4.me</title>
+  <link rel="canonical" href="https://3dprint4.me/customize/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" vite-ignore><link rel="manifest" href="/manifest.webmanifest" vite-ignore>
+  <link rel="stylesheet" href="/assets/css/site.css?v=39cb9320342a737f" vite-ignore>
+  <link rel="stylesheet" href="/assets/css/shared.css?v=39cb9320342a737f" vite-ignore>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main id="customizer-root"><h1>Customize</h1></main>
-  <script type="module" src="./framework/app.js"></script>
+  <div id="site-header"></div>
+  <main id="main">
+    <header class="page-hero"><div class="container"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>Customize</span></nav><span class="eyebrow">Customize a model</span><h1 class="h1">Make one of our designs your own.</h1><p class="lede">Change the text, size and colors, check the preview, then send it as a print request. The model is built here in your browser; nothing is uploaded until you choose to send it.</p></div></header>
+    <section class="section compact" aria-labelledby="cz-catalog-title">
+      <div class="container">
+        <h2 class="visually-hidden" id="cz-catalog-title">Customizable designs</h2>
+        <div id="cz-catalog"><p class="muted">Loading designs…</p></div>
+        <p class="cz-catalog-note muted small">Need something that isn't here? <a href="/order.html?service=design">Describe a custom design</a> and we'll scope it with you.</p>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script type="module" src="/assets/js/site.js?v=39cb9320342a737f" vite-ignore></script>
+  <script type="module" src="./framework/catalog.js"></script>
 </body>
 </html>

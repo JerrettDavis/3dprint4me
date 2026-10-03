@@ -11,6 +11,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tests.support.browser_harness import ROOT, SiteBrowser
+from tests.support.server import running_server
 
 ROUTES = [
     ("/", "Home"),
@@ -21,6 +22,11 @@ ROUTES = [
     ("/privacy.html", "Privacy"),
     ("/terms.html", "Terms"),
     ("/404.html", "404"),
+]
+# Vite-built pages run over real HTTP against the dev server (WASM, module worker, real CSP).
+SERVED_ROUTES = [
+    ("/customize/", "Customize catalog", None),
+    ("/customize/g/route-shield/", "Route shield generator", "body[data-build-state='ready']"),
 ]
 PROFILES = [
     ("desktop", (1440, 1000), "light"),
@@ -184,10 +190,11 @@ def check(findings: list[Finding], route: str, profile: str, name: str, passed: 
     findings.append(Finding(route, profile, name, "pass" if passed else "fail", good if passed else bad))
 
 
-def audit_profile(profile_name: str, viewport: tuple[int, int], color_scheme: str, findings: list[Finding], metrics: list[dict[str, Any]]) -> None:
+def audit_profile(profile_name: str, viewport: tuple[int, int], color_scheme: str, findings: list[Finding], metrics: list[dict[str, Any]], base_url: str) -> None:
     with SiteBrowser(viewport=viewport, color_scheme=color_scheme) as site:
-        for route, label in ROUTES:
-            page = site.load(route)
+        visits = [(route, label, None) for route, label in ROUTES] + SERVED_ROUTES
+        for route, label, ready in visits:
+            page = site.goto(base_url + route, ready_selector=ready) if route.startswith("/customize/") else site.load(route)
             for image in page.locator("img[loading='lazy']").all():
                 image.scroll_into_view_if_needed()
                 image.evaluate("img => img.decode()")
@@ -247,10 +254,10 @@ def write_reports(findings: list[Finding], metrics: list[dict[str, Any]]) -> tup
         "name": "3dprint4.me automated UX and accessibility audit",
         "generatedAt": generated,
         "status": "pass" if not failures else "fail",
-        "summary": {"checks": len(findings), "passed": passes, "failed": len(failures), "routes": len(ROUTES), "renderProfiles": len(PROFILES)},
+        "summary": {"checks": len(findings), "passed": passes, "failed": len(failures), "routes": len(ROUTES) + len(SERVED_ROUTES), "renderProfiles": len(PROFILES)},
         "method": {
             "browser": "Chromium through Playwright (system browser when available, Playwright-managed browser otherwise)",
-            "rendering": "Production HTML, CSS, SVG, and JavaScript bundled in-place because enterprise URL policy blocks browser navigation. This rendering check does not verify production CSP, network loading, or live provider delivery; HTTP/API behavior has separate tests.",
+            "rendering": "Production HTML, CSS, SVG, and JavaScript bundled in-place because enterprise URL policy blocks browser navigation, except the Vite-built /customize pages, which load over real HTTP from the local dev server with the production /customize CSP (WASM and a module worker need it). The in-place check does not verify production CSP, network loading, or live provider delivery; HTTP/API behavior has separate tests.",
             "coverage": ["responsive overflow", "keyboard focus", "semantic landmarks", "heading order", "control names", "image alternatives", "touch targets", "solid-background WCAG AA contrast", "browser errors"],
         },
         "findings": [asdict(finding) for finding in findings],
@@ -264,7 +271,7 @@ def write_reports(findings: list[Finding], metrics: list[dict[str, Any]]) -> tup
         "",
         f"**Result: {status}**  ",
         f"Generated: {generated}  ",
-        f"Automated checks: **{passes}/{len(findings)} passed** across {len(ROUTES)} routes, desktop light mode, mobile dark mode, and a separate keyboard-focus sequence.",
+        f"Automated checks: **{passes}/{len(findings)} passed** across {len(ROUTES) + len(SERVED_ROUTES)} routes, desktop light mode, mobile dark mode, and a separate keyboard-focus sequence.",
         "",
         "## What was exercised",
         "",
@@ -306,8 +313,9 @@ def write_reports(findings: list[Finding], metrics: list[dict[str, Any]]) -> tup
 def main() -> int:
     findings: list[Finding] = []
     metrics: list[dict[str, Any]] = []
-    for profile_name, viewport, color_scheme in PROFILES:
-        audit_profile(profile_name, viewport, color_scheme, findings, metrics)
+    with running_server() as base_url:
+        for profile_name, viewport, color_scheme in PROFILES:
+            audit_profile(profile_name, viewport, color_scheme, findings, metrics, base_url)
     keyboard_focus_check(findings)
     markdown, json_report = write_reports(findings, metrics)
     failures = [finding for finding in findings if finding.status == "fail"]

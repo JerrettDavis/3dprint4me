@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tests.support.browser_harness import ROOT, SiteBrowser
 from tests.support.operator_harness import running_operator_workspace
-from tests.support.server import json_request
+from tests.support.server import json_request, running_server
 from tests.e2e.test_api import project_request
 from tests.support.print_seed import FIXTURES, fake_slicer_env, seed_print_request
 
@@ -126,6 +126,43 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
     return output
 
 
+GENERATOR_READY = "body[data-build-state='ready']"
+
+
+def capture_customize_states() -> list[tuple[str, Path]]:
+    """Vite-built /customize pages need real HTTP (WASM, module worker, CSP), so they use the dev server."""
+    captured: list[tuple[str, Path]] = []
+    with running_server() as base_url:
+        for label, route, filename, viewport, scheme, ready, prepare in [
+            ("Customize catalog · desktop · light", "/customize/", "customize-catalog-desktop-light.png", (1440, 1000), "light", None, None),
+            ("Customize catalog · mobile · dark", "/customize/", "customize-catalog-mobile-dark.png", (390, 844), "dark", None, None),
+            ("Route shield · desktop · light", "/customize/g/route-shield/", "customize-route-shield-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Route shield · desktop · dark", "/customize/g/route-shield/", "customize-route-shield-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, None),
+            ("Route shield 3D · desktop · dark", "/customize/g/route-shield/", "customize-route-shield-3d-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, show_3d_preview),
+            ("Route shield · mobile · light", "/customize/g/route-shield/", "customize-route-shield-mobile-light.png", (390, 844), "light", GENERATOR_READY, None),
+            ("Route shield facts · mobile · dark", "/customize/g/route-shield/", "customize-route-shield-facts-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, show_facts),
+        ]:
+            path = OUTPUT / filename
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
+                page = site.goto(base_url + route, ready_selector=ready)
+                if prepare:
+                    prepare(page)
+                page.wait_for_timeout(400)
+                site.screenshot(path, full_page=False)
+                site.assert_no_page_errors(allow_console_warnings=("GL Driver Message", "GPU stall"))
+            captured.append((label, path))
+    return captured
+
+
+def show_3d_preview(page) -> None:
+    page.get_by_role("tab", name="3D").click()
+    page.locator(".cz-preview").scroll_into_view_if_needed()
+
+
+def show_facts(page) -> None:
+    page.evaluate("document.querySelector('.cz-summary').scrollIntoView({ block: 'start' })")
+
+
 def capture_operator_states() -> list[tuple[str, Path]]:
     captured: list[tuple[str, Path]] = []
     slicer = fake_slicer_env()
@@ -189,6 +226,7 @@ def main() -> int:
         ("Consult intake · desktop · light", capture("/order.html?service=consult", "order-consult-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_consult_details)),
         ("Storage warning · mobile · dark", capture("/order.html?service=consult", "order-storage-warning-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_storage_warning, storage_denied=True)),
     ]
+    cases.extend(capture_customize_states())
     cases.extend(capture_operator_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
