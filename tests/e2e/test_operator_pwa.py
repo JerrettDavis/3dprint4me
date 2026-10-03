@@ -46,3 +46,76 @@ def test_operator_mobile_shell_has_no_horizontal_overflow() -> None:
             page.locator("#workspace:not([hidden])").wait_for()
             assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
             site.assert_no_page_errors()
+
+
+RECORD_AUTH_VIEW = """
+window.__authVisibility = [];
+new MutationObserver(() => {
+  const visible = id => { const node = document.querySelector(id); return Boolean(node) && !node.hidden; };
+  const frame = [visible('#session-view') ? 'checking' : '', visible('#auth-view') ? 'sign-in' : '', visible('#workspace') ? 'workspace' : ''].filter(Boolean).join('+') || 'none';
+  if (window.__authVisibility.at(-1) !== frame) window.__authVisibility.push(frame);
+}).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
+"""
+
+
+def test_sign_in_progression_is_checking_then_workspace_without_a_sign_in_flash() -> None:
+    with running_operator_workspace() as (_, operator, _store):
+        with SiteBrowser(viewport=(1280, 900)) as site:
+            page = site.page
+            page.add_init_script(RECORD_AUTH_VIEW)
+            page.goto(operator, wait_until="networkidle")
+            page.locator("#workspace:not([hidden])").wait_for()
+            frames = page.evaluate("window.__authVisibility")
+            assert "sign-in" not in "|".join(frames), frames
+            assert frames[-1] == "workspace", frames
+
+
+def test_returning_from_sign_in_survives_transient_401_without_flipping_to_signed_out() -> None:
+    with running_operator_workspace() as (_, operator, _store):
+        with SiteBrowser(viewport=(1280, 900)) as site:
+            page = site.page
+            page.add_init_script(RECORD_AUTH_VIEW)
+            page.add_init_script("sessionStorage.setItem('operator-sign-in-pending', '1')")
+            seen = {"count": 0}
+
+            def session(route):
+                if route.request.method == "OPTIONS":
+                    route.continue_()
+                    return
+                seen["count"] += 1
+                if seen["count"] <= 2:
+                    route.fulfill(status=401, headers={"access-control-allow-origin": operator, "access-control-allow-credentials": "true", "content-type": "application/json"}, body='{"error":"signed out"}')
+                else:
+                    route.continue_()
+
+            page.context.route("**/api/operator-session", session)
+            page.goto(operator, wait_until="networkidle")
+            page.locator("#workspace:not([hidden])").wait_for(timeout=15000)
+            frames = page.evaluate("window.__authVisibility")
+            assert seen["count"] >= 3
+            assert "sign-in" not in "|".join(frames), frames
+            assert page.evaluate("sessionStorage.getItem('operator-sign-in-pending')") is None
+
+
+def test_controls_show_pointer_cursor_and_react_to_hover() -> None:
+    with running_operator_workspace() as (storefront, operator, _store):
+        request = project_request()
+        created = json_request(storefront + "/api/request", method="POST", payload={"request": request, "website": ""})[2]
+        json_request(storefront + "/api/request", method="PATCH", payload={"id": created["id"], "request": request, "uploadedFiles": []})
+        with SiteBrowser(viewport=(1280, 900)) as site:
+            page = site.page
+            page.goto(operator, wait_until="networkidle")
+            row = page.locator("#work-list .work-row")
+            assert row.evaluate("node => getComputedStyle(node).cursor") == "pointer"
+            item = page.locator("#work-list li")
+            before = item.evaluate("node => getComputedStyle(node).backgroundColor")
+            item.hover()
+            page.wait_for_timeout(400)
+            assert item.evaluate("node => getComputedStyle(node).backgroundColor") != before
+            row.click()
+            ack = page.get_by_role("button", name="Acknowledge")
+            assert ack.evaluate("node => getComputedStyle(node).cursor") == "pointer"
+            ack_before = ack.evaluate("node => getComputedStyle(node).backgroundColor")
+            ack.hover()
+            page.wait_for_timeout(400)
+            assert ack.evaluate("node => getComputedStyle(node).backgroundColor") != ack_before
