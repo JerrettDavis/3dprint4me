@@ -2,22 +2,15 @@
 // the TOP face. The password is sensitive: it lives only in the QR geometry of the model file
 // and is redacted from drafts, the hand-off record, the server, email and webhooks.
 
+import { luminance, contrastRatio } from "../color.js?v=92faae6a95b0378f";
+
+export { contrastRatio };
+
 const EPS = 1e-6;
 const MIN_WEB = 0.8;          // solid base kept under the inlay
 const DEPTH_RANGE = [0.6, 1.6];
 const MIN_CONTRAST = 3;
 const round1 = v => Math.round(v * 10) / 10;
-
-// WCAG 2.x relative luminance and contrast ratio of two #rrggbb colors.
-function luminance(hex) {
-  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
-    .map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-export function contrastRatio(a, b) {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
 
 const depthMax = o => round1(Math.min(DEPTH_RANGE[1], o.thickness_mm - MIN_WEB));
 

@@ -148,6 +148,10 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Wi-Fi keychain · mobile · dark", "/customize/g/wifi-tag/", "customize-wifi-keychain-mobile-dark.png", (390, 844), "dark", None, wifi_tag("keychain", mobile=True)),
             ("Wi-Fi card · mobile · light", "/customize/g/wifi-tag/", "customize-wifi-card-mobile-light.png", (390, 844), "light", None, wifi_tag("card", mobile=True)),
             ("Wi-Fi form · mobile · dark", "/customize/g/wifi-tag/", "customize-wifi-form-mobile-dark.png", (390, 844), "dark", None, wifi_tag("placard", mobile=True, show="form")),
+            ("Rating card · desktop · light", "/customize/g/rating-card/", "customize-rating-card-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Rating card · mobile · dark", "/customize/g/rating-card/", "customize-rating-card-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, rating_card()),
+            ("Rating card own image · desktop · light", "/customize/g/rating-card/", "customize-rating-card-image-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, rating_card(image=True)),
+            ("Rating card own image · mobile · light", "/customize/g/rating-card/", "customize-rating-card-image-mobile-light.png", (390, 844), "light", GENERATOR_READY, rating_card(image=True, mobile=True)),
         ]:
             path = OUTPUT / filename
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
@@ -181,6 +185,34 @@ def wifi_tag(fmt: str, *, mobile: bool = False, show: str = "preview"):
             page.evaluate("document.querySelector('[data-field=\"ssid\"]').scrollIntoView({ block: 'start' })")
         elif mobile:
             page.evaluate("document.querySelector('.cz-preview').scrollIntoView({ block: 'start' })")
+        page.wait_for_timeout(600)
+    return prepare
+
+
+def paw_png() -> bytes:
+    """A small bold test image (a paw print) generated in memory; nothing is read from disk."""
+    import io
+    img = Image.new("RGB", (600, 520), "white")
+    draw = ImageDraw.Draw(img)
+    draw.ellipse((170, 230, 430, 470), fill="black")
+    for cx, cy in [(130, 190), (230, 110), (370, 110), (470, 190)]:
+        draw.ellipse((cx - 55, cy - 70, cx + 55, cy + 70), fill="black")
+    buffer = io.BytesIO()
+    img.save(buffer, "PNG")
+    return buffer.getvalue()
+
+
+def rating_card(*, image: bool = False, mobile: bool = False):
+    """Optionally trace a generated image, then show the preview (or the image controls)."""
+    def prepare(page) -> None:
+        if image:
+            page.get_by_label("Icon", exact=True).select_option("custom")
+            page.locator("#cz-image-file").set_input_files({"name": "paw.png", "mimeType": "image/png", "buffer": paw_png()})
+            page.locator("#cz-image-preview:not([hidden])").wait_for(timeout=30000)
+            page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        target = "#cz-image-area" if image and mobile else ".cz-preview"
+        if mobile or image:
+            page.evaluate(f"document.querySelector('{target}').scrollIntoView({{ block: 'start' }})")
         page.wait_for_timeout(600)
     return prepare
 

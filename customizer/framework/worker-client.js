@@ -10,8 +10,8 @@
 // The timeout is measured from the moment a request is posted to the worker, not from when
 // it was queued. On timeout or crash the worker is terminated and recreated; the in-flight
 // request rejects (error.retryable = true) and a queued request survives and is posted to the
-// fresh worker. Request payloads (including custom font bytes) are only structured-cloned by
-// postMessage for requests that actually run.
+// fresh worker. Request payloads (custom font bytes, traced image contours) are only
+// structured-cloned by postMessage for requests that actually run.
 export const BUILD_TIMEOUT_MS = 30_000;
 
 export class SupersededError extends Error {
@@ -95,12 +95,13 @@ export function createWorkerClient({
   }
 
   return {
-    build(generatorId, params, { fontId, fontBytes, fontKey } = {}) {
+    // imageContours: a traced customer image as plain [[x, y], ...] arrays (never the image).
+    build(generatorId, params, { fontId, fontBytes, fontKey, imageContours } = {}) {
       supersede(inFlight);
       supersede(queued);
       const id = ++nextId;
       return new Promise((resolve, reject) => {
-        const entry = { id, message: { generatorId, params, fontId, fontBytes, fontKey }, resolve, reject, settled: false, timer: undefined };
+        const entry = { id, message: { generatorId, params, fontId, fontBytes, fontKey, imageContours }, resolve, reject, settled: false, timer: undefined };
         if (inFlight) queued = entry;
         else post(entry);
       });

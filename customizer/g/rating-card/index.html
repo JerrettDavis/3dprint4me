@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Make a business-card-size rating card: a toilet, heart, house, mug or your own traced image, zero to five stars in half steps and a caption. Preview it in 3D and send it as a print request.">
+  <meta name="robots" content="index,follow">
+  <meta name="generator-id" content="rating-card">
+  <meta name="theme-color" content="#101923" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)">
+  <title>Rating card | Customize | 3dprint4.me</title>
+  <link rel="canonical" href="https://3dprint4.me/customize/g/rating-card/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" vite-ignore><link rel="manifest" href="/manifest.webmanifest" vite-ignore>
+  <link rel="stylesheet" href="/assets/css/site.css?v=92faae6a95b0378f" vite-ignore>
+  <link rel="stylesheet" href="/assets/css/shared.css?v=92faae6a95b0378f" vite-ignore>
+  <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+  <div id="site-header"></div>
+  <main id="main" class="cz-page">
+    <header class="cz-hero"><div class="container">
+      <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span><a href="/customize/">Customize</a></span><span>Rating card</span></nav>
+      <h1 class="cz-title">Rating card</h1>
+      <p class="cz-intro">A business-card-size review you can leave behind: an icon or your own image, zero to five stars in half steps, and a caption such as "Would poop here again".</p>
+    </div></header>
+
+    <div class="container cz-workspace">
+      <div class="cz-side">
+        <section class="cz-preview" aria-labelledby="cz-preview-title">
+          <div class="cz-preview-head">
+            <h2 class="cz-panel-title" id="cz-preview-title">Preview</h2>
+            <div class="cz-tabs" role="tablist" aria-label="Preview view">
+              <button class="cz-tab" type="button" role="tab" id="cz-tab-front" data-view="front" aria-controls="cz-stage" aria-selected="true">Front</button>
+              <button class="cz-tab" type="button" role="tab" id="cz-tab-back" data-view="back" aria-controls="cz-stage" aria-selected="false" tabindex="-1">Back</button>
+              <button class="cz-tab" type="button" role="tab" id="cz-tab-3d" data-view="3d" aria-controls="cz-stage" aria-selected="false" tabindex="-1">3D</button>
+            </div>
+          </div>
+          <div class="cz-stage" id="cz-stage" role="tabpanel" aria-labelledby="cz-tab-front">
+            <p class="cz-stage-message" id="cz-stage-message">The preview appears after the first build.</p>
+          </div>
+          <div class="cz-preview-foot">
+            <p class="cz-hint">3D view: drag to turn, scroll or pinch to zoom.</p>
+            <button class="button secondary small-button" type="button" id="cz-bed-toggle" aria-pressed="false" hidden>Show on print bed</button>
+          </div>
+        </section>
+
+        <section class="cz-summary" aria-labelledby="cz-summary-title">
+          <div class="cz-summary-head">
+            <h2 class="cz-panel-title" id="cz-summary-title">Local facts</h2>
+            <span class="cz-badge" id="cz-color-badge" hidden></span>
+          </div>
+          <p class="cz-status" id="cz-status" role="status" aria-live="polite">Preparing the model builder…</p>
+          <div class="cz-recover" id="cz-fallback" hidden>
+            <button class="button secondary small-button" type="button" id="cz-retry">Try again</button>
+            <a class="cz-recover-link" href="/order.html?service=design">Ask for this design by request instead</a>
+          </div>
+          <dl class="cz-facts" id="cz-facts-list"></dl>
+          <p class="cz-facts-note" id="cz-facts-note">Planning figures only; we confirm before printing.</p>
+          <ul class="cz-warnings" id="cz-warnings" aria-label="Model warnings" hidden></ul>
+          <button class="button primary block" type="button" id="cz-continue" disabled>Continue to request</button>
+          <p class="cz-continue-help">Next, on the request page, you'll choose quantity and add contact details. The model file goes with your request.</p>
+          <p class="cz-continue-note" id="cz-continue-note" role="status" hidden></p>
+        </section>
+      </div>
+
+      <section class="cz-controls" aria-labelledby="cz-controls-title">
+        <div class="cz-controls-head">
+          <h2 class="cz-panel-title" id="cz-controls-title">Settings</h2>
+          <button class="button ghost small-button" type="button" id="cz-reset">Reset to defaults</button>
+        </div>
+        <form id="cz-form" class="cz-form" novalidate></form>
+        <div class="cz-image-area" id="cz-image-area" hidden>
+          <label class="cz-label" for="cz-image-file">Your image</label>
+          <input class="cz-file" type="file" id="cz-image-file" accept="image/png,image/jpeg,image/webp,image/gif" aria-describedby="cz-image-help cz-image-status">
+          <p class="help" id="cz-image-help">PNG, JPEG, WebP or GIF, up to 8 MB and 4096 pixels on a side. A bold, high-contrast picture on a plain background works best; a photograph comes out as one flat shape (posterized). Use the threshold and invert controls to choose what is raised.</p>
+          <div class="cz-image-row">
+            <canvas class="cz-trace-preview" id="cz-image-preview" width="96" height="96" role="img" aria-label="Traced outline preview" hidden></canvas>
+            <p class="cz-image-status" id="cz-image-status" aria-live="polite">No image chosen yet.</p>
+          </div>
+          <p class="cz-sensitive-note" id="cz-image-privacy">Your image stays in your browser. Only the traced outline goes into the model.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script type="module" src="/assets/js/site.js?v=92faae6a95b0378f" vite-ignore></script>
+  <script type="module" src="../../framework/app.js"></script>
+</body>
+</html>

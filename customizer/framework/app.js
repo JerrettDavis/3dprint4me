@@ -6,7 +6,8 @@ import { getGenerator } from "../../public/assets/js/customize/registry.js";
 import { clampParams, validateParams } from "../../public/assets/js/customize/schema.js";
 import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geometry.js";
 import { browserInflateRaw } from "../../public/assets/js/print-estimation/controller.js";
-import { renderForm, restoreParams, storableParams, esc } from "./form.js";
+import { renderForm, restoreParams, storableParams, esc, isFieldVisible } from "./form.js";
+import { decodeImageFile, createTracer, drawTracePreview } from "./image-input.js";
 import { createWorkerClient } from "./worker-client.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
@@ -84,6 +85,10 @@ function boot() {
     fontArea: $("#cz-font-area"),
     fontInput: $("#cz-font-file"),
     fontStatus: $("#cz-font-status"),
+    imageArea: $("#cz-image-area"),
+    imageInput: $("#cz-image-file"),
+    imageStatus: $("#cz-image-status"),
+    imagePreview: $("#cz-image-preview"),
     reset: $("#cz-reset"),
     factsNote: $("#cz-facts-note")
   };
@@ -92,6 +97,11 @@ function boot() {
 
   const state = { generator, params: restoreParams(generator, loadDraft(generator)), result: null, status: "idle" };
   const font = { bytes: null, key: null };
+  // A customer image lives only in this page's memory: decoded pixels, never params or drafts.
+  const imageSpec = generator.image ?? null;
+  const imageField = imageSpec ? Object.keys(imageSpec.when)[0] : null;
+  const image = { data: null, error: "" };
+  const trace = createTracer();
   const client = createWorkerClient();
   let viewer = null;
   let viewerLoading = null;
@@ -184,11 +194,28 @@ function boot() {
       setStatus("error", STATUS_TEXT.invalid, { retryable: false });
       return;
     }
+    let imageContours;
+    if (imageSpec && isFieldVisible({ visibleWhen: imageSpec.when }, checked.value)) {
+      try {
+        if (!image.data) throw new Error(image.error || "Choose an image below, or pick a built-in icon.");
+        imageContours = trace(image.data, checked.value[imageSpec.threshold], checked.value[imageSpec.invert]);
+        showTrace(imageContours);
+      } catch (error) {
+        state.result = null;
+        clearFacts();
+        renderWarnings([]);
+        if (image.data) showTrace(null, error.message);
+        form.setErrors([], { [imageField]: error.message });
+        setStatus("error", STATUS_TEXT.invalid, { retryable: false });
+        return;
+      }
+    }
     setStatus("building");
     try {
-      // postMessage clones the bytes only for the request that actually runs.
-      const fontOptions = font.bytes ? { fontBytes: font.bytes, fontKey: font.key } : {};
-      const result = await client.build(generator.id, checked.value, fontOptions);
+      // postMessage clones the bytes and contours only for the request that actually runs.
+      const options = font.bytes ? { fontBytes: font.bytes, fontKey: font.key } : {};
+      if (imageContours) options.imageContours = imageContours;
+      const result = await client.build(generator.id, checked.value, options);
       if (seq !== buildSeq) return;
       state.result = result;
       setNote("");
@@ -217,6 +244,22 @@ function boot() {
 
   function syncFontArea() {
     if (els.fontArea) els.fontArea.hidden = !(generator.schema.font_mode && state.params.font_mode === "font");
+    if (els.imageArea) els.imageArea.hidden = !(imageSpec && isFieldVisible({ visibleWhen: imageSpec.when }, state.params));
+  }
+
+  function setImageStatus(text, kind = "") {
+    if (!els.imageStatus) return;
+    els.imageStatus.textContent = text;
+    els.imageStatus.dataset.state = kind;
+  }
+  function showTrace(contours, message) {
+    if (!els.imagePreview) return;
+    els.imagePreview.hidden = !contours;
+    if (contours) {
+      drawTracePreview(els.imagePreview, contours);
+      const { sourceWidth, sourceHeight } = image.data;
+      setImageStatus(`Traced from your ${sourceWidth} × ${sourceHeight} pixel image. Adjust the threshold or invert if the outline isn't what you want.`);
+    } else if (message) setImageStatus(message, "error");
   }
 
   function onChange(key, value, { final }) {
@@ -235,6 +278,8 @@ function boot() {
   }
 
   form = renderForm(els.form, generator, state.params, { onChange });
+  // The image picker sits in the form, right under the field that turns it on.
+  if (imageSpec && els.imageArea) els.form.querySelector(`[data-field="${CSS.escape(imageField)}"]`)?.after(els.imageArea);
   form.setValues(state.params);
   syncFontArea();
 
@@ -248,6 +293,22 @@ function boot() {
     font.bytes = new Uint8Array(await file.arrayBuffer());
     font.key = `${file.name}:${file.size}:${file.lastModified}`;
     els.fontStatus.textContent = `Using ${file.name}. It stays on this device and only shapes the text.`;
+    build();
+  });
+
+  els.imageInput?.addEventListener("change", async () => {
+    const file = els.imageInput.files?.[0];
+    if (!file) return;
+    setImageStatus("Reading the image…");
+    try {
+      image.data = await decodeImageFile(file);
+      image.error = "";
+    } catch (error) {
+      image.data = null;
+      image.error = String(error?.message ?? "That image couldn't be read.");
+      showTrace(null, image.error);
+      if (els.imagePreview) els.imagePreview.hidden = true;
+    }
     build();
   });
 

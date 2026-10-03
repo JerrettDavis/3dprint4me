@@ -53,3 +53,12 @@ test("the Wi-Fi tag page states where the password goes", async () => {
   const html = await readFile(new URL("../../customizer/g/wifi-tag/index.html", import.meta.url), "utf8");
   assert.ok(html.includes("The password is encoded in the QR code inside your model file. The file is stored privately like any upload and seen by us when we print it. It is not copied into our request records, emails or your saved draft."));
 });
+
+test("the rating card page has a local image picker and says the image stays in the browser", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const html = await readFile(new URL("../../customizer/g/rating-card/index.html", import.meta.url), "utf8");
+  assert.ok(html.includes("Your image stays in your browser. Only the traced outline goes into the model."));
+  assert.match(html, /<input class="cz-file" type="file" id="cz-image-file" accept="image\/png,image\/jpeg,image\/webp,image\/gif"/);
+  assert.match(html, /<canvas class="cz-trace-preview" id="cz-image-preview"/);
+  assert.match(html, /id="cz-image-area" hidden/);
+});
