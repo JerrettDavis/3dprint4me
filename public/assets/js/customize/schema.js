@@ -1,6 +1,8 @@
 // Parameter schema runtime shared by the browser (form + clamping) and the server (re-validation).
 const REDACTED = "[redacted]";
-const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/;
+const CONTROL_NONMULTILINE = new RegExp("[\u0000-\u001f\u007f\u0085  ]");
+const CONTROL_MULTILINE = new RegExp("[\u0000-\u0009\u000b-\u001f\u007f\u0085  ]");
+const ZERO_WIDTH = /[​‌‍⁠﻿]/g;
 const COLOR = /^#[0-9a-fA-F]{6}$/;
 const EPS = 1e-9;
 
@@ -28,10 +30,19 @@ function checkField(key, def, raw) {
     case "color": return typeof raw === "string" && COLOR.test(raw) ? { value: raw.toLowerCase() } : { error: `${label} must be a #rrggbb color.` };
     case "text": {
       if (typeof raw !== "string") return { error: `${label} must be text.` };
-      if (CONTROL.test(raw)) return { error: `${label} contains unsupported characters.` };
-      const value = def.multiline ? raw.replace(/\r\n/g, "\n").split("\n").map(s => s.trim()).join("\n").trim() : raw.trim();
-      if ([...value].length > def.max) return { error: `${label} must be at most ${def.max} characters.` };
-      if (!value && !def.optional) return { error: `${label} is required.` };
+      if (raw.length > def.max * 4) return { error: `${label} must be at most ${def.max} characters.` };
+      let value;
+      if (def.multiline) {
+        const normalized = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+        if (CONTROL_MULTILINE.test(normalized)) return { error: `${label} contains unsupported characters.` };
+        value = normalized.split("\n").map(s => s.trim()).join("\n").trim();
+      } else {
+        if (CONTROL_NONMULTILINE.test(raw)) return { error: `${label} contains unsupported characters.` };
+        value = raw.trim();
+      }
+      const visibleValue = value.replace(ZERO_WIDTH, "");
+      if ([...visibleValue].length > def.max) return { error: `${label} must be at most ${def.max} characters.` };
+      if (!visibleValue && !def.optional) return { error: `${label} is required.` };
       return { value };
     }
     default: return { error: `${label} has an unknown field type.` };
@@ -41,11 +52,16 @@ function checkField(key, def, raw) {
 export function validateParams(generator, input, { skipSensitive = false } = {}) {
   const errors = [];
   const value = {};
-  const source = input && typeof input === "object" && !Array.isArray(input) ? input : {};
-  for (const key of Object.keys(source)) if (!(key in generator.schema)) errors.push(`Unknown parameter "${String(key).slice(0, 40)}".`);
+  let source = {};
+  if (Array.isArray(input)) {
+    errors.push("Parameters must be an object.");
+  } else if (input && typeof input === "object") {
+    source = input;
+  }
+  for (const key of Object.keys(source)) if (!Object.hasOwn(generator.schema, key)) errors.push(`Unknown parameter "${String(key).slice(0, 40)}".`);
   for (const [key, def] of Object.entries(generator.schema)) {
     if (def.sensitive && skipSensitive) { value[key] = REDACTED; continue; }
-    const raw = key in source ? source[key] : def.default;
+    const raw = Object.hasOwn(source, key) ? source[key] : def.default;
     const result = checkField(key, def, raw);
     if (result.error) errors.push(result.error); else value[key] = result.value;
   }
@@ -55,24 +71,63 @@ export function validateParams(generator, input, { skipSensitive = false } = {})
 
 export function redactSensitive(generator, params) {
   const out = { ...params };
-  for (const key of sensitiveKeys(generator)) if (key in out) out[key] = REDACTED;
+  for (const key of sensitiveKeys(generator)) if (Object.hasOwn(out, key)) out[key] = REDACTED;
   return out;
 }
 
-const round = (v, step) => step ? Math.round(v / step) * step : v;
+const snapToStep = (v, def, lo, hi) => {
+  if (!def.step) return Math.min(hi, Math.max(lo, v));
+  const base = def.min;
+  const n = (v - base) / def.step;
+  let snapped = base + Math.round(n) * def.step;
+  if (snapped > hi + EPS) {
+    snapped = base + Math.floor((hi - base) / def.step) * def.step;
+  } else if (snapped < lo - EPS) {
+    snapped = base + Math.ceil((lo - base) / def.step) * def.step;
+  }
+  if (snapped < lo - EPS) return lo;
+  if (snapped > hi + EPS) return hi;
+  return Number(snapped.toFixed(6));
+};
 
-// Pull every numeric value into its (possibly rule-dependent) range; the just-changed key wins.
 export function clampParams(generator, params, changedKey) {
   const out = { ...params };
-  const limits = generator.rules?.(out).limits ?? {};
-  for (const [key, def] of Object.entries(generator.schema)) {
-    if (def.type !== "number" && def.type !== "int") continue;
-    const [lo, hi] = limits[key] ?? [def.min, def.max];
-    if (key === changedKey) { out[key] = Math.min(hi, Math.max(lo, out[key])); continue; }
-    out[key] = Math.min(hi, Math.max(lo, out[key]));
-  }
-  for (const [key, def] of Object.entries(generator.schema)) {
-    if ((def.type === "number" || def.type === "int") && def.step) out[key] = Number(round(out[key], def.step).toFixed(6));
+  const initialLimits = generator.rules?.(out).limits ?? {};
+
+  if (changedKey) {
+    const def = generator.schema[changedKey];
+    if (def && (def.type === "number" || def.type === "int")) {
+      const v = out[changedKey];
+      if (typeof v !== "number" || !Number.isFinite(v)) {
+        out[changedKey] = def.default;
+      } else {
+        const [lo, hi] = initialLimits[changedKey] ?? [def.min, def.max];
+        out[changedKey] = snapToStep(v, def, lo, hi);
+      }
+    }
+    const updatedLimits = generator.rules?.(out).limits ?? {};
+    for (const [key, def] of Object.entries(generator.schema)) {
+      if (key === changedKey) continue;
+      if (def.type !== "number" && def.type !== "int") continue;
+      const v = out[key];
+      if (typeof v !== "number" || !Number.isFinite(v)) {
+        out[key] = def.default;
+      } else {
+        const [lo, hi] = updatedLimits[key] ?? [def.min, def.max];
+        out[key] = snapToStep(v, def, lo, hi);
+      }
+    }
+  } else {
+    for (const [key, def] of Object.entries(generator.schema)) {
+      if (def.type !== "number" && def.type !== "int") continue;
+      const v = out[key];
+      if (typeof v !== "number" || !Number.isFinite(v)) {
+        out[key] = def.default;
+      } else {
+        const [lo, hi] = initialLimits[key] ?? [def.min, def.max];
+        out[key] = snapToStep(v, def, lo, hi);
+      }
+    }
   }
   return out;
 }
