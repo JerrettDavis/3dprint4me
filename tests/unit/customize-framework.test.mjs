@@ -141,3 +141,21 @@ test("loadEngine retries after a failed load", async () => {
   assert.equal(ok.tag, "ok");
   assert.equal(await fresh(undefined, () => { throw new Error("not called"); }), ok);
 });
+
+test("shape helpers free their intermediates: only the returned cross-section stays alive", async () => {
+  const { trackLiveObjects } = await import("../support/manifold-live.mjs");
+  const tracker = trackLiveObjects(wasm);
+  const CS = tracker.ctxWasm.CrossSection;
+  try {
+    for (const make of [
+      () => roundedRect(CS, 20, 10, 3), () => roundedRect(CS, 20, 10, 0),
+      () => partialStar(CS, 10, 0), () => partialStar(CS, 10, 0.5), () => partialStar(CS, 10, 1)
+    ]) {
+      const out = make();
+      assert.equal(tracker.live.size, 1, String(make));
+      assert.ok(tracker.live.has(out));
+      out.delete();
+      assert.equal(tracker.live.size, 0);
+    }
+  } finally { tracker.restore(); }
+});

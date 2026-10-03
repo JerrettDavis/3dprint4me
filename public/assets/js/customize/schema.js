@@ -40,7 +40,8 @@ function checkField(key, def, raw) {
         value = normalized.split("\n").map(s => s.trim()).join("\n").trim();
       } else {
         if (CONTROL_NONMULTILINE.test(raw)) return { error: `${label} contains unsupported characters.` };
-        value = raw.trim();
+        // preserveWhitespace: the exact characters matter (a Wi-Fi password may start or end with a space).
+        value = def.preserveWhitespace ? raw : raw.trim();
       }
       const visibleValue = value.replace(ZERO_WIDTH, "");
       if ([...visibleValue].length > def.max) return { error: `${label} must be at most ${def.max} characters.` };
@@ -94,9 +95,9 @@ const snapToStep = (v, def, lo, hi) => {
   const n = (v - base) / def.step;
   let snapped = base + Math.round(n) * def.step;
   if (snapped > hi + EPS) {
-    snapped = base + Math.floor((hi - base) / def.step) * def.step;
+    snapped = base + Math.floor((hi - base) / def.step + 1e-6) * def.step;
   } else if (snapped < lo - EPS) {
-    snapped = base + Math.ceil((lo - base) / def.step) * def.step;
+    snapped = base + Math.ceil((lo - base) / def.step - 1e-6) * def.step;
   }
   if (snapped < lo - EPS) return lo;
   if (snapped > hi + EPS) return hi;
