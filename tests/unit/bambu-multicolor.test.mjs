@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { parseBambuResult } from "../../lib/print-estimation/adapters/bambu-cli-slicer.js";
 
-// Shape captured from a real three-color Bambu Studio 02.08.04.57 slice (see
-// docs/superpowers/notes/2026-10-02-multicolor-slicing.md): filament usage is per slot and
-// filament_change_times counts tool changes.
+// Synthetic fixture modelled on the CLI's result.json field names (return_code, sliced_plates[].
+// total_predication / filament_change_times / filaments[].total_used_g). The per-slot grams are
+// hand-built, NOT measured; the real slice (see docs/superpowers/notes/2026-10-02-multicolor-slicing.md)
+// only recorded totals: 69.22 g, 224 tool changes, 20917.43 s.
 test("parseBambuResult sums per-slot filament grams and reports tool changes for multi-color plates", () => {
   const result = parseBambuResult(JSON.stringify({
     return_code: 0, layer_height: 0.16,
