@@ -3,12 +3,13 @@
 // Geometry builds in a worker (latest wins); facts are computed locally from the built 3MF;
 // nothing here touches the network.
 import { getGenerator } from "../../public/assets/js/customize/registry.js";
-import { clampParams, redactSensitive, validateParams } from "../../public/assets/js/customize/schema.js";
+import { clampParams, validateParams } from "../../public/assets/js/customize/schema.js";
 import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geometry.js";
 import { browserInflateRaw } from "../../public/assets/js/print-estimation/controller.js";
 import { renderForm, restoreParams, storableParams, esc } from "./form.js";
 import { createWorkerClient } from "./worker-client.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
+import { continuePayload, continueState } from "./continue.js";
 
 const STATUS_TEXT = {
   idle: "Preparing the model builder…",
@@ -20,8 +21,15 @@ const EMPTY_FACTS = ["Size", "Volume", "Rough weight", "Rough print time"].map(l
 
 // Request hand-off hook: onContinue({ file, filename, generatorId, generatorVersion, params, warnings }).
 // The order integration replaces the default with the IndexedDB hand-off writer.
+// Until a handler is registered, a production build keeps the button disabled with an honest note.
 let continueHandler = defaultContinueHandler;
-export function setContinueHandler(fn) { continueHandler = typeof fn === "function" ? fn : defaultContinueHandler; }
+let handlerSet = false;
+let refreshContinue = () => {};
+export function setContinueHandler(fn) {
+  handlerSet = typeof fn === "function";
+  continueHandler = handlerSet ? fn : defaultContinueHandler;
+  refreshContinue();
+}
 function defaultContinueHandler() {
   if (import.meta.env?.DEV) setNote("Development build: the request hand-off is not wired yet.");
 }
@@ -86,11 +94,18 @@ function boot() {
       els.status.textContent = message ?? STATUS_TEXT[status] ?? "";
       els.status.dataset.state = status;
     }
-    if (els.continueButton) els.continueButton.disabled = !(status === "ready" && state.result);
+    updateContinue();
     if (els.retry) els.retry.hidden = !(status === "error" && retryable);
     if (els.fallback) els.fallback.hidden = !(status === "error" && retryable);
     document.body.dataset.buildState = status;
   }
+
+  function updateContinue() {
+    const next = continueState({ status: state.status, hasResult: !!state.result, handlerSet, production: !!import.meta.env?.PROD });
+    if (els.continueButton) els.continueButton.disabled = next.disabled;
+    if (next.note) setNote(next.note);
+  }
+  refreshContinue = () => { setNote(""); updateContinue(); };
 
   function renderWarnings(list) {
     if (!els.warnings) return;
@@ -145,21 +160,25 @@ function boot() {
   async function build() {
     const seq = ++buildSeq;
     const checked = validateParams(generator, state.params);
-    form.setErrors(checked.errors);
+    form.setErrors(checked.errors, checked.fieldErrors);
     if (!checked.ok) {
       state.result = null;
       renderWarnings([]);
+      clearFacts();
       setStatus("error", STATUS_TEXT.invalid, { retryable: false });
       return;
     }
     if (generator.schema.font_mode && checked.value.font_mode === "font" && !font.bytes) {
       state.result = null;
-      setStatus("error", "Choose a font file below, or switch Font back to the built-in block font.", { retryable: false });
+      clearFacts();
+      form.setErrors([], { font_mode: "Choose a font file below, or switch back to the built-in block font." });
+      setStatus("error", STATUS_TEXT.invalid, { retryable: false });
       return;
     }
     setStatus("building");
     try {
-      const fontOptions = font.bytes ? { fontBytes: font.bytes.slice(0), fontKey: font.key } : {};
+      // postMessage clones the bytes only for the request that actually runs.
+      const fontOptions = font.bytes ? { fontBytes: font.bytes, fontKey: font.key } : {};
       const result = await client.build(generator.id, checked.value, fontOptions);
       if (seq !== buildSeq) return;
       state.result = result;
@@ -171,7 +190,19 @@ function boot() {
     } catch (error) {
       if (error?.superseded || seq !== buildSeq) return;
       state.result = null;
-      setStatus("error", error?.message || "The model could not be built.");
+      renderWarnings([]);
+      clearFacts();
+      const message = error?.message || "The model could not be built.";
+      if (error?.retryable) {
+        setStatus("error", message);
+        return;
+      }
+      // Geometry errors go next to the control they concern when the generator can tell
+      // which one; otherwise into the Settings summary.
+      const key = generator.errorField?.(message);
+      if (key && Object.hasOwn(generator.schema, key)) form.setErrors([], { [key]: message });
+      else form.setErrors([message], {});
+      setStatus("error", "The model couldn't be built with these settings. See the note in Settings.", { retryable: !key });
     }
   }
 
@@ -258,15 +289,7 @@ function boot() {
     const result = state.result;
     if (!result || state.status !== "ready") return;
     try {
-      await continueHandler({
-        file: new Blob([result.data], { type: "model/3mf" }),
-        filename: result.filename,
-        generatorId: generator.id,
-        generatorVersion: generator.version ?? 1,
-        // Sensitive values live only inside the model file, never in the hand-off record.
-        params: redactSensitive(generator, state.params),
-        warnings: [...(result.warnings ?? [])]
-      });
+      await continueHandler(continuePayload(generator, state.params, result));
     } catch (error) {
       setNote(String(error?.message ?? "Couldn't continue. Try again."));
     }

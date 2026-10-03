@@ -83,14 +83,19 @@
 .cz-number{text-align:right;font-variant-numeric:tabular-nums}
 .cz-range{width:100%;height:32px;margin:0;accent-color:var(--accent);cursor:pointer;background:transparent}
 .cz-range:focus-visible{outline:3px solid var(--focus-color);outline-offset:2px}
-.cz-field-bool,.cz-field-color{display:flex;align-items:center;gap:.6rem}
-.cz-field-bool .cz-label,.cz-field-color .cz-label{margin:0}
+.cz-inline{display:flex;align-items:center;gap:.6rem}
+.cz-inline .cz-label{margin:0}
+.cz-field-error{margin:.35rem 0 0;color:var(--danger);font-size:.82rem;font-weight:650}
+.cz-field-error:empty{display:none}
+.cz-field [aria-invalid="true"]:not(.cz-range){border-color:var(--danger)}
 .cz-checkbox{width:24px;height:24px;margin:0;accent-color:var(--accent)}
 .cz-color{flex:0 0 auto;width:44px;height:44px;padding:2px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);cursor:pointer}
 .cz-color:focus-visible,.cz-checkbox:focus-visible{outline:3px solid var(--focus-color);outline-offset:2px}
 .cz-field .help{margin:.3rem 0 0;color:var(--muted);font-size:.78rem}
 .cz-sensitive-note{margin:.4rem 0 0;padding:.5rem .65rem;border-left:3px solid var(--teal);border-radius:0 8px 8px 0;color:var(--ink);background:var(--teal-soft);font-size:.8rem}
+/* Persistent live region: collapses visually when empty but stays rendered so updates are announced. */
 .cz-form-errors{padding:.7rem .85rem;border-radius:.6rem;color:var(--warning);background:var(--warning-soft);font-size:.86rem}
+.cz-form-errors:empty{margin-bottom:-1rem;padding:0;background:none}
 .cz-form-errors ul{margin:.25rem 0 0;padding-left:1.2rem}
 .cz-errors-title{margin:0;font-weight:700}
 .cz-font-area{margin-top:1rem;padding:.85rem;border:1px dashed var(--line-strong);border-radius:var(--radius-sm)}

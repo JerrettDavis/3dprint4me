@@ -1,4 +1,4 @@
-import { SITE_CONFIG } from "./config.js?v=eb3b24edb936d1c3";
+import { SITE_CONFIG } from "./config.js?v=04d405c055e4e8d3";
 
 const icons = {
   sun: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>`,
@@ -131,7 +131,7 @@ function initMenu() {
   });
   panel.addEventListener("click", event => { if (event.target.closest("a")) close(); });
   document.addEventListener("keydown", event => { if (event.key === "Escape" && panel.classList.contains("open")) close(true); });
-  addEventListener("resize", () => { if (innerWidth > 760) close(); });
+  addEventListener("resize", () => { if (innerWidth > 960) close(); });
 }
 
 function initDisclosure() {

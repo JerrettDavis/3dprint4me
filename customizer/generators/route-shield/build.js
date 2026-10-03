@@ -1,6 +1,6 @@
 // Route shield geometry, ported from the prototype's generator.js. Returns Manifold
 // solids; buildModel handles the XY shift, meshing, 3MF packaging and freeing the solids.
-import { blockText, fontText, fitCrossSection } from "../../framework/text.js";
+import { blockText, fontText, fitCrossSection, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING } from "../../framework/text.js";
 import { qrCrossSection } from "../../framework/qr.js";
 import { safeName } from "../../framework/model.js";
 import { OUTER, UPPER, LOWER, positiveContour } from "./template.js";
@@ -134,6 +134,7 @@ export default async function build(options, { wasm, font = null } = {}) {
     const qr = layout.back.qr;
     if (qr && qr.module < 0.9) warnings.push(`QR module size is ${qr.module.toFixed(2)} mm. A 0.4 mm nozzle and well-calibrated first layer are recommended.`);
     if (layout.back.truncated) warnings.push("Back text was limited to the first four non-empty lines.");
+    if (options.font_mode === "block" && [options.top_text, options.lower_text, options.back_text].some(text => unsupportedBlockChars(text).length)) warnings.push(BLOCK_SUBSTITUTION_WARNING);
 
     // Reaching here with text that doesn't fit is an error, never a silent crop.
     const fitOrThrow = (name, cs, region) => {
