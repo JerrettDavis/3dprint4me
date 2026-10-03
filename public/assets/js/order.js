@@ -1,20 +1,20 @@
-import "./site.js?v=295d8d664ce2c0cd";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=295d8d664ce2c0cd";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=295d8d664ce2c0cd";
-import { toast } from "./site.js?v=295d8d664ce2c0cd";
-import { createProjectRequestClient } from "./order/client.js?v=295d8d664ce2c0cd";
-import { createOrderController } from "./order/controller.js?v=295d8d664ce2c0cd";
-import { createDraftStore } from "./order/draft-store.js?v=295d8d664ce2c0cd";
-import { createFileManager } from "./order/files.js?v=295d8d664ce2c0cd";
-import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=295d8d664ce2c0cd";
-import { takeHandoff } from "./order/customize-handoff.js?v=295d8d664ce2c0cd";
-import { createStepValidator } from "./order/validation.js?v=295d8d664ce2c0cd";
-import { createOrderView } from "./order/view.js?v=295d8d664ce2c0cd";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=295d8d664ce2c0cd";
-import { modelFormat } from "./print-estimation/geometry.js?v=295d8d664ce2c0cd";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=295d8d664ce2c0cd";
-import { createModelPanelView } from "./print-estimation/view.js?v=295d8d664ce2c0cd";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=295d8d664ce2c0cd";
+import "./site.js?v=8a3170184cf2cb47";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=8a3170184cf2cb47";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=8a3170184cf2cb47";
+import { toast } from "./site.js?v=8a3170184cf2cb47";
+import { createProjectRequestClient } from "./order/client.js?v=8a3170184cf2cb47";
+import { createOrderController } from "./order/controller.js?v=8a3170184cf2cb47";
+import { createDraftStore } from "./order/draft-store.js?v=8a3170184cf2cb47";
+import { createFileManager } from "./order/files.js?v=8a3170184cf2cb47";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=8a3170184cf2cb47";
+import { takeHandoff } from "./order/customize-handoff.js?v=8a3170184cf2cb47";
+import { createStepValidator } from "./order/validation.js?v=8a3170184cf2cb47";
+import { createOrderView } from "./order/view.js?v=8a3170184cf2cb47";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=8a3170184cf2cb47";
+import { modelFormat } from "./print-estimation/geometry.js?v=8a3170184cf2cb47";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=8a3170184cf2cb47";
+import { createModelPanelView } from "./print-estimation/view.js?v=8a3170184cf2cb47";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=8a3170184cf2cb47";
 
 const form = document.querySelector("#project-form");
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
@@ -153,6 +153,7 @@ function restoreDraft() {
   if (requestedService && SERVICE_LABELS[requestedService]) data.service = requestedService;
   Object.entries(data).forEach(([name, value]) => {
     [...form.elements].filter(field => field.name === name).forEach(field => {
+      if (field.type === "file") return; // browsers only allow clearing a file input; a saved draft holds `{}` here
       if (field.type === "radio") field.checked = field.value === String(value);
       else if (field.type === "checkbox") field.checked = Boolean(value);
       else field.value = value;
