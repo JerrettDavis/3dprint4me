@@ -110,3 +110,28 @@ test("failed builds do not leak either", async () => {
     assert.equal(tracker.live.size, 0);
   } finally { tracker.restore(); }
 });
+
+test("a customer's font is filled non-zero: overlapping script strokes stay solid, never holes", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const opentype = await import("opentype.js");
+  const { fontText } = await import("../../customizer/framework/text.js");
+  const parse = opentype.parse ?? opentype.default.parse;
+  const bytes = await readFile(new URL("../../customizer/static/fonts/Pacifico-Regular.ttf", import.meta.url));
+  const font = parse(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+  const { ok, errors, value } = validateParams(gen, { font_mode: "font", top_text: "Jordan", lower_text: "", back_text: "", qr_enabled: false });
+  assert.ok(ok, errors.join("; "));
+  const built = await build(value, { wasm, font });
+  const nz = fontText(wasm.CrossSection, font, "Jordan", { fillRule: "NonZero" });
+  const eo = fontText(wasm.CrossSection, font, "Jordan", { fillRule: "EvenOdd" });
+  let slice;
+  try {
+    // Pacifico's joins overlap, so the two fill rules really differ for this name.
+    assert.ok(nz.area() > eo.area() * 1.005, `${nz.area()} vs ${eo.area()}`);
+    const upper = built.solids.find(s => s.name === "Upper text").solid;
+    const z = upper.boundingBox();
+    slice = upper.slice((z.min[2] + z.max[2]) / 2);
+    const [nb, sb] = [nz.bounds(), slice.bounds()];
+    const k = (sb.max[1] - sb.min[1]) / (nb.max[1] - nb.min[1]);
+    assert.ok(Math.abs(slice.area() - nz.area() * k * k) / slice.area() < 1e-3, `${slice.area()} vs non-zero ${nz.area() * k * k}`);
+  } finally { nz.delete(); eo.delete(); slice?.delete(); built.solids.forEach(s => s.solid.delete()); }
+});
