@@ -8,6 +8,8 @@
 //                    < 0  text is cut |t| into the color's top surface
 // Back/bottom inlays (inlay_depth_mm) are always inset and never protrude.
 
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=a80a70ed9e06345f";
+
 const STEP = 0.2;
 const MIN_WEB = 0.8;       // solid base left between the front pocket and the back inlay
 const MAX_FIELD = 5;
@@ -72,6 +74,8 @@ function validateOptions(o) {
 function rules(params) {
   const found = validateOptions(params);
   if (!found.length && params.qr_enabled && !String(params.qr_data || "").trim()) found.push({ key: "qr_data", message: "QR content is required when QR is enabled." });
+  const font = fontRule(params);
+  if (font.errors.length) found.push({ key: FONT_ACK_KEY, message: font.errors[0] });
   const fieldErrors = {};
   for (const { key, message } of found) fieldErrors[key] ??= message;
   return { limits: computeLimits(params), errors: found.map(e => e.message), fieldErrors };
@@ -84,7 +88,7 @@ function errorField(message) {
   if (/^Lower text doesn't fit/i.test(text)) return "lower_text";
   if (/^Back text doesn't fit/i.test(text)) return "back_text";
   if (/QR payload is too dense/i.test(text)) return "qr_data";
-  if (/font file/i.test(text)) return "font_mode";
+  if (/font file|installed font/i.test(text)) return "font";
   return null;
 }
 
@@ -93,7 +97,8 @@ const offset = (label, what) => ({ type: "number", label: `${label} text up/down
 
 export default {
   id: "route-shield",
-  version: 1,
+  // 2: the font control became the shared one (key font, was font_mode) with a license confirmation.
+  version: 2,
   title: "Route shield",
   blurb: "Highway-style badge with two color fields, front text and an optional back QR code.",
   category: "badges",
@@ -102,7 +107,7 @@ export default {
   schema: {
     top_text: { type: "text", label: "Upper text", max: 18, optional: true, default: "ROUTE", group: "text" },
     lower_text: { type: "text", label: "Lower text", max: 18, optional: true, default: "66", group: "text" },
-    font_mode: { type: "enum", label: "Font", options: [{ value: "block", label: "Built-in block font" }, { value: "font", label: "Font file" }], default: "block", group: "text" },
+    ...fontSchema("text"),
     width_mm: { type: "number", label: "Width", min: WIDTH_RANGE[0], max: WIDTH_RANGE[1], step: 1, default: 80, unit: "mm", group: "size" },
     height_mm: { type: "number", label: "Height", min: HEIGHT_RANGE[0], max: HEIGHT_RANGE[1], step: 1, default: 88, unit: "mm", group: "size" },
     base_thickness_mm: { type: "number", label: "Base thickness", min: BASE_RANGE[0], max: BASE_RANGE[1], step: STEP, default: 4, unit: "mm", group: "size" },
@@ -126,5 +131,6 @@ export default {
   },
   rules,
   errorField,
+  font: FONT_SPEC,
   presets: { default: {}, "small-66": { width_mm: 52, height_mm: 58 } }
 };

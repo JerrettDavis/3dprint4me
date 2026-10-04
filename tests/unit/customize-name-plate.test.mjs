@@ -10,7 +10,7 @@ import { loadFont, CURATED_FONTS } from "../../customizer/framework/fonts.js";
 import { getGenerator, listPublicGenerators } from "../../public/assets/js/customize/registry.js";
 import { clampParams, validateParams } from "../../public/assets/js/customize/schema.js";
 import { contrastRatio } from "../../public/assets/js/customize/color.js";
-import { FONTS } from "../../public/assets/js/customize/fonts.js";
+import { FONTS, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 import { normalizeCustomization } from "../../lib/customization/domain.js";
 import build from "../../customizer/generators/name-plate/build.js";
 import { trackLiveObjects } from "../support/manifold-live.mjs";
@@ -30,7 +30,8 @@ const loadFontFile = async id => {
   return fontCache.get(id);
 };
 const paramsFor = (extra = {}) => {
-  const { ok, errors, value } = validateParams(gen, extra);
+  // The license confirmation is required for a font from the customer's computer.
+  const { ok, errors, value } = validateParams(gen, { ...(fontNeedsLicense(extra.font) ? { font_license_ack: true } : {}), ...extra });
   assert.ok(ok, errors.join("; "));
   return value;
 };
@@ -177,11 +178,14 @@ test("defaults: Alex in the block font, raised on a pill plate, 24 mm text", () 
   assert.ok(contrastRatio(p.text_color, p.outline_color) >= 3);
 });
 
-test("the font enum is block, the eight curated fonts and the customer's own file", () => {
-  assert.deepEqual(gen.schema.font.options.map(o => o.value), ["block", ...FONTS.map(f => f.id), "custom"]);
+test("the font enum is block, the eight curated fonts, an installed font and the customer's own file", () => {
+  assert.deepEqual(gen.schema.font.options.map(o => o.value), ["block", ...FONTS.map(f => f.id), "system", "custom"]);
   assert.equal(gen.schema.font.options[0].label, "Block (built-in)");
   assert.equal(validateParams(gen, { font: "comic-sans" }).ok, false);
-  assert.equal(validateParams(gen, { font: "custom" }).ok, true);
+  // A font we haven't vetted needs the license confirmation.
+  assert.equal(validateParams(gen, { font: "custom" }).ok, false);
+  assert.equal(validateParams(gen, { font: "custom", font_license_ack: true }).ok, true);
+  assert.equal(validateParams(gen, { font: "system", font_license_ack: true }).ok, true);
 });
 
 test("the 20-character limit and required name are enforced", () => {
@@ -638,9 +642,8 @@ test("the leak tracker sees instances returned inside arrays (decompose)", () =>
 test("the name plate page offers a local font file and links the self-hosted font faces", async () => {
   const html = await readFile(new URL("../../customizer/g/name-plate/index.html", import.meta.url), "utf8");
   assert.match(html, /<link rel="stylesheet" href="\/customize\/fonts\/fonts\.css" vite-ignore>/);
-  assert.match(html, /<input class="cz-file" type="file" id="cz-font-file" accept="\.ttf,\.otf,\.woff,font\/ttf,font\/otf,font\/woff"/);
-  assert.match(html, /id="cz-font-area" hidden/);
-  assert.ok(html.includes("The file stays on this device; it is never uploaded."));
+  // The own-font panel is built by the page script (framework/font-area.js), shared by every generator.
+  assert.doesNotMatch(html, /cz-font-area/);
   assert.doesNotMatch(html, /fonts\.googleapis|fonts\.gstatic|fontsource/i);
   assert.match(html, /<a href="\/customize\/fonts\/LICENSES\.md">Font licenses<\/a>/);
 });

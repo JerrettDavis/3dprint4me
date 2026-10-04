@@ -13,6 +13,8 @@ import { buildFailureStatus } from "./build-status.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
 import { writeHandoff } from "./handoff.js";
+import { createFontArea } from "./font-area.js";
+import { fontNeededMessage, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 
 const STATUS_TEXT = {
   idle: "Preparing the model builder…",
@@ -96,9 +98,6 @@ function boot() {
     stageMessage: $("#cz-stage-message"),
     tabs: [...document.querySelectorAll("[data-view]")],
     bedToggle: $("#cz-bed-toggle"),
-    fontArea: $("#cz-font-area"),
-    fontInput: $("#cz-font-file"),
-    fontStatus: $("#cz-font-status"),
     imageArea: $("#cz-image-area"),
     imageInput: $("#cz-image-file"),
     imageStatus: $("#cz-image-status"),
@@ -110,12 +109,13 @@ function boot() {
   if (els.factsNote) els.factsNote.textContent = FACTS_NOTE;
 
   const state = { generator, params: restoreParams(generator, loadDraft(generator)), result: null, status: "idle" };
-  const font = { bytes: null, key: null };
-  // Font choice: route shield's font_mode ("font" = the customer's file), or a generator's own
-  // spec { key, custom, curated } where curated ids are fetched same-origin by the worker.
-  const fontSpec = generator.font ?? (generator.schema.font_mode ? { key: "font_mode", custom: "font", curated: false } : null);
-  const usesOwnFont = p => !!fontSpec && p?.[fontSpec.key] === fontSpec.custom;
-  const NEED_FONT_FILE = fontSpec?.curated ? "Choose a font file below, or pick one of the listed fonts." : "Choose a font file below, or switch back to the built-in block font.";
+  // Font choice: every generator carries the shared font spec { key, custom, system, ack }.
+  // Curated ids are fetched same-origin by the worker; the customer's own font (a file, or one
+  // installed on their computer) lives only in the font area below, in this page's memory.
+  const fontSpec = generator.font ?? null;
+  const fontMode = p => (fontSpec && fontNeedsLicense(p?.[fontSpec.key]) ? p[fontSpec.key] : null);
+  const fontUsable = p => !!fontSpec && isFieldVisible(generator.schema[fontSpec.key], p);
+  const fontArea = fontSpec ? createFontArea({ spec: fontSpec, onPick: () => build() }) : null;
   // A customer image lives only in this page's memory: decoded pixels, never params or drafts.
   const imageSpec = generator.image ?? null;
   const imageField = imageSpec ? Object.keys(imageSpec.when)[0] : null;
@@ -207,10 +207,11 @@ function boot() {
       setStatus("error", STATUS_TEXT.invalid, { retryable: false });
       return;
     }
-    if (usesOwnFont(checked.value) && !font.bytes) {
+    const ownFont = fontUsable(checked.value) ? fontMode(checked.value) : null;
+    if (ownFont && !fontArea.picked(ownFont)) {
       state.result = null;
       clearFacts();
-      form.setErrors([], { [fontSpec.key]: NEED_FONT_FILE });
+      form.setErrors([], { [fontSpec.key]: fontNeededMessage(ownFont) });
       setStatus("error", STATUS_TEXT.invalid, { retryable: false });
       return;
     }
@@ -233,10 +234,14 @@ function boot() {
     setStatus("building");
     try {
       // postMessage clones the bytes and contours only for the request that actually runs.
-      // The customer's file only when it is the chosen font; a curated font by id.
+      // The customer's own font only when it is the chosen one; a curated font by id. A generator
+      // that prints no text right now (a keychain tag) needs no font at all.
       const options = {};
-      if (usesOwnFont(checked.value)) Object.assign(options, { fontBytes: font.bytes, fontKey: font.key });
-      else if (fontSpec?.curated && checked.value[fontSpec.key] !== "block") options.fontId = checked.value[fontSpec.key];
+      const chosen = fontUsable(checked.value) ? checked.value[fontSpec?.key] : "block";
+      if (ownFont) {
+        const { bytes, key } = fontArea.picked(ownFont);
+        Object.assign(options, { fontBytes: bytes, fontKey: key });
+      } else if (fontSpec && chosen !== "block") options.fontId = chosen;
       if (imageContours) options.imageContours = imageContours;
       const result = await client.build(generator.id, checked.value, options);
       if (seq !== buildSeq) return;
@@ -268,7 +273,7 @@ function boot() {
   }
 
   function syncFontArea() {
-    if (els.fontArea) els.fontArea.hidden = !usesOwnFont(state.params);
+    fontArea?.sync({ mode: fontUsable(state.params) ? fontMode(state.params) : null, acknowledged: state.params[fontSpec?.ack] === true });
     if (els.imageArea) els.imageArea.hidden = !(imageSpec && isFieldVisible({ visibleWhen: imageSpec.when }, state.params));
   }
 
@@ -301,23 +306,21 @@ function boot() {
   form = renderForm(els.form, generator, state.params, { onChange });
   // The image picker sits in the form, right under the field that turns it on.
   if (imageSpec && els.imageArea) els.form.querySelector(`[data-field="${CSS.escape(imageField)}"]`)?.after(els.imageArea);
-  // A generator with its own font spec gets the font-file picker right under its font control.
-  if (generator.font && els.fontArea) els.form.querySelector(`[data-field="${CSS.escape(fontSpec.key)}"]`)?.after(els.fontArea);
+  // The font area (file / installed font) sits right under the license confirmation it depends on.
+  if (fontArea) {
+    els.form.querySelector(`[data-field="${CSS.escape(fontSpec.ack)}"]`)?.after(fontArea.element);
+    // A browser that can't list installed fonts can't offer that choice.
+    if (!fontArea.supported) {
+      const radio = els.form.querySelector(`input[name="${CSS.escape(fontSpec.key)}"][value="${CSS.escape(fontSpec.system)}"]`);
+      if (radio) {
+        radio.disabled = true;
+        const label = els.form.querySelector(`label[for="${CSS.escape(radio.id)}"]`);
+        if (label) label.append(" (not available in this browser)");
+      }
+    }
+  }
   form.setValues(state.params);
   syncFontArea();
-
-  els.fontInput?.addEventListener("change", async () => {
-    const file = els.fontInput.files?.[0];
-    if (!file) return;
-    if (file.size > 15 * 1024 * 1024) {
-      els.fontStatus.textContent = "That font file is too large (over 15 MB).";
-      return;
-    }
-    font.bytes = new Uint8Array(await file.arrayBuffer());
-    font.key = `${file.name}:${file.size}:${file.lastModified}`;
-    els.fontStatus.textContent = `Using ${file.name}. It stays on this device and only shapes the text.`;
-    build();
-  });
 
   els.imageInput?.addEventListener("change", async () => {
     const file = els.imageInput.files?.[0];

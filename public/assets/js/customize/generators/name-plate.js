@@ -2,8 +2,8 @@
 // self-hosted OFL fonts or the customer's own font file (parsed in the browser, never uploaded),
 // raised, outlined, shadowed or inlaid on a pill or rectangle plate, or cut out with a backing
 // outline (no plate). Optional keychain loop at the left end.
-import { contrastRatio } from "../color.js?v=8a3170184cf2cb47";
-import { FONTS } from "../fonts.js?v=8a3170184cf2cb47";
+import { contrastRatio } from "../color.js?v=a80a70ed9e06345f";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=a80a70ed9e06345f";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // plate kept under the relief (and under an inlay)
@@ -23,6 +23,8 @@ function rules(o) {
     add(["relief_mm"], `Letter height must be ${RELIEF_RANGE[0]}–${maxRelief} mm for a ${o.thickness_mm} mm plate (at least ${MIN_WEB} mm of plate stays underneath).`);
   }
   if (o.style === "inlay" && o.plate === "none") add(["style"], INLAY_NEEDS_PLATE);
+  const font = fontRule(o);
+  if (font.errors.length) add([FONT_ACK_KEY], font.errors[0]);
   // The letters must stand out from what they sit on: the plate, or with no plate the backing
   // outline (printed in the outline color).
   const [backKey, backLabel] = o.plate === "none" ? ["outline_color", "Outline and backing color"] : ["plate_color", "Plate color"];
@@ -45,21 +47,15 @@ function onParamChange(key, o) {
 function errorField(message) {
   const text = String(message ?? "");
   if (/couldn't be loaded|isn't loaded/i.test(text)) return null;
-  if (/font file|font isn't available/i.test(text)) return "font";
+  if (/font file|installed font|font isn't available/i.test(text)) return "font";
   if (/aren't connected/i.test(text)) return "plate";
   if (/characters|too small to read|name/i.test(text)) return "name";
   return null;
 }
 
-const FONT_OPTIONS = [
-  { value: "block", label: "Block (built-in)", face: "block" },
-  ...FONTS.map(f => ({ value: f.id, label: f.label, face: f.id })),
-  { value: "custom", label: "My own font file", face: "custom" }
-];
-
 const SCHEMA = {
   name: { type: "text", label: "Name", max: 20, default: "Alex", help: "Up to 20 characters. Characters the chosen font doesn't have are left out.", group: "text" },
-  font: { type: "enum", label: "Font", picker: "font", options: FONT_OPTIONS, default: "block", group: "text" },
+  ...fontSchema("text"),
   style: { type: "enum", label: "Style", options: [
     { value: "raised", label: "Raised letters" },
     { value: "outline", label: "Raised with an outline" },
@@ -99,7 +95,6 @@ export default {
   onParamChange,
   errorField,
   presets: PRESETS,
-  // The page shows a local font-file picker while `font` is "custom" and sends curated ids to
-  // the build worker, which fetches them same-origin.
-  font: { key: "font", custom: "custom", curated: true }
+  // The page drives the shared font control (installed font / font file / curated ids) from this.
+  font: FONT_SPEC
 };

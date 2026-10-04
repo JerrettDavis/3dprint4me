@@ -1,6 +1,7 @@
 // Font loading for the build worker. Curated fonts are self-hosted under /customize/fonts/
 // (same origin; CSP connect-src 'self'). A customer's own font file arrives as bytes and is
-// parsed locally; it is never uploaded or stored. No remote font services.
+// parsed locally (a font file the customer picked, or one installed on their computer); it is
+// never uploaded or stored. No remote font services.
 import * as opentype from "opentype.js";
 import { FONTS } from "../../public/assets/js/customize/fonts.js";
 
@@ -18,11 +19,16 @@ const toArrayBuffer = bytes => {
   throw new Error("Font file bytes are missing.");
 };
 
-function parseFont(buffer) {
+// A font installed on the computer arrives with a key starting "system:" (see system-fonts.js).
+// Font collections (.ttc) and some variable fonts don't parse; the customer is told which kind of
+// font to try instead.
+function parseFont(buffer, installed) {
   try {
     return parse(buffer);
   } catch {
-    throw new Error("That font file couldn't be read. Try a TTF, OTF or WOFF file.");
+    throw new Error(installed
+      ? "That installed font couldn't be read. Try another font, or choose \"My own font file\"."
+      : "That font file couldn't be read. Try a TTF, OTF or WOFF file.");
   }
 }
 
@@ -34,7 +40,7 @@ function parseFont(buffer) {
 export async function loadFont({ fontId, fontBytes, fontKey, fetchImpl = (...a) => fetch(...a) } = {}) {
   if (fontBytes) {
     if (fontKey && lastCustom.key === fontKey) return lastCustom.font;
-    const font = parseFont(toArrayBuffer(fontBytes));
+    const font = parseFont(toArrayBuffer(fontBytes), String(fontKey ?? "").startsWith("system:"));
     lastCustom = { key: fontKey ?? null, font };
     return font;
   }

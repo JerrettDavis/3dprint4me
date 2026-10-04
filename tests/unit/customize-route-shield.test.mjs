@@ -47,7 +47,7 @@ test("long text shrinks to fit or raises a readable error, never clips", async (
 });
 
 test("font mode without a font fails readably", async () => {
-  const { value } = validateParams(gen, { font_mode: "font" });
+  const { value } = validateParams(gen, { font: "custom", font_license_ack: true });
   await assert.rejects(() => buildModel(gen, value, { wasm, font: null }), /font/i);
 });
 
@@ -118,7 +118,7 @@ test("a customer's font is filled non-zero: overlapping script strokes stay soli
   const parse = opentype.parse ?? opentype.default.parse;
   const bytes = await readFile(new URL("../../customizer/static/fonts/Pacifico-Regular.ttf", import.meta.url));
   const font = parse(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
-  const { ok, errors, value } = validateParams(gen, { font_mode: "font", top_text: "Jordan", lower_text: "", back_text: "", qr_enabled: false });
+  const { ok, errors, value } = validateParams(gen, { font: "custom", font_license_ack: true, top_text: "Jordan", lower_text: "", back_text: "", qr_enabled: false });
   assert.ok(ok, errors.join("; "));
   const built = await build(value, { wasm, font });
   const nz = fontText(wasm.CrossSection, font, "Jordan", { fillRule: "NonZero" });

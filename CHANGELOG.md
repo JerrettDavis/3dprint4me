@@ -2,6 +2,8 @@
 
 ## 2026-10-03
 
+- Every Customize generator now has the same font picker: built-in block font, the eight curated OFL fonts, a font installed on the customer's computer (Chromium, with the browser's permission prompt) or the customer's own font file. The Wi-Fi tag (title and network name) and the rating card (caption) can print in any of them, as the name plate and route shield already could.
+- An installed font or a font file needs a checked "I have the right to use this font to make a printed item" confirmation before it can be chosen; the confirmation is validated with the request details and never kept in a draft. Route shield's `font_mode` field became the shared `font` field (generator version 2).
 - Added the Customize section (`/customize/`): parametric generators that build a multi-color, Bambu-compatible 3MF in the browser (Manifold WASM in a worker) with a schema-driven form, 2D/3D preview and local planning facts. Launch generators: route shield, Wi-Fi QR tag (placard, keychain, business card), rating card (built-in icons or a locally traced image, half stars) and name plate (self-hosted OFL fonts or the customer's own font file).
 - **Continue to request** hands the model to the print request through IndexedDB (download fallback when storage is blocked); the server re-validates the `customization` provenance against the generator schema and stores it in the request payload (no migration, no new function or environment variable). The operator work detail shows a Customizer section.
 - Sensitive generator fields (the Wi-Fi password) are redacted in the browser, on the server and in 3MF metadata; they exist only as geometry in the model file.
