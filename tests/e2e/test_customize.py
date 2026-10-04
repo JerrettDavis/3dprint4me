@@ -18,7 +18,9 @@ from tests.support.server import request, running_server
 ROOT = Path(__file__).resolve().parents[2]
 BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
-DRAFT_KEY = "3dp-customize:route-shield:v1"
+DRAFT_KEY = "3dp-customize:route-shield:v2"
+# Generators past version 1 (their draft key and recorded provenance carry it).
+GENERATOR_VERSIONS = {"route-shield": 2}
 
 
 @pytest.fixture(scope="module")
@@ -242,14 +244,14 @@ def test_continue_hands_the_model_to_the_order_page_and_the_operator_sees_proven
             page.locator("#submission-state.visible").wait_for(state="visible", timeout=15000)
 
             saved = json.loads(page.evaluate("localStorage.getItem('3dp-submitted-requests')"))[0]
-            assert saved["customization"] == {"generatorId": "route-shield", "generatorVersion": 1}, "stored copies keep no parameters"
+            assert saved["customization"] == {"generatorId": "route-shield", "generatorVersion": 2}, "stored copies keep no parameters"
 
             state = json.loads(store_path.read_text(encoding="utf-8"))
             stored = [record["request"] for record in state["requests"] if record["request"].get("customization")]
             assert stored, state["requests"]
             customization = stored[0]["customization"]
             assert customization["generatorId"] == "route-shield"
-            assert customization["generatorVersion"] == 1
+            assert customization["generatorVersion"] == 2
             assert customization["params"]["top_text"] == "HANDOFF"
             assert customization["redacted"] == []
 
@@ -685,6 +687,9 @@ def test_font_picker_is_keyboard_operable_and_fetches_fonts_same_origin(page: Pa
     assert '"font":"bebas-neue"' in draft, draft
 
 
+ACK_REQUIRED = "Confirm that you may use this font for a printed item."
+
+
 def test_own_font_file_is_parsed_locally_and_never_uploaded(page: Page, base_url: str) -> None:
     requests: list[tuple[str, str]] = []
     page.on("request", lambda r: requests.append((r.method, r.url)))
@@ -692,6 +697,12 @@ def test_own_font_file_is_parsed_locally_and_never_uploaded(page: Page, base_url
     page.locator("#cz-font-toggle").click()
     page.locator("label[for='cz-font-custom']").click()
     expect(page.locator("#cz-font-area")).to_be_visible()
+    # A font we have not vetted needs the license confirmation first: nothing can be picked until then.
+    expect(page.locator("#cz-font_license_ack-error")).to_have_text(ACK_REQUIRED, timeout=BUILD_TIMEOUT)
+    expect(page.locator("#cz-font-file")).to_be_disabled()
+    expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+    page.get_by_label("I have the right to use this font to make a printed item.").check()
+    expect(page.locator("#cz-font-file")).to_be_enabled()
     expect(page.locator("#cz-font-error")).to_have_text("Choose a font file below, or pick one of the listed fonts.", timeout=BUILD_TIMEOUT)
     expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
     # Not a font: a readable error next to the font control.
@@ -704,8 +715,16 @@ def test_own_font_file_is_parsed_locally_and_never_uploaded(page: Page, base_url
     expect(page.locator("#cz-font-error")).to_have_text("")
     expect(page.locator("#cz-font-status")).to_contain_text("secret-house-font.ttf")
     assert not [r for r in requests[before:] if r[0] != "GET" or not r[1].startswith((base_url, "blob:", "data:"))], requests[before:]
+    # Unchecking the box withdraws the font again.
+    page.get_by_label("I have the right to use this font to make a printed item.").uncheck()
+    expect(page.locator("#cz-font_license_ack-error")).to_have_text(ACK_REQUIRED)
+    expect(page.locator("#cz-font-file")).to_be_disabled()
+    expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+    page.get_by_label("I have the right to use this font to make a printed item.").check()
+    wait_ready(page)
+    # Neither the font nor the confirmation is kept: a draft returns to the default font.
     draft = page.evaluate(f"sessionStorage.getItem({NAME_DRAFT_KEY!r}) || ''")
-    assert '"font":"custom"' in draft and "secret-house" not in draft, draft
+    assert '"font":"block"' in draft and "secret-house" not in draft and "font_license_ack" not in draft, draft
 
 
 def test_name_plate_rules_coerce_inlay_and_report_disconnected_letters(page: Page, base_url: str) -> None:
@@ -950,7 +969,7 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         pytest.fail(f"No matrix flow for generator {generator_id}")
     page.get_by_label(label, exact=True).fill(value)
     values[key] = value
-    draft_key = f"3dp-customize:{generator_id}:v1"
+    draft_key = f"3dp-customize:{generator_id}:v{GENERATOR_VERSIONS.get(generator_id, 1)}"
     needle = json.dumps(value)[1:-1]
     for _ in range(100):  # the draft is written in the same step that starts the rebuild
         if needle in page.evaluate(f"sessionStorage.getItem({draft_key!r}) || ''"):
@@ -1013,7 +1032,7 @@ def test_each_generator_flows_from_edit_to_operator_store(browser: Browser, work
         mine = [r for r in stored_requests(store_path) if (r.get("customization") or {}).get("generatorId") == generator_id
                 and all(r["customization"]["params"].get(k) == v for k, v in public_values.items())]
         assert len(mine) == 1, [r.get("customization") for r in stored_requests(store_path)]
-        assert mine[0]["customization"]["generatorVersion"] == 1
+        assert mine[0]["customization"]["generatorVersion"] == GENERATOR_VERSIONS.get(generator_id, 1)
 
         # The local dev API logged this request (create and complete) with its generator id.
         appended = DEV_LOG.read_bytes()[log_offset:].decode("utf-8")
@@ -1174,3 +1193,117 @@ def test_the_catalog_page_has_no_csp_violations(browser: Browser, workspace: tup
         assert not console, console
     finally:
         page.context.close()
+
+
+# ---- The shared font picker: the same on every generator, with installed fonts ------------------
+
+FONT_CHOICES = ["Block (built-in)", "Pacifico", "Lobster", "Bebas Neue", "Righteous", "Caveat Brush", "Rubik Mono One", "Bangers", "Titan One", "Installed on this computer", "My own font file"]
+ACK_LABEL = "I have the right to use this font to make a printed item."
+INSTALLED_STUB = """
+window.queryLocalFonts = async () => [
+  { family: 'Bebas Neue', style: 'Regular', fullName: 'Bebas Neue Regular', postscriptName: 'BebasNeue-Regular',
+    blob: async () => (await fetch('/customize/fonts/BebasNeue-Regular.ttf')).blob() },
+  { family: 'Righteous', style: 'Regular', fullName: 'Righteous Regular', postscriptName: 'Righteous-Regular',
+    blob: async () => (await fetch('/customize/fonts/Righteous-Regular.ttf')).blob() },
+  { family: 'Broken', style: 'Regular', fullName: 'Broken Regular', postscriptName: 'Broken-Regular',
+    blob: async () => new Blob([new Uint8Array([1, 2, 3, 4])]) }
+];
+"""
+
+
+def open_generator(page: Page, base_url: str, generator_id: str) -> None:
+    page.goto(f"{base_url}/customize/g/{generator_id}/")
+    expect(page.locator("body[data-build-state]")).to_be_attached(timeout=BUILD_TIMEOUT)
+    if generator_id == "wifi-tag":
+        page.get_by_label("Network password", exact=True).fill("pw-font-test")
+    wait_ready(page)
+
+
+def choose_font(page: Page, value: str) -> None:
+    page.locator("#cz-font-toggle").click()
+    page.locator(f"label[for='cz-font-{value}']").click()
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_every_generator_offers_the_same_font_picker(page: Page, base_url: str, generator_id: str) -> None:
+    open_generator(page, base_url, generator_id)
+    toggle = page.locator("#cz-font-toggle")
+    expect(toggle).to_be_visible()
+    expect(toggle).to_have_text("Block (built-in)")
+    toggle.click()
+    assert page.locator("#cz-font-list label").all_text_contents() == FONT_CHOICES
+    page.locator("label[for='cz-font-lobster']").click()
+    expect(toggle).to_have_text("Lobster")
+    wait_ready(page)
+    # A curated font needs no confirmation and no own-font panel.
+    expect(page.get_by_label(ACK_LABEL)).to_be_hidden()
+    expect(page.locator("#cz-font-area")).to_be_hidden()
+    choose_font(page, "system")
+    expect(page.get_by_label(ACK_LABEL)).to_be_visible()
+    expect(page.locator("#cz-font-area")).to_be_visible()
+    expect(page.locator("#cz-font_license_ack-error")).to_have_text(ACK_REQUIRED)
+    expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+    choose_font(page, "custom")
+    expect(page.locator("#cz-font-file")).to_be_visible()
+    expect(page.locator("#cz-font-file")).to_be_disabled()
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_an_installed_font_needs_the_confirmation_and_is_never_uploaded(page: Page, base_url: str, generator_id: str) -> None:
+    requests: list[tuple[str, str]] = []
+    page.on("request", lambda r: requests.append((r.method, r.url)))
+    page.context.add_init_script(INSTALLED_STUB)
+    open_generator(page, base_url, generator_id)
+    choose_font(page, "system")
+    opener = page.get_by_role("button", name="Choose an installed font…")
+    expect(opener).to_be_disabled()
+    expect(page.locator("#cz-font-status")).to_have_text("Confirm the license box above to choose a font.")
+    page.get_by_label(ACK_LABEL).check()
+    expect(opener).to_be_enabled()
+    expect(page.locator("#cz-font-error")).to_have_text("Choose an installed font below, or pick one of the listed fonts.", timeout=BUILD_TIMEOUT)
+    opener.click()
+    options = page.locator("#cz-font-system-list button")
+    expect(options).to_have_count(3)
+    family = options.first.evaluate("el => getComputedStyle(el).fontFamily")
+    assert "Bebas Neue" in family, family
+    # A font that won't parse is explained next to the font control, and a good one builds.
+    page.get_by_role("button", name="Broken Regular").click()
+    expect(page.locator("#cz-font-error")).to_contain_text("installed font couldn't be read", timeout=BUILD_TIMEOUT)
+    before = len(requests)
+    page.locator("#cz-font-system-filter").fill("bebas")
+    expect(options).to_have_count(1)
+    options.first.click()
+    wait_ready(page)
+    expect(page.locator("#cz-font-status")).to_contain_text("Using Bebas Neue Regular")
+    expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
+    assert not [r for r in requests[before:] if r[0] != "GET" or not r[1].startswith((base_url, "blob:", "data:"))], requests[before:]
+    # Withdrawing the confirmation withdraws the font; the choice, the font and the box are not drafted.
+    page.get_by_label(ACK_LABEL).uncheck()
+    expect(page.get_by_role("button", name="Continue to request")).to_be_disabled()
+    expect(page.locator("#cz-font-system-list button").first).to_be_disabled()
+    page.get_by_label(ACK_LABEL).check()
+    wait_ready(page)
+    draft = page.evaluate(f"sessionStorage.getItem({f'3dp-customize:{generator_id}:v{GENERATOR_VERSIONS.get(generator_id, 1)}'!r}) || ''")
+    assert '"font":"block"' in draft and "font_license_ack" not in draft and "Bebas" not in draft, draft
+
+
+def test_a_refused_font_permission_is_explained(page: Page, base_url: str) -> None:
+    page.context.add_init_script("window.queryLocalFonts = async () => { throw new DOMException('Permission denied', 'NotAllowedError'); };")
+    open_name_plate(page, base_url)
+    choose_font(page, "system")
+    page.get_by_label(ACK_LABEL).check()
+    page.get_by_role("button", name="Choose an installed font…").click()
+    expect(page.locator("#cz-font-status")).to_contain_text("Permission to list installed fonts wasn't given")
+    expect(page.locator("#cz-font-status")).to_have_attribute("data-state", "error")
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_a_browser_that_cannot_list_fonts_still_offers_the_font_file(page: Page, base_url: str, generator_id: str) -> None:
+    page.context.add_init_script("Object.defineProperty(window, 'queryLocalFonts', { configurable: true, value: undefined });")
+    open_generator(page, base_url, generator_id)
+    page.locator("#cz-font-toggle").click()
+    expect(page.locator("#cz-font-system")).to_be_disabled()
+    expect(page.locator("label[for='cz-font-system']")).to_contain_text("not available in this browser")
+    page.locator("label[for='cz-font-custom']").click()
+    page.get_by_label(ACK_LABEL).check()
+    expect(page.locator("#cz-font-file")).to_be_enabled()

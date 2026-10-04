@@ -52,7 +52,7 @@ Geometry code never ships to the server.
 | `errorField(message)` | no | Maps a build (geometry) error message to the schema key it belongs next to, or `null` for the Settings summary. An unkeyed error keeps **Try again** visible. |
 | `onParamChange(key, params)` | no | Runs only for a committed edit of `key`; returns values derived from it (e.g. a format's own defaults), or `null`/`{}`. |
 | `image` | no | `{ when: { <field>: <value> }, threshold: <int field>, invert: <bool field> }` — while `when` holds, the page shows a local image picker under that field and traces the image (rating card). |
-| `font` | no | `{ key, custom, curated }` — the font control's key, the value meaning "my own font file", and whether other values are curated font ids fetched same-origin (name plate). Route shield uses the older `font_mode` field (`"font"` = own file, block otherwise). |
+| `font` | no | The shared font spec `FONT_SPEC` (`public/assets/js/customize/fonts.js`): `{ key: "font", custom: "custom", system: "system", ack: "font_license_ack", curated: true }`. Every generator that prints text sets it; see *Fonts*. |
 | `publicParams(params)` | no | Last-chance filter for the parameters written into 3MF metadata (applied after redaction). No launch generator uses it. |
 
 ### Schema fields
@@ -243,7 +243,43 @@ not add a generator whose geometry itself is confidential. All four launch gener
   No remote font services.
 - `LICENSES.md` lists each family, its upstream source and its license file; the OFL text ships
   beside each font; `SHA256SUMS` pins every file. `customize-name-plate.test.mjs` checks all three.
-- A customer's own font file is parsed in the browser (opentype.js) and never uploaded or stored.
+- A customer's own font is parsed in the browser (opentype.js) and never uploaded or stored.
+  There are two sources, both behind a license confirmation (below): a **font file** they pick,
+  and a **font installed on their computer**, listed through the Local Font Access API
+  (`window.queryLocalFonts`: Chromium on a computer; the choice is disabled elsewhere with a note
+  pointing to the file option). The browser asks permission, and only from a click on
+  "Choose an installed font…", which stays disabled until the confirmation is checked.
+
+### One font control for every generator
+
+`fontSchema(group, used)`, `fontRule`, `FONT_OPTIONS` and `FONT_SPEC` in
+`public/assets/js/customize/fonts.js` are the single definition. A generator spreads
+`...fontSchema("text", used)` into its schema, calls `fontRule(params, used(params))` from `rules()`,
+sets `font: FONT_SPEC` and maps font errors (`/font file|installed font/`) to the `font` field.
+`used` says when the design prints text at all (the Wi-Fi tag's keychain format and a rating card
+without a caption have none, so the controls and the confirmation disappear). The choices, in
+order: `block` (built-in), the curated fonts, `system` (installed font), `custom` (font file).
+`customize-shared-font.test.mjs` fails if any generator drifts from this.
+
+- **License confirmation.** `system` and `custom` bring a font we did not vet, so the form shows a
+  `font_license_ack` checkbox ("I have the right to use this font to make a printed item.") and the
+  rule `fontRule` refuses the model until it is checked. Nothing in the own-font panel is usable
+  before that. The confirmation is a schema field, so it is validated by the server and recorded
+  with the request's customization parameters (provenance), but it is `transient`: never written to
+  a draft. A draft that had a font from the customer's computer comes back with the default font
+  (the font has to be picked again anyway).
+- **Page.** `framework/font-area.js` builds the panel for both sources from the generator's
+  `font` spec (no per-page markup); `framework/system-fonts.js` lists, filters (60 shown at a
+  time) and reads installed fonts. The bytes go to the worker as `fontBytes` with a `fontKey`
+  (`system:<PostScript name>` or the file's name/size/date) and live in page memory only. Samples in
+  the list use the installed family by name (`font-family`), so no `blob:` font URL or CSP change is
+  needed.
+- **Text in a real font.** `framework/text.js` `fontTextLines` fits a one- or two-line label in a
+  box (used by the Wi-Fi tag title and network name and the rating card caption); characters the
+  font lacks are skipped with a warning, and a label with none drawable is an error next to its
+  field. The "capital letters only" notes apply to the block font only.
+- A font collection (`.ttc`) or some variable fonts do not parse; the customer is told to try
+  another font or a font file.
 
 To add a curated font: download the unmodified TTF from the OFL folder of the Google Fonts
 repository (`https://github.com/google/fonts/raw/main/ofl/<family>/`; check the license is OFL,

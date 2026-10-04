@@ -1,6 +1,7 @@
 // Schema-driven parameter form. renderFormHtml is pure (testable in Node);
 // renderForm wires it to the DOM. No Vite-only imports here.
 import { sensitiveKeys, validateParams } from "../../public/assets/js/customize/schema.js";
+import { fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 
 export const SENSITIVE_NOTE = "This is encoded in your model file. The file is stored privately like any upload and seen by us when we print it. It is not copied into our request records, emails or your saved draft.";
 const GROUP_LABELS = { text: "Text", size: "Size and depth", layout: "Text layout", back: "Back", colors: "Colors" };
@@ -119,12 +120,14 @@ function fontPickerField(key, def, value, error) {
 
 function boolField(key, def, value, error) {
   const id = controlId(key);
+  const base = def.help ? [`${id}-help`] : [];
   return `<div class="cz-field cz-field-bool" data-field="${esc(key)}">
   <div class="cz-inline">
-    <input class="cz-checkbox" type="checkbox" id="${id}" name="${esc(key)}"${value ? " checked" : ""}${describe([], key, error)}>
+    <input class="cz-checkbox" type="checkbox" id="${id}" name="${esc(key)}"${value ? " checked" : ""}${describe(base, key, error)}>
     <label class="cz-label" for="${id}">${esc(def.label ?? key)}</label>
   </div>
-  ${errorSlot(key, error)}
+  ${errorSlot(key, error)}${def.help ? `
+  <p class="help" id="${id}-help">${esc(def.help)}</p>` : ""}
 </div>`;
 }
 
@@ -196,7 +199,11 @@ export function readControlValue(def, element) {
 export function storableParams(generator, params) {
   const sensitive = new Set(sensitiveKeys(generator));
   const out = {};
-  for (const key of Object.keys(generator.schema)) if (!sensitive.has(key) && Object.hasOwn(params, key)) out[key] = params[key];
+  for (const [key, def] of Object.entries(generator.schema)) if (!sensitive.has(key) && !def.transient && Object.hasOwn(params, key)) out[key] = params[key];
+  // A font from this computer is picked again and its license confirmed again in the next
+  // visit (neither is kept), so a draft returns to the generator's own default font.
+  const fontKey = generator.font?.key;
+  if (fontKey && fontNeedsLicense(out[fontKey])) out[fontKey] = generator.schema[fontKey].default;
   return out;
 }
 

@@ -1,6 +1,7 @@
 // Route shield geometry, ported from the prototype's generator.js. Returns Manifold
 // solids; buildModel handles the XY shift, meshing, 3MF packaging and freeing the solids.
-import { blockText, fontText, fitCrossSection, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING } from "../../framework/text.js";
+import { blockText, fontText, fontDrawable, fitCrossSection, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING, FONT_CHARS_SKIPPED } from "../../framework/text.js";
+import { fontNeededMessage, FONT_NOT_LOADED } from "../../../public/assets/js/customize/fonts.js";
 import { qrCrossSection } from "../../framework/qr.js";
 import { safeName } from "../../framework/model.js";
 import { OUTER, UPPER, LOWER, positiveContour } from "./template.js";
@@ -15,12 +16,17 @@ const bounds2 = pts => ({
   minY: Math.min(...pts.map(p => p[1])), maxY: Math.max(...pts.map(p => p[1]))
 });
 
-function makeTextCS(CrossSection, text, o, font) {
+// `notes.skipped` is set when a real font lacked a character, so build() can warn once.
+function makeTextCS(CrossSection, text, o, font, notes) {
   if (!String(text || "").trim()) return CrossSection.union([]);
-  if (o.font_mode === "block") return blockText(CrossSection, text);
-  if (!font) throw new Error("Choose a font file first, or switch back to the built-in block font.");
+  if (o.font === "block") return blockText(CrossSection, text);
+  if (!font) throw new Error(o.font === "custom" || o.font === "system" ? fontNeededMessage(o.font) : FONT_NOT_LOADED);
+  // A real font draws only the characters it has (never its "missing glyph" box).
+  const drawable = fontDrawable(text, font);
+  if (drawable.skipped) notes.skipped = true;
+  if (!drawable.text.trim()) return CrossSection.union([]);
   // Non-zero fill: overlapping contours (script joins) stay solid instead of becoming holes.
-  return fontText(CrossSection, font, text, { fillRule: "NonZero" });
+  return fontText(CrossSection, font, drawable.text, { fillRule: "NonZero" });
 }
 
 // ---- Text layout -----------------------------------------------------------
@@ -37,7 +43,7 @@ const FIT_EPS = 1e-3;      // mm^2 of tolerated overhang (numeric noise)
 const textFits = (cs, region, t) => cs.isEmpty() || t(cs.subtract(region)).area() <= FIT_EPS;
 
 // `t` registers a temporary for release when build() finishes.
-function buildLayout(wasm, options, font, t) {
+function buildLayout(wasm, options, font, t, notes) {
   const { CrossSection } = wasm;
   const sx = options.width_mm / TEMPLATE_WIDTH;
   const sy = options.height_mm / TEMPLATE_HEIGHT;
@@ -61,16 +67,16 @@ function buildLayout(wasm, options, font, t) {
 
   const frontSpec = (key, field, text, box, baseY) => ({ key, text: t(text), box, baseY, region: t(field.offset(-WALL)) });
   const front = {
-    top: frontSpec("top", upper, makeTextCS(CrossSection, options.top_text, options, font),
+    top: frontSpec("top", upper, makeTextCS(CrossSection, options.top_text, options, font, notes),
       { w: (upperB.maxX - upperB.minX) * 0.80, h: (upperB.maxY - upperB.minY) * 0.50 },
       (upperB.minY + upperB.maxY) / 2 - 0.5 * sy),
-    lower: frontSpec("lower", lower, makeTextCS(CrossSection, options.lower_text, options, font),
+    lower: frontSpec("lower", lower, makeTextCS(CrossSection, options.lower_text, options, font, notes),
       { w: (lowerB.maxX - lowerB.minX) * 0.72, h: (lowerB.maxY - lowerB.minY) * 0.58 },
       (lowerB.minY + lowerB.maxY) / 2 - 1.0 * sy)
   };
 
   const allLines = String(options.back_text || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-  const lines = allLines.slice(0, 4).map(line => t(makeTextCS(CrossSection, line, options, font)));
+  const lines = allLines.slice(0, 4).map(line => t(makeTextCS(CrossSection, line, options, font, notes)));
   const qrOn = !!options.qr_enabled;
   let qr = null;
   let qrTop = null;
@@ -130,12 +136,14 @@ export default async function build(options, { wasm, font = null } = {}) {
   const solids = [];
   let ok = false;
   try {
-    const layout = buildLayout(wasm, options, font, t);
+    const notes = { skipped: false };
+    const layout = buildLayout(wasm, options, font, t, notes);
     const { outerPts, outer, upper, lower, safeBack } = layout;
     const qr = layout.back.qr;
     if (qr && qr.module < 0.9) warnings.push(`QR module size is ${qr.module.toFixed(2)} mm. A 0.4 mm nozzle and well-calibrated first layer are recommended.`);
     if (layout.back.truncated) warnings.push("Back text was limited to the first four non-empty lines.");
-    if (options.font_mode === "block" && [options.top_text, options.lower_text, options.back_text].some(text => unsupportedBlockChars(text).length)) warnings.push(BLOCK_SUBSTITUTION_WARNING);
+    if (options.font === "block" && [options.top_text, options.lower_text, options.back_text].some(text => unsupportedBlockChars(text).length)) warnings.push(BLOCK_SUBSTITUTION_WARNING);
+    if (notes.skipped) warnings.push(FONT_CHARS_SKIPPED);
 
     // Reaching here with text that doesn't fit is an error, never a silent crop.
     const fitOrThrow = (name, cs, region) => {

@@ -227,6 +227,76 @@ export function fontText(CrossSection, font, text, { fillRule = 'EvenOdd' } = {}
   return centered;
 }
 
+// ---- Label text in either font (shared by generators whose text is a short label) -------------
+// A real font draws only the characters it has a glyph for; the font's "missing glyph" box is
+// never drawn. Returns the characters kept and whether any were left out.
+export function fontDrawable(text, font) {
+  const source = String(text ?? "");
+  const kept = [...source].filter(ch => /\s/.test(ch) || font.charToGlyph(ch).index > 0);
+  return { text: kept.join(""), skipped: kept.length < [...source].length };
+}
+
+export const FONT_CHARS_SKIPPED = "Some characters aren't in this font and were skipped.";
+
+// Cap height of the font as a fraction of the em; fonts without the OS/2 value get 0.7.
+const capRatio = font => {
+  const cap = font.tables?.os2?.sCapHeight;
+  return cap > 0 && font.unitsPerEm > 0 ? cap / font.unitsPerEm : 0.7;
+};
+
+// One line of font text with its baseline at y = 0 (descenders hang below), centered in x.
+function fontLineAtBaseline(CrossSection, font, line) {
+  const path = fontTextPath(font, line);
+  const contours = flattenOpenTypePath(path, 12);
+  if (!contours.length) return null;
+  const cs = CrossSection.ofPolygons(contours, 'NonZero');
+  const b = cs.bounds();
+  const centered = cs.translate([-(b.min[0] + b.max[0]) / 2, 0]);
+  cs.delete?.();
+  return centered;
+}
+
+/** Splits a label that would print under `splitBelow` mm tall on one row, like splitBlockLines but for a real font. */
+function splitFontLines(CrossSection, font, text, box, splitBelow, t) {
+  const chars = [...text];
+  const one = t(fontLineAtBaseline(CrossSection, font, text));
+  if (!one || chars.length < 2) return [text];
+  const b = one.bounds();
+  const cap = capRatio(font) * 1000;
+  const size = Math.min(box.maxW / (b.max[0] - b.min[0]), box.maxH / Math.max(cap, b.max[1] - b.min[1])) * cap;
+  if (size >= splitBelow) return [text];
+  const mid = chars.length / 2;
+  let at = -1;
+  chars.forEach((ch, i) => { if (ch === " " && (at < 0 || Math.abs(i - mid) < Math.abs(at - mid))) at = i; });
+  const lines = at > 0 ? [chars.slice(0, at), chars.slice(at + 1)] : [chars.slice(0, Math.ceil(mid)), chars.slice(Math.ceil(mid))];
+  return lines.map(l => l.join("").trim()).filter(Boolean);
+}
+
+/**
+ * A short label in a real font, one line or two, at one shared size, centered in box
+ * { cx, cy, maxW, maxH }. Lines keep a common baseline pitch, so they read like the block font's.
+ * Returns { cs, cap, skipped } (cap = printed capital height in mm, 0 when nothing is drawable);
+ * `cs` is registered with `t` like the block version.
+ */
+export function fontTextLines(CrossSection, font, text, box, t, { splitBelow = 4 } = {}) {
+  const { text: drawable, skipped } = fontDrawable(text, font);
+  const trimmed = drawable.trim();
+  if (!trimmed) return { cs: t(CrossSection.union([])), cap: 0, skipped };
+  const lines = splitFontLines(CrossSection, font, trimmed, box, splitBelow, t);
+  const cap = capRatio(font) * 1000, pitch = cap * 1.55;
+  const placed = [];
+  lines.forEach((line, i) => {
+    const row = fontLineAtBaseline(CrossSection, font, line);
+    if (row) placed.push(t(t(row).translate([0, -i * pitch])));
+  });
+  if (!placed.length) return { cs: t(CrossSection.union([])), cap: 0, skipped };
+  const all = t(CrossSection.union(placed));
+  const b = all.bounds();
+  const scale = Math.min(box.maxW / (b.max[0] - b.min[0]), box.maxH / (b.max[1] - b.min[1]));
+  const fitted = t(t(all.scale([scale, scale])).translate([box.cx - scale * (b.min[0] + b.max[0]) / 2, box.cy - scale * (b.min[1] + b.max[1]) / 2]));
+  return { cs: fitted, cap: cap * scale, skipped };
+}
+
 export function fitCrossSection(cs, { maxWidth, maxHeight, centerX = 0, centerY = 0 }) {
   if (cs.isEmpty()) return cs;
   const b = cs.bounds();

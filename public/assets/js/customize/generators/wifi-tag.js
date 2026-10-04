@@ -2,7 +2,9 @@
 // the TOP face. The password is sensitive: it lives only in the QR geometry of the model file
 // and is redacted from drafts, the hand-off record, the server, email and webhooks.
 
-import { luminance, contrastRatio } from "../color.js?v=8a3170184cf2cb47";
+import { luminance, contrastRatio } from "../color.js?v=a80a70ed9e06345f";
+
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=a80a70ed9e06345f";
 
 export { contrastRatio };
 
@@ -13,6 +15,9 @@ const MIN_CONTRAST = 3;
 const round1 = v => Math.round(v * 10) / 10;
 
 const depthMax = o => round1(Math.min(DEPTH_RANGE[1], o.thickness_mm - MIN_WEB));
+
+// The label (title and network name) is the only text; keychain tags have none.
+const usesText = o => o.format !== "keychain" && o.show_text !== false;
 
 function rules(o) {
   // Keychain tags never carry text, and only keychains have the loop. validateParams and
@@ -28,6 +33,8 @@ function rules(o) {
   if (Number.isFinite(o.qr_depth_mm) && o.qr_depth_mm > maxDepth + EPS) {
     add(["qr_depth_mm"], `QR and text depth must be ${DEPTH_RANGE[0]}–${maxDepth} mm for a ${o.thickness_mm} mm tag (at least ${MIN_WEB} mm of base stays underneath).`);
   }
+  const font = fontRule(o, usesText(o));
+  if (font.errors.length) add([FONT_ACK_KEY], font.errors[0]);
   // On the server the password arrives as the redaction marker, which is never empty.
   if (o.security !== "nopass" && !String(o.password ?? "").length) add(["password"], "Enter the network password, or choose 'No password'.");
   if (typeof o.base_color === "string" && typeof o.qr_color === "string") {
@@ -58,8 +65,9 @@ function onParamChange(key, o) {
 // by the network name and password; the message never repeats either.
 function errorField(message) {
   const text = String(message ?? "");
-  if (/too dense/i.test(text) || /^The network name is too long to print legibly/.test(text)) return "ssid";
-  if (/^The title is too long to print legibly/.test(text)) return "title";
+  if (/too dense/i.test(text) || /^The network name is too long to print legibly|^None of the characters in the network name/.test(text)) return "ssid";
+  if (/^The title is too long to print legibly|^None of the characters in the title/.test(text)) return "title";
+  if (/font file|installed font/i.test(text)) return "font";
   return null;
 }
 
@@ -80,6 +88,7 @@ const SCHEMA = {
   hidden: { type: "bool", label: "Hidden network", default: false, group: "network" },
   show_text: { type: "bool", label: "Show title and network name. Text is not shown on keychain tags.", default: true, group: "text" },
   title: { type: "text", label: "Title", max: 20, optional: true, default: "WiFi", group: "text" },
+  ...fontSchema("text", usesText),
   corner_radius_mm: { type: "number", label: "Corner radius", min: 0, max: 12, step: 0.5, default: 4, unit: "mm", group: "size" },
   thickness_mm: { type: "number", label: "Thickness", min: 2, max: 6, step: 0.2, default: 3, unit: "mm", group: "size" },
   qr_depth_mm: { type: "number", label: "QR and text depth", min: DEPTH_RANGE[0], max: DEPTH_RANGE[1], step: 0.2, default: 1, unit: "mm", group: "size" },
@@ -106,5 +115,6 @@ export default {
   rules,
   errorField,
   onParamChange,
+  font: FONT_SPEC,
   presets: PRESETS
 };

@@ -3,7 +3,8 @@
 // A customer image is never a parameter: the page traces it in the browser and passes only the
 // outline to the build (ctx.imageContours), so it never reaches drafts, the hand-off record or
 // the server.
-import { contrastRatio } from "../color.js?v=8a3170184cf2cb47";
+import { contrastRatio } from "../color.js?v=a80a70ed9e06345f";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=a80a70ed9e06345f";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // card kept under the relief
@@ -11,6 +12,9 @@ const RELIEF_RANGE = [0.4, 1.2];
 const MIN_CONTRAST = 3;
 const round1 = v => Math.round(v * 10) / 10;
 const reliefMax = o => round1(Math.min(RELIEF_RANGE[1], o.thickness_mm - MIN_WEB));
+
+// The caption is the card's only text.
+const hasCaption = o => String(o.caption ?? "").trim().length > 0;
 
 function rules(o) {
   const fieldErrors = {};
@@ -20,6 +24,8 @@ function rules(o) {
   if (Number.isFinite(o.relief_mm) && o.relief_mm > maxRelief + EPS) {
     add(["relief_mm"], `Relief height must be ${RELIEF_RANGE[0]}–${maxRelief} mm for a ${o.thickness_mm} mm card (at least ${MIN_WEB} mm of card stays underneath).`);
   }
+  const font = fontRule(o, hasCaption(o));
+  if (font.errors.length) add([FONT_ACK_KEY], font.errors[0]);
   const pairs = [
     ["icon_color", "Icon color", "the icon", true],
     ["star_color", "Star color", "the filled stars", o.show_stars !== false],
@@ -37,6 +43,7 @@ function rules(o) {
 function errorField(message) {
   const text = String(message ?? "");
   if (/image|traced/i.test(text)) return "icon";
+  if (/font file|installed font/i.test(text)) return "font";
   if (/caption/i.test(text)) return "caption";
   return null;
 }
@@ -54,7 +61,8 @@ const SCHEMA = {
   image_scale_pct: { type: "int", label: "Image size", min: 30, max: 120, step: 5, default: 100, unit: "%", visibleWhen: { icon: "custom" }, group: "icon" },
   rating: { type: "number", label: "Stars", min: 0, max: 5, step: 0.5, default: 3.5, group: "rating" },
   show_stars: { type: "bool", label: "Show the stars", default: true, group: "rating" },
-  caption: { type: "text", label: "Caption", max: 40, optional: true, default: "Would poop here again", help: "Optional. Up to 40 characters. The built-in font prints capital letters, digits and common punctuation.", group: "text" },
+  caption: { type: "text", label: "Caption", max: 40, optional: true, default: "Would poop here again", help: "Optional. Up to 40 characters. The built-in font prints capital letters, digits and common punctuation; other fonts leave out characters they don't have.", group: "text" },
+  ...fontSchema("text", hasCaption),
   thickness_mm: { type: "number", label: "Card thickness", min: 1.2, max: 3, step: 0.2, default: 1.6, unit: "mm", group: "size" },
   relief_mm: { type: "number", label: "Relief height", min: RELIEF_RANGE[0], max: RELIEF_RANGE[1], step: 0.2, default: 0.6, unit: "mm", group: "size" },
   corner_radius_mm: { type: "number", label: "Corner radius", min: 0, max: 8, step: 0.5, default: 3, unit: "mm", group: "size" },
@@ -87,5 +95,6 @@ export default {
   errorField,
   presets: PRESETS,
   // The page traces a customer image while `when` holds, using these parameters.
+  font: FONT_SPEC,
   image: { when: { icon: "custom" }, threshold: "image_threshold", invert: "image_invert" }
 };

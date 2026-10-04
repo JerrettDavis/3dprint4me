@@ -55,7 +55,8 @@ test("each control has a unique id, every label points at one, and only one cont
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
   assert.equal(new Set(ids).size, ids.length, "duplicate ids");
   for (const [, target] of html.matchAll(/<label[^>]*for="([^"]+)"/g)) assert.ok(ids.includes(target), `label for missing id ${target}`);
-  for (const key of Object.keys(gen.schema)) assert.equal(html.split(`name="${key}"`).length - 1, 1, `${key} name count`);
+  // A picker is a radio group: its radios share the field's name, one per option.
+  for (const [key, def] of Object.entries(gen.schema)) assert.equal(html.split(`name="${key}"`).length - 1, def.picker ? def.options.length : 1, `${key} name count`);
 });
 
 test("number fields pair a named number box with a labelled range slider that carries data-for", () => {
@@ -66,15 +67,16 @@ test("number fields pair a named number box with a labelled range slider that ca
 });
 
 test("enum, bool, color and multiline text render the right element types", () => {
-  assert.match(html, /<select[^>]*name="font_mode"/);
-  assert.match(html, /<option value="block" selected>/);
+  assert.match(html, /<input[^>]*type="radio"[^>]*name="font"[^>]*value="block"[^>]*checked/);
+  assert.match(html, /<input[^>]*type="radio"[^>]*name="font"[^>]*value="system"/);
+  assert.match(html, /<input[^>]*type="checkbox"[^>]*name="font_license_ack"/);
   assert.match(html, /<input[^>]*type="checkbox"[^>]*name="qr_enabled"[^>]*checked/);
   assert.match(html, /<input[^>]*type="color"[^>]*name="base_color"[^>]*value="#ffffff"/);
   assert.match(html, /<textarea[^>]*name="back_text"[^>]*>100 Years/);
 });
 
 test("fields are grouped into labelled fieldsets in schema order", () => {
-  const legends = [...html.matchAll(/<legend[^>]*>([^<]+)<\/legend>/g)].map(m => m[1]);
+  const legends = [...html.matchAll(/<legend class="cz-legend">([^<]+)<\/legend>/g)].map(m => m[1]);
   assert.deepEqual(legends, ["Text", "Size and depth", "Text layout", "Back", "Colors"]);
 });
 

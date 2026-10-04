@@ -4,11 +4,12 @@
 // Empty stars are the star row minus the filled (full or half) stars, so the two star colors
 // never overlap. buildModel frees the returned solids; everything else is freed here.
 import { roundedRect, star, partialStar } from "../../framework/shapes.js";
-import { fitCrossSection, splitBlockLines, blockTextLines, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING } from "../../framework/text.js";
+import { fitCrossSection, splitBlockLines, blockTextLines, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING, fontTextLines, FONT_CHARS_SKIPPED } from "../../framework/text.js";
 import { iconCrossSection } from "../../framework/icons.js";
 import { imageCrossSection } from "../../framework/image-trace.js";
 import { safeName } from "../../framework/model.js";
 import { contrastRatio } from "../../../public/assets/js/customize/color.js";
+import { FONT_BLOCK, FONT_NOT_LOADED, fontNeededMessage } from "../../../public/assets/js/customize/fonts.js";
 
 export const CARD = Object.freeze({ w: 85.6, h: 54 });
 const MARGIN = 4;            // clear border inside the card edge (mm)
@@ -56,7 +57,9 @@ export function planLayout(p) {
 
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 
-export default async function build(p, { wasm, imageContours = null } = {}) {
+export const NONE_AVAILABLE = "None of the characters in the caption are available in this font. Choose another font.";
+
+export default async function build(p, { wasm, font = null, imageContours = null } = {}) {
   const { CrossSection } = wasm;
   const warnings = [];
   const temps = [];
@@ -105,15 +108,22 @@ export default async function build(p, { wasm, imageContours = null } = {}) {
       empty = t(t(CrossSection.union(all)).subtract(filled));
     }
 
-    // Caption: block font, one line or two, shrunk to fit; too small to read is an error.
+    // Caption: the built-in block font or a real font (curated, installed or the customer's
+    // file), one line or two, shrunk to fit; too small to read is an error.
     const text = String(p.caption ?? "").trim();
     let caption = null;
     if (text) {
+      const blockFont = p.font === undefined || p.font === FONT_BLOCK;
+      if (!blockFont && !font) throw new Error(p.font === "custom" || p.font === "system" ? fontNeededMessage(p.font) : FONT_NOT_LOADED);
       const box = { cx: 0, cy: (L.caption.y0 + L.caption.y1) / 2, maxW: L.caption.x1 - L.caption.x0, maxH: CAPTION_H };
-      const block = blockTextLines(CrossSection, splitBlockLines(text, box, SPLIT_BELOW), box, t);
+      const block = blockFont
+        ? blockTextLines(CrossSection, splitBlockLines(text, box, SPLIT_BELOW), box, t)
+        : fontTextLines(CrossSection, font, text, box, t, { splitBelow: SPLIT_BELOW });
+      if (!block.cap) throw new Error(NONE_AVAILABLE);
       if (block.cap < MIN_TEXT) throw new Error(TOO_LONG);
       if (block.cap < SMALL_TEXT) warnings.push(`The caption prints only ${block.cap.toFixed(1)} mm tall and may be hard to read. A shorter caption prints larger.`);
-      if (unsupportedBlockChars(text).length) warnings.push(BLOCK_SUBSTITUTION_WARNING);
+      if (blockFont && unsupportedBlockChars(text).length) warnings.push(BLOCK_SUBSTITUTION_WARNING);
+      if (!blockFont && block.skipped) warnings.push(FONT_CHARS_SKIPPED);
       caption = block.cs;
     }
 

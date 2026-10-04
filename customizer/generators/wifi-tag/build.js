@@ -5,7 +5,8 @@
 import qrcode from "qrcode-generator";
 import { roundedRect, circle } from "../../framework/shapes.js";
 import { qrCrossSection } from "../../framework/qr.js";
-import { splitBlockLines, blockTextLines, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING } from "../../framework/text.js";
+import { splitBlockLines, blockTextLines, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING, fontTextLines, FONT_CHARS_SKIPPED } from "../../framework/text.js";
+import { FONT_BLOCK, FONT_NOT_LOADED, fontNeededMessage } from "../../../public/assets/js/customize/fonts.js";
 import { wifiPayload } from "../../../public/assets/js/customize/wifi.js";
 
 export const FORMAT = Object.freeze({ placard: [90, 120], keychain: [45, 60], card: [85.6, 54] });
@@ -24,6 +25,7 @@ const TOO_LONG = {
   ssid: "The network name is too long to print legibly at this tag size. Shorten it, turn the label off, or choose a larger format.",
   title: "The title is too long to print legibly at this tag size. Shorten it, turn the label off, or choose a larger format."
 };
+const NONE_AVAILABLE = { ssid: "None of the characters in the network name are available in this font. Choose another font.", title: "None of the characters in the title are available in this font. Choose another font." };
 
 // Credentials that are valid input but may not let a phone join. Never quotes the password.
 export function credentialWarnings(p) {
@@ -98,7 +100,7 @@ export function planLayout(p) {
 
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 
-export default async function build(p, { wasm } = {}) {
+export default async function build(p, { wasm, font = null } = {}) {
   const { CrossSection, Manifold } = wasm;
   const warnings = [];
   const temps = [];
@@ -138,19 +140,31 @@ export default async function build(p, { wasm } = {}) {
     warnings.push(...credentialWarnings(p));
 
     // Label (never the password).
+    // The label font: the built-in block font, or a real font (curated, installed or the
+    // customer's file) that the page parsed and handed in.
+    const blockFont = p.font === undefined || p.font === FONT_BLOCK || !layout.boxes.length;
+    if (!blockFont && !font) throw new Error(p.font === "custom" || p.font === "system" ? fontNeededMessage(p.font) : FONT_NOT_LOADED);
     const labels = [];
-    let smallest = Infinity;
+    let smallest = Infinity, skippedAny = false;
     for (const box of layout.boxes) {
-      const block = blockTextLines(CrossSection, splitBlockLines(box.text, box), box, t);
+      let block;
+      if (blockFont) block = blockTextLines(CrossSection, splitBlockLines(box.text, box), box, t);
+      else {
+        block = fontTextLines(CrossSection, font, box.text, box, t);
+        if (!block.cap) throw new Error(NONE_AVAILABLE[box.kind]);
+        skippedAny ||= block.skipped;
+      }
       // Fit or error: a label too small to read is never printed silently.
       if (block.cap < MIN_TEXT) throw new Error(TOO_LONG[box.kind]);
       labels.push(block.cs);
       smallest = Math.min(smallest, block.cap);
     }
-    const printed = layout.boxes.map(b => b.text).join(" ");
-    if (unsupportedBlockChars(printed).length) warnings.push(BLOCK_SUBSTITUTION_WARNING);
-    const ssidBox = layout.boxes.find(b => b.kind === "ssid");
-    if (ssidBox && ssidBox.text !== ssidBox.text.toUpperCase()) warnings.push("The built-in font prints capital letters only; the QR code keeps the network name exactly as typed.");
+    if (blockFont) {
+      const printed = layout.boxes.map(b => b.text).join(" ");
+      if (unsupportedBlockChars(printed).length) warnings.push(BLOCK_SUBSTITUTION_WARNING);
+      const ssidBox = layout.boxes.find(b => b.kind === "ssid");
+      if (ssidBox && ssidBox.text !== ssidBox.text.toUpperCase()) warnings.push("The built-in font prints capital letters only; the QR code keeps the network name exactly as typed.");
+    } else if (skippedAny) warnings.push(FONT_CHARS_SKIPPED);
     if (smallest < SMALL_TEXT) warnings.push(`The label prints only ${smallest.toFixed(1)} mm tall and may be hard to read; the QR code is unaffected.`);
     const label = labels.length ? t(CrossSection.union(labels)) : null;
 

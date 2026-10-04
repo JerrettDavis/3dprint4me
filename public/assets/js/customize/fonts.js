@@ -16,3 +16,53 @@ export const FONTS = Object.freeze([
 ]);
 
 export const findFont = id => FONTS.find(f => f.id === id);
+
+// ---- The font control every generator shares ---------------------------------------------
+// One definition, so every customizer offers the same choices in the same order: the built-in
+// block font, the curated fonts above, a font installed on the customer's computer, or a font
+// file they pick. The last two are fonts we did not vet, so using one needs the customer's
+// confirmation that they may use it for a printed item (font_license_ack). The font itself is
+// read in the browser and never uploaded; only the confirmation is recorded with the request.
+export const FONT_BLOCK = "block";
+export const FONT_SYSTEM = "system";
+export const FONT_CUSTOM = "custom";
+export const FONT_KEY = "font";
+export const FONT_ACK_KEY = "font_license_ack";
+
+export const FONT_OPTIONS = Object.freeze([
+  Object.freeze({ value: FONT_BLOCK, label: "Block (built-in)", face: FONT_BLOCK }),
+  ...FONTS.map(f => Object.freeze({ value: f.id, label: f.label, face: f.id })),
+  Object.freeze({ value: FONT_SYSTEM, label: "Installed on this computer", face: FONT_SYSTEM }),
+  Object.freeze({ value: FONT_CUSTOM, label: "My own font file", face: FONT_CUSTOM })
+]);
+
+/** True for the two choices that bring a font we have not vetted. */
+export const fontNeedsLicense = value => value === FONT_SYSTEM || value === FONT_CUSTOM;
+
+export const FONT_ACK_LABEL = "I have the right to use this font to make a printed item.";
+export const FONT_ACK_HELP = "We can't check a font's license. Many fonts forbid commercial use or embedding, so confirm yours allows this before continuing. The font stays on this device and is never uploaded.";
+export const FONT_ACK_REQUIRED = "Confirm that you may use this font for a printed item.";
+
+/**
+ * The schema entries to spread into a generator's schema: { font, font_license_ack }.
+ * `used` (params => boolean) says when the design prints text at all (a keychain tag has none);
+ * the font controls show only then.
+ */
+export const fontSchema = (group = "text", used = () => true) => ({
+  [FONT_KEY]: { type: "enum", label: "Font", picker: "font", options: FONT_OPTIONS, default: FONT_BLOCK, group, visibleWhen: params => used(params) },
+  [FONT_ACK_KEY]: { type: "bool", label: FONT_ACK_LABEL, help: FONT_ACK_HELP, default: false, transient: true, visibleWhen: params => used(params) && fontNeedsLicense(params[FONT_KEY]), group }
+});
+
+/** What the page needs to know to drive the shared font control (see framework/app.js). */
+export const FONT_SPEC = Object.freeze({ key: FONT_KEY, custom: FONT_CUSTOM, system: FONT_SYSTEM, ack: FONT_ACK_KEY, curated: true });
+
+/** The rule fragment every generator's rules() includes: the confirmation is required (when the font is used). */
+export const fontRule = (params, used = true) => (used && fontNeedsLicense(params[FONT_KEY]) && params[FONT_ACK_KEY] !== true
+  ? { errors: [FONT_ACK_REQUIRED], fieldErrors: { [FONT_ACK_KEY]: FONT_ACK_REQUIRED } }
+  : { errors: [], fieldErrors: {} });
+
+/** Shown when the chosen font is a file or an installed font that hasn't been picked yet. */
+export const fontNeededMessage = mode => (mode === FONT_SYSTEM
+  ? "Choose an installed font below, or pick one of the listed fonts."
+  : "Choose a font file below, or pick one of the listed fonts.");
+export const FONT_NOT_LOADED = "The selected font isn't loaded. Try again, or pick another font.";
