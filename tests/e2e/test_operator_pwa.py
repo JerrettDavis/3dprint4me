@@ -119,3 +119,31 @@ def test_controls_show_pointer_cursor_and_react_to_hover() -> None:
             ack.hover()
             page.wait_for_timeout(400)
             assert ack.evaluate("node => getComputedStyle(node).backgroundColor") != ack_before
+
+
+def test_failed_work_update_shows_a_visible_error_and_stays_usable() -> None:
+    with running_operator_workspace() as (storefront, operator, _):
+        request = project_request()
+        status, _, created = json_request(storefront + "/api/request", method="POST", payload={"request": request, "website": ""})
+        assert status == 201
+        json_request(storefront + "/api/request", method="PATCH", payload={"id": created["id"], "request": request, "uploadedFiles": []})
+
+        with SiteBrowser(viewport=(1280, 900)) as site:
+            page = site.page
+            assert page is not None
+            page.add_init_script("delete Navigator.prototype.serviceWorker")  # service workers bypass page.route
+            page.goto(operator, wait_until="networkidle")
+            row = page.locator("#work-list .work-row")
+            row.wait_for()
+            row.click()
+            page.locator("#work-list li[data-active='true']").wait_for()
+            ack = page.get_by_role("button", name="Acknowledge")
+            ack.wait_for()
+            page.route("**/api/operator-work-update", lambda route: route.fulfill(status=503, content_type="application/json", body='{"error":"Operator service is temporarily unavailable."}'))
+            ack.click()
+            toast = page.locator("#toast")
+            toast.wait_for(state="visible")
+            assert "temporarily unavailable" in toast.inner_text()
+            assert page.locator("#work-list .work-row").count() == 1
+            assert page.get_by_role("button", name="Acknowledge").is_enabled()
+            assert not site.page_errors  # the stubbed 503 legitimately logs a console resource error
