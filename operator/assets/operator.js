@@ -35,25 +35,25 @@ export function createOperatorController({ api, view, expectSession = () => fals
     if (!model.selectedId) return;
     if (command.type === "add-note") model.noteDraft = command.body ?? view.noteDraft?.() ?? "";
     try { const result = await api.updateWork(model.selectedId, command); model.detail = { ...model.detail, item: result.item ?? model.detail.item }; if (command.type === "add-note") model.noteDraft = ""; view.detail(model.detail); view.announce("Update saved."); await loadList(); }
-    catch (error) { if (error.kind === "conflict") { model.noteDraft ||= view.noteDraft?.() ?? ""; model.detail = await api.getWork(model.selectedId); view.detail(model.detail, { noteDraft: model.noteDraft }); view.announce("This work changed in another window. Review the current version, then try again."); return; } if (["signed-out", "forbidden"].includes(error.kind)) clearPrivate(); view.state(error.kind ?? "error", model); view.announce(error.message); }
+    catch (error) { if (error.kind === "conflict") { model.noteDraft ||= view.noteDraft?.() ?? ""; model.detail = await api.getWork(model.selectedId); view.detail(model.detail, { noteDraft: model.noteDraft }); view.announce("This work changed in another window. Review the current version, then try again.", "error"); return; } if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } view.announce(error.message, "error"); }
   }
   async function download(assetId) {
     if (!model.selectedId) return;
     try { const result = await api.printAssetDownload(model.selectedId, assetId); view.announce(`Download link for ${result.filename} expires in 60 seconds.`); view.openDownload?.(result.url); }
-    catch (error) { if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } view.announce(error.message); }
+    catch (error) { if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } view.announce(error.message, "error"); }
   }
   async function recordRun(run) {
     if (!model.selectedId) return;
     try { await api.recordPrintRun(model.selectedId, run); model.detail = await api.getWork(model.selectedId); view.detail(model.detail); view.announce("Production run recorded."); }
-    catch (error) { if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } view.announce(error.message); }
+    catch (error) { if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } view.announce(error.message, "error"); }
   }
-  return { start, loadList, select, command, download, recordRun, clearPrivate, snapshot: () => structuredClone(model) };
+  return { selectedId: () => model.selectedId, start, loadList, select, command, download, recordRun, clearPrivate, snapshot: () => structuredClone(model) };
 }
 
 const title = value => String(value ?? "").replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
 function el(name, className, text) { const node = document.createElement(name); if (className) node.className = className; if (text != null) node.textContent = text; return node; }
 function createDomView() {
-  const q = selector => document.querySelector(selector); const list = q("#work-list"), detail = q("#detail-content"), placeholder = q("#detail-placeholder"), filters = q("#filters"), status = q("#status-message"); let controller;
+  const q = selector => document.querySelector(selector); const list = q("#work-list"), detail = q("#detail-content"), placeholder = q("#detail-placeholder"), filters = q("#filters"), status = q("#status-message"), toast = q("#toast"); let controller, toastTimer;
   const view = {
     attach(value) { controller = value; }, filters: () => Object.fromEntries(new FormData(filters)), noteDraft: () => q("#private-note")?.value ?? "",
     state(name, model) {
@@ -66,24 +66,25 @@ function createDomView() {
       if (name === "forbidden") q("#auth-title").textContent = "This account is not approved.";
       if (["offline", "unavailable", "error"].includes(name)) view.announce(name === "offline" ? "The inbox is offline. Check the connection and retry." : "The inbox could not load. Try again.");
     },
-    list(items) { list.replaceChildren(); q("#work-count").textContent = String(items.length); q("#empty-state").hidden = items.length > 0; for (const item of items) { const li = el("li"); const button = el("button", "work-row"); button.type = "button"; button.append(el("strong", "", item.projectTitle), el("span", "work-meta", `${title(item.service)} · ${title(item.status)}`), el("span", `priority priority-${item.priority}`, `${title(item.priority)} · ${formatRelativeTime(item.submittedAt)}`)); button.onclick = () => controller.select(item.id); li.append(button); list.append(li); } },
+    list(items) { const selectedId = controller?.selectedId?.(); list.replaceChildren(); q("#work-count").textContent = String(items.length); q("#empty-state").hidden = items.length > 0; for (const item of items) { const li = el("li"); li.dataset.id = item.id; li.dataset.active = String(item.id === selectedId); const button = el("button", "work-row"); button.type = "button"; button.append(el("strong", "", item.projectTitle), el("span", "work-meta", `${title(item.service)} · ${title(item.status)}`), el("span", `priority priority-${item.priority}`, `${title(item.priority)} · ${formatRelativeTime(item.submittedAt)}`)); button.onclick = () => controller.select(item.id); li.append(button); list.append(li); } },
     detail(payload, options = {}) {
       placeholder.hidden = true; detail.hidden = false; detail.replaceChildren(); const { item, request = {}, files = [], notes = [], events = [] } = payload;
       const back = el("button", "back", "Back to inbox"); back.type = "button"; back.onclick = () => { document.body.dataset.detail = "closed"; history.pushState({}, "", "/"); };
       const heading = el("header", "job-heading"); heading.append(el("p", "kicker", `${title(item.status)} · revision ${item.revision}`), el("h2", "", request.projectTitle ?? item.projectTitle ?? "Work request"), el("p", "job-id", item.requestId ?? item.id));
       const actions = el("section", "job-actions"); actions.setAttribute("aria-label", "Update work");
-      const commandButton = (text, command) => { const button = el("button", "", text); button.type = "button"; button.onclick = () => controller.command({ ...command, revision: item.revision }); actions.append(button); };
+      const run = async command => { const controls = [...actions.querySelectorAll("button,select,input")]; actions.setAttribute("aria-busy", "true"); controls.forEach(control => { control.disabled = true; }); try { await controller.command({ ...command, revision: item.revision }); } finally { actions.removeAttribute("aria-busy"); controls.forEach(control => { control.disabled = false; }); } };
+      const commandButton = (text, command) => { const button = el("button", "action", text); button.type = "button"; button.onclick = () => run(command); actions.append(button); };
       if (!item.acknowledged) commandButton("Acknowledge", { type: "acknowledge" });
-      const priority = el("select"); priority.setAttribute("aria-label", "Priority"); for (const value of ["low", "normal", "high", "urgent"]) { const option = el("option", "", title(value)); option.value = value; option.selected = item.priority === value; priority.append(option); } priority.onchange = () => controller.command({ type: "set-priority", priority: priority.value, revision: item.revision }); actions.append(priority);
-      const date = el("input"); date.type = "date"; date.value = item.targetDate ?? ""; date.setAttribute("aria-label", "Target date"); date.onchange = () => controller.command({ type: "set-target-date", targetDate: date.value || null, revision: item.revision }); actions.append(date);
+      const priority = el("select"); priority.setAttribute("aria-label", "Priority"); for (const value of ["low", "normal", "high", "urgent"]) { const option = el("option", "", title(value)); option.value = value; option.selected = item.priority === value; priority.append(option); } priority.onchange = () => run({ type: "set-priority", priority: priority.value }); actions.append(priority);
+      const date = el("input"); date.type = "date"; date.value = item.targetDate ?? ""; date.setAttribute("aria-label", "Target date"); date.onchange = () => run({ type: "set-target-date", targetDate: date.value || null }); actions.append(date);
       for (const next of allowedTransitions(item)) commandButton(`Move to ${title(next)}`, { type: "set-status", status: next });
       const facts = el("section", "job-sheet"); facts.append(el("h3", "", "Request details")); for (const [key, value] of Object.entries(request)) { if (value == null || value === "" || typeof value === "object") continue; const dl = el("dl"), row = el("div", "fact"); row.append(el("dt", "", title(key)), el("dd", "", String(value))); dl.append(row); facts.append(dl); } if (files.length) facts.append(el("p", "", `${files.length} private file${files.length === 1 ? "" : "s"} attached`));
       const form = el("form", "note-form"), note = el("textarea"); note.id = "private-note"; note.maxLength = 4000; note.rows = 4; note.value = options.noteDraft ?? ""; const noteLabel = el("label", "", "Private note"); noteLabel.htmlFor = note.id; const save = el("button", "primary", "Add private note"); save.type = "submit"; form.append(noteLabel, note, save); form.onsubmit = event => { event.preventDefault(); controller.command({ type: "add-note", body: note.value, revision: item.revision }); };
       const activity = el("section", "history"); activity.append(el("h3", "", "Activity")); for (const event of events) activity.append(el("p", "", `${title(event.type)} · ${new Date(event.occurredAt).toLocaleString()}`)); for (const savedNote of notes) activity.append(el("blockquote", "", savedNote.body));
       const print = renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) });
       const customization = request?.customization ? renderCustomization(request) : null;
-      detail.append(back, heading, actions, facts, ...(customization ? [customization] : []), ...(print ? [print] : []), form, activity); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
-    }, announce(message) { status.textContent = message; }, openDownload(url) { location.assign(url); }
+      detail.append(back, heading, actions, facts, ...(customization ? [customization] : []), ...(print ? [print] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
+    }, announce(message, kind = "info") { status.textContent = message; toast.textContent = message; toast.dataset.kind = kind; toast.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, kind === "error" ? 9000 : 3500); }, openDownload(url) { location.assign(url); }
   }; filters.onchange = () => controller.loadList(); return view;
 }
 

@@ -36,3 +36,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985);filter:bright
   .work-list li:hover{transform:translateX(2px)}
 }
 @keyframes operator-spin{to{transform:rotate(360deg)}}
+
+.work-list li[data-active="true"]{background:var(--teal-soft)}.work-list li[data-active="true"]:before{width:5px;background:var(--teal)}
+.job-actions .action{font-weight:650;border-color:var(--teal);color:var(--teal)}.job-actions .action:hover:not(:disabled){background:var(--teal);color:#fff}.job-actions[aria-busy="true"]{opacity:.7}
+.toast{position:fixed;left:50%;bottom:5rem;transform:translateX(-50%);z-index:30;max-width:min(32rem,calc(100vw - 2rem));padding:.75rem 1.1rem;border-radius:10px;background:var(--blue);color:#f3fffd;border:1px solid var(--teal);box-shadow:var(--shadow);font-weight:600}.toast[data-kind="error"]{background:var(--panel);border:2px solid var(--danger);color:var(--ink)}
