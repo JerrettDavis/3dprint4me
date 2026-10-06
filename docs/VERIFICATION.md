@@ -43,6 +43,7 @@ The preview board does not include the ZIP picker. The picker was captured separ
 - Pack A's ZIP row attached with no parts. The attach rules are unchanged; its parts were unselected when pack B's selection was recorded.
 - The request carried `packParts: "2 of 3 parts: b/left.stl ×1; b/right.stl ×2"`.
 - The operator sheet listed only `b/left.stl` and `b/right.stl` as parts.
+- The pack price note was inspected in harness captures at 390 px, light and dark. It wraps normally under the slice copy and is legible in both themes.
 
 **Pending before production use:** apply `006_model_packs.sql` to production Neon after 005 and before deploying this code; run a synthetic ZIP request against private Blob (upload, extraction, operator per-part download); confirm `npm run estimate:cleanup` reports `orphanedParts` for the unselected parts. None of these were performed.
 

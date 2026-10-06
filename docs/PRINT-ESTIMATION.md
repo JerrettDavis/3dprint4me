@@ -223,14 +223,21 @@ Part names are archive entry labels: control, C1 and bidi characters are strippe
 - `packParts`: `2 of 4 parts: parts/base.stl ×1; parts/lid.stl ×2`
 - `packIgnored`: the ignored file names
 
-Each value is at most 500 characters, which is what server validation keeps. A long list ends with `(+N more)` instead of being cut silently, and a label over 120 characters is shortened with `…`. The no-integration email draft carries the same two lines. This text reaches the operator on every path, including when the server never recorded a selection: no integrations, a refused pack, a failed or exhausted private estimate, or a pack too large to estimate online.
+Each value is at most 500 characters, which is what server validation keeps. A long list ends with `(+N more)` instead of being cut silently, and a label over 120 characters is shortened with `…`. The no-integration email draft carries the same two lines. The text is kept on every path, including when the server never recorded a selection: no integrations, a refused pack, a failed or exhausted private estimate, or a pack too large to estimate online. It lands in four places:
+
+- the stored request payload
+- the owner notification's Specifications block
+- the local recovery JSON
+- the email draft
+
+The operator print sheet does not render `specifications`.
 
 **Pack estimate.** With private estimates enabled, each selection change sends an `estimate-pack` preview:
 
 - Previews are debounced by 700 ms. An identical selection is not resent, and previews stop after a `429`.
 - At submit, a final `estimate-pack` with `purpose: "submission"` records the chosen selection.
 - The server validates every part ID against ready children of that ZIP in the caller's session, with quantities 1-99 and at least one part. It stores `selected`/`quantity` and queues one slice job per selected part.
-- The selection is written only while the session is still open. A preview that reaches the server after the request was submitted changes nothing. The browser also waits for every preview still in flight before it sends the submission estimate.
+- The selection is written only while the session is still open. A preview that reaches the server after the request was submitted changes no part selection. It may still store a snapshot and queue slice jobs. The browser also waits for every preview still in flight before it sends the submission estimate.
 - Recording a selection for one ZIP unselects the parts of every other ZIP in the same session. If the customer replaces a ZIP, the earlier ZIP's parts are therefore not attached. The earlier ZIP file itself still attaches, with no parts.
 - `estimate-pack` stores an immutable snapshot. `status` resolves the newest snapshot of the pack (or of a top-level model); a part's slicer result never stands in for it. `status` recomputes the pack estimate read-only and falls back to the stored snapshot if the parts are gone.
 
