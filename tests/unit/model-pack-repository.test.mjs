@@ -45,3 +45,23 @@ test("a session delete removes a ZIP and its children in one statement", async (
   await db.query("DELETE FROM print_assets WHERE estimate_session_id = $1", [session.id]);
   assert.deepEqual((await db.query("SELECT id FROM print_assets")).rows, []);
 });
+
+test("claimPackAnalysis is won once, loses while fresh, and wins again when stale", async () => {
+  const { db, repo, zip } = await seeded();
+  assert.equal(await repo.claimPackAnalysis(zip.id), null, "a pending_upload ZIP cannot be claimed");
+  await repo.markAssetUploaded(zip.id, 100);
+  const won = await repo.claimPackAnalysis(zip.id);
+  assert.equal(won.state, "analyzing");
+  assert.equal(await repo.claimPackAnalysis(zip.id), null, "fresh claim loses");
+  await db.query("UPDATE print_assets SET updated_at = now() - interval '10 minutes' WHERE id = $1", [zip.id]);
+  assert.ok(await repo.claimPackAnalysis(zip.id), "stale claim is recoverable");
+  assert.equal((await repo.markAssetFailed(zip.id, { code: "malformed", detail: "x" })).state, "failed");
+  assert.equal(await repo.claimPackAnalysis(zip.id), null, "a failed ZIP is not re-claimable");
+});
+
+test("claimPackAnalysis never claims a non-ZIP asset", async () => {
+  const { repo, child } = await seeded();
+  const part = await child(2, "base.stl");
+  await repo.markAssetUploaded(part.id, 10);
+  assert.equal(await repo.claimPackAnalysis(part.id), null);
+});
