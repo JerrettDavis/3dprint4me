@@ -27,15 +27,21 @@ function table(caption, headers, rows) {
   return node;
 }
 
+function orderPack(assets) {
+  const parents = assets.filter(asset => !asset.parentAssetId);
+  return parents.flatMap(parent => [parent, ...assets.filter(asset => asset.parentAssetId === parent.id)]);
+}
+
 function fileRows(assets, onDownload) {
   const list = el("ul", "print-files");
-  for (const asset of assets) {
-    const item = el("li", "print-file");
+  for (const asset of orderPack(assets)) {
+    const item = el("li", asset.parentAssetId ? "print-file print-file-part" : "print-file");
     const head = el("div", "print-file-head");
-    head.append(el("strong", "", asset.originalName), el("span", `print-state print-state-${asset.state}`, titleCase(asset.state)));
+    head.append(el("strong", "", asset.archiveEntry ?? asset.originalName), el("span", `print-state print-state-${asset.state}`, titleCase(asset.state)));
     const g = asset.geometry;
-    const meta = [asset.format.toUpperCase(), bytes(asset.sizeBytes), g ? `${g.dimensionsMm.map(value => one.format(value)).join(" × ")} mm` : null, g ? `${whole.format(g.triangleCount)} triangles` : null, g ? `${one.format(g.volumeCm3)} cm³` : null].filter(Boolean).join(" · ");
+    const meta = [asset.format.toUpperCase(), asset.parentAssetId ? `Pack part · quantity ${asset.quantity}${asset.selected ? "" : " · not selected"}` : null, bytes(asset.sizeBytes), g ? `${g.dimensionsMm.map(value => one.format(value)).join(" × ")} mm` : null, g ? `${whole.format(g.triangleCount)} triangles` : null, g ? `${one.format(g.volumeCm3)} cm³` : null].filter(Boolean).join(" · ");
     item.append(head, el("p", "print-meta", meta));
+    if (asset.pack?.ignored?.length) item.append(el("p", "print-meta", `Not printed (ignored): ${asset.pack.ignored.map(entry => `${entry.name} (${entry.kind})`).join(", ")}`));
     if (asset.analysisError) item.append(el("p", "print-error", `Analysis failed: ${asset.analysisError.code}${asset.analysisError.detail ? ` — ${asset.analysisError.detail}` : ""}`));
     if (g?.warnings?.length) item.append(el("p", "print-warning", `Warnings: ${g.warnings.map(titleCase).join(", ")}`));
     if (asset.retention?.deletedAt) item.append(el("p", "print-meta", `Deleted under retention policy ${when(asset.retention.deletedAt)}`));
