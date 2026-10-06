@@ -1,5 +1,5 @@
-import { inspectArchive } from "./archive.js?v=af64c2651617f465";
-import { estimateProductionFromGeometry } from "./geometry.js?v=af64c2651617f465";
+import { inspectArchive } from "./archive.js?v=f612341d745785cd";
+import { estimateProductionFromGeometry } from "./geometry.js?v=f612341d745785cd";
 
 /** Same rule as the server's entryLabel: strip control, DEL, C1 and bidi characters, cap at 255. */
 export const entryLabel = name => String(name).replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g, "").slice(0, 255);

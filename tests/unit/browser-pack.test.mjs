@@ -6,6 +6,8 @@ import { resolveModelLimits } from "../../public/assets/js/print-estimation/mesh
 import { packProduction, readPackLocally } from "../../public/assets/js/print-estimation/pack.js";
 import { createModelEstimateController } from "../../public/assets/js/print-estimation/controller.js";
 import { createPrintEstimateClient, createPrivateEstimateFlow } from "../../public/assets/js/print-estimation/client.js";
+import { syncPicker } from "../../public/assets/js/print-estimation/view.js";
+import { createOrderView } from "../../public/assets/js/order/view.js";
 import { nodeInflateRaw } from "../../lib/print-estimation/geometry/analyze-model.js";
 import { entryLabel } from "../../lib/print-estimation/application/pack.js";
 import { buildZip } from "../support/zip-fixtures.mjs";
@@ -303,4 +305,37 @@ test("local part names use the server's entry label so they map to server part i
   assert.equal(pack.parts[0].name, entryLabel(name));
   assert.equal(pack.parts[0].name, "parts/evil.stl");
   assert.equal(pack.ignored[0].name, entryLabel("notes\u202E.md"));
+});
+
+// Minimal DOM stubs: just the properties these two functions read and write.
+const control = (attrs, inCard) => ({ ...attrs, disabled: false, ownerDocument: { activeElement: null }, closest: selector => (selector === "#model-card" && inCard ? {} : null) });
+
+test("the picker owns its controls: an unmeasurable part stays disabled after any re-sync", () => {
+  const controls = {
+    'select:part-0': control({ checked: false }), 'quantity:part-0': control({ value: "1" }),
+    'select:part-1': control({ checked: false }), 'quantity:part-1': control({ value: "1" })
+  };
+  for (const node of Object.values(controls)) node.disabled = false; // as if something else re-enabled them
+  const picker = { querySelector: selector => controls[`${selector.match(/data-pack-action="(\w+)"/)[1]}:${selector.match(/data-part-id="([\w-]+)"/)[1]}`] };
+  syncPicker(picker, { parts: [{ id: "part-0", error: null }, { id: "part-1", error: "empty_file" }], selection: { "part-0": { selected: true, quantity: 3 }, "part-1": { selected: false, quantity: 1 } } });
+  assert.equal(controls["select:part-0"].disabled, false);
+  assert.equal(controls["select:part-0"].checked, true);
+  assert.equal(controls["quantity:part-0"].value, "3");
+  assert.equal(controls["select:part-1"].disabled, true, "an unmeasurable part can never be ticked");
+  assert.equal(controls["quantity:part-1"].disabled, true);
+});
+
+test("showing or hiding service fields never touches the pack picker controls", () => {
+  const plain = control({}, false);
+  const pickerCheck = control({}, true);
+  pickerCheck.disabled = true;
+  const panel = { dataset: { servicePanel: "print" }, classList: { toggle() {} }, setAttribute() {}, querySelectorAll: () => [plain, pickerCheck] };
+  const document = { querySelector: () => null, querySelectorAll: selector => (selector === "[data-service-panel]" ? [panel] : []) };
+  const view = createOrderView({ document, window: {}, form: {}, formatEstimate: () => "" });
+  view.updateConditionalFields({ service: "print" });
+  assert.equal(plain.disabled, false);
+  assert.equal(pickerCheck.disabled, true, "the picker keeps its own disabled state");
+  view.updateConditionalFields({ service: "design" });
+  assert.equal(plain.disabled, true);
+  assert.equal(pickerCheck.disabled, true);
 });

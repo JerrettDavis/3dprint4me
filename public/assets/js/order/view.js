@@ -1,4 +1,4 @@
-import { formatBytes } from "./files.js?v=af64c2651617f465";
+import { formatBytes } from "./files.js?v=f612341d745785cd";
 
 export function createOrderView({ document, window, form, formatEstimate }) {
   const elements = {
@@ -22,7 +22,8 @@ export function createOrderView({ document, window, form, formatEstimate }) {
       const visible = panel.dataset.servicePanel === service;
       panel.classList.toggle("visible", visible);
       panel.setAttribute("aria-hidden", String(!visible));
-      panel.querySelectorAll("input, select, textarea").forEach(field => { field.disabled = !visible; });
+      // The pack picker in #model-card manages its own controls (an unmeasurable part stays disabled).
+      panel.querySelectorAll("input, select, textarea").forEach(field => { if (!field.closest("#model-card")) field.disabled = !visible; });
     });
     document.querySelectorAll("[data-delivery-panel]").forEach(panel => {
       const visible = panel.dataset.deliveryPanel === (data.delivery || "pickup");
