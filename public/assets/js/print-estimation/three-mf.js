@@ -1,4 +1,4 @@
-import { createMeshAccumulator, ModelAnalysisError } from "./mesh.js?v=a80a70ed9e06345f";
+import { createMeshAccumulator, ModelAnalysisError } from "./mesh.js?v=019b09fba4bb8b4a";
 
 // 3MF is ZIP + XML. Only the model relationship and referenced model parts are
 // expanded; thumbnails, metadata, and slicer settings are never decompressed.
@@ -39,11 +39,14 @@ export function readZipDirectory(bytes, limits) {
     if (cursor + 46 > eocd || view.getUint32(cursor, true) !== ZIP_CENTRAL) throw new ModelAnalysisError("malformed", "An archive directory entry is invalid.");
     const flags = view.getUint16(cursor + 8, true);
     const method = view.getUint16(cursor + 10, true);
+    const crc32 = view.getUint32(cursor + 16, true);
     const compressedSize = view.getUint32(cursor + 20, true);
     const uncompressedSize = view.getUint32(cursor + 24, true);
     const nameLength = view.getUint16(cursor + 28, true);
     const extraLength = view.getUint16(cursor + 30, true);
     const commentLength = view.getUint16(cursor + 32, true);
+    const madeBy = view.getUint16(cursor + 4, true);
+    const externalAttributes = view.getUint32(cursor + 38, true);
     const localOffset = view.getUint32(cursor + 42, true);
     const name = threeMfUtf8.decode(bytes.subarray(cursor + 46, cursor + 46 + nameLength));
     cursor += 46 + nameLength + extraLength + commentLength;
@@ -51,14 +54,16 @@ export function readZipDirectory(bytes, limits) {
     if (flags & 0x1) throw new ModelAnalysisError("zip_encrypted", "Encrypted archive entries are not supported.");
     if (![0, 8].includes(method)) throw new ModelAnalysisError("zip_unsupported", `Compression method ${method} is not supported.`);
     if (uncompressedSize === 0xffffffff || compressedSize === 0xffffffff) throw new ModelAnalysisError("zip_unsupported", "ZIP64 entries are not supported.");
-    const key = name.toLowerCase();
-    if (entries.has(key)) throw new ModelAnalysisError("malformed", "The archive contains duplicate entry names.");
-    entries.set(key, { name, method, compressedSize, uncompressedSize, localOffset });
+    const key = name.normalize("NFC").toLowerCase();
+    if (entries.has(key)) throw new ModelAnalysisError("zip_duplicate", "The archive contains duplicate entry names.");
+    const unixType = (madeBy >> 8) === 3 ? ((externalAttributes >>> 16) & 0o170000) : 0;
+    const special = unixType !== 0 && unixType !== 0o100000 && unixType !== 0o040000;
+    entries.set(key, { name, method, crc32, compressedSize, uncompressedSize, localOffset, isDirectory: name.endsWith("/"), special });
   }
   return entries;
 }
 
-async function readZipEntry(bytes, entry, budget, limits, inflateRaw) {
+export async function readZipEntry(bytes, entry, budget, limits, inflateRaw) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (entry.localOffset + 30 > bytes.length || view.getUint32(entry.localOffset, true) !== ZIP_LOCAL) throw new ModelAnalysisError("malformed", "An archive entry header is invalid.");
   const start = entry.localOffset + 30 + view.getUint16(entry.localOffset + 26, true) + view.getUint16(entry.localOffset + 28, true);
