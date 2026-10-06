@@ -70,3 +70,48 @@ test("request completion attaches the ZIP and selected parts in the single compl
   assert.equal(result.printEstimate.assets, 2);
   await attachedSet(db, zip, kids);
 });
+
+test("a child inherits the ZIP retention hold", async () => {
+  const { db, repo, session, zip, kids } = await seeded();
+  await repo.attachSession({ sessionId: session.id, ownershipHash: "b".repeat(64), requestId: "3DP-1" });
+  await db.query("INSERT INTO work_items (request_id, status, completed_at) VALUES ('3DP-1','completed','2020-01-01T00:00:00Z')");
+  const cutoff = new Date().toISOString();
+  const ids = async () => (await repo.retentionCandidates({ completedBefore: cutoff })).map(row => row.id);
+  assert.deepEqual((await ids()).sort(), [zip.id, kids[0].id]);
+  await db.query("UPDATE print_assets SET retention_hold = true WHERE id = $1", [zip.id]);
+  assert.deepEqual(await ids(), []);
+  await db.query("UPDATE print_assets SET retention_hold = false WHERE id = $1", [zip.id]);
+  assert.deepEqual((await ids()).sort(), [zip.id, kids[0].id]);
+});
+
+test("a stale never-attached ZIP of an attached session is swept; fresh and attached ZIPs are not", async () => {
+  const { db, repo, session, zip, kids } = await seeded();
+  await repo.attachSession({ sessionId: session.id, ownershipHash: "b".repeat(64), requestId: "3DP-1" });
+  await db.query("UPDATE print_assets SET request_id = NULL, state = 'analyzing' WHERE id = $1", [zip.id]);
+  const names = async () => (await repo.orphanedParts({ limit: 10 })).map(row => row.id).sort();
+  assert.deepEqual(await names(), [kids[1].id]);
+  await db.query("UPDATE print_assets SET updated_at = now() - interval '11 minutes' WHERE id = $1", [zip.id]);
+  assert.deepEqual(await names(), [zip.id, kids[1].id].sort());
+  await db.query("UPDATE print_assets SET request_id = '3DP-1' WHERE id = $1", [zip.id]);
+  assert.deepEqual(await names(), [kids[1].id]);
+  await db.query("UPDATE print_assets SET request_id = NULL WHERE id = $1", [zip.id]);
+  const deleted = [];
+  const retention = createRetentionUseCases({ repository: repo, fileStore: { delete: async path => { deleted.push(path); } } });
+  assert.equal((await retention.sweep()).orphanedParts, 2);
+  assert.equal((await repo.findAsset(zip.id)).state, "deleted");
+  assert.deepEqual(deleted.sort(), [zip.blobPath, kids[1].blobPath].sort());
+});
+
+test("a failing store delete leaves the orphan for the next sweep", async () => {
+  const { repo, session, kids } = await seeded();
+  await repo.attachSession({ sessionId: session.id, ownershipHash: "b".repeat(64), requestId: "3DP-1" });
+  let broken = true;
+  const retention = createRetentionUseCases({ repository: repo, fileStore: { delete: async () => { if (broken) throw new Error("store down"); } } });
+  const first = await retention.sweep();
+  assert.equal(first.orphanedParts, 0);
+  assert.ok(first.errors >= 1);
+  assert.notEqual((await repo.findAsset(kids[1].id)).state, "deleted");
+  broken = false;
+  assert.equal((await retention.sweep()).orphanedParts, 1);
+  assert.equal((await repo.findAsset(kids[1].id)).state, "deleted");
+});
