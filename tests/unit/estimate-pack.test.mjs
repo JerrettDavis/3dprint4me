@@ -19,13 +19,13 @@ const cube = (name, size = 10) => {
   return `solid ${name}\n${f.map(t => `facet normal 0 0 0\nouter loop\n${t.map(i => `vertex ${v[i].join(" ")}`).join("\n")}\nendloop\nendfacet`).join("\n")}\nendsolid ${name}\n`;
 };
 
-async function harness({ slicerEnabled = false } = {}) {
+async function harness({ slicerEnabled = false, bigSize = 30 } = {}) {
   const root = await mkdtemp(join(tmpdir(), "pack-estimate-"));
   const fileStore = createLocalFileStore({ root, origin: "http://127.0.0.1:4173" });
   const repository = createLocalPrintRepository({ path: join(root, "state.json"), workLookup: async () => null });
   const useCases = createEstimateSessionUseCases({ repository, fileStore, materialCosts: { materialCost: async () => ({ source: "fallback", landedUsdPerKg: 20, inventoryIds: [] }) }, slicerEnabled, limits: serverModelLimits() });
   const created = await useCases.create({});
-  const zip = buildZip([{ name: "a.stl", data: cube("a", 10), method: "deflate" }, { name: "b.stl", data: cube("b", 30), method: "deflate" }]);
+  const zip = buildZip([{ name: "a.stl", data: cube("a", 10), method: "deflate" }, { name: "b.stl", data: cube("b", bigSize), method: "deflate" }]);
   const auth = await useCases.authorizeUpload({ ...created, filename: "pack.zip", size: zip.length, contentType: "application/zip" });
   await fileStore.put((await repository.findAsset(auth.assetId)).blobPath, zip);
   const pack = await useCases.analyze({ ...created, assetId: auth.assetId });
@@ -135,4 +135,100 @@ test("presentPack sanitizes ignored entry names", () => {
   const view = presentPack({ id: "asset_x", originalName: "p.zip", geometryMetrics: { pack: { ignored: [{ name: "a‮bc.png", kind: "image" }] } } }, []);
   assert.deepEqual(view.pack.ignored, [{ name: "abc.png", kind: "image" }]);
   assert.equal(entryLabel("x".repeat(300)).length, 255);
+});
+
+const snapshot = async h => JSON.stringify([
+  await h.repository.listSessionEstimates(h.created.sessionId, 50),
+  (await h.repository.listChildren(h.assetId)).map(row => [row.id, row.selected, row.quantity]),
+  await h.repository.listAssetJobs(h.parts[0].partId), await h.repository.listAssetJobs(h.parts[1].partId)
+]);
+
+async function completeSliceJobs(h, grams, hours) {
+  const jobs = await h.repository.claimJobs({ workerId: "w1", batchSize: 10 });
+  for (const job of jobs) {
+    const estimate = await h.repository.insertEstimate({ sessionId: h.created.sessionId, assetId: job.assetId, purpose: "slice", input: { production: { gramsPerUnit: grams, hoursPerUnit: hours } }, public: { production: {} } });
+    await h.repository.completeJob(job.id, "w1", estimate.id);
+  }
+  return jobs.length;
+}
+
+test("an oversized pack order is a 400 and leaves selections, jobs and estimates untouched", async () => {
+  const h = await harness({ slicerEnabled: true, bigSize: 200 });
+  try {
+    const before = await snapshot(h);
+    await assert.rejects(
+      h.useCases.estimatePack({ ...h.created, assetId: h.assetId, options: { quantity: 500 }, selections: [{ partId: h.parts[0].partId, quantity: 99 }, { partId: h.parts[1].partId, quantity: 99 }] }),
+      error => error.status === 400 && /too large to estimate online/.test(error.message)
+    );
+    assert.equal(await snapshot(h), before);
+    assert.equal((await h.repository.listChildren(h.assetId)).some(row => row.selected), false);
+  } finally { await h.cleanup(); }
+});
+
+test("status falls back to the stored snapshot when a selected part is gone", async () => {
+  const h = await harness();
+  try {
+    const stored = await h.useCases.estimatePack({ ...h.created, assetId: h.assetId, options: {}, selections: [{ partId: h.parts[0].partId, quantity: 1 }] });
+    await h.repository.deleteAssetRecord(h.parts[0].partId);
+    const before = JSON.stringify(await h.repository.listSessionEstimates(h.created.sessionId, 50));
+    const status = await h.useCases.status({ sessionId: h.created.sessionId, token: h.created.token });
+    assert.deepEqual(status.price, stored.price);
+    assert.equal(status.slice.status, "unavailable");
+    assert.equal(JSON.stringify(await h.repository.listSessionEstimates(h.created.sessionId, 50)), before);
+  } finally { await h.cleanup(); }
+});
+
+test("a ready slice job without a result estimate is priced by geometry and not reported ready", async () => {
+  const h = await harness({ slicerEnabled: true });
+  try {
+    const body = { ...h.created, assetId: h.assetId, options: {}, selections: [{ partId: h.parts[0].partId, quantity: 1 }] };
+    const geometry = await h.useCases.estimatePack(body);
+    const [job] = await h.repository.claimJobs({ workerId: "w1" });
+    await h.repository.completeJob(job.id, "w1", "pest_missing");
+    const result = await h.useCases.estimatePack(body);
+    assert.notEqual(result.slice.status, "ready");
+    assert.deepEqual(result.production, geometry.production);
+  } finally { await h.cleanup(); }
+});
+
+test("when every selected part is sliced the rollup uses slicer figures and slice is ready", async () => {
+  const h = await harness({ slicerEnabled: true });
+  try {
+    const body = { ...h.created, assetId: h.assetId, options: {}, selections: [{ partId: h.parts[0].partId, quantity: 2 }, { partId: h.parts[1].partId, quantity: 1 }] };
+    const geometry = await h.useCases.estimatePack(body);
+    assert.equal(await completeSliceJobs(h, 5, 1), 2);
+    const result = await h.useCases.estimatePack(body);
+    assert.equal(result.slice.status, "ready");
+    assert.equal(result.slice.production.estimatedGramsPerUnit, 15);
+    assert.equal(result.slice.production.estimatedHoursPerUnit, 3);
+    assert.notEqual(result.production.estimatedGramsPerUnit, geometry.production.estimatedGramsPerUnit);
+    assert.equal((await h.repository.listAssetJobs(h.parts[0].partId)).length, 1);
+  } finally { await h.cleanup(); }
+});
+
+test("order quantity scales pack production", async () => {
+  const h = await harness();
+  try {
+    const selections = [{ partId: h.parts[0].partId, quantity: 1 }];
+    const one = await h.useCases.estimatePack({ ...h.created, assetId: h.assetId, options: { quantity: 1 }, selections });
+    const three = await h.useCases.estimatePack({ ...h.created, assetId: h.assetId, options: { quantity: 3 }, selections });
+    assert.equal(three.production.estimatedGramsPerUnit, one.production.estimatedGramsPerUnit);
+    const [latest, previous] = await h.repository.listSessionEstimates(h.created.sessionId, 2);
+    assert.equal(latest.input.options.quantity, 3);
+    assert.equal(latest.input.production.totalGrams, previous.input.production.totalGrams * 3);
+    assert.ok(latest.input.production.totalHours > previous.input.production.totalHours);
+  } finally { await h.cleanup(); }
+});
+
+test("deselecting a part updates flags and status reflects it", async () => {
+  const h = await harness();
+  try {
+    const [a, b] = h.parts;
+    const base = { ...h.created, assetId: h.assetId, options: {} };
+    await h.useCases.estimatePack({ ...base, selections: [{ partId: a.partId, quantity: 1 }, { partId: b.partId, quantity: 2 }] });
+    await h.useCases.estimatePack({ ...base, selections: [{ partId: b.partId, quantity: 1 }] });
+    assert.deepEqual((await h.repository.listChildren(h.assetId)).map(row => [row.selected, row.quantity]), [[false, 1], [true, 1]]);
+    const status = await h.useCases.status({ sessionId: h.created.sessionId, token: h.created.token });
+    assert.deepEqual(status.pack.parts.map(part => part.selected), [false, true]);
+  } finally { await h.cleanup(); }
 });
