@@ -12,9 +12,21 @@ Print service -> choose STL/3MF -> bounded browser geometry -> planning range (n
   -> submit request: model referenced, not re-uploaded; session/assets/snapshots attach in the
      same statement that creates the single work item
   -> operator work detail: files, 60 s signed download, latest estimate, cost/margin, history, runs
+
+ZIP pack branch:
+Print service -> choose .zip -> browser reads the ZIP directory with the shared inspector,
+     measures each STL/3MF part locally -> picker (all measurable parts selected, quantity 1)
+     -> planning range from the selected parts (not a slice)
+  -> [if configured] one signed PUT of the ZIP -> analyze: server re-inspects the archive,
+     extracts every STL/3MF entry into a private child asset and measures it
+  -> estimate-pack (debounced preview on each selection change; final purpose=submission at
+     submit): parts rolled up, pricing policy runs once, one slice job per selected part
+  -> submit: the ZIP and the selected parts attach; unselected parts are removed by the next
+     cleanup run
+  -> operator: ZIP row (ignored files), part rows with quantities, per-part download
 ```
 
-Without Neon + private Blob the browser still measures the model locally, the range still updates, and the file travels with the normal request path (signed upload or local/email recovery). A slicer outage, pending job, or failed job never blocks submission.
+Without Neon + private Blob the browser still measures the model locally, the range still updates, and the file travels with the normal request path (signed upload or local/email recovery). A slicer outage, pending job, or failed job never blocks submission. The same holds for a ZIP pack: the picker and planning range work locally and the ZIP travels with the request as an ordinary file.
 
 ## Code map
 
@@ -29,10 +41,16 @@ Without Neon + private Blob the browser still measures the model locally, the ra
 | Job runner / worker | `application/slice-jobs.js`, `scripts/print-estimate-worker.mjs` |
 | Operator read model and downloads | `application/operator-view.js`, `api/operator-print.js`, `operator/assets/print-detail.js` |
 | Retention and privacy purge | `application/retention.js`, `scripts/print-estimate-maintenance.mjs` |
+| ZIP pack inspector (browser and server, same rules) | `public/assets/js/print-estimation/archive.js` (uses `readZipDirectory` / `readZipEntry` from `three-mf.js`) |
+| Browser pack read, local rollup | `public/assets/js/print-estimation/pack.js` |
+| Server pack extraction, claim and cleanup | `application/estimate-session.js` (`analyzePack`), `application/pack.js` (public pack view, part names) |
+| Pack estimate and rollup | `application/estimate-pack.js` |
 | Repositories | `adapters/neon-print-repository.js` (production), `adapters/local-print-repository.js` (loopback workspace) |
-| Schema | `neon/migrations/004_print_estimation.sql` |
+| Schema | `neon/migrations/004_print_estimation.sql`, `005_print_estimate_rate_limits.sql`, `006_model_packs.sql` |
 
 API entrypoints: `POST|GET /api/print-estimate` (public, capability-owned) and `GET|POST /api/operator-print` (approved operators). The deployment stays at 12 functions; a unit test guards the Vercel Hobby limit.
+
+Contributor note: the shared browser modules are imported with `?v=<hash>` query strings, so the same file can load as two module instances. `error instanceof ModelAnalysisError` is then unreliable; check `error?.name === "ModelAnalysisError"` and `error.code` instead, as the existing code does.
 
 ## Pricing
 
@@ -44,10 +62,11 @@ See [PRICING-CALIBRATION.md](PRICING-CALIBRATION.md#dual-floor-print-pricing). E
 |---|---|---|
 | `PRINT_ESTIMATE_MAX_BYTES` | 26214400 | Server model size limit (signed upload and read bound) |
 | `PRINT_ESTIMATE_MAX_TRIANGLES` | 1500000 | Triangle limit for STL/3MF analysis |
-| `PRINT_ESTIMATE_MAX_3MF_ENTRIES` | 256 | ZIP entry limit |
-| `PRINT_ESTIMATE_MAX_3MF_UNCOMPRESSED_BYTES` | 134217728 | Total bounded 3MF expansion |
+| `PRINT_ESTIMATE_MAX_3MF_ENTRIES` | 256 | ZIP entry limit (3MF containers and ZIP packs) |
+| `PRINT_ESTIMATE_MAX_3MF_UNCOMPRESSED_BYTES` | 134217728 | Total bounded expansion of a 3MF or ZIP pack |
+| `PRINT_ESTIMATE_MAX_PACK_PARTS` | 16 (values above 32 are clamped to 32) | STL/3MF entries accepted from one ZIP pack; a pack with more is refused, not truncated. One session may hold at most twice this many extracted parts. |
 | `PRINT_ESTIMATE_SESSION_TTL_HOURS` | 24 | Anonymous session/asset lifetime (max 168) |
-| `PRINT_ESTIMATE_MAX_ASSETS` / `PRINT_ESTIMATE_MAX_ESTIMATES` | 3 / 20 | Per-session abuse bounds |
+| `PRINT_ESTIMATE_MAX_ASSETS` / `PRINT_ESTIMATE_MAX_ESTIMATES` | 3 / 20 | Per-session abuse bounds. A ZIP counts as one asset. Pack preview estimates share the estimate cap; the final `purpose: "submission"` pack estimate may exceed it by 5. |
 | `PRINT_ESTIMATE_SESSIONS_PER_CLIENT` / `PRINT_ESTIMATE_SESSIONS_GLOBAL` | 10 / 300 | Session creations per client / all clients per window |
 | `PRINT_ESTIMATE_UPLOADS_PER_CLIENT` / `PRINT_ESTIMATE_UPLOADS_GLOBAL` | 30 / 900 | Upload-token issuances per client / all clients per window |
 | `PRINT_ESTIMATE_RATE_WINDOW_SECONDS` | 3600 | Fixed rate-limit window (max 86400) |
@@ -63,7 +82,7 @@ Browser analysis limits live in `SITE_CONFIG.printEstimation` and never replace 
 
 ## Enable in production
 
-1. Apply migration 004 after 001-003, then 005 (both additive; see [DEPLOYMENT.md](DEPLOYMENT.md#print-estimation)). Apply 005 before deploying code that includes the rate limiter, because creation fails closed without its counter table.
+1. Apply migration 004 after 001-003, then 005, then 006 (all additive; see [DEPLOYMENT.md](DEPLOYMENT.md#print-estimation)). Apply 005 before deploying code that includes the rate limiter, because creation fails closed without its counter table. Apply 006 before deploying code that includes ZIP packs: that code reads and writes `parent_asset_id`, `archive_entry`, `quantity`, `selected` and the `zip` format and `analyzing` state.
 2. Optionally bootstrap filament cost basis. Without rows, the explicit pricing-model fallback ($20/kg PLA) is used and recorded as `fallback`:
 
    ```sql
@@ -170,6 +189,64 @@ Models made on a `/customize/` generator page ([GENERATORS.md](GENERATORS.md)) e
 
 All four exited cleanly with no warnings and `purgeGrams: null`. Real generator output needs one to two orders of magnitude fewer tool changes than the fixture. The production worker has not sliced these files yet: that happens in the owner-gated rollout in [DEPLOYMENT.md](DEPLOYMENT.md#customize-section-rollout-owner-gated).
 
+## ZIP model packs
+
+A customer can attach one `.zip` as the print model, for example a designer's print pack with several STLs, preview images and notes.
+
+**Inspection.** `archive.js` runs the same rules in the browser and on the server. It reads only the central directory and refuses the whole archive on the first violation:
+
+- unsafe names: absolute, drive letter, `..`/`.` segments, backslash, control characters
+- duplicate names, including names that differ only in case or Unicode normalization
+- encrypted entries, ZIP64, and compression methods other than stored or deflate
+- more than `PRINT_ESTIMATE_MAX_3MF_ENTRIES` entries
+- total expansion over `PRINT_ESTIMATE_MAX_3MF_UNCOMPRESSED_BYTES`, a model over `PRINT_ESTIMATE_MAX_BYTES`, or an unsafe compression ratio
+- entries that overlap or share data
+- an inflated size that differs from the declared size, or a CRC-32 mismatch
+- no STL/3MF entries (`no_models`), or more than `PRINT_ESTIMATE_MAX_PACK_PARTS` (`too_many_parts`)
+
+Only `.stl` and `.3mf` entries are inflated. Every other file (images, documents, `.scad` and other sources, nested archives) is listed as ignored by name and coarse kind and never read. Symlinks and other special entries are listed as ignored with kind `special`.
+
+**Server analysis.** `analyze` on a ZIP works in five steps:
+
+1. It claims the asset atomically by moving it to the transient state `analyzing`. A concurrent `analyze` gets `409` "This pack is still being analyzed". A claim older than 300 s is treated as crashed and can be reclaimed; its partial children are removed first.
+2. It extracts each model entry into a child `print_assets` row. The child has a generated private path `print-estimates/<session>/<random>-part<n>.<ext>`. The entry name is stored only in `archive_entry` as a display label and is never used in a path.
+3. It measures each child. A part that cannot be measured is stored `failed` and shown as unmeasurable; the other parts proceed.
+4. Any archive violation fails the whole ZIP, and its children are removed.
+5. Re-analyzing a ready pack returns the stored pack and never extracts again.
+
+**Picker.** The order page lists every part with a checkbox and a quantity (1-99). All measurable parts start selected at quantity 1. Unmeasurable parts are disabled with "Could not be measured — a person will review it." Ignored files appear under "Not printed". The customer cannot clear the last selected part ("Keep at least one part selected."). The planning range is recomputed locally from the selected parts.
+
+**Pack estimate.** With private estimates enabled, each selection change sends an `estimate-pack` preview:
+
+- Previews are debounced by 700 ms. An identical selection is not resent, and previews stop after a `429`.
+- At submit, a final `estimate-pack` with `purpose: "submission"` records the chosen selection.
+- The server validates every part ID against ready children of that ZIP in the caller's session, with quantities 1-99 and at least one part. It stores `selected`/`quantity` and queues one slice job per selected part.
+- `estimate-pack` stores an immutable snapshot. `status` recomputes the latest pack estimate read-only and falls back to the stored snapshot if the parts are gone.
+
+**Pricing rollup.** Each selected part contributes grams and hours x its part quantity x the order quantity. A part uses its slicer result when ready, otherwise geometry. The pricing policy then runs **once** on the totals, so setup, finishing labor and minimum charges apply once per pack, not per part. The snapshot is `slicer` only when every selected part has a slicer result.
+
+The pack `slice.status` is one of:
+
+- `ready`: every selected part is sliced
+- `pending`: any part is queued or processing
+- `failed`: otherwise, when a slicer is configured
+- `unavailable`: no slicer is configured
+
+A pack order the pricing limits cannot represent returns `400` "This pack order is too large to estimate online. Submit the request and a person will quote it."
+
+Limitations:
+
+- The customer's on-screen price stays the local geometry range until the pack's slice is ready, the same as for single models. The server's pack price is stored and shown to the operator.
+- Plate arrangement is not modeled.
+
+**Submit and operator view.** Submit attaches the ZIP and its selected children only. The operator print section shows:
+
+- the ZIP row, with no geometry and with the ignored-file list
+- each part with its entry name, "Pack part · quantity N", its geometry and its own Download button (60 s signed link)
+- a part that is not selected, marked "not selected" if it is still linked to the request
+
+After slicing, the operator's **Latest estimate** for a pack remains the submission snapshot; it is not replaced by a re-rolled slicer total. Each part's slice job appears under **Slicer analysis**, and each part's slicer snapshot appears in **Estimate history**. To price a pack from slicer results, read the per-part rows.
+
 ## Slicer contract
 
 `estimateSlice({ bytes | blobPath, filename, options, timeoutMs })` returns `engine`, `engineVersion`, `profileId`, `elapsedSeconds`, `materialGrams`, and optionally `materialMm`, `purgeGrams`, `supportGrams`, `toolChanges`, `layerCount`, `warnings`. Results are validated before pricing. Errors use categories `unavailable`, `timeout`, `slicer_failed`, `invalid_output` (retried with 1, 2, 4… minute backoff capped at 1 hour, 4 attempts) or `asset_missing`, `unsupported` (not retried). Jobs are leased with `FOR UPDATE SKIP LOCKED`; only the lease owner can complete or fail a job. Provider output and error detail stay private.
@@ -178,6 +255,11 @@ All four exited cleanly with no warnings and `purgeGrams: null`. Real generator 
 
 - Anonymous sessions and their models expire after `PRINT_ESTIMATE_SESSION_TTL_HOURS`; the sweep deletes the Blob objects and then every session, asset, estimate, and job row.
 - Uploads that never finished are removed after 24 hours.
+- ZIP packs: children of an expired, never-submitted session are deleted with it. After submit, the cleanup sweep removes the remaining pack leftovers of attached sessions and reports them as `orphanedParts`:
+  - unselected children
+  - a ZIP in the same session that was never attached and was last updated more than 10 minutes ago
+  
+  Until the next `npm run estimate:cleanup` run, those objects stay in private Blob. Attached children follow the work lifecycle below and inherit the ZIP's `retention_hold`.
 - Submitted models adopt the work lifecycle: never deleted while work is active; deleted from Blob `PRINT_ASSET_RETENTION_DAYS` after the work is completed, declined, or cancelled, unless `print_assets.retention_hold = true`. The asset row remains (`state = 'deleted'`) so history stays explainable.
 - Privacy deletion: `npm run estimate:cleanup -- --purge-request <request-id>` deletes the Blob objects first (aborting if any deletion fails) and then assets, estimate snapshots, jobs, and sessions for that request. Delete the request's other records with the existing request/work procedures.
 
@@ -196,7 +278,15 @@ All four exited cleanly with no warnings and `purgeGrams: null`. Real generator 
 | Slicer unavailable/failing | Geometry range; "exact estimate queued" copy | Job pending/failed with category and attempts |
 | Session expired before submit | Request submits without attachment | No print section data |
 | Print tables missing (migration not applied) | Private estimate unavailable; normal flow | Detail shows "Print estimate data is unavailable" |
+| ZIP refused by the browser (unsafe path, bomb, encrypted, ZIP64, duplicate names, truncated, CRC) | "This file could not be measured automatically. You can still submit it; a person will review the file." No picker | Normal file row (or asset `failed` with private code if verified privately) |
+| ZIP with more than `PRINT_ESTIMATE_MAX_PACK_PARTS` models | "This pack has too many parts to measure automatically; attach fewer or contact us." Still submittable | Asset `failed`, code `too_many_parts` |
+| ZIP with no STL/3MF | "This ZIP has no STL or 3MF files to measure; attach STL or 3MF files." Still submittable | Asset `failed`, code `no_models` |
+| One part unmeasurable | Part listed, disabled: "Could not be measured — a person will review it." Other parts proceed | Child asset `failed` with code; not attached |
+| Server refuses a pack the browser accepted (for example the session's part cap) | Picker and local range stay; "The private check did not finish…" copy; the ZIP uploads with the request | ZIP asset `failed` with private code |
+| Concurrent `analyze` of the same ZIP | `409`; local picker and range stay, "The private check did not finish…" copy | Claim recoverable after 300 s |
+| Pack order too large for the pricing limits | `400` "too large to estimate online"; local range stays; still submittable | No snapshot for that selection |
+| Preview estimates exhausted (`429`) | Previews stop; local range stays; the submission estimate has a reserve of 5 | Latest stored preview/submission snapshot |
 
 ## Rollback
 
-Roll back application code first. Migration 004 is additive and may remain. Do not drop print tables while any deployed code or worker references them; purge Blob objects with the maintenance script before dropping tables.
+Roll back application code first. Migrations 004-006 are additive and may remain. Do not drop print tables while any deployed code or worker references them; purge Blob objects with the maintenance script before dropping tables.
