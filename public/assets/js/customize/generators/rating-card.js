@@ -3,8 +3,8 @@
 // A customer image is never a parameter: the page traces it in the browser and passes only the
 // outline to the build (ctx.imageContours), so it never reaches drafts, the hand-off record or
 // the server.
-import { contrastRatio } from "../color.js?v=019b09fba4bb8b4a";
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=019b09fba4bb8b4a";
+import { contrastRatio } from "../color.js?v=2edfa62bed7a2ae5";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=2edfa62bed7a2ae5";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // card kept under the relief

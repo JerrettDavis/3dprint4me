@@ -18,6 +18,7 @@ export const MODEL_ANALYSIS_LIMITS = Object.freeze({
   maxCompressionRatio: 200,
   maxXmlNodes: 4_000_000,
   maxModelParts: 16,
+  maxPackParts: 16,
   maxObjects: 10_000,
   maxComponentDepth: 8
 });
