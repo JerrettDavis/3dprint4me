@@ -54,11 +54,13 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
   let lastSelections = [];
   let packSequence = 0;
   let previewTimer = null;
-  let previewInFlight = null;
+  // Every preview request still in flight, across selections and replaced files. The submission
+  // waits for all of them, so no older preview can rewrite the selection after it lands.
+  const previewsInFlight = new Set();
   let lastSentKey = null;
   let previewsBlocked = false;
   const cancelPreview = () => { if (previewTimer) clearTimer(previewTimer); previewTimer = null; };
-  const resetPack = () => { cancelPreview(); lastSelections = []; previewInFlight = null; lastSentKey = null; previewsBlocked = false; packSequence += 1; };
+  const resetPack = () => { cancelPreview(); lastSelections = []; lastSentKey = null; previewsBlocked = false; packSequence += 1; };
   const stopPolling = () => { if (timer) clearTimer(timer); timer = null; polls = 0; };
 
   function schedulePoll(update, isCurrent) {
@@ -94,9 +96,8 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
         else if (lastSentKey === key) lastSentKey = null;
       }
     })();
-    previewInFlight = request;
-    await request;
-    if (previewInFlight === request) previewInFlight = null;
+    previewsInFlight.add(request);
+    try { await request; } finally { previewsInFlight.delete(request); }
   }
 
   /** Records the latest selection and sends a preview estimate (debounced unless `immediate`). */
@@ -157,7 +158,7 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
         // The submission supersedes any pending preview, and must land after one already in flight.
         cancelPreview();
         packSequence += 1;
-        if (previewInFlight) await previewInFlight;
+        while (previewsInFlight.size) await Promise.allSettled([...previewsInFlight]);
         if (lastSelections.length) await client.estimatePack({ ...session, assetId: verified.assetId, options: getOptions(), selections: lastSelections, purpose: "submission" });
       } catch { /* best effort */ }
     }

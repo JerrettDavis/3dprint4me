@@ -1,8 +1,7 @@
-import { entryLabel, inspectArchive, uniqueEntryLabels } from "./archive.js?v=30b1ea0d2a74e9b8";
-import { estimateProductionFromGeometry } from "./geometry.js?v=30b1ea0d2a74e9b8";
+import { entryLabel, inspectArchive, uniqueEntryLabels } from "./archive.js?v=654861fdbb36467b";
+import { estimateProductionFromGeometry } from "./geometry.js?v=654861fdbb36467b";
 
-// The label rules live in archive.js, which the server imports too.
-export { entryLabel, uniqueEntryLabels };
+// The label rules (entryLabel, uniqueEntryLabels) live in archive.js, which the server imports too.
 
 /**
  * Local (non-binding) read of a ZIP model pack for the picker and a planning range.
@@ -26,7 +25,44 @@ export async function readPackLocally({ bytes, limits, inflateRaw, analyze }) {
   return { parts, ignored: ignored.map(entry => ({ ...entry, name: entryLabel(entry.name) })) };
 }
 
-/** Same rollup as the server: sum selected, measured parts x part quantity x order quantity. */
+const REQUEST_TEXT_LIMIT = 500; // lib/validation.js keeps at most 500 characters per specification value
+const MORE_RESERVE = "; (+99 more)".length;
+const shortLabel = name => { const label = entryLabel(name); return label.length > 120 ? `${label.slice(0, 119)}…` : label; };
+
+/** Joins items into at most REQUEST_TEXT_LIMIT characters; anything left over becomes "(+N more)". */
+function boundedList(prefix, items) {
+  let text = prefix;
+  for (const [index, item] of items.entries()) {
+    const separator = index ? "; " : "";
+    const last = index === items.length - 1;
+    if (text.length + separator.length + item.length + (last ? 0 : MORE_RESERVE) > REQUEST_TEXT_LIMIT) return `${text}${separator}(+${items.length - index} more)`;
+    text += separator + item;
+  }
+  return text;
+}
+
+/**
+ * Plain-text pack selection for the request specifications, so the operator sees what the
+ * customer chose on every path (no integrations, refused or failed private estimate, exhausted
+ * estimate cap). Values are bounded to what server validation keeps, never silently cut.
+ */
+export function packRequestSpecifications(pack) {
+  if (!pack?.parts?.length) return {};
+  const selected = pack.parts.filter(part => !part.error && pack.selection?.[part.id]?.selected);
+  const specs = {
+    packParts: selected.length
+      ? boundedList(`${selected.length} of ${pack.parts.length} parts: `, selected.map(part => `${shortLabel(part.name)} ×${pack.selection[part.id].quantity}`))
+      : `0 of ${pack.parts.length} parts selected; none could be measured, a person will review the ZIP.`
+  };
+  if (pack.ignored?.length) specs.packIgnored = boundedList("", pack.ignored.map(entry => shortLabel(entry.name)));
+  return specs;
+}
+
+/**
+ * Local planning rollup: sums selected, measured parts x part quantity x order quantity. It is not
+ * the server's stored pack price: the server also counts one plate per selected part in labor (plate
+ * packing is not modeled), so the confirmed price is usually higher than this range.
+ */
 export function packProduction(parts, selection, options) {
   const units = Math.max(1, Math.round(Number(options.quantity) || 1));
   let totalGrams = 0; let totalHours = 0; let count = 0;

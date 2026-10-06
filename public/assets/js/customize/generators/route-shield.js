@@ -8,7 +8,7 @@
 //                    < 0  text is cut |t| into the color's top surface
 // Back/bottom inlays (inlay_depth_mm) are always inset and never protrude.
 
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=30b1ea0d2a74e9b8";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=654861fdbb36467b";
 
 const STEP = 0.2;
 const MIN_WEB = 0.8;       // solid base left between the front pocket and the back inlay
