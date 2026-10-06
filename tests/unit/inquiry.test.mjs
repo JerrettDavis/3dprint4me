@@ -103,3 +103,8 @@ test('durable rate rejection and notification failure cannot falsely change acce
   const handler=createInquiryHandler({configured:()=>true,store:{rate:async()=>{throw new HttpError(429,'Too many attempts.');}}});
   assert.equal((await call(handler,'POST',body())).statusCode,429);
 });
+
+test('the pop-up inquiry accepts ZIP model packs', () => {
+  const files = normalizeInquiry({...body(),inquiry:{replyEmail:'a@b.co'},files:[{name:'pack.zip',size:100,type:'application/x-zip-compressed'}]}).files;
+  assert.equal(files[0].name, 'pack.zip');
+});
