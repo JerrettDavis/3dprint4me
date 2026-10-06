@@ -30,7 +30,8 @@ function table(caption, headers, rows) {
 export function orderPack(assets) {
   const ids = new Set(assets.map(asset => asset.id));
   const topLevel = assets.filter(asset => !asset.parentAssetId || !ids.has(asset.parentAssetId));
-  return topLevel.flatMap(parent => [parent, ...assets.filter(asset => asset.parentAssetId === parent.id)]);
+  const byEntry = (a, b) => String(a.archiveEntry ?? "").localeCompare(String(b.archiveEntry ?? ""));
+  return topLevel.flatMap(parent => [parent, ...assets.filter(asset => asset.parentAssetId === parent.id).sort(byEntry)]);
 }
 
 function fileRows(assets, onDownload) {
