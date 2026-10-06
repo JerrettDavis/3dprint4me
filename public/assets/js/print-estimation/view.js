@@ -1,4 +1,4 @@
-import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=d04c3523bdcde7f8";
+import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=4eed843a69c17184";
 
 const modelPanelNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 const modelPanelInteger = new Intl.NumberFormat("en-US");
@@ -19,7 +19,62 @@ function modelPanelElement(document, name, className, text) {
   return node;
 }
 
+const PACK_SLICE_COPY = Object.freeze({
+  ready: "A slicer profile estimated time and material for the selected parts. The operator still confirms the final price.",
+  pending: "Measured from geometry — this is not a slice. An exact slicer estimate is queued; you can submit now and the operator will confirm it."
+});
+
+/** ZIP pack picker. Part and file names come from the archive, so they are only ever set as text. */
+function packPicker(el, state) {
+  const { parts, selection, ignored } = state.pack;
+  const fieldset = el("fieldset", "pack-picker");
+  fieldset.append(el("legend", "", `Choose parts to print (${parts.length} found in this pack)`));
+  for (const part of parts) {
+    const choice = selection[part.id];
+    const row = el("div", "pack-part");
+    const check = el("input");
+    check.type = "checkbox"; check.id = `pack-${part.id}`; check.checked = Boolean(choice?.selected); check.disabled = Boolean(part.error);
+    check.dataset.partId = part.id; check.dataset.packAction = "select";
+    const label = el("label", "pack-part-name", part.name);
+    label.htmlFor = check.id;
+    const quantity = el("input", "input pack-part-qty");
+    quantity.type = "number"; quantity.min = "1"; quantity.max = "99"; quantity.step = "1"; quantity.inputMode = "numeric";
+    quantity.value = String(choice?.quantity ?? 1); quantity.id = `pack-qty-${part.id}`; quantity.disabled = Boolean(part.error) || !choice?.selected;
+    quantity.dataset.partId = part.id; quantity.dataset.packAction = "quantity";
+    quantity.setAttribute("aria-label", `Quantity of ${part.name}`);
+    const meta = el("span", "pack-part-meta", part.error
+      ? "Could not be measured — a person will review it."
+      : `${part.dimensionsMm.map(value => modelPanelNumber.format(value)).join(" × ")} mm · ${modelPanelNumber.format(part.volumeMm3 / 1000)} cm³`);
+    meta.id = `pack-meta-${part.id}`;
+    check.setAttribute("aria-describedby", meta.id);
+    row.append(check, label, quantity, meta);
+    fieldset.append(row);
+  }
+  const chosen = parts.filter(part => selection[part.id]?.selected).length;
+  const nodes = [fieldset, el("p", "model-status pack-summary", chosen ? `${chosen} of ${parts.length} parts selected.` : "No parts selected — the range uses the size fields below.")];
+  if (ignored.length) nodes.push(el("p", "model-status", `Not printed: ${ignored.map(entry => entry.name).join(", ")}`));
+  nodes.push(el("p", "model-status", PACK_SLICE_COPY[state.slice?.status] ?? "Measured from geometry — this is not a slice. The operator confirms the final price."));
+  return nodes;
+}
+
+function syncPicker(picker, { parts, selection }) {
+  for (const part of parts) {
+    const choice = selection[part.id];
+    const check = picker.querySelector(`[data-pack-action="select"][data-part-id="${part.id}"]`);
+    const quantity = picker.querySelector(`[data-pack-action="quantity"][data-part-id="${part.id}"]`);
+    if (check) check.checked = Boolean(choice?.selected);
+    if (quantity) {
+      if (quantity !== quantity.ownerDocument.activeElement) quantity.value = String(choice?.quantity ?? 1); // never under the caret
+      quantity.disabled = Boolean(part.error) || !choice?.selected;
+    }
+  }
+}
+
 export function createModelPanelView({ document, card }) {
+  // The picker is built once per pack and then updated in place. Rebuilding it on every render
+  // would detach the checkbox or quantity a customer is using (losing the click and focus).
+  let picker = null;
+  let pickerKey = null;
   return {
     render(state, options = {}) {
       if (!state.file) { card.hidden = true; card.replaceChildren(); card.dataset.state = "idle"; return; }
@@ -31,7 +86,14 @@ export function createModelPanelView({ document, card }) {
       const children = [head];
       if (state.status === "reading") children.push(el("p", "model-status", "Measuring the model in your browser…"));
       if (state.status === "failed") children.push(el("p", "model-status model-status-warning", `${state.message} You can still submit it; a person will review the file.`));
-      if (state.status === "analyzed" && state.metrics) {
+      if (state.status === "analyzed" && state.pack) {
+        const nodes = packPicker(el, state);
+        const key = JSON.stringify([state.file, state.pack.parts]);
+        if (key !== pickerKey || picker?.parentNode !== card) { picker = nodes[0]; pickerKey = key; }
+        else syncPicker(picker, state.pack);
+        children.push(picker, ...nodes.slice(1));
+      }
+      else if (state.status === "analyzed" && state.metrics) {
         const m = state.metrics;
         const facts = el("dl", "model-facts");
         const slice = state.slice?.status === "ready" ? state.slice.production : null;
@@ -60,6 +122,15 @@ export function createModelPanelView({ document, card }) {
         }
       }
       if (MODEL_PRIVATE_COPY[state.privateState]) children.push(el("p", `model-private model-private-${state.privateState}`, MODEL_PRIVATE_COPY[state.privateState]));
+      const kept = children.includes(picker) && picker.parentNode === card ? picker : null;
+      if (kept) {
+        // Same picker: swap the nodes around it so a focused checkbox or quantity is never detached.
+        for (const node of [...card.childNodes]) if (node !== kept) node.remove();
+        const index = children.indexOf(kept);
+        kept.before(...children.slice(0, index));
+        kept.after(...children.slice(index + 1));
+        return;
+      }
       card.replaceChildren(...children);
     }
   };

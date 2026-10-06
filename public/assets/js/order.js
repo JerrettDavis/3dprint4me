@@ -1,20 +1,21 @@
-import "./site.js?v=d04c3523bdcde7f8";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=d04c3523bdcde7f8";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=d04c3523bdcde7f8";
-import { toast } from "./site.js?v=d04c3523bdcde7f8";
-import { createProjectRequestClient } from "./order/client.js?v=d04c3523bdcde7f8";
-import { createOrderController } from "./order/controller.js?v=d04c3523bdcde7f8";
-import { createDraftStore } from "./order/draft-store.js?v=d04c3523bdcde7f8";
-import { createFileManager } from "./order/files.js?v=d04c3523bdcde7f8";
-import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=d04c3523bdcde7f8";
-import { takeHandoff } from "./order/customize-handoff.js?v=d04c3523bdcde7f8";
-import { createStepValidator } from "./order/validation.js?v=d04c3523bdcde7f8";
-import { createOrderView } from "./order/view.js?v=d04c3523bdcde7f8";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=d04c3523bdcde7f8";
-import { modelFormat } from "./print-estimation/geometry.js?v=d04c3523bdcde7f8";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=d04c3523bdcde7f8";
-import { createModelPanelView } from "./print-estimation/view.js?v=d04c3523bdcde7f8";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=d04c3523bdcde7f8";
+import "./site.js?v=4eed843a69c17184";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=4eed843a69c17184";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=4eed843a69c17184";
+import { toast } from "./site.js?v=4eed843a69c17184";
+import { createProjectRequestClient } from "./order/client.js?v=4eed843a69c17184";
+import { createOrderController } from "./order/controller.js?v=4eed843a69c17184";
+import { createDraftStore } from "./order/draft-store.js?v=4eed843a69c17184";
+import { createFileManager } from "./order/files.js?v=4eed843a69c17184";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=4eed843a69c17184";
+import { takeHandoff } from "./order/customize-handoff.js?v=4eed843a69c17184";
+import { createStepValidator } from "./order/validation.js?v=4eed843a69c17184";
+import { createOrderView } from "./order/view.js?v=4eed843a69c17184";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=4eed843a69c17184";
+import { modelFormat } from "./print-estimation/geometry.js?v=4eed843a69c17184";
+import { isArchiveName } from "./print-estimation/archive.js?v=4eed843a69c17184";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=4eed843a69c17184";
+import { createModelPanelView } from "./print-estimation/view.js?v=4eed843a69c17184";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=4eed843a69c17184";
 
 const form = document.querySelector("#project-form");
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
@@ -42,6 +43,7 @@ let privateEstimateFlow = null;
 const privateEstimates = {
   reset: () => privateEstimateFlow?.reset(),
   start: (file, hooks) => privateEstimateFlow?.start(file, hooks),
+  estimatePack: (selections, hooks) => privateEstimateFlow?.estimatePack(selections, hooks),
   isPreUploaded: file => Boolean(privateEstimateFlow?.isPreUploaded(file)),
   attachment: () => privateEstimateFlow?.attachment() ?? null,
   finalize: () => privateEstimateFlow?.finalize()
@@ -71,10 +73,11 @@ const files = createFileManager({
   }
 });
 
+const isPrintModel = file => Boolean(modelFormat(file.name) || isArchiveName(file.name));
 function chooseModelFile(file) {
   if (!file) return;
-  const current = files.list().findIndex(existing => modelFormat(existing.name));
-  if (current >= 0 && modelFormat(file.name)) files.remove(current);
+  const current = files.list().findIndex(isPrintModel);
+  if (current >= 0 && isPrintModel(file)) files.remove(current);
   files.add([file]);
 }
 
@@ -252,6 +255,16 @@ view.elements.fileInput.addEventListener("change", () => { files.add(view.elemen
 const modelInput = document.querySelector("#model-file");
 document.querySelector("#model-file-button").addEventListener("click", () => modelInput.click());
 modelInput.addEventListener("change", () => { chooseModelFile(modelInput.files[0]); modelInput.value = ""; });
+// Pack picker inputs live inside the form; they never feed the form data, so they stop here.
+const modelCard = document.querySelector("#model-card");
+for (const type of ["input", "change"]) modelCard.addEventListener(type, event => {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement) || !target.dataset.packAction) return;
+  event.stopPropagation();
+  if (type !== "change") return;
+  if (target.dataset.packAction === "select") modelEstimates.setPartSelected(target.dataset.partId, target.checked);
+  else modelEstimates.setPartQuantity(target.dataset.partId, target.value);
+});
 view.elements.fileList.addEventListener("click", event => { const button = event.target.closest("[data-file-index]"); if (button) files.remove(Number(button.dataset.fileIndex)); });
 ["dragenter", "dragover"].forEach(type => view.elements.uploadZone.addEventListener(type, event => { event.preventDefault(); view.elements.uploadZone.classList.add("dragover"); }));
 ["dragleave", "drop"].forEach(type => view.elements.uploadZone.addEventListener(type, event => { event.preventDefault(); view.elements.uploadZone.classList.remove("dragover"); }));
