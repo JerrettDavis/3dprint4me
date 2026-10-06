@@ -61,6 +61,14 @@ node --env-file=.env.production.local scripts/migrate-neon.mjs 004_print_estimat
 
 Then apply migration 005 (`node --env-file=.env.production.local scripts/migrate-neon.mjs 005_print_estimate_rate_limits.sql`), which adds only `print_estimate_rate_buckets` for anonymous session and upload-token rate limiting (idempotent; apply before deploying the limiter, since estimate creation fails closed without it and the storefront falls back to uploading with the request).
 
+Then apply migration 006 **after 005 and before deploying code that includes ZIP model packs**:
+
+```bash
+node --env-file=.env.production.local scripts/migrate-neon.mjs 006_model_packs.sql
+```
+
+It is additive and idempotent. It lets `print_assets` hold `zip` assets and their extracted parts: `parent_asset_id`, `archive_entry`, `quantity` (1-99), `selected`, a parent index, a no-self-parent check, and the transient `analyzing` state. ZIP-pack code writes these columns, so private estimates fail for ZIP packs until 006 is applied. The request still submits with the ZIP as an ordinary file.
+
 Migration 004 adds `filament_inventory`, `print_estimate_sessions`, `print_assets`, `print_estimates` (insert-only, trigger-enforced), `print_analysis_jobs`, and `print_runs`, all with RLS enabled and no public grants. Until it is applied, the storefront keeps working: private estimates fail closed to browser-only geometry and operator detail shows the print section as unavailable. Model objects use the same private Blob store under `print-estimates/<session>/`. Schedule `npm run estimate:cleanup` hourly from a trusted host and, when exact slicing is wanted, run `npm run estimate:worker` (containerized with the Bambu Studio or PrusaSlicer CLI for an always-on Docker host in `deploy/slicer-worker/`; see [Slicer worker container](PRINT-ESTIMATION.md#slicer-worker-container) for host steps, the Portainer git-stack option, and the Vercel `SLICER_PROVIDER` redeploy) or an HTTP worker. Full configuration, bootstrap, retention, and rollback: [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md).
 
 ### Print estimation scheduled cleanup
