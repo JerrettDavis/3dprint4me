@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { archiveEntryKind, crc32, inspectArchive, isArchiveName } from "../../public/assets/js/print-estimation/archive.js";
 import { resolveModelLimits } from "../../public/assets/js/print-estimation/mesh.js";
-import { nodeInflateRaw } from "../../lib/print-estimation/geometry/analyze-model.js";
+import { nodeInflateRaw, serverModelLimits } from "../../lib/print-estimation/geometry/analyze-model.js";
 import { buildZip, UNIX_MADE_BY, unixMode } from "../support/zip-fixtures.mjs";
 
 const limits = resolveModelLimits();
@@ -31,7 +31,7 @@ test("symlinks and special files are skipped, never extracted", async () => {
 const refusals = [
   ["parent traversal", () => buildZip([stl("../evil.stl")]), "zip_unsafe_path"],
   ["absolute path", () => buildZip([stl("/abs.stl")]), "zip_unsafe_path"],
-  ["backslash path", () => buildZip([stl("a\b.stl")]), "zip_unsafe_path"],
+  ["backslash path", () => buildZip([stl("a\\b.stl")]), "zip_unsafe_path"],
   ["drive letter", () => buildZip([stl("C:evil.stl")]), "zip_unsafe_path"],
   ["dot segment", () => buildZip([stl("a/./b.stl")]), "zip_unsafe_path"],
   ["control character", () => buildZip([stl("a\u0000.stl")]), "zip_unsafe_path"],
@@ -68,4 +68,33 @@ test("crc32, kinds and archive names", () => {
   assert.equal(archiveEntryKind("x.bin"), "other");
   assert.equal(isArchiveName("Pack.ZIP"), true);
   assert.equal(isArchiveName("model.3mf"), false);
+});
+
+// Points the second central-directory entry at the first entry's local data.
+function shareLocalData(zip) {
+  const bytes = new Uint8Array(zip);
+  const view = new DataView(bytes.buffer);
+  let eocd = bytes.length - 22;
+  while (view.getUint32(eocd, true) !== 0x06054b50) eocd--;
+  const first = view.getUint32(view.getUint32(eocd + 16, true) + 42, true);
+  let cursor = view.getUint32(eocd + 16, true);
+  cursor += 46 + view.getUint16(cursor + 28, true) + view.getUint16(cursor + 30, true) + view.getUint16(cursor + 32, true);
+  view.setUint32(cursor + 42, first, true);
+  return bytes;
+}
+
+test("entries that share local data are refused; a clean multi-model pack passes", async () => {
+  const same = name => ({ name, data: "solid x endsolid x", method: "deflate" }); // identical payloads: sharing is only caught by the overlap rule, not CRC
+  const entries = [same("a.stl"), same("b.stl"), same("c.stl")];
+  assert.equal((await inspect(buildZip(entries))).models.length, 3);
+  await assert.rejects(inspect(shareLocalData(buildZip(entries))), error => error.name === "ModelAnalysisError" && error.code === "malformed");
+});
+
+test("serverModelLimits caps and sanitises PRINT_ESTIMATE_MAX_PACK_PARTS", () => {
+  const parts = value => serverModelLimits(value === undefined ? {} : { PRINT_ESTIMATE_MAX_PACK_PARTS: value }).maxPackParts;
+  assert.equal(parts("100"), 32);
+  assert.equal(parts("20.7"), 20);
+  assert.equal(parts(undefined), 16);
+  assert.equal(parts("0"), 16);
+  assert.equal(parts("abc"), 16);
 });
