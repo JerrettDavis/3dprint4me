@@ -93,3 +93,14 @@ def test_operator_job_sheet_lists_pack_parts_ignored_files_and_blocks_foreign_as
                 parts.nth(0).get_by_role("button", name="Download base.stl").click()
             assert open(download_info.value.path(), "rb").read() == pack["parts"]["base"]["content"]
             site.assert_no_page_errors()
+
+        with SiteBrowser(viewport=(390, 844), color_scheme="dark", reduced_motion="reduce") as site:
+            page = site.page
+            page.goto(operator, wait_until="networkidle")
+            page.locator("#work-list .work-row").click()
+            page.locator(".print-sheet").wait_for()
+            assert page.locator(".print-file-part").count() == 2
+            for index in range(2):
+                assert page.locator(".print-file-part").nth(index).is_visible()
+            assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+            site.assert_no_page_errors()
