@@ -4,13 +4,13 @@ Date: 2026-10-05. Status: design, awaiting owner review.
 
 ## Intent
 
-Customers (and designers) deliver multi-part print packs as a ZIP: for example `turn-tracker-print-pack-v2.zip`, 22 entries, 3.2 MB expanded: 9 STLs, 8 preview PNGs, an `ASSEMBLY.md` and an OpenSCAD source. Today a ZIP is not a recognized model format, so the customer gets no estimate, nothing is sliced, and the operator sees an opaque blob.
+Customers (and designers) deliver multi-part print packs as a ZIP: for example `turn-tracker-print-pack-v2.zip`, 22 entries, 3.2 MB expanded: 10 STLs, 8 preview PNGs, an `ASSEMBLY.md` and an OpenSCAD source. Today a ZIP is not a recognized model format, so the customer gets no estimate, nothing is sliced, and the operator sees an opaque blob.
 
 Goal: the Print service accepts a ZIP, safely extracts the printable models, lets the customer choose which parts to print and how many of each, produces an estimate and slice jobs per selected part, and shows the operator a pack with per-part detail and downloads.
 
 Success criteria:
 
-1. The reference pack above yields 9 selectable parts, ignores the non-model files without failing, and produces a pack estimate.
+1. The reference pack above yields 10 selectable parts, ignores the non-model files without failing, and produces a pack estimate.
 2. No archive can cause unbounded CPU, memory, storage or path escape, regardless of what its headers claim.
 3. The browser estimate stays non-binding; the server re-validates everything (AGENTS.md invariant 4). Uploads stay private (invariant 3). Failure copy never exposes internals (invariant 8).
 4. Without Neon and private Blob, the ZIP still travels with the request as a normal file and the browser still shows a planning range (invariant 6).
@@ -113,7 +113,7 @@ No unzipped bytes touch the filesystem on the storefront; the worker already rec
 
 ## Testing
 
-- **Inspector (unit):** generated fixtures: ratio bomb, entry-count bomb, declared-size lies (entry inflates larger or smaller than declared), CRC mismatch, traversal (`../`, absolute, backslash, drive letter, NUL), encrypted, ZIP64, duplicate and case/NFC-colliding names, nested ZIP ignored, symlink skipped, truncated file, bad EOCD, 17 model entries, zero models, and a clean pack mirroring the reference (9 STLs, PNGs, md, scad). Reference ZIP itself is not committed.
+- **Inspector (unit):** generated fixtures: ratio bomb, entry-count bomb, declared-size lies (entry inflates larger or smaller than declared), CRC mismatch, traversal (`../`, absolute, backslash, drive letter, NUL), encrypted, ZIP64, duplicate and case/NFC-colliding names, nested ZIP ignored, symlink skipped, truncated file, bad EOCD, 17 model entries, zero models, and a clean pack mirroring the reference (10 STLs, PNGs, md, scad). Reference ZIP itself is not committed.
 - **Use cases (unit, fake repository/store):** upload authorization for zip, extraction creates children with generated paths, partial part failure, idempotent re-analyze, `estimate-pack` validation (foreign partId, zero selections, quantity bounds), per-part slice jobs, rollup math and `slice.status` transitions.
 - **Repository:** PGlite test runs migration 006 and the new queries against real Postgres semantics (the lesson of PR #27: mocked SQL cannot catch parameter-typing errors), including the submit attachment/purge statement and the sweep.
 - **Operator:** pack rendering and per-part download authorization (a part of another request is refused).
