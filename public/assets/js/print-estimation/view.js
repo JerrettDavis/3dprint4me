@@ -1,4 +1,4 @@
-import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=af64c2651617f465";
+import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=f612341d745785cd";
 
 const modelPanelNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 const modelPanelInteger = new Intl.NumberFormat("en-US");
@@ -59,12 +59,13 @@ function packPicker(el, state) {
   return nodes;
 }
 
-function syncPicker(picker, { parts, selection }) {
+export function syncPicker(picker, { parts, selection }) {
   for (const part of parts) {
     const choice = selection[part.id];
     const check = picker.querySelector(`[data-pack-action="select"][data-part-id="${part.id}"]`);
     const quantity = picker.querySelector(`[data-pack-action="quantity"][data-part-id="${part.id}"]`);
-    if (check) check.checked = Boolean(choice?.selected);
+    // The picker owns these states; other form code must not decide them.
+    if (check) { check.checked = Boolean(choice?.selected); check.disabled = Boolean(part.error); }
     if (quantity) {
       if (quantity !== quantity.ownerDocument.activeElement) quantity.value = String(choice?.quantity ?? 1); // never under the caret
       quantity.disabled = Boolean(part.error) || !choice?.selected;
