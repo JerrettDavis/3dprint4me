@@ -5,14 +5,14 @@
 Branch `feat/zip-model-packs`, Windows 11 host, Playwright Chromium. In this checkout the customizer bundle is not built (`vite` is not installed), which accounts for every failure listed below. The same failures occur on a clean checkout and are not caused by this change.
 
 ```text
-npm run assets:version                 asset release f612341d745785cd; the unrelated customizer/ rewrites were reverted
+npm run assets:version                 asset release 654861fdbb36467b; the unrelated customizer/ rewrites were reverted
 npm run validate                       version check: stale only for customizer/index.html and customizer/g/*/index.html (pre-existing)
 node scripts/validate.mjs              6 issues, all customize/ build output missing (customizer:build not run)
 node scripts/check-architecture.mjs    passed for 119 JavaScript files
 node --test tests/unit/*.test.mjs tests/contract/*.test.mjs
-                                       506 tests: 496 passed, 9 failed (all customize-*, bundle not built), 1 skipped
+                                       534 tests: 524 passed, 9 failed (all customize-*, bundle not built), 1 skipped
 python -m pytest tests/e2e -q --ignore=tests/e2e/test_customize.py
-                                       74 passed (tests/e2e/test_zip_model_pack.py: 6 of them)
+                                       75 passed (tests/e2e/test_zip_model_pack.py: 7 of them)
 python tests/audit/audit.py            stops at /customize/ (generator never reaches ready without the build);
                                        with the two /customize/ routes removed: 193/193 passed
 npm run screenshots                    stops at the customize captures (404); the preview board was not rebuilt
@@ -24,6 +24,7 @@ npm run screenshots                    stops at the customize captures (404); th
 - selection and quantity changing the planning range, quantity clamping, and the last-part rule
 - keyboard order and Space toggling
 - a `../x.stl` traversal ZIP failing generically and still submitting
+- without integrations, the pack selection saved in the request text (`packParts`, `packIgnored`), and the "Packs are printed part by part" price note
 - 390 px light and dark without horizontal overflow
 - over real HTTP: one private PUT, the debounced `estimate-pack` preview, submit, only the selected parts attached with their quantities, and the operator sheet listing the ZIP, its ignored files and only those parts
 
@@ -35,6 +36,13 @@ The preview board does not include the ZIP picker. The picker was captured separ
 - The upload was verified privately. Deselecting `base` and setting `chassis` to 3 moved the range from $26–$44 to $38–$64.
 - Submit succeeded. The operator inbox showed the ZIP with its ignored list and the 9 selected parts, `chassis` at quantity 3, each with a Download button.
 - The server pack snapshot for that selection was $71–$88. The customer-facing range is the browser's planning figure and is not replaced by the server pack price.
+
+**Final fix wave (same day).** The counts above are from after the fixes for the whole-branch review. A real-browser run on `scripts/dev-workspace.mjs` (`npm run dev:workspace`) used two synthetic ZIPs. It attached pack A, set a part to quantity 4, replaced it with pack B, deselected one part, set another to quantity 2, and submitted. Results:
+
+- Only pack B's two selected parts were attached, with quantities 1 and 2.
+- Pack A's ZIP row attached with no parts. The attach rules are unchanged; its parts were unselected when pack B's selection was recorded.
+- The request carried `packParts: "2 of 3 parts: b/left.stl ×1; b/right.stl ×2"`.
+- The operator sheet listed only `b/left.stl` and `b/right.stl` as parts.
 
 **Pending before production use:** apply `006_model_packs.sql` to production Neon after 005 and before deploying this code; run a synthetic ZIP request against private Blob (upload, extraction, operator per-part download); confirm `npm run estimate:cleanup` reports `orphanedParts` for the unselected parts. None of these were performed.
 
