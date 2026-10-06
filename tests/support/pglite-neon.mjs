@@ -5,7 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 
 import { splitStatements } from "../../scripts/migrate-neon.mjs";
 
-export async function createMigratedDatabase(migrations = ["001_service_requests.sql", "003_work_queue.sql", "004_print_estimation.sql", "005_print_estimate_rate_limits.sql"]) {
+export async function createMigratedDatabase(migrations = ["001_service_requests.sql", "003_work_queue.sql", "004_print_estimation.sql", "005_print_estimate_rate_limits.sql", "006_model_packs.sql"]) {
   const db = new PGlite();
   for (const name of migrations) {
     const source = await readFile(new URL(`../../neon/migrations/${name}`, import.meta.url), "utf8");

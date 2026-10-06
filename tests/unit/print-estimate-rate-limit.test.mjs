@@ -99,7 +99,7 @@ test("upload-token issuance is limited before any asset row or signed URL exists
   const repository = {
     ...memoryRepository(),
     async findSession() { return { id: `est_${"0".repeat(32)}`, ownershipHash: "x", state: "open", expiresAt: "2999-01-01T00:00:00Z" }; },
-    async sessionUsage() { return { assets: 0, estimates: 0 }; },
+    async sessionUsage() { return { assets: 0, parts: 0, estimates: 0 }; },
     async createAsset() { throw new Error("must not be reached"); }
   };
   const rateLimiter = { consume: async (scope, client) => { assert.equal(scope, "upload-token"); assert.equal(client, "c_x"); throw Object.assign(new Error("limited"), { status: 429 }); } };
