@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-export const MIGRATIONS = Object.freeze(["001_service_requests.sql", "002_quick_inquiries.sql", "003_work_queue.sql", "004_print_estimation.sql", "005_print_estimate_rate_limits.sql"]);
+export const MIGRATIONS = Object.freeze(["001_service_requests.sql", "002_quick_inquiries.sql", "003_work_queue.sql", "004_print_estimation.sql", "005_print_estimate_rate_limits.sql", "006_model_packs.sql"]);
 
 /** Split a migration into statements, keeping $$-quoted function bodies intact. */
 export function splitStatements(source) {
