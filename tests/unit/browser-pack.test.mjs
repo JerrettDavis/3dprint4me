@@ -7,6 +7,7 @@ import { packProduction, readPackLocally } from "../../public/assets/js/print-es
 import { createModelEstimateController } from "../../public/assets/js/print-estimation/controller.js";
 import { createPrintEstimateClient, createPrivateEstimateFlow } from "../../public/assets/js/print-estimation/client.js";
 import { nodeInflateRaw } from "../../lib/print-estimation/geometry/analyze-model.js";
+import { entryLabel } from "../../lib/print-estimation/application/pack.js";
 import { buildZip } from "../support/zip-fixtures.mjs";
 
 const cube = (name, size) => {
@@ -75,8 +76,6 @@ test("the controller turns a ZIP into a pack whose selection drives the planning
   assert.equal(controller.state().pack.selection[a].quantity, 99);
   controller.setPartQuantity(a, "zero");
   assert.equal(controller.state().pack.selection[a].quantity, 1);
-  controller.setPartSelected(a, false);
-  assert.equal(controller.modelEstimate(options), null, "nothing selected falls back to the size fields");
 });
 
 test("a refused ZIP fails with generic copy and never starts a private upload", async () => {
@@ -107,7 +106,7 @@ test("the browser client posts estimate-pack", async () => {
   assert.deepEqual(JSON.parse(seen[0][1].body), { action: "estimate-pack", sessionId: "est_1", token: "t", assetId: "asset_1", selections: [] });
 });
 
-function packFlow({ estimatePack, analyzeResult } = {}) {
+function packFlow({ estimatePack, analyzeResult, status, debounceMs = 0, setTimer = () => 1, clearTimer = () => {} } = {}) {
   const calls = [];
   const client = {
     create: async () => ({ sessionId: "est_1", token: "tok" }),
@@ -116,9 +115,9 @@ function packFlow({ estimatePack, analyzeResult } = {}) {
     analyze: async () => analyzeResult ?? { status: "pack", pack: { assetId: "zip_1", parts: [{ partId: "part_a", name: "a.stl", state: "ready" }, { partId: "part_b", name: "b.stl", state: "ready" }, { partId: "part_bad", name: "bad.stl", state: "failed" }], ignored: [] }, slice: { status: "unavailable" } },
     estimatePack: async body => { calls.push(["estimatePack", body]); return estimatePack ? estimatePack(body) : { status: "ready", slice: { status: "unavailable" } }; },
     finalize: async body => { calls.push(["finalize", body]); },
-    status: async () => ({})
+    status: status ?? (async () => ({}))
   };
-  const flow = createPrivateEstimateFlow({ client, getOptions: () => ({ material: "pla" }), setTimer: () => 1, clearTimer() {} });
+  const flow = createPrivateEstimateFlow({ client, getOptions: () => ({ material: "pla" }), debounceMs, setTimer, clearTimer });
   return { flow, calls };
 }
 
@@ -181,4 +180,127 @@ test("a pack without models or with too many parts gets its own customer copy", 
   assert.equal(controller.state().message, "This ZIP has no STL or 3MF files to measure; attach STL or 3MF files.");
   await controller.select(fakeFile("big.zip", packZip()));
   assert.equal(controller.state().message, "This pack has too many parts to measure automatically; attach fewer or contact us.");
+});
+
+const onePack = { parts: [{ id: "part-0", name: "a.stl" }, { id: "part-1", name: "b.stl" }], selection: { "part-0": { selected: true, quantity: 1 }, "part-1": { selected: false, quantity: 1 } } };
+const quietHooks = updates => ({ isCurrent: () => true, update: patch => updates?.push(patch) });
+const fakeTimers = () => {
+  const timers = new Map();
+  let next = 0;
+  return { timers, setTimer: (fn, ms) => { timers.set(++next, { fn, ms }); return next; }, clearTimer: id => timers.delete(id), fire: async id => { const timer = timers.get(id); timers.delete(id); await timer.fn(); } };
+};
+
+test("preview pack estimates are debounced so rapid changes send one request", async () => {
+  const clock = fakeTimers();
+  const { flow, calls } = packFlow({ debounceMs: 700, setTimer: clock.setTimer, clearTimer: clock.clearTimer });
+  await flow.start({ name: "pack.zip", size: 1 }, { ...quietHooks(), pack: () => onePack });
+  assert.equal(calls.length, 1, "the first estimate after upload is sent immediately");
+  for (const quantity of [2, 3, 4, 5]) flow.estimatePack([{ name: "a.stl", quantity }], quietHooks());
+  assert.equal(calls.length, 1, "nothing is sent while the customer is still changing the selection");
+  const pending = [...clock.timers.entries()].filter(([, timer]) => timer.ms === 700);
+  assert.equal(pending.length, 1, "each change replaces the pending preview");
+  await clock.fire(pending[0][0]);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[1][1].selections, [{ partId: "part_a", quantity: 5 }]);
+});
+
+test("a preview identical to the last one sent is skipped", async () => {
+  const { flow, calls } = packFlow();
+  await flow.start({ name: "pack.zip", size: 1 }, { ...quietHooks(), pack: () => onePack });
+  await flow.estimatePack([{ name: "a.stl", quantity: 1 }], quietHooks());
+  assert.equal(calls.length, 1);
+  await flow.estimatePack([{ name: "a.stl", quantity: 1 }, { name: "b.stl", quantity: 1 }], quietHooks());
+  await flow.estimatePack([{ name: "a.stl", quantity: 1 }], quietHooks());
+  assert.equal(calls.length, 3, "a real change is sent again");
+});
+
+test("after a 429 previews stop but the submission is still recorded", async () => {
+  const { flow, calls } = packFlow({ estimatePack: body => { if (!body.purpose && body.selections[0].quantity === 2) { const error = new Error("limit"); error.status = 429; throw error; } return { status: "ready", slice: { status: "unavailable" } }; } });
+  await flow.start({ name: "pack.zip", size: 1 }, { ...quietHooks(), pack: () => onePack });
+  await flow.estimatePack([{ name: "a.stl", quantity: 2 }], quietHooks());
+  const afterLimit = calls.length;
+  await flow.estimatePack([{ name: "a.stl", quantity: 3 }], quietHooks());
+  assert.equal(calls.length, afterLimit, "no more previews once the session limit is reached");
+  await flow.finalize();
+  assert.deepEqual(calls.at(-1)[1].selections, [{ partId: "part_a", quantity: 3 }]);
+  assert.equal(calls.at(-1)[1].purpose, "submission");
+});
+
+test("a poll result for an older selection is dropped and not re-armed", async () => {
+  const clock = fakeTimers();
+  let releaseStatus;
+  const { flow } = packFlow({
+    setTimer: clock.setTimer, clearTimer: clock.clearTimer,
+    estimatePack: body => ({ status: "ready", slice: body.selections[0].quantity === 1 ? { status: "pending" } : { status: "unavailable" } }),
+    status: () => new Promise(resolve => { releaseStatus = () => resolve({ slice: { status: "pending" } }); })
+  });
+  const updates = [];
+  await flow.start({ name: "pack.zip", size: 1 }, { ...quietHooks(updates), pack: () => onePack });
+  const [pollId] = [...clock.timers.keys()];
+  const tick = clock.fire(pollId);
+  await flow.estimatePack([{ name: "a.stl", quantity: 2 }], quietHooks(updates));
+  const before = updates.length;
+  releaseStatus();
+  await tick;
+  assert.equal(updates.length, before, "the stale slice never reaches the controller");
+  assert.equal(clock.timers.size, 0, "the stale poll does not schedule another tick");
+});
+
+test("finalize cancels a pending preview and waits for one in flight before submitting", async () => {
+  const clock = fakeTimers();
+  const order = [];
+  let releasePreview;
+  const { flow, calls } = packFlow({
+    debounceMs: 700, setTimer: clock.setTimer, clearTimer: clock.clearTimer,
+    estimatePack: body => {
+      order.push(body.purpose ?? `preview:${body.selections[0].quantity}`);
+      if (body.purpose || body.selections[0].quantity === 1) return { status: "ready", slice: { status: "unavailable" } };
+      return new Promise(resolve => { releasePreview = () => { order.push("preview-done"); resolve({ status: "ready", slice: { status: "unavailable" } }); }; });
+    }
+  });
+  await flow.start({ name: "pack.zip", size: 1 }, { ...quietHooks(), pack: () => onePack });
+  flow.estimatePack([{ name: "a.stl", quantity: 2 }], quietHooks());
+  const [[sendId]] = [...clock.timers.entries()].filter(([, timer]) => timer.ms === 700);
+  const inFlight = clock.fire(sendId);
+  flow.estimatePack([{ name: "a.stl", quantity: 3 }], quietHooks());
+  const finalized = flow.finalize();
+  await settle();
+  assert.deepEqual(order, ["preview:1", "preview:2"], "the submission waits for the preview in flight");
+  releasePreview();
+  await finalized; await inFlight;
+  assert.deepEqual(order, ["preview:1", "preview:2", "preview-done", "submission"]);
+  assert.deepEqual(calls.at(-1)[1].selections, [{ partId: "part_a", quantity: 3 }], "the submission carries the latest selection");
+  assert.equal([...clock.timers.values()].filter(timer => timer.ms === 700).length, 0, "the pending preview was cancelled");
+});
+
+test("the last selected part cannot be unchecked and the customer is told why", async () => {
+  const controller = createModelEstimateController({ limits, render() {}, inflateRaw: nodeInflateRaw });
+  await controller.select(fakeFile("pack.zip", packZip()));
+  const [a, b] = controller.state().pack.parts.map(part => part.id);
+  controller.setPartSelected(b, false);
+  assert.equal(controller.state().pack.hint, null);
+  controller.setPartSelected(a, false);
+  assert.equal(controller.state().pack.selection[a].selected, true, "the only selected part stays selected");
+  assert.equal(controller.state().pack.hint, "Keep at least one part selected.");
+  assert.ok(controller.modelEstimate(options), "the range never falls back to an empty selection");
+  controller.setPartSelected(b, true);
+  assert.equal(controller.state().pack.hint, null, "the hint clears on the next real change");
+});
+
+test("a committed quantity is returned clamped so the input can show it", async () => {
+  const controller = createModelEstimateController({ limits, render() {}, inflateRaw: nodeInflateRaw });
+  await controller.select(fakeFile("pack.zip", packZip()));
+  const [a] = controller.state().pack.parts.map(part => part.id);
+  assert.equal(controller.setPartQuantity(a, "500"), 99);
+  assert.equal(controller.setPartQuantity(a, "-3"), 1);
+  assert.equal(controller.setPartQuantity(a, "7"), 7);
+});
+
+test("local part names use the server's entry label so they map to server part ids", async () => {
+  const name = "parts/\u202Eevil.stl";
+  const bytes = buildZip([{ name, data: cube("a", 10), method: "deflate" }, { name: "notes\u202E.md", data: "x" }]);
+  const pack = await readPackLocally({ bytes, limits, inflateRaw: nodeInflateRaw, analyze });
+  assert.equal(pack.parts[0].name, entryLabel(name));
+  assert.equal(pack.parts[0].name, "parts/evil.stl");
+  assert.equal(pack.ignored[0].name, entryLabel("notes\u202E.md"));
 });

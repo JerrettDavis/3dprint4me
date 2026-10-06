@@ -1,4 +1,4 @@
-import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=4eed843a69c17184";
+import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=af64c2651617f465";
 
 const modelPanelNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 const modelPanelInteger = new Intl.NumberFormat("en-US");
@@ -51,7 +51,9 @@ function packPicker(el, state) {
     fieldset.append(row);
   }
   const chosen = parts.filter(part => selection[part.id]?.selected).length;
-  const nodes = [fieldset, el("p", "model-status pack-summary", chosen ? `${chosen} of ${parts.length} parts selected.` : "No parts selected — the range uses the size fields below.")];
+  const nodes = [fieldset];
+  if (state.pack.hint) nodes.push(el("p", "model-status model-status-warning pack-hint", state.pack.hint));
+  nodes.push(el("p", "model-status pack-summary", chosen ? `${chosen} of ${parts.length} parts selected.` : "None of these parts could be measured; a person will review the pack."));
   if (ignored.length) nodes.push(el("p", "model-status", `Not printed: ${ignored.map(entry => entry.name).join(", ")}`));
   nodes.push(el("p", "model-status", PACK_SLICE_COPY[state.slice?.status] ?? "Measured from geometry — this is not a slice. The operator confirms the final price."));
   return nodes;

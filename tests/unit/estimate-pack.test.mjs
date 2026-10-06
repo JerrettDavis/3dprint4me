@@ -19,11 +19,11 @@ const cube = (name, size = 10) => {
   return `solid ${name}\n${f.map(t => `facet normal 0 0 0\nouter loop\n${t.map(i => `vertex ${v[i].join(" ")}`).join("\n")}\nendloop\nendfacet`).join("\n")}\nendsolid ${name}\n`;
 };
 
-async function harness({ slicerEnabled = false, bigSize = 30 } = {}) {
+async function harness({ slicerEnabled = false, bigSize = 30, policy } = {}) {
   const root = await mkdtemp(join(tmpdir(), "pack-estimate-"));
   const fileStore = createLocalFileStore({ root, origin: "http://127.0.0.1:4173" });
   const repository = createLocalPrintRepository({ path: join(root, "state.json"), workLookup: async () => null });
-  const useCases = createEstimateSessionUseCases({ repository, fileStore, materialCosts: { materialCost: async () => ({ source: "fallback", landedUsdPerKg: 20, inventoryIds: [] }) }, slicerEnabled, limits: serverModelLimits() });
+  const useCases = createEstimateSessionUseCases({ repository, fileStore, materialCosts: { materialCost: async () => ({ source: "fallback", landedUsdPerKg: 20, inventoryIds: [] }) }, slicerEnabled, limits: serverModelLimits(), ...(policy ? { policy } : {}) });
   const created = await useCases.create({});
   const zip = buildZip([{ name: "a.stl", data: cube("a", 10), method: "deflate" }, { name: "b.stl", data: cube("b", bigSize), method: "deflate" }]);
   const auth = await useCases.authorizeUpload({ ...created, filename: "pack.zip", size: zip.length, contentType: "application/zip" });
@@ -230,5 +230,17 @@ test("deselecting a part updates flags and status reflects it", async () => {
     assert.deepEqual((await h.repository.listChildren(h.assetId)).map(row => [row.selected, row.quantity]), [[false, 1], [true, 1]]);
     const status = await h.useCases.status({ sessionId: h.created.sessionId, token: h.created.token });
     assert.deepEqual(status.pack.parts.map(part => part.selected), [false, true]);
+  } finally { await h.cleanup(); }
+});
+
+test("a submission estimate has a small reserve above the per-session preview cap", async () => {
+  const h = await harness({ policy: { sessionTtlHours: 24, maxAssetsPerSession: 3, maxEstimatesPerSession: 2 } });
+  try {
+    const body = { ...h.created, assetId: h.assetId, options: {}, selections: [{ partId: h.parts[0].partId, quantity: 1 }] };
+    await h.useCases.estimatePack(body);
+    await h.useCases.estimatePack(body);
+    await assert.rejects(h.useCases.estimatePack(body), error => error.status === 429, "previews stop at the cap");
+    for (let index = 0; index < 5; index++) assert.equal((await h.useCases.estimatePack({ ...body, purpose: "submission" })).status, "ready", `submission ${index + 1} within the reserve`);
+    await assert.rejects(h.useCases.estimatePack({ ...body, purpose: "submission" }), error => error.status === 429, "the reserve is bounded");
   } finally { await h.cleanup(); }
 });

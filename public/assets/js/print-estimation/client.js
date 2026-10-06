@@ -42,26 +42,35 @@ export function createPrintEstimateClient({ fetchImpl = (...args) => fetch(...ar
  * Private upload + server verification for the selected model. Failures never block
  * submission: without a verified private asset the file uploads with the request instead.
  */
-export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, maxPolls = 24, setTimer = (fn, ms) => setTimeout(fn, ms), clearTimer = id => clearTimeout(id) }) {
+export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, maxPolls = 24, debounceMs = 700, setTimer = (fn, ms) => setTimeout(fn, ms), clearTimer = id => clearTimeout(id) }) {
   let session = null;
   let verified = null;
   let timer = null;
   let polls = 0;
-  // Pack state: the server part ids by archive entry name, the last selection sent, and a
-  // sequence number so a slow earlier response never overwrites a newer selection.
+  // Pack state: the latest mapped selection, a sequence number so a slow earlier response (or
+  // poll) never overwrites a newer selection, and the preview budget. Previews are debounced,
+  // never repeat the last selection sent, and stop after a 429 so the session keeps room for
+  // the submission estimate.
   let lastSelections = [];
   let packSequence = 0;
+  let previewTimer = null;
+  let previewInFlight = null;
+  let lastSentKey = null;
+  let previewsBlocked = false;
+  const cancelPreview = () => { if (previewTimer) clearTimer(previewTimer); previewTimer = null; };
+  const resetPack = () => { cancelPreview(); lastSelections = []; previewInFlight = null; lastSentKey = null; previewsBlocked = false; packSequence += 1; };
   const stopPolling = () => { if (timer) clearTimer(timer); timer = null; polls = 0; };
 
   function schedulePoll(update, isCurrent) {
     stopPolling();
+    const sequence = packSequence;
     const tick = async () => {
       timer = null;
-      if (!isCurrent() || !session || polls >= maxPolls) return;
+      if (!isCurrent() || !session || polls >= maxPolls || sequence !== packSequence) return;
       polls += 1;
       try {
         const status = await client.status(session);
-        if (!isCurrent()) return;
+        if (!isCurrent() || sequence !== packSequence) return;
         update({ slice: status.slice });
         if (["pending", "processing"].includes(status.slice?.status)) timer = setTimer(tick, pollMs);
       } catch { /* keep the geometry estimate; the operator confirms later */ }
@@ -69,24 +78,44 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
     timer = setTimer(tick, pollMs);
   }
 
-  async function runPackEstimate(selections, { isCurrent, update }) {
+  async function sendPreview(selections, sequence, { isCurrent, update }) {
+    const key = JSON.stringify(selections);
+    if (previewsBlocked || key === lastSentKey) return;
+    lastSentKey = key;
+    const request = (async () => {
+      try {
+        const result = await client.estimatePack({ ...session, assetId: verified.assetId, options: getOptions(), selections });
+        if (!isCurrent() || sequence !== packSequence) return;
+        update({ slice: result.slice ?? null });
+        if (["pending", "processing"].includes(result.slice?.status)) schedulePoll(update, isCurrent);
+      } catch (error) {
+        // Keep the local planning range. After a 429 the session has no preview budget left.
+        if (error?.status === 429) previewsBlocked = true;
+        else if (lastSentKey === key) lastSentKey = null;
+      }
+    })();
+    previewInFlight = request;
+    await request;
+    if (previewInFlight === request) previewInFlight = null;
+  }
+
+  /** Records the latest selection and sends a preview estimate (debounced unless `immediate`). */
+  async function runPackEstimate(selections, hooks, { immediate = false } = {}) {
     const sequence = ++packSequence;
     stopPolling();
+    cancelPreview();
     lastSelections = verified?.partIds ? selections.map(item => ({ partId: verified.partIds.get(item.name), quantity: item.quantity })).filter(item => item.partId) : [];
     if (!lastSelections.length || !session) return;
-    try {
-      const result = await client.estimatePack({ ...session, assetId: verified.assetId, options: getOptions(), selections: lastSelections });
-      if (!isCurrent() || sequence !== packSequence) return;
-      update({ slice: result.slice ?? null });
-      if (["pending", "processing"].includes(result.slice?.status)) schedulePoll(update, isCurrent);
-    } catch { /* keep the local planning range; the operator confirms the price */ }
+    const mapped = lastSelections;
+    if (immediate || debounceMs <= 0) return sendPreview(mapped, sequence, hooks);
+    previewTimer = setTimer(() => { previewTimer = null; sendPreview(mapped, sequence, hooks); }, debounceMs);
   }
 
   return {
-    reset() { stopPolling(); verified = null; lastSelections = []; packSequence += 1; },
+    reset() { stopPolling(); verified = null; resetPack(); },
     async start(file, { isCurrent, update, pack = null }) {
       verified = null;
-      lastSelections = [];
+      resetPack();
       update({ privateState: "uploading" });
       try {
         if (!session) {
@@ -105,7 +134,7 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
           verified = { file, assetId: instruction.assetId, pack: true, partIds: new Map(ready.map(part => [part.name, part.partId])) };
           update({ privateState: result.status === "pack" ? "verified" : "failed", slice: null });
           const current = pack();
-          if (current) await runPackEstimate(current.parts.filter(part => current.selection[part.id]?.selected).map(part => ({ name: part.name, quantity: current.selection[part.id].quantity })), { isCurrent, update });
+          if (current) await runPackEstimate(current.parts.filter(part => current.selection[part.id]?.selected).map(part => ({ name: part.name, quantity: current.selection[part.id].quantity })), { isCurrent, update }, { immediate: true });
           return;
         }
         verified = { file, assetId: instruction.assetId };
@@ -124,8 +153,12 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
     async finalize() {
       if (!verified || !session) return;
       try {
-        if (!verified.pack) await client.finalize({ ...session, assetId: verified.assetId, options: getOptions() });
-        else if (lastSelections.length) await client.estimatePack({ ...session, assetId: verified.assetId, options: getOptions(), selections: lastSelections, purpose: "submission" });
+        if (!verified.pack) { await client.finalize({ ...session, assetId: verified.assetId, options: getOptions() }); return; }
+        // The submission supersedes any pending preview, and must land after one already in flight.
+        cancelPreview();
+        packSequence += 1;
+        if (previewInFlight) await previewInFlight;
+        if (lastSelections.length) await client.estimatePack({ ...session, assetId: verified.assetId, options: getOptions(), selections: lastSelections, purpose: "submission" });
       } catch { /* best effort */ }
     }
   };
