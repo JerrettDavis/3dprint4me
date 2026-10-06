@@ -64,9 +64,9 @@ See [PRICING-CALIBRATION.md](PRICING-CALIBRATION.md#dual-floor-print-pricing). E
 | `PRINT_ESTIMATE_MAX_TRIANGLES` | 1500000 | Triangle limit for STL/3MF analysis |
 | `PRINT_ESTIMATE_MAX_3MF_ENTRIES` | 256 | ZIP entry limit (3MF containers and ZIP packs) |
 | `PRINT_ESTIMATE_MAX_3MF_UNCOMPRESSED_BYTES` | 134217728 | Total bounded expansion of a 3MF or ZIP pack |
-| `PRINT_ESTIMATE_MAX_PACK_PARTS` | 16 (values above 32 are clamped to 32) | STL/3MF entries accepted from one ZIP pack; a pack with more is refused, not truncated. One session may hold at most twice this many extracted parts. |
+| `PRINT_ESTIMATE_MAX_PACK_PARTS` | 16 (values above 32 are clamped to 32) | STL/3MF entries accepted from one ZIP pack; a pack with more is refused, not truncated. One session may hold at most twice this many extracted parts. Server-side only: the browser's own pack limit is fixed at 16 (the `mesh.js` default; `SITE_CONFIG.printEstimation` does not override it), so raising this value does not enable larger packs in the picker. A pack over 16 is refused in the browser ("too many parts") and travels with the request as an ordinary file. |
 | `PRINT_ESTIMATE_SESSION_TTL_HOURS` | 24 | Anonymous session/asset lifetime (max 168) |
-| `PRINT_ESTIMATE_MAX_ASSETS` / `PRINT_ESTIMATE_MAX_ESTIMATES` | 3 / 20 | Per-session abuse bounds. A ZIP counts as one asset. Pack preview estimates share the estimate cap; the final `purpose: "submission"` pack estimate may exceed it by 5. |
+| `PRINT_ESTIMATE_MAX_ASSETS` / `PRINT_ESTIMATE_MAX_ESTIMATES` | 3 / 20 | Per-session abuse bounds. A ZIP counts as one asset. Pack preview estimates share the estimate cap; the final `purpose: "submission"` pack estimate may exceed it by 5. Slicer results (`purpose = 'slice'`, one per sliced part and profile) are written by the worker and never count toward the cap. |
 | `PRINT_ESTIMATE_SESSIONS_PER_CLIENT` / `PRINT_ESTIMATE_SESSIONS_GLOBAL` | 10 / 300 | Session creations per client / all clients per window |
 | `PRINT_ESTIMATE_UPLOADS_PER_CLIENT` / `PRINT_ESTIMATE_UPLOADS_GLOBAL` | 30 / 900 | Upload-token issuances per client / all clients per window |
 | `PRINT_ESTIMATE_RATE_WINDOW_SECONDS` | 3600 | Fixed rate-limit window (max 86400) |
@@ -214,29 +214,44 @@ Only `.stl` and `.3mf` entries are inflated. Every other file (images, documents
 4. Any archive violation fails the whole ZIP, and its children are removed.
 5. Re-analyzing a ready pack returns the stored pack and never extracts again.
 
-**Picker.** The order page lists every part with a checkbox and a quantity (1-99). All measurable parts start selected at quantity 1. Unmeasurable parts are disabled with "Could not be measured — a person will review it." Ignored files appear under "Not printed". The customer cannot clear the last selected part ("Keep at least one part selected."). The planning range is recomputed locally from the selected parts.
+**Picker.** The order page lists every part with a checkbox and a quantity (1-99). All measurable parts start selected at quantity 1. Unmeasurable parts are disabled with "Could not be measured — a person will review it." Ignored files appear under "Not printed". The customer cannot clear the last selected part ("Keep at least one part selected."). The planning range is recomputed locally from the selected parts. Below the picker: "Packs are printed part by part; the confirmed price is often higher than this planning range."
+
+Part names are archive entry labels: control, C1 and bidi characters are stripped and the label is capped at 255 characters. If two entries collapse to the same label (a shared 255-character prefix, or a difference only in stripped characters), the later one gets ` (n)`, where n starts at its 1-based archive position. The browser and the server use the same rule (`uniqueEntryLabels` in `archive.js`), so every local part maps to exactly one server part.
+
+**Selection in the request text.** On submit, the browser adds the pack selection to the request `specifications` as plain text:
+
+- `packParts`: `2 of 4 parts: parts/base.stl ×1; parts/lid.stl ×2`
+- `packIgnored`: the ignored file names
+
+Each value is at most 500 characters, which is what server validation keeps. A long list ends with `(+N more)` instead of being cut silently, and a label over 120 characters is shortened with `…`. The no-integration email draft carries the same two lines. This text reaches the operator on every path, including when the server never recorded a selection: no integrations, a refused pack, a failed or exhausted private estimate, or a pack too large to estimate online.
 
 **Pack estimate.** With private estimates enabled, each selection change sends an `estimate-pack` preview:
 
 - Previews are debounced by 700 ms. An identical selection is not resent, and previews stop after a `429`.
 - At submit, a final `estimate-pack` with `purpose: "submission"` records the chosen selection.
 - The server validates every part ID against ready children of that ZIP in the caller's session, with quantities 1-99 and at least one part. It stores `selected`/`quantity` and queues one slice job per selected part.
-- `estimate-pack` stores an immutable snapshot. `status` recomputes the latest pack estimate read-only and falls back to the stored snapshot if the parts are gone.
+- The selection is written only while the session is still open. A preview that reaches the server after the request was submitted changes nothing. The browser also waits for every preview still in flight before it sends the submission estimate.
+- Recording a selection for one ZIP unselects the parts of every other ZIP in the same session. If the customer replaces a ZIP, the earlier ZIP's parts are therefore not attached. The earlier ZIP file itself still attaches, with no parts.
+- `estimate-pack` stores an immutable snapshot. `status` resolves the newest snapshot of the pack (or of a top-level model); a part's slicer result never stands in for it. `status` recomputes the pack estimate read-only and falls back to the stored snapshot if the parts are gone.
 
 **Pricing rollup.** Each selected part contributes grams and hours x its part quantity x the order quantity. A part uses its slicer result when ready, otherwise geometry. The pricing policy then runs **once** on the totals, so setup, finishing labor and minimum charges apply once per pack, not per part. The snapshot is `slicer` only when every selected part has a slicer result.
+
+Plates are counted per part: each selected part adds its own plate count, and plate labor (0.25 active hours per plate by default) is charged on that total. The browser's planning range (`packProduction` in `public/assets/js/print-estimation/pack.js`) uses the public rate card and has no plate term. The stored pack price is therefore usually **higher** than the on-screen range. For example, the reference pack showed $38–$64 on screen and stored $71–$88. Plate packing (several parts on one plate) is not modeled.
 
 The pack `slice.status` is one of:
 
 - `ready`: every selected part is sliced
 - `pending`: any part is queued or processing
-- `failed`: otherwise, when a slicer is configured
+- `failed`: otherwise, when a slicer is configured. This covers a pack where every selected part that is not ready has failed (or was cancelled).
+
+`status` is read-only. It reports a part's real job state and never re-queues anything, so a permanently failing part ends polling with `failed` instead of staying "queued". The next preview or submission estimate re-queues failed parts.
 - `unavailable`: no slicer is configured
 
 A pack order the pricing limits cannot represent returns `400` "This pack order is too large to estimate online. Submit the request and a person will quote it."
 
 Limitations:
 
-- The customer's on-screen price stays the local geometry range until the pack's slice is ready, the same as for single models. The server's pack price is stored and shown to the operator.
+- The customer's on-screen price stays the local geometry range until the pack's slice is ready, the same as for single models. The server's pack price is stored and shown to the operator. It is usually higher than the on-screen range, because of the per-part plate rule above. The pack panel tells the customer this.
 - Plate arrangement is not modeled.
 
 **Submit and operator view.** Submit attaches the ZIP and its selected children only. The operator print section shows:
@@ -256,7 +271,7 @@ After slicing, the operator's **Latest estimate** for a pack remains the submiss
 - Anonymous sessions and their models expire after `PRINT_ESTIMATE_SESSION_TTL_HOURS`; the sweep deletes the Blob objects and then every session, asset, estimate, and job row.
 - Uploads that never finished are removed after 24 hours.
 - ZIP packs: children of an expired, never-submitted session are deleted with it. After submit, the cleanup sweep removes the remaining pack leftovers of attached sessions and reports them as `orphanedParts`:
-  - unselected children
+  - unselected children that were never attached. A child linked to the request is never swept, even if a late write cleared its `selected` flag. Neither is a child with `retention_hold`, or a child of a held ZIP.
   - a ZIP in the same session that was never attached and was last updated more than 10 minutes ago
   
   Until the next `npm run estimate:cleanup` run, those objects stay in private Blob. Attached children follow the work lifecycle below and inherit the ZIP's `retention_hold`.
@@ -284,8 +299,9 @@ After slicing, the operator's **Latest estimate** for a pack remains the submiss
 | One part unmeasurable | Part listed, disabled: "Could not be measured — a person will review it." Other parts proceed | Child asset `failed` with code; not attached |
 | Server refuses a pack the browser accepted (for example the session's part cap) | Picker and local range stay; "The private check did not finish…" copy; the ZIP uploads with the request | ZIP asset `failed` with private code |
 | Concurrent `analyze` of the same ZIP | `409`; local picker and range stay, "The private check did not finish…" copy | Claim recoverable after 300 s |
-| Pack order too large for the pricing limits | `400` "too large to estimate online"; local range stays; still submittable | No snapshot for that selection |
-| Preview estimates exhausted (`429`) | Previews stop; local range stays; the submission estimate has a reserve of 5 | Latest stored preview/submission snapshot |
+| Pack order too large for the pricing limits | `400` "too large to estimate online"; local range stays; still submittable | No snapshot for that selection; the selection is in the request text (`packParts`) |
+| Preview estimates exhausted (`429`) | Previews stop; local range stays; the submission estimate has a reserve of 5 | Latest stored preview/submission snapshot, plus the request text (`packParts`) |
+| A part's slice fails permanently | Polling ends; geometry range with the "operator confirms" copy | Job `failed` with category; the next preview re-queues it |
 
 ## Rollback
 
