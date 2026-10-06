@@ -1,6 +1,6 @@
-import { modelFormat } from "./geometry.js?v=2edfa62bed7a2ae5";
-import { ModelAnalysisError } from "./mesh.js?v=2edfa62bed7a2ae5";
-import { readZipDirectory, readZipEntry } from "./three-mf.js?v=2edfa62bed7a2ae5";
+import { modelFormat } from "./geometry.js?v=d04c3523bdcde7f8";
+import { ModelAnalysisError } from "./mesh.js?v=d04c3523bdcde7f8";
+import { readZipDirectory, readZipEntry } from "./three-mf.js?v=d04c3523bdcde7f8";
 
 // Shared, dependency-free ZIP model-pack inspector (browser and server run the same rules).
 // Entries are untrusted: only the central directory is believed, only STL/3MF entries are
@@ -52,6 +52,10 @@ export async function inspectArchive({ bytes, limits, inflateRaw }) {
   }
   if (!candidates.length) throw new ModelAnalysisError("no_models", "The archive contains no STL or 3MF models.");
   if (candidates.length > limits.maxPackParts) throw new ModelAnalysisError("too_many_parts", `The archive has ${candidates.length} models; the limit is ${limits.maxPackParts}.`);
+  const ranges = candidates.map(({ entry }) => [entry.localOffset, entry.localOffset + entry.compressedSize]).sort((x, y) => x[0] - y[0]);
+  for (let index = 1; index < ranges.length; index++) {
+    if (ranges[index][0] < ranges[index - 1][1] || ranges[index][0] === ranges[index - 1][0]) throw new ModelAnalysisError("malformed", "Archive entries share data.");
+  }
   const budget = { remaining: limits.maxZipUncompressedBytes };
   const models = [];
   for (const [index, { entry, format }] of candidates.entries()) {

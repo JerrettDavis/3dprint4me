@@ -1,4 +1,4 @@
-import { createMeshAccumulator, ModelAnalysisError } from "./mesh.js?v=2edfa62bed7a2ae5";
+import { createMeshAccumulator, ModelAnalysisError } from "./mesh.js?v=d04c3523bdcde7f8";
 
 // 3MF is ZIP + XML. Only the model relationship and referenced model parts are
 // expanded; thumbnails, metadata, and slicer settings are never decompressed.
