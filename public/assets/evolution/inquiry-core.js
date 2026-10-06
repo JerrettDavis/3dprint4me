@@ -1,7 +1,7 @@
 /** Browser validation. The inquiry API independently validates every field. */
 export const INQUIRY_LIMITS = Object.freeze({ files: 6, fileBytes: 10 * 1024 * 1024, totalBytes: 25 * 1024 * 1024, message: 4000, name: 100, url: 2000, records: 30 });
 export const INQUIRY_INTENTS = Object.freeze(['unknown', 'replace', 'custom', 'print', 'repair', 'business']);
-export const FILE_EXTENSIONS = Object.freeze(['jpg', 'jpeg', 'png', 'webp', 'pdf', 'stl', '3mf', 'step', 'stp', 'obj', 'txt']);
+export const FILE_EXTENSIONS = Object.freeze(['jpg', 'jpeg', 'png', 'webp', 'pdf', 'stl', '3mf', 'step', 'stp', 'obj', 'zip', 'txt']);
 export function normalizeInquiry(raw = {}) {
   const clean = (key) => typeof raw[key] === 'string' ? raw[key].trim() : '';
   return { intent: INQUIRY_INTENTS.includes(raw.intent) ? raw.intent : 'unknown', message: clean('message'), replyEmail: clean('replyEmail'), name: clean('name'), referenceUrl: clean('referenceUrl') };
@@ -10,7 +10,7 @@ export function validateAttachment(file) {
   if (!file || typeof file.name !== 'string' || !Number.isFinite(file.size) || file.size < 0) return 'This file could not be read. Please choose it again.';
   const extension = file.name.toLowerCase().split('.').pop();
   if (['heic', 'heif'].includes(extension)) return `${file.name}: please export an iPhone photo as JPG or PNG.`;
-  if (!FILE_EXTENSIONS.includes(extension)) return `${file.name}: use JPG, PNG, WebP, PDF, STL, 3MF, STEP, OBJ, or TXT.`;
+  if (!FILE_EXTENSIONS.includes(extension)) return `${file.name}: use JPG, PNG, WebP, PDF, STL, 3MF, STEP, OBJ, ZIP, or TXT.`;
   if (!file.size) return `${file.name}: this file is empty.`;
   if (file.size > INQUIRY_LIMITS.fileBytes) return `${file.name}: each file must be 10 MB or smaller.`;
   return null;
