@@ -9,3 +9,5 @@ DO $$ BEGIN
   ALTER TABLE print_assets ADD CONSTRAINT print_assets_no_self_parent CHECK (parent_asset_id IS NULL OR parent_asset_id <> id);
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 CREATE INDEX IF NOT EXISTS print_assets_parent_idx ON print_assets (parent_asset_id) WHERE parent_asset_id IS NOT NULL;
+ALTER TABLE print_assets DROP CONSTRAINT IF EXISTS print_assets_state_check;
+ALTER TABLE print_assets ADD CONSTRAINT print_assets_state_check CHECK (state IN ('pending_upload','uploaded','analyzing','ready','failed','deleted'));
