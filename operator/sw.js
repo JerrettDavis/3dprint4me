@@ -1,4 +1,4 @@
-const CACHE_NAME = "operator-shell-v5";
+const CACHE_NAME = "operator-shell-v6";
 const SHELL_ASSETS = ["/", "/index.html", "/manifest.webmanifest", "/assets/operator.css", "/assets/operator.js", "/assets/api-client.js", "/assets/auth-client.js", "/assets/push-client.js", "/assets/work-state.js", "/assets/print-detail.js", "/assets/customization-detail.js", "/assets/icon.svg"];
 self.addEventListener("install", event => event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL_ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener("activate", event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("operator-shell-") && key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())));
