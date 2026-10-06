@@ -24,6 +24,7 @@ export function createPrintEstimateClient({ fetchImpl = (...args) => fetch(...ar
     authorizeUpload: body => call("POST", { action: "authorize-upload", ...body }),
     analyze: body => call("POST", { action: "analyze", ...body }),
     finalize: body => call("POST", { action: "finalize", ...body }),
+    estimatePack: body => call("POST", { action: "estimate-pack", ...body }),
     status: ({ sessionId, token }) => call("GET", null, { "X-Print-Estimate-Token": token }, `?id=${encodeURIComponent(sessionId)}`),
     async upload(instruction, file) {
       let response;
@@ -46,6 +47,10 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
   let verified = null;
   let timer = null;
   let polls = 0;
+  // Pack state: the server part ids by archive entry name, the last selection sent, and a
+  // sequence number so a slow earlier response never overwrites a newer selection.
+  let lastSelections = [];
+  let packSequence = 0;
   const stopPolling = () => { if (timer) clearTimer(timer); timer = null; polls = 0; };
 
   function schedulePoll(update, isCurrent) {
@@ -64,10 +69,24 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
     timer = setTimer(tick, pollMs);
   }
 
+  async function runPackEstimate(selections, { isCurrent, update }) {
+    const sequence = ++packSequence;
+    stopPolling();
+    lastSelections = verified?.partIds ? selections.map(item => ({ partId: verified.partIds.get(item.name), quantity: item.quantity })).filter(item => item.partId) : [];
+    if (!lastSelections.length || !session) return;
+    try {
+      const result = await client.estimatePack({ ...session, assetId: verified.assetId, options: getOptions(), selections: lastSelections });
+      if (!isCurrent() || sequence !== packSequence) return;
+      update({ slice: result.slice ?? null });
+      if (["pending", "processing"].includes(result.slice?.status)) schedulePoll(update, isCurrent);
+    } catch { /* keep the local planning range; the operator confirms the price */ }
+  }
+
   return {
-    reset() { stopPolling(); verified = null; },
-    async start(file, { isCurrent, update }) {
+    reset() { stopPolling(); verified = null; lastSelections = []; packSequence += 1; },
+    async start(file, { isCurrent, update, pack = null }) {
       verified = null;
+      lastSelections = [];
       update({ privateState: "uploading" });
       try {
         if (!session) {
@@ -81,6 +100,14 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
         update({ privateState: "verifying" });
         const result = await client.analyze({ ...session, assetId: instruction.assetId, options: getOptions() });
         if (!isCurrent()) return;
+        if (pack) {
+          const ready = result.status === "pack" ? result.pack.parts.filter(part => part.state === "ready") : [];
+          verified = { file, assetId: instruction.assetId, pack: true, partIds: new Map(ready.map(part => [part.name, part.partId])) };
+          update({ privateState: result.status === "pack" ? "verified" : "failed", slice: null });
+          const current = pack();
+          if (current) await runPackEstimate(current.parts.filter(part => current.selection[part.id]?.selected).map(part => ({ name: part.name, quantity: current.selection[part.id].quantity })), { isCurrent, update });
+          return;
+        }
         verified = { file, assetId: instruction.assetId };
         update({ privateState: result.status === "ready" ? "verified" : "failed", slice: result.slice ?? null });
         if (["pending", "processing"].includes(result.slice?.status)) schedulePoll(update, isCurrent);
@@ -93,9 +120,13 @@ export function createPrivateEstimateFlow({ client, getOptions, pollMs = 5000, m
     /** The exact File already stored privately, so the request does not upload it again. */
     isPreUploaded: file => Boolean(verified && verified.file === file),
     attachment: () => (verified && session ? { sessionId: session.sessionId, token: session.token } : null),
+    estimatePack: (selections, hooks) => runPackEstimate(selections, hooks),
     async finalize() {
       if (!verified || !session) return;
-      try { await client.finalize({ ...session, assetId: verified.assetId, options: getOptions() }); } catch { /* best effort */ }
+      try {
+        if (!verified.pack) await client.finalize({ ...session, assetId: verified.assetId, options: getOptions() });
+        else if (lastSelections.length) await client.estimatePack({ ...session, assetId: verified.assetId, options: getOptions(), selections: lastSelections, purpose: "submission" });
+      } catch { /* best effort */ }
     }
   };
 }
