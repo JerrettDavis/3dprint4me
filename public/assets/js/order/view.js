@@ -1,4 +1,4 @@
-import { formatBytes } from "./files.js?v=2e863ac1ee29a6f9";
+import { formatBytes } from "./files.js?v=ed70022f8c38a1b0";
 
 export function createOrderView({ document, window, form, formatEstimate }) {
   const elements = {

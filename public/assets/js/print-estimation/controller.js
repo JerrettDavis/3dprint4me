@@ -1,7 +1,7 @@
-import { analyzeModelBytes, estimateProductionFromGeometry, modelFormat } from "./geometry.js?v=2e863ac1ee29a6f9";
-import { ModelAnalysisError } from "./mesh.js?v=2e863ac1ee29a6f9";
-import { isArchiveName } from "./archive.js?v=2e863ac1ee29a6f9";
-import { packProduction, readPackLocally } from "./pack.js?v=2e863ac1ee29a6f9";
+import { analyzeModelBytes, estimateProductionFromGeometry, modelFormat } from "./geometry.js?v=ed70022f8c38a1b0";
+import { ModelAnalysisError } from "./mesh.js?v=ed70022f8c38a1b0";
+import { isArchiveName } from "./archive.js?v=ed70022f8c38a1b0";
+import { packProduction, readPackLocally } from "./pack.js?v=ed70022f8c38a1b0";
 
 /** Browser inflate through DecompressionStream, cancelled as soon as output exceeds maxOutput. */
 export async function browserInflateRaw(data, maxOutput) {
