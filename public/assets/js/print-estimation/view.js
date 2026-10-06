@@ -1,4 +1,4 @@
-import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=30b1ea0d2a74e9b8";
+import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=654861fdbb36467b";
 
 const modelPanelNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 const modelPanelInteger = new Intl.NumberFormat("en-US");
@@ -23,6 +23,8 @@ const PACK_SLICE_COPY = Object.freeze({
   ready: "A slicer profile estimated time and material for the selected parts. The operator still confirms the final price.",
   pending: "Measured from geometry — this is not a slice. An exact slicer estimate is queued; you can submit now and the operator will confirm it."
 });
+
+const PACK_PRICE_NOTE = "Packs are printed part by part; the confirmed price is often higher than this planning range.";
 
 /** ZIP pack picker. Part and file names come from the archive, so they are only ever set as text. */
 function packPicker(el, state) {
@@ -56,6 +58,8 @@ function packPicker(el, state) {
   nodes.push(el("p", "model-status pack-summary", chosen ? `${chosen} of ${parts.length} parts selected.` : "None of these parts could be measured; a person will review the pack."));
   if (ignored.length) nodes.push(el("p", "model-status", `Not printed: ${ignored.map(entry => entry.name).join(", ")}`));
   nodes.push(el("p", "model-status", PACK_SLICE_COPY[state.slice?.status] ?? "Measured from geometry — this is not a slice. The operator confirms the final price."));
+  // The stored pack price counts one plate per selected part, so it is usually above this range.
+  nodes.push(el("p", "model-status pack-price-note", PACK_PRICE_NOTE));
   return nodes;
 }
 

@@ -122,6 +122,7 @@ def test_zip_pack_lists_parts_marks_the_bad_part_and_lists_ignored_files(tmp_pat
         assert "3 of 4 parts selected." in card
         assert "Not printed: preview.png, NOTES.md" in card
         assert "not a slice" in card
+        assert "Packs are printed part by part; the confirmed price is often higher than this planning range." in card
         assert "fixture-pack.zip" in page.locator("#file-list").inner_text(), "the ZIP travels with the request"
         site.assert_no_page_errors()
 
@@ -218,6 +219,24 @@ def test_zip_with_a_traversal_entry_fails_generically_and_still_submits(tmp_path
         finish_and_submit(page)
         saved = json.loads(page.evaluate("localStorage.getItem('3dp-submitted-requests')"))[0]
         assert saved["files"][0]["name"] == "escape.zip"
+        site.assert_no_page_errors(allow_console_warnings=LOCAL_FALLBACK_WARNINGS)
+
+
+def test_pack_selection_travels_as_request_text_without_integrations(tmp_path: Path) -> None:
+    pack = build_pack(tmp_path / "fixture-pack.zip")
+    with SiteBrowser(viewport=(1280, 1000)) as site:
+        page = open_print_details(site)
+        page.locator("#model-file").set_input_files(str(pack))
+        page.locator(PICKER).wait_for()
+        checkbox(page, 2).click()  # drop the arm
+        expect(checkbox(page, 2)).not_to_be_checked()
+        quantity(page, 1).fill("2")
+        quantity(page, 1).press("Tab")
+        expect(quantity(page, 1)).to_have_value("2")
+        finish_and_submit(page)
+        saved = json.loads(page.evaluate("localStorage.getItem('3dp-submitted-requests')"))[0]
+        assert saved["specifications"]["packParts"] == "2 of 4 parts: parts/base.stl ×1; parts/lid.stl ×2"
+        assert saved["specifications"]["packIgnored"] == "preview.png; NOTES.md"
         site.assert_no_page_errors(allow_console_warnings=LOCAL_FALLBACK_WARNINGS)
 
 

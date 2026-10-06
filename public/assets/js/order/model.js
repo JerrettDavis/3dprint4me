@@ -21,9 +21,11 @@ const isPlainObject = value => value != null && typeof value === "object" && !Ar
  * Builds the request from the active service projection. Customizer provenance is print-only:
  * other service paths never submit it. The server re-validates and redacts it again.
  */
-export function projectRequestFromData({ data, estimate, files, buildSummary, customization = null }) {
+export function projectRequestFromData({ data, estimate, files, buildSummary, customization = null, packSelection = null }) {
   const active = activeProjectData(data);
-  const summary = buildSummary(active, estimate, files);
+  let summary = buildSummary(active, estimate, files);
+  // A ZIP pack's part selection is print-only plain text (see packRequestSpecifications).
+  if (active.service === "print" && packSelection && Object.keys(packSelection).length) summary = { ...summary, specifications: { ...summary.specifications, ...packSelection } };
   if (active.service !== "print" || !customization) return summary;
   return { ...summary, customization: { generatorId: customization.generatorId, generatorVersion: customization.generatorVersion, params: { ...customization.params } } };
 }

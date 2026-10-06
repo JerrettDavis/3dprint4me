@@ -360,3 +360,44 @@ test("two colliding entry names map to two server parts", async () => {
   await flow.start({ name: "pack.zip", size: 1 }, { isCurrent: () => true, update() {}, pack: () => pack });
   assert.deepEqual(calls[0][1].selections, [{ partId: "part_a", quantity: 1 }, { partId: "part_b", quantity: 2 }]);
 });
+
+test("finalize waits for every preview in flight, so no preview lands after the submission", async () => {
+  const order = [];
+  const release = new Map();
+  const { flow } = packFlow({
+    estimatePack: body => {
+      const label = body.purpose ?? `preview:${body.selections[0].quantity}`;
+      order.push(label);
+      if (body.purpose || body.selections[0].quantity === 1) return { status: "ready", slice: { status: "unavailable" } };
+      return new Promise(resolve => release.set(label, () => { order.push(`${label}-done`); resolve({ status: "ready", slice: { status: "unavailable" } }); }));
+    }
+  });
+  await flow.start({ name: "pack.zip", size: 1 }, { ...quietHooks(), pack: () => onePack });
+  const slow = flow.estimatePack([{ name: "a.stl", quantity: 2 }], quietHooks());
+  const newer = flow.estimatePack([{ name: "a.stl", quantity: 3 }], quietHooks());
+  const finalized = flow.finalize();
+  await settle();
+  release.get("preview:3")();
+  await settle();
+  assert.equal(order.includes("submission"), false, "the older preview is still in flight");
+  release.get("preview:2")();
+  await finalized; await slow; await newer;
+  assert.deepEqual(order, ["preview:1", "preview:2", "preview:3", "preview:3-done", "preview:2-done", "submission"]);
+});
+
+test("a preview of a replaced ZIP still in flight is awaited before the next submission", async () => {
+  let release;
+  const { flow, calls } = packFlow({
+    estimatePack: body => body.purpose || body.selections[0].quantity === 1 ? { status: "ready", slice: { status: "unavailable" } } : new Promise(resolve => { release = () => resolve({ status: "ready", slice: { status: "unavailable" } }); })
+  });
+  await flow.start({ name: "a.zip", size: 1 }, { ...quietHooks(), pack: () => onePack });
+  const slow = flow.estimatePack([{ name: "a.stl", quantity: 2 }], quietHooks());
+  flow.reset();
+  await flow.start({ name: "b.zip", size: 1 }, { ...quietHooks(), pack: () => onePack });
+  const finalized = flow.finalize();
+  await settle();
+  assert.equal(calls.some(([, body]) => body.purpose === "submission"), false);
+  release();
+  await finalized; await slow;
+  assert.equal(calls.at(-1)[1].purpose, "submission");
+});

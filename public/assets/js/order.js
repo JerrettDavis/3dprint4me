@@ -1,21 +1,22 @@
-import "./site.js?v=30b1ea0d2a74e9b8";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=30b1ea0d2a74e9b8";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=30b1ea0d2a74e9b8";
-import { toast } from "./site.js?v=30b1ea0d2a74e9b8";
-import { createProjectRequestClient } from "./order/client.js?v=30b1ea0d2a74e9b8";
-import { createOrderController } from "./order/controller.js?v=30b1ea0d2a74e9b8";
-import { createDraftStore } from "./order/draft-store.js?v=30b1ea0d2a74e9b8";
-import { createFileManager } from "./order/files.js?v=30b1ea0d2a74e9b8";
-import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=30b1ea0d2a74e9b8";
-import { takeHandoff } from "./order/customize-handoff.js?v=30b1ea0d2a74e9b8";
-import { createStepValidator } from "./order/validation.js?v=30b1ea0d2a74e9b8";
-import { createOrderView } from "./order/view.js?v=30b1ea0d2a74e9b8";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=30b1ea0d2a74e9b8";
-import { modelFormat } from "./print-estimation/geometry.js?v=30b1ea0d2a74e9b8";
-import { isArchiveName } from "./print-estimation/archive.js?v=30b1ea0d2a74e9b8";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=30b1ea0d2a74e9b8";
-import { createModelPanelView } from "./print-estimation/view.js?v=30b1ea0d2a74e9b8";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=30b1ea0d2a74e9b8";
+import "./site.js?v=654861fdbb36467b";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=654861fdbb36467b";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=654861fdbb36467b";
+import { toast } from "./site.js?v=654861fdbb36467b";
+import { createProjectRequestClient } from "./order/client.js?v=654861fdbb36467b";
+import { createOrderController } from "./order/controller.js?v=654861fdbb36467b";
+import { createDraftStore } from "./order/draft-store.js?v=654861fdbb36467b";
+import { createFileManager } from "./order/files.js?v=654861fdbb36467b";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=654861fdbb36467b";
+import { takeHandoff } from "./order/customize-handoff.js?v=654861fdbb36467b";
+import { createStepValidator } from "./order/validation.js?v=654861fdbb36467b";
+import { createOrderView } from "./order/view.js?v=654861fdbb36467b";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=654861fdbb36467b";
+import { modelFormat } from "./print-estimation/geometry.js?v=654861fdbb36467b";
+import { isArchiveName } from "./print-estimation/archive.js?v=654861fdbb36467b";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=654861fdbb36467b";
+import { createModelPanelView } from "./print-estimation/view.js?v=654861fdbb36467b";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=654861fdbb36467b";
+import { packRequestSpecifications } from "./print-estimation/pack.js?v=654861fdbb36467b";
 
 const form = document.querySelector("#project-form");
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
@@ -81,7 +82,7 @@ function chooseModelFile(file) {
   files.add([file]);
 }
 
-const buildRequest = () => projectRequestFromData({ data: getData(), estimate: latestEstimate, files: files.list(), buildSummary: buildRequestSummary, customization: activeCustomization });
+const buildRequest = () => projectRequestFromData({ data: getData(), estimate: latestEstimate, files: files.list(), buildSummary: buildRequestSummary, customization: activeCustomization, packSelection: packRequestSpecifications(modelEstimates.state().pack) });
 
 const validateStep = createStepValidator({
   document,
@@ -106,6 +107,8 @@ function mailtoFor(request) {
     request.description,
     "",
     request.modelUrl ? `Model link: ${request.modelUrl}` : "",
+    request.specifications?.packParts ? `Pack parts: ${request.specifications.packParts}` : "",
+    request.specifications?.packIgnored ? `Pack files not printed: ${request.specifications.packIgnored}` : "",
     request.files.length ? `Files selected: ${request.files.map(file => file.name).join(", ")} (attach them if they were not uploaded)` : ""
   ].filter(Boolean).join("\n"));
   return `mailto:${SITE_CONFIG.email}?subject=${subject}&body=${body}`;
