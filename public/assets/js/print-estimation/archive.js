@@ -1,6 +1,6 @@
-import { modelFormat } from "./geometry.js?v=f612341d745785cd";
-import { ModelAnalysisError } from "./mesh.js?v=f612341d745785cd";
-import { readZipDirectory, readZipEntry } from "./three-mf.js?v=f612341d745785cd";
+import { modelFormat } from "./geometry.js?v=30b1ea0d2a74e9b8";
+import { ModelAnalysisError } from "./mesh.js?v=30b1ea0d2a74e9b8";
+import { readZipDirectory, readZipEntry } from "./three-mf.js?v=30b1ea0d2a74e9b8";
 
 // Shared, dependency-free ZIP model-pack inspector (browser and server run the same rules).
 // Entries are untrusted: only the central directory is believed, only STL/3MF entries are
@@ -32,6 +32,28 @@ export function archiveEntryKind(name) {
   return KINDS.find(([, pattern]) => pattern.test(name))?.[0] ?? "other";
 }
 export const isArchiveName = name => /\.zip$/i.test(String(name ?? ""));
+
+/** Display label for an archive-supplied name: strips control, DEL, C1 and bidi characters, caps at 255. */
+export const entryLabel = name => String(name).replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g, "").slice(0, 255);
+
+/**
+ * One label per model, in archive order, unique within the pack. Names that collapse to the same
+ * label (a shared 255-character prefix, or a difference only in stripped characters) keep the
+ * first label; a later one gets " (n)" with n starting at its 1-based archive position. Browser
+ * and server both use this, so a local part name always maps to exactly one server part.
+ */
+export function uniqueEntryLabels(names) {
+  const used = new Set();
+  return names.map((name, index) => {
+    let label = entryLabel(name);
+    for (let n = index + 1; used.has(label); n++) {
+      const suffix = ` (${n})`;
+      label = `${entryLabel(name).slice(0, 255 - suffix.length)}${suffix}`;
+    }
+    used.add(label);
+    return label;
+  });
+}
 
 /** `inflateRaw(bytes, maxOutput)` must enforce maxOutput (Node `zlib` or browser DecompressionStream). */
 export async function inspectArchive({ bytes, limits, inflateRaw }) {

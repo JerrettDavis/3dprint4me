@@ -33,3 +33,11 @@ test("a ZIP with no geometry metrics presents an empty ignored list", async () =
   assert.deepEqual(result.assets[0].pack, { ignored: [] });
   assert.equal(result.assets[0].geometry, null);
 });
+
+test("operator ignored-file names are sanitized with the shared entry label rule", async () => {
+  const zip = asset("zip", { format: "zip", originalName: "pack.zip", geometryMetrics: { format: "zip", pack: { ignored: [{ name: "notes‮\u0007gpj.md", kind: "document" }, { name: "x".repeat(300), kind: "other" }] } } });
+  const repository = { forRequest: async () => ({ assets: [zip], estimates: [], jobs: [], runs: [] }) };
+  const result = await createOperatorPrintView({ repository }).forWork({ item: { id: "work_12345678", requestId: "3DP-1" } });
+  assert.deepEqual(result.assets[0].pack.ignored.map(item => [item.name.length, item.kind]), [[11, "document"], [255, "other"]]);
+  assert.equal(result.assets[0].pack.ignored[0].name, "notesgpj.md");
+});

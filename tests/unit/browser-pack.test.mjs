@@ -339,3 +339,24 @@ test("showing or hiding service fields never touches the pack picker controls", 
   assert.equal(plain.disabled, true);
   assert.equal(pickerCheck.disabled, true);
 });
+
+test("names that collapse to one label get unique labels, the same in the browser and on the server", async () => {
+  const { uniqueEntryLabels } = await import("../../lib/print-estimation/application/pack.js");
+  const long = "d/".repeat(130);
+  const names = [`${long}one.stl`, `${long}two.stl`, "a‮.stl", "a.stl", "a.stl (4)"];
+  const labels = uniqueEntryLabels(names);
+  assert.equal(new Set(labels).size, names.length, "every label is unique");
+  assert.ok(labels.every(label => label.length <= 255));
+  assert.deepEqual(labels.slice(2), ["a.stl", "a.stl (4)", "a.stl (4) (5)"]);
+  assert.equal(labels[1], `${long.slice(0, 251)} (2)`);
+  const bytes = buildZip([{ name: "a‮.stl", data: cube("a", 10), method: "deflate" }, { name: "a.stl", data: cube("b", 20), method: "deflate" }]);
+  const pack = await readPackLocally({ bytes, limits, inflateRaw: nodeInflateRaw, analyze });
+  assert.deepEqual(pack.parts.map(part => part.name), ["a.stl", "a.stl (2)"]);
+});
+
+test("two colliding entry names map to two server parts", async () => {
+  const { flow, calls } = packFlow({ analyzeResult: { status: "pack", pack: { assetId: "zip_1", parts: [{ partId: "part_a", name: "a.stl", state: "ready" }, { partId: "part_b", name: "a.stl (2)", state: "ready" }], ignored: [] }, slice: { status: "unavailable" } } });
+  const pack = { parts: [{ id: "part-0", name: "a.stl" }, { id: "part-1", name: "a.stl (2)" }], selection: { "part-0": { selected: true, quantity: 1 }, "part-1": { selected: true, quantity: 2 } } };
+  await flow.start({ name: "pack.zip", size: 1 }, { isCurrent: () => true, update() {}, pack: () => pack });
+  assert.deepEqual(calls[0][1].selections, [{ partId: "part_a", quantity: 1 }, { partId: "part_b", quantity: 2 }]);
+});
