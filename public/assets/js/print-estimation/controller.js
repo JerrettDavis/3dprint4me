@@ -1,7 +1,7 @@
-import { analyzeModelBytes, estimateProductionFromGeometry, modelFormat } from "./geometry.js?v=4eed843a69c17184";
-import { ModelAnalysisError } from "./mesh.js?v=4eed843a69c17184";
-import { isArchiveName } from "./archive.js?v=4eed843a69c17184";
-import { packProduction, readPackLocally } from "./pack.js?v=4eed843a69c17184";
+import { analyzeModelBytes, estimateProductionFromGeometry, modelFormat } from "./geometry.js?v=af64c2651617f465";
+import { ModelAnalysisError } from "./mesh.js?v=af64c2651617f465";
+import { isArchiveName } from "./archive.js?v=af64c2651617f465";
+import { packProduction, readPackLocally } from "./pack.js?v=af64c2651617f465";
 
 /** Browser inflate through DecompressionStream, cancelled as soon as output exceeds maxOutput. */
 export async function browserInflateRaw(data, maxOutput) {
@@ -43,7 +43,8 @@ export function createModelEstimateController({ limits, render, onChange = () =>
       pack: state.pack ? {
         parts: state.pack.parts.map(({ id, name, format, metrics, error }) => ({ id, name, format, error, dimensionsMm: metrics?.dimensionsMm ?? null, volumeMm3: metrics?.volumeMm3 ?? null })),
         ignored: state.pack.ignored,
-        selection: state.pack.selection
+        selection: state.pack.selection,
+        hint: state.pack.hint
       } : null };
   }
 
@@ -51,6 +52,7 @@ export function createModelEstimateController({ limits, render, onChange = () =>
   const selectionPayload = () => state.pack.parts.filter(part => state.pack.selection[part.id]?.selected).map(part => ({ localId: part.id, name: part.name, quantity: state.pack.selection[part.id].quantity }));
   /** A changed selection drops any slicer result for the old one and re-prices privately. */
   function selectionChanged() {
+    state.pack.hint = null;
     state.slice = null;
     changed();
     privateEstimates?.estimatePack?.(selectionPayload(), privateHooks(generation));
@@ -71,7 +73,7 @@ export function createModelEstimateController({ limits, render, onChange = () =>
         const local = await readPackLocally({ bytes, limits, inflateRaw, analyze: ({ name, bytes: partBytes }) => analyze({ name, bytes: partBytes, limits, inflateRaw }) });
         if (current !== generation) return;
         const selection = Object.fromEntries(local.parts.map(part => [part.id, { selected: Boolean(part.metrics), quantity: 1 }]));
-        Object.assign(state, { status: "analyzed", metrics: null, pack: { ...local, selection } });
+        Object.assign(state, { status: "analyzed", metrics: null, pack: { ...local, selection, hint: null } });
         changed();
         if (privateEstimates) await privateEstimates.start(file, { ...privateHooks(current), pack: () => state.pack });
         return;
@@ -99,6 +101,12 @@ export function createModelEstimateController({ limits, render, onChange = () =>
     setPartSelected(id, selected) {
       const choice = state.pack?.selection[id];
       if (!choice || !state.pack.parts.find(part => part.id === id)?.metrics) return;
+      // A pack order always has at least one part: refuse to clear the last one and say why.
+      if (!selected && choice.selected && !state.pack.parts.some(part => part.id !== id && part.metrics && state.pack.selection[part.id]?.selected)) {
+        state.pack.hint = "Keep at least one part selected.";
+        changed();
+        return;
+      }
       choice.selected = Boolean(selected);
       selectionChanged();
     },
@@ -107,6 +115,7 @@ export function createModelEstimateController({ limits, render, onChange = () =>
       if (!choice) return;
       choice.quantity = Math.min(99, Math.max(1, Math.round(Number(quantity)) || 1));
       selectionChanged();
+      return choice.quantity;
     },
     modelEstimate(options) {
       if (state.pack) {

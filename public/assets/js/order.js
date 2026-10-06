@@ -1,21 +1,21 @@
-import "./site.js?v=4eed843a69c17184";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=4eed843a69c17184";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=4eed843a69c17184";
-import { toast } from "./site.js?v=4eed843a69c17184";
-import { createProjectRequestClient } from "./order/client.js?v=4eed843a69c17184";
-import { createOrderController } from "./order/controller.js?v=4eed843a69c17184";
-import { createDraftStore } from "./order/draft-store.js?v=4eed843a69c17184";
-import { createFileManager } from "./order/files.js?v=4eed843a69c17184";
-import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=4eed843a69c17184";
-import { takeHandoff } from "./order/customize-handoff.js?v=4eed843a69c17184";
-import { createStepValidator } from "./order/validation.js?v=4eed843a69c17184";
-import { createOrderView } from "./order/view.js?v=4eed843a69c17184";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=4eed843a69c17184";
-import { modelFormat } from "./print-estimation/geometry.js?v=4eed843a69c17184";
-import { isArchiveName } from "./print-estimation/archive.js?v=4eed843a69c17184";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=4eed843a69c17184";
-import { createModelPanelView } from "./print-estimation/view.js?v=4eed843a69c17184";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=4eed843a69c17184";
+import "./site.js?v=af64c2651617f465";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=af64c2651617f465";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=af64c2651617f465";
+import { toast } from "./site.js?v=af64c2651617f465";
+import { createProjectRequestClient } from "./order/client.js?v=af64c2651617f465";
+import { createOrderController } from "./order/controller.js?v=af64c2651617f465";
+import { createDraftStore } from "./order/draft-store.js?v=af64c2651617f465";
+import { createFileManager } from "./order/files.js?v=af64c2651617f465";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=af64c2651617f465";
+import { takeHandoff } from "./order/customize-handoff.js?v=af64c2651617f465";
+import { createStepValidator } from "./order/validation.js?v=af64c2651617f465";
+import { createOrderView } from "./order/view.js?v=af64c2651617f465";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=af64c2651617f465";
+import { modelFormat } from "./print-estimation/geometry.js?v=af64c2651617f465";
+import { isArchiveName } from "./print-estimation/archive.js?v=af64c2651617f465";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=af64c2651617f465";
+import { createModelPanelView } from "./print-estimation/view.js?v=af64c2651617f465";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=af64c2651617f465";
 
 const form = document.querySelector("#project-form");
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
@@ -263,7 +263,10 @@ for (const type of ["input", "change"]) modelCard.addEventListener(type, event =
   event.stopPropagation();
   if (type !== "change") return;
   if (target.dataset.packAction === "select") modelEstimates.setPartSelected(target.dataset.partId, target.checked);
-  else modelEstimates.setPartQuantity(target.dataset.partId, target.value);
+  else {
+    const committed = modelEstimates.setPartQuantity(target.dataset.partId, target.value);
+    if (committed != null) target.value = String(committed); // show the clamped value in place
+  }
 });
 view.elements.fileList.addEventListener("click", event => { const button = event.target.closest("[data-file-index]"); if (button) files.remove(Number(button.dataset.fileIndex)); });
 ["dragenter", "dragover"].forEach(type => view.elements.uploadZone.addEventListener(type, event => { event.preventDefault(); view.elements.uploadZone.classList.add("dragover"); }));
