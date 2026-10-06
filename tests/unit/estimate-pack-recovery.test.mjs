@@ -143,3 +143,12 @@ test("control and bidi override characters are stripped from stored entry names"
     assert.equal((await h.baseRepo.listChildren(h.assetId))[0].archiveEntry, "evilts.stl");
   } finally { await h.cleanup(); }
 });
+
+test("entry names that collapse to one label are stored with the browser's unique labels", async () => {
+  const h = await harness(buildZip([{ name: "a‮.stl", data: cube("x"), method: "deflate" }, { name: "a.stl", data: cube("y"), method: "deflate" }]));
+  try {
+    const result = await h.useCases.analyze({ ...h.created, assetId: h.assetId });
+    assert.deepEqual(result.pack.parts.map(part => part.name), ["a.stl", "a.stl (2)"]);
+    assert.deepEqual((await h.baseRepo.listChildren(h.assetId)).map(child => child.archiveEntry), ["a.stl", "a.stl (2)"]);
+  } finally { await h.cleanup(); }
+});
