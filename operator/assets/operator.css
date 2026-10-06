@@ -43,3 +43,4 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985);filter:bright
 .toast[data-kind="success"]{border-color:var(--teal)}.toast[data-kind="success"]:before{content:"¹3 a0";color:#69d5a5}
 @keyframes saved-flash{from{background:var(--teal-soft);box-shadow:0 0 0 .75rem var(--teal-soft)}to{background:transparent;box-shadow:0 0 0 .75rem transparent}}.saved-flash{animation:saved-flash 1.6s ease-out}@media(prefers-reduced-motion:reduce){.saved-flash{animation:none}}
 .request-files{list-style:none;margin:.5rem 0 0;padding:0;display:grid;gap:.5rem}.request-file{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:.55rem .8rem}.request-file-name{overflow-wrap:anywhere;font-weight:650}.job-sheet h4{margin:1.25rem 0 0}
+.print-file-part{margin-left:1.25rem;border-left:3px solid var(--teal)}

@@ -55,3 +55,38 @@ def seed_print_request(storefront: str, store_path: Path, *, title: str, model_n
     })
     assert status == 200 and completed["printEstimate"]["attached"], completed
     return {"requestId": created["id"], "assetId": upload["assetId"], "model": model, "estimate": estimate}
+
+
+def seed_zip_pack(store_path: Path, request_id: str, *, foreign_request_id: str | None = None) -> dict:
+    """Add a ready ZIP with two attached parts (and optionally a part of another request) to the local print store."""
+    import secrets
+
+    state_path = store_path.parent / "print-estimation-dev.json"
+    files_root = store_path.parent / "print-private-files"
+    state = json.loads(state_path.read_text(encoding="utf8"))
+    template = next(row for row in state["assets"] if row["requestId"] == request_id)
+    folder = f"print-estimates/est_{secrets.token_hex(16)}"
+    (files_root / folder).mkdir(parents=True, exist_ok=True)
+
+    def add(asset_id: str, name: str, content: bytes, **extra) -> dict:
+        blob_path = f"{folder}/{secrets.token_hex(5)}-{name}"
+        (files_root / blob_path).write_bytes(content)
+        row = {**template, "id": asset_id, "originalName": name, "blobPath": blob_path, "sizeBytes": len(content), "declaredSizeBytes": len(content), "parentAssetId": None, "archiveEntry": None, "quantity": 1, "selected": False, "retentionHold": False, **extra}
+        state["assets"].append(row)
+        return row
+
+    zip_id = "asset_" + secrets.token_hex(16)
+    add(zip_id, "pack.zip", b"PK-seeded-zip", format="zip", state="ready", geometryMetrics={"format": "zip", "pack": {"ignored": [{"name": "views/1.png", "kind": "image"}]}})
+    parts = {}
+    for key, entry, quantity in (("base", "stl/base.stl", 3), ("lid", "stl/lid.stl", 2)):
+        content = (FIXTURES / "cube-20mm-binary.stl").read_bytes() + key.encode()
+        part_id = "asset_" + secrets.token_hex(16)
+        add(part_id, entry.split("/")[-1], content, parentAssetId=zip_id, archiveEntry=entry, quantity=quantity, selected=True)
+        parts[key] = {"assetId": part_id, "content": content}
+    foreign = None
+    if foreign_request_id:
+        foreign_id = "asset_" + secrets.token_hex(16)
+        add(foreign_id, "foreign.stl", b"foreign", requestId=foreign_request_id)
+        foreign = foreign_id
+    state_path.write_text(json.dumps(state), encoding="utf8")
+    return {"zipId": zip_id, "parts": parts, "foreignAssetId": foreign}
