@@ -25,6 +25,10 @@ def test_intake_to_interactive_work_inbox() -> None:
             page.locator("#detail-content:not([hidden])").wait_for()
             page.get_by_role("button", name="Acknowledge").click()
             page.locator(".job-heading .kicker").get_by_text("revision 2").wait_for()
+            toast = page.locator("#toast")
+            toast.wait_for(state="visible")
+            assert "Acknowledged" in toast.inner_text() and "revision 2" in toast.inner_text()
+            assert page.get_by_role("button", name="Acknowledge").count() == 0
             page.locator("#detail-content").get_by_label("Priority").select_option("high")
             page.locator(".job-heading .kicker").get_by_text("revision 3").wait_for()
             page.locator("#private-note").fill("Confirm the build plate choice before slicing.")
@@ -147,3 +151,27 @@ def test_failed_work_update_shows_a_visible_error_and_stays_usable() -> None:
             assert page.locator("#work-list .work-row").count() == 1
             assert page.get_by_role("button", name="Acknowledge").is_enabled()
             assert not site.page_errors  # the stubbed 503 legitimately logs a console resource error
+
+
+def test_attached_files_list_a_download_button_per_stored_file() -> None:
+    with running_operator_workspace() as (storefront, operator, _):
+        request = project_request()
+        status, _, created = json_request(storefront + "/api/request", method="POST", payload={"request": request, "website": ""})
+        assert status == 201
+        files = [
+            {"name": "bracket.stl", "size": 1200, "type": "model/stl", "path": f"{created['id']}/bracket.stl", "mode": "signed"},
+            {"name": "notes.txt", "size": 20, "type": "text/plain", "mode": "metadata"},
+        ]
+        status, _, _ = json_request(storefront + "/api/request", method="PATCH", payload={"id": created["id"], "request": request, "uploadedFiles": files})
+        assert status == 200
+
+        with SiteBrowser(viewport=(1280, 900)) as site:
+            page = site.page
+            assert page is not None
+            page.goto(operator, wait_until="networkidle")
+            page.locator("#work-list .work-row").click()
+            page.locator(".request-files").wait_for()
+            assert page.get_by_role("button", name="Download bracket.stl").count() == 1
+            assert page.get_by_role("button", name="Download notes.txt").count() == 0
+            assert "Name only" in page.locator(".request-files").inner_text()
+            site.assert_no_page_errors()

@@ -18,6 +18,7 @@ export function createApiClient({ apiBase = "", getSessionHeaders = async () => 
     events: (after = "0") => request(`/api/operator-work?eventsAfter=${encodeURIComponent(after)}`),
     updateWork: (id, command, idempotencyKey = crypto.randomUUID()) => request("/api/operator-work-update", { method: "PATCH", body: JSON.stringify({ id, command, idempotencyKey }) }),
     printAssetDownload: (workId, assetId) => request(`/api/operator-print?resource=asset-download&workId=${encodeURIComponent(workId)}&assetId=${encodeURIComponent(assetId)}`),
+    requestFileDownload: (workId, index) => request(`/api/operator-print?resource=request-file&workId=${encodeURIComponent(workId)}&index=${encodeURIComponent(index)}`),
     recordPrintRun: (workId, run) => request("/api/operator-print", { method: "POST", body: JSON.stringify({ action: "record-run", workId, run }) }),
     pushConfig: () => request("/api/operator-push"),
     pushAction: (action, value) => request("/api/operator-push", { method: "POST", body: JSON.stringify(action === "subscribe" ? { action, subscription: value } : action === "unsubscribe" ? { action, endpoint: value.endpoint } : { action }) })

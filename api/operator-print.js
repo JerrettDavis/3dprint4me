@@ -5,6 +5,7 @@ import { createOperatorPrintView, normalizePrintRun } from "../lib/print-estimat
 import { createPrintEstimationRuntime } from "../lib/print-estimation/runtime.js";
 import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
 import { HttpError, readJson } from "../lib/http.js";
+import { signRequestFile } from "../lib/operator-files.js";
 
 function exact(value, fields) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new HttpError(400, "An operator print action object is required.");
@@ -18,7 +19,7 @@ function workId(value) {
 }
 
 /** Private operator print operations: filament cost basis, short-lived model downloads, and actual production runs. */
-export function createOperatorPrintHandler({ store, runtime, printRuntime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
+export function createOperatorPrintHandler({ store, runtime, printRuntime, signFile, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
   const work = resolveWorkManagementRuntime({ runtime, repository: store });
   let provider = identityProvider;
   const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
@@ -33,6 +34,10 @@ export function createOperatorPrintHandler({ store, runtime, printRuntime, ident
     if (req.method === "GET") {
       const resource = url.searchParams.get("resource");
       if (resource === "filament") return createFilamentUseCases({ repository: print().repository }).list();
+      if (resource === "request-file") {
+        const detail = await work.repository.getWork(workId(url.searchParams.get("workId")), operator);
+        return signRequestFile({ work: detail, index: url.searchParams.get("index"), ...(signFile ? { sign: signFile } : {}) });
+      }
       if (resource === "asset-download") {
         const detail = await work.repository.getWork(workId(url.searchParams.get("workId")), operator);
         return view().signDownload({ work: detail, assetId: url.searchParams.get("assetId") });
