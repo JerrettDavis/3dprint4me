@@ -25,3 +25,11 @@ test("a part's slicer estimate is never paired with the pack's submission snapsh
   const sameAsset = { ...partSlice, id: "pest_3", assetId: "zip" };
   assert.equal(selectLatestEstimate([sameAsset, submission]).id, "pest_3");
 });
+
+test("a ZIP with no geometry metrics presents an empty ignored list", async () => {
+  const zip = asset("zip", { format: "zip", originalName: "pack.zip", geometryMetrics: null });
+  const repository = { forRequest: async () => ({ assets: [zip], estimates: [], jobs: [], runs: [] }) };
+  const result = await createOperatorPrintView({ repository }).forWork({ item: { id: "work_12345678", requestId: "3DP-1" } });
+  assert.deepEqual(result.assets[0].pack, { ignored: [] });
+  assert.equal(result.assets[0].geometry, null);
+});
