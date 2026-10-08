@@ -133,7 +133,7 @@ function makeBadgeMesh(parts) {
 
 const ACCENT = 0x38a6d8;
 const EDGE = 0x8fe3ff;
-const LEVEL = { hover: .3, selected: .5 };
+const LEVEL = { hover: .2, selected: .34 };
 const ease = t => 1 - Math.pow(1 - t, 3);
 
 function setOpacity(object, value) {

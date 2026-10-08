@@ -1307,3 +1307,207 @@ def test_a_browser_that_cannot_list_fonts_still_offers_the_font_file(page: Page,
     page.locator("label[for='cz-font-custom']").click()
     page.get_by_label(ACK_LABEL).check()
     expect(page.locator("#cz-font-file")).to_be_enabled()
+
+
+# ---- The studio layout: a full-bleed canvas with docked, collapsible tool windows ------------------
+
+UI_KEY = "3dp-customize:ui:v1"
+
+
+def test_the_preview_fills_the_canvas_and_the_tool_windows_float_beside_it(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    stage = page.locator("#cz-stage").bounding_box()
+    canvas = page.locator("#cz-canvas").bounding_box()
+    assert stage and canvas
+    assert stage["width"] >= canvas["width"] - 1 and stage["height"] >= canvas["height"] - 1, (stage, canvas)
+    assert canvas["height"] >= 600, canvas  # the studio takes the viewport under the header
+    settings = page.locator("#cz-win-settings").bounding_box()
+    facts = page.locator("#cz-win-info").bounding_box()
+    assert settings and facts
+    assert settings["x"] + settings["width"] <= facts["x"], "the windows sit at opposite edges and never overlap"
+    expect(page.locator("#cz-stage canvas")).to_be_visible()
+    # The view tabs, bed toggle and Continue live in the top bar, above the canvas.
+    assert page.get_by_role("button", name="Continue to request").bounding_box()["y"] < canvas["y"]
+
+
+def test_a_tool_window_collapses_with_its_button_and_the_choice_is_remembered(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    toggle = page.locator("#cz-win-settings .cz-win-toggle")
+    body = page.locator("#cz-win-settings-body")
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    expect(body).to_be_visible()
+    toggle.click()
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    expect(body).to_be_hidden()
+    assert '"settings":true' in page.evaluate(f"localStorage.getItem({UI_KEY!r}) || ''")
+    page.reload()
+    wait_ready(page)
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    expect(body).to_be_hidden()
+    toggle.click()
+    expect(body).to_be_visible()
+    # Escape in a control moves focus to the window's title button; Escape there collapses it.
+    page.get_by_label("Upper text", exact=True).focus()
+    page.keyboard.press("Escape")
+    expect(toggle).to_be_focused()
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    page.keyboard.press("Escape")
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    # The facts window is independent.
+    expect(page.locator("#cz-win-info .cz-win-toggle")).to_have_attribute("aria-expanded", "true")
+
+
+def test_collapsing_is_instant_when_reduced_motion_is_requested(browser: Browser, base_url: str) -> None:
+    context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/customize/g/route-shield/")
+        wait_ready(page)
+        page.locator("#cz-win-settings .cz-win-toggle").click()
+        assert page.locator("#cz-win-settings-body").evaluate("el => el.hidden") is True, "no animation to wait for"
+        duration = page.locator("#cz-win-settings-body").evaluate("el => el.getAnimations().length")
+        assert duration == 0
+        assert page.evaluate("getComputedStyle(document.body).getPropertyValue('--cz-dur').trim()") in ("0ms", "0s")
+    finally:
+        context.close()
+
+
+def test_a_settings_group_collapses_and_a_field_error_opens_and_closes(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    if page.locator("#cz-mode").is_visible():  # sections are declared: the category groups are one click away
+        page.locator("#cz-mode").get_by_role("button", name="Category").click()
+    group = page.locator("[data-group-key='size'] .cz-group-toggle")
+    expect(group).to_have_attribute("aria-expanded", "true")
+    group.click()
+    expect(group).to_have_attribute("aria-expanded", "false")
+    expect(page.locator("#cz-width_mm")).to_be_hidden()
+    group.click()
+    expect(page.locator("#cz-width_mm")).to_be_visible()
+    width = page.locator("#cz-width_mm")
+    width.fill("20")
+    wrap = page.locator("[data-field='width_mm'] .cz-err")
+    expect(wrap).to_have_class(re.compile(r"\bis-open\b"))
+    width.press("Tab")
+    wait_ready(page)
+    expect(wrap).not_to_have_class(re.compile(r"\bis-open\b"))
+
+
+def test_mobile_uses_a_bottom_sheet_with_tabs_that_leaves_the_preview_room(browser: Browser, base_url: str) -> None:
+    context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark")
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/customize/g/route-shield/")
+        wait_ready(page)
+        expect(page.locator("#cz-win-settings")).to_be_visible()
+        expect(page.locator("#cz-win-info")).to_be_hidden()
+        sheet = page.locator(".cz-panels").bounding_box()
+        assert sheet and sheet["height"] <= 844 * 0.6 and sheet["y"] + sheet["height"] <= 844 + 1, sheet
+        page.get_by_role("button", name="Facts", exact=True).click()
+        expect(page.locator("#cz-win-info")).to_be_visible()
+        expect(page.locator("#cz-facts-list")).to_contain_text("cm³")
+        expect(page.locator("#cz-win-settings")).to_be_hidden()
+        page.get_by_role("button", name="Settings", exact=True).click()
+        expect(page.locator("#cz-win-settings")).to_be_visible()
+        # The chevron folds the sheet down to its tab strip and back.
+        toggle = page.locator("#cz-sheet-toggle")
+        toggle.click()
+        expect(toggle).to_have_attribute("aria-expanded", "false")
+        expect(page.locator("#cz-win-settings-body")).to_be_hidden()
+        assert page.locator(".cz-panels").bounding_box()["height"] < 120
+        toggle.click()
+        expect(page.locator("#cz-win-settings-body")).to_be_visible()
+        assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0
+    finally:
+        context.close()
+
+
+def test_font_picker_type_ahead_jumps_to_the_font_and_commits_once(page: Page, base_url: str) -> None:
+    open_name_plate(page, base_url)
+    toggle = page.locator("#cz-font-toggle")
+    toggle.click()
+    expect(page.get_by_role("radio", name="Block (built-in)")).to_be_focused()
+    page.keyboard.press("l")
+    expect(page.get_by_role("radio", name="Lobster")).to_be_checked()
+    expect(page.get_by_role("radio", name="Lobster")).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(toggle).to_have_text("Lobster")
+    wait_settled(page)
+    # The list scrolls inside its own bounded box and keeps heading rows out of the labels.
+    toggle.click()
+    scroller = page.locator("#cz-font-list .cz-picker-scroll")
+    assert scroller.evaluate("el => getComputedStyle(el).overflowY") == "auto"
+    assert scroller.bounding_box()["height"] <= 900 * 0.6
+    assert page.locator("#cz-font-list label").count() == len(FONT_CHOICES)
+
+
+# ---- Sections: group by Section | Category, and the preview that points at its settings -----------
+
+def definition_text(generator_id: str) -> str:
+    return (ROOT / f"public/assets/js/customize/generators/{generator_id}.js").read_text(encoding="utf-8")
+
+
+def needs_sections(generator_id: str) -> None:
+    text = definition_text(generator_id)
+    if not (re.search(r"^\s*sections\s*:", text, re.M) and re.search(r"^\s*focus\s*:", text, re.M)):
+        pytest.skip(f"{generator_id} does not declare sections and focus yet")
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_group_by_toggle_shows_the_same_fields_in_both_modes_and_is_remembered(page: Page, base_url: str, generator_id: str) -> None:
+    needs_sections(generator_id)
+    open_generator(page, base_url, generator_id)
+    mode = page.locator("#cz-mode")
+    expect(mode).to_be_visible()
+    expect(mode.get_by_role("button", name="Section")).to_have_attribute("aria-pressed", "true")
+    fields = page.locator("#cz-form [data-field]").evaluate_all("els => els.map(e => e.dataset.field).sort()")
+    assert page.locator("#cz-form .cz-group[data-section]").count() >= 1
+    mode.get_by_role("button", name="Category").click()
+    expect(mode.get_by_role("button", name="Category")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#cz-form .cz-group[data-section]")).to_have_count(0)
+    assert page.locator("#cz-form [data-field]").evaluate_all("els => els.map(e => e.dataset.field).sort()") == fields
+    page.reload()
+    open_generator(page, base_url, generator_id)
+    expect(page.locator("#cz-mode").get_by_role("button", name="Category")).to_have_attribute("aria-pressed", "true")
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_hovering_and_clicking_a_part_leads_to_its_settings(page: Page, base_url: str, generator_id: str) -> None:
+    needs_sections(generator_id)
+    open_generator(page, base_url, generator_id)
+    page.locator("#cz-mode").get_by_role("button", name="Section").click()
+    box = page.locator("#cz-stage").bounding_box()
+    assert box
+    tip = page.locator("#cz-tip")
+    hit = None
+    # Scan the middle of the canvas for a part that maps to a section.
+    for row in range(1, 11):
+        for col in range(1, 15):
+            x = box["x"] + box["width"] * (0.28 + 0.44 * col / 15)
+            y = box["y"] + box["height"] * (0.12 + 0.76 * row / 11)
+            page.mouse.move(x, y)
+            page.wait_for_timeout(35)
+            if "is-visible" in (tip.get_attribute("class") or ""):
+                hit = (x, y)
+                break
+        if hit:
+            break
+    assert hit, "no part of the model reacts to hovering"
+    label = tip.text_content()
+    assert label
+    # The matching settings header is softly marked, and the part is outlined.
+    expect(page.locator("#cz-form .cz-group.is-linked")).to_have_count(1)
+    expect(page.locator("#cz-form .cz-group.is-linked .cz-group-toggle")).to_contain_text(label)
+    page.mouse.click(*hit)
+    expect(page.locator("#cz-announce")).to_contain_text("selected", timeout=3000)
+    section = page.locator("#cz-form .cz-group.is-linked")
+    expect(section).to_have_count(1)
+    expect(section.locator(".cz-group-toggle")).to_have_attribute("aria-expanded", "true")
+    focused_section = page.evaluate("document.activeElement.closest('.cz-group')?.dataset.section || ''")
+    assert focused_section == section.get_attribute("data-section"), focused_section
+    # Clicking empty canvas clears the selection.
+    page.mouse.move(box["x"] + 4, box["y"] + 4)
+    page.mouse.click(box["x"] + 4, box["y"] + 4)
+    expect(page.locator("#cz-announce")).to_contain_text("Selection cleared", timeout=3000)

@@ -437,7 +437,9 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     }
     const control = targets.map(t => t.querySelector(".cz-field:not([hidden]) :is(input:not(.cz-picker-radio):not(.cz-range), select, textarea, button.cz-picker-toggle)") ?? (t.matches(".cz-field") ? t.querySelector(":is(input:not(.cz-picker-radio):not(.cz-range), select, textarea, button.cz-picker-toggle)") : null)).find(Boolean) ?? null;
     const scroller = container.closest(".cz-win-body") ?? container;
-    const delta = targets[0].getBoundingClientRect().top - scroller.getBoundingClientRect().top - 8;
+    // Leave room for the sticky tool row at the top of the window.
+    const sticky = scroller.querySelector(".cz-win-tools")?.offsetHeight ?? 0;
+    const delta = targets[0].getBoundingClientRect().top - scroller.getBoundingClientRect().top - sticky - 8;
     if (Math.abs(delta) > 2) scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: reducedMotion() ? "auto" : "smooth" });
     for (const t of targets) {
       t.classList.remove("cz-pulse");

@@ -181,7 +181,11 @@ def show_3d_preview(page) -> None:
 
 
 def show_facts(page) -> None:
-    page.evaluate("document.querySelector('.cz-summary').scrollIntoView({ block: 'start' })")
+    # Narrow screens: the facts live on the bottom sheet's second tab. Wide screens show them beside the canvas.
+    tab = page.get_by_role("button", name="Facts", exact=True)
+    if tab.is_visible():
+        tab.click()
+    page.wait_for_timeout(300)
 
 
 def wifi_tag(fmt: str, *, mobile: bool = False, show: str = "preview"):
