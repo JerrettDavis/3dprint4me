@@ -94,13 +94,14 @@
 .cz-chev{flex:none;width:.5rem;height:.5rem;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-12%,-12%);transition:transform var(--cz-dur) var(--cz-ease)}
 [aria-expanded="false"]>.cz-chev{transform:rotate(-45deg)}
 .cz-win-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 .95rem 1rem}
+.cz-summary .cz-win-body{padding-top:.7rem}
 .cz-win-tools{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.4rem .5rem;margin:0 -.95rem .4rem;padding:.55rem .95rem;background:var(--surface)}
-.cz-win-tools .button{min-height:40px;padding:.4rem .75rem}
+.cz-win-tools .button{min-height:40px;margin-left:auto;padding:.4rem .75rem}
 
 /* Group by: Section | Category */
 .cz-seg{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
-.cz-seg-label{padding:0 .5rem 0 .4rem;color:var(--muted);font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
-.cz-seg-button{min-height:36px;padding:.2rem .7rem;border:0;border-radius:7px;color:var(--muted);background:transparent;font-size:.82rem;font-weight:700;cursor:pointer;transition:color var(--cz-dur-fast) var(--cz-ease),background-color var(--cz-dur-fast) var(--cz-ease)}
+.cz-seg-label{padding:0 .35rem 0 .4rem;color:var(--muted);font-size:.64rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.cz-seg-button{min-height:36px;padding:.2rem .6rem;border:0;border-radius:7px;color:var(--muted);background:transparent;font-size:.82rem;font-weight:700;cursor:pointer;transition:color var(--cz-dur-fast) var(--cz-ease),background-color var(--cz-dur-fast) var(--cz-ease)}
 .cz-seg-button:hover{color:var(--ink)}
 .cz-seg-button[aria-pressed="true"]{color:var(--ink);background:var(--surface);box-shadow:0 1px 2px rgb(16 24 40 / .14),0 0 0 1px var(--line)}
 .cz-seg-button:focus-visible{outline:3px solid var(--focus-color);outline-offset:1px}
@@ -206,13 +207,13 @@
 .cz-picker-list:not([hidden]){animation:cz-pop var(--cz-dur) var(--cz-ease)}
 .cz-picker-list[hidden]{display:none}
 /* The list scrolls inside a bounded box (there are dozens of fonts); group headings stay in view. */
-.cz-picker-scroll{display:grid;grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));gap:.4rem;max-height:min(21rem,55vh);padding:.45rem;overflow-y:auto;overscroll-behavior:contain}
+.cz-picker-scroll{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.25rem,1fr));gap:.4rem;max-height:min(21rem,55vh);padding:.45rem;overflow-y:auto;overscroll-behavior:contain}
 .cz-picker-group{position:sticky;top:-.45rem;z-index:1;grid-column:1/-1;margin:0 -.45rem;padding:.35rem .9rem .3rem;color:var(--teal);background:var(--surface-2);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
 .cz-picker-group-plain{padding:0;border-top:1px solid var(--line)}
 .cz-picker-item{position:relative;min-width:0}
 /* The radio stays in the accessibility tree and keeps keyboard focus; its label is the pointer target. */
 .cz-picker-radio{position:absolute;top:50%;left:.5rem;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
-.cz-picker-option{display:flex;align-items:center;min-height:48px;padding:.35rem .7rem;border:2px solid transparent;border-radius:.6rem;color:var(--ink);background:var(--surface);font-size:1.3rem;line-height:1.2;overflow-wrap:anywhere;cursor:pointer}
+.cz-picker-option{display:flex;align-items:center;min-height:48px;padding:.35rem .7rem;border:2px solid transparent;border-radius:.6rem;color:var(--ink);background:var(--surface);font-size:1.15rem;line-height:1.2;overflow-wrap:anywhere;cursor:pointer}
 .cz-picker-option.cz-ff-custom{font-size:.92rem;font-weight:700}
 .cz-picker-option.cz-ff-block{font-size:1.05rem}
 .cz-picker-option:hover{border-color:var(--line-strong)}
