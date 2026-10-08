@@ -135,3 +135,6 @@ img,svg{display:block;max-width:100%}button,input,select,textarea{font:inherit}b
 @media (max-width:480px){.pack-part{grid-template-columns:auto minmax(0,1fr)}.pack-part .pack-part-qty{grid-column:2}}
 
 .file-item-error{grid-column:1/-1;margin:0;color:var(--danger);font-size:.75rem;font-weight:650}
+.printed-work .photo-wide .project-image{aspect-ratio:1600/747}
+.printed-work .photo-tall .project-image{aspect-ratio:931/1100;max-height:34rem}
+@media (min-width:900px){.printed-work .photo-tall{display:grid;grid-template-columns:minmax(0,26rem) minmax(0,1fr);grid-template-rows:auto 1fr;align-items:start}.printed-work .photo-tall .project-image{grid-column:1;grid-row:1/3;border-bottom:0;border-right:1px solid var(--line,currentColor);max-height:none}.printed-work .photo-tall .project-number{grid-column:2;grid-row:1;padding:1.5rem 2rem 0}.printed-work .photo-tall .project-overlay{grid-column:2;grid-row:2;padding:.5rem 2rem 2rem}}
