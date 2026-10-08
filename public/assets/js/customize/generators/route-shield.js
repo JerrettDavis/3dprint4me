@@ -8,8 +8,8 @@
 //                    < 0  text is cut |t| into the color's top surface
 // Back/bottom inlays (inlay_depth_mm) are always inset and never protrude.
 
-import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=60932ed026a4e317";
-import { qrScaleField } from "../qr.js?v=60932ed026a4e317";
+import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=122156b8914757f0";
+import { qrScaleField } from "../qr.js?v=122156b8914757f0";
 
 const STEP = 0.2;
 const MIN_WEB = 0.8;       // solid base left between the front pocket and the back inlay
@@ -101,8 +101,8 @@ const inSection = (fields, section) => Object.fromEntries(Object.entries(fields)
 // Settings regions, in display order, and which previewed part focuses which one.
 const SECTIONS = { general: "Font", top: "Upper text", lower: "Lower text", back: "Back text", qr: "QR code", shape: "Shape & thickness", colors: "Colors" };
 const FOCUS = [
-  { part: "Upper color field", section: "colors" },
-  { part: "Lower color field", section: "colors" },
+  { part: "Upper color field", section: "top" },
+  { part: "Lower color field", section: "lower" },
   { part: "Upper text", section: "top" },
   { part: "Lower text", section: "lower" },
   { part: "Back text", section: "back" },
@@ -148,8 +148,8 @@ export default {
     qr_data: { type: "text", label: "QR content", max: 400, optional: true, default: "https://3dprint4.me/", group: "back", section: "qr" },
     qr_scale_pct: qrScaleField("back", { section: "qr", visibleWhen: { qr_enabled: [true] }, help: "100% is the largest code that fits the bottom of the badge; larger cells scan more reliably." }),
     base_color: { type: "color", label: "Body", default: "#ffffff", group: "colors", section: "colors" },
-    upper_color: { type: "color", label: "Upper", default: "#ef233c", group: "colors", section: "colors" },
-    lower_color: { type: "color", label: "Lower", default: "#2797e8", group: "colors", section: "colors" },
+    upper_color: { type: "color", label: "Upper", default: "#ef233c", group: "colors", section: "top" },
+    lower_color: { type: "color", label: "Lower", default: "#2797e8", group: "colors", section: "lower" },
     text_color: { type: "color", label: "Front text", default: "#ffffff", group: "colors", section: "colors" },
     back_color: { type: "color", label: "Back inlay", default: "#171717", group: "colors", section: "colors" }
   },

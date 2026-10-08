@@ -1,11 +1,11 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-10-08T05:11:15.214781+00:00",
-  "status": "fail",
+  "generatedAt": "2026-10-08T05:18:49.549842+00:00",
+  "status": "pass",
   "summary": {
     "checks": 241,
-    "passed": 240,
-    "failed": 1,
+    "passed": 241,
+    "failed": 0,
     "routes": 10,
     "renderProfiles": 2
   },
@@ -1653,8 +1653,8 @@
       "route": "/customize/g/route-shield/",
       "profile": "mobile/dark 390\u00d7844",
       "check": "Heading structure",
-      "status": "fail",
-      "details": "Jumps: ['Route shield (h1) \u2192 FONT (h3)']"
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -2393,9 +2393,7 @@
         "headerCount": 1,
         "footerCount": 1,
         "duplicateIds": [],
-        "headingJumps": [
-          "Route shield (h1) \u2192 FONT (h3)"
-        ],
+        "headingJumps": [],
         "missingAlt": [],
         "brokenImages": [],
         "unnamedControls": [],
