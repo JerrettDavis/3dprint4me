@@ -1,8 +1,8 @@
 # UX, Accessibility, and Responsive Audit
 
-**Result: PASS**  
-Generated: 2026-10-06T17:43:11.882895+00:00  
-Automated checks: **241/241 passed** across 10 routes, desktop light mode, mobile dark mode, and a separate keyboard-focus sequence.
+**Result: FAIL**  
+Generated: 2026-10-08T05:11:15.214781+00:00  
+Automated checks: **240/241 passed** across 10 routes, desktop light mode, mobile dark mode, and a separate keyboard-focus sequence.
 
 ## What was exercised
 
@@ -10,7 +10,7 @@ The audit executes the production HTML, CSS, SVG artwork, quote engine, navigati
 
 | Area | Result | Evidence |
 |---|---:|---|
-| Browser/render checks | Pass | 241 passed, 0 failed |
+| Browser/render checks | Needs attention | 240 passed, 1 failed |
 | Viewports | Pass | 1440×1000 light and 390×844 dark on every route |
 | Keyboard | Pass | Separate Tab-order sample |
 | Request UX | Separate E2E suite | Quick inquiry, project dialogs, four-service wizard, inline errors, recovery, email and JSON handoff |
@@ -34,3 +34,7 @@ The audit found that an author-level `display` rule could override the browser�
 Automated contrast sampling excludes text positioned over gradients or illustrations because a single computed background color would be misleading. Those overlays require separate visual inspection of generated screenshots; this script does not certify that inspection. Before accepting paid work, perform one manual pass with a production URL, a screen reader, real email delivery, private Blob storage, and Stripe test mode. Pricing, taxes, shipping rules, prohibited-item policy, warranty language, and privacy terms should be reviewed for the actual business and jurisdiction.
 
 The machine-readable result is in [`docs/ux-audit.json`](./ux-audit.json).
+
+## Failures
+
+- **/customize/g/route-shield/ · mobile/dark 390×844 · Heading structure:** Jumps: ['Route shield (h1) → FONT (h3)']

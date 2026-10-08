@@ -1,11 +1,11 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-10-06T17:43:11.882895+00:00",
-  "status": "pass",
+  "generatedAt": "2026-10-08T05:11:15.214781+00:00",
+  "status": "fail",
   "summary": {
     "checks": 241,
-    "passed": 241,
-    "failed": 0,
+    "passed": 240,
+    "failed": 1,
     "routes": 10,
     "renderProfiles": 2
   },
@@ -233,7 +233,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "11 images loaded and each has an alt attribute."
+      "details": "13 images loaded and each has an alt attribute."
     },
     {
       "route": "/portfolio.html",
@@ -275,7 +275,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "114 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "127 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -828,7 +828,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "66 visible interactive elements have accessible names."
+      "details": "81 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -863,7 +863,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "103 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "118 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/",
@@ -1073,7 +1073,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "11 images loaded and each has an alt attribute."
+      "details": "13 images loaded and each has an alt attribute."
     },
     {
       "route": "/portfolio.html",
@@ -1115,7 +1115,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "109 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "122 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -1653,8 +1653,8 @@
       "route": "/customize/g/route-shield/",
       "profile": "mobile/dark 390\u00d7844",
       "check": "Heading structure",
-      "status": "pass",
-      "details": "Visible headings do not skip levels."
+      "status": "fail",
+      "details": "Jumps: ['Route shield (h1) \u2192 FONT (h3)']"
     },
     {
       "route": "/customize/g/route-shield/",
@@ -1668,7 +1668,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "62 visible interactive elements have accessible names."
+      "details": "77 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -1810,11 +1810,11 @@
         "contentWidth": 1440,
         "viewportWidth": 1440,
         "interactiveCount": 33,
-        "imageCount": 11,
-        "headingCount": 17
+        "imageCount": 13,
+        "headingCount": 20
       },
       "contrast": {
-        "checked": 114,
+        "checked": 127,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2054,12 +2054,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 66,
+        "interactiveCount": 81,
         "imageCount": 2,
-        "headingCount": 7
+        "headingCount": 14
       },
       "contrast": {
-        "checked": 103,
+        "checked": 118,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2160,11 +2160,11 @@
         "contentWidth": 390,
         "viewportWidth": 390,
         "interactiveCount": 29,
-        "imageCount": 11,
-        "headingCount": 17
+        "imageCount": 13,
+        "headingCount": 20
       },
       "contrast": {
-        "checked": 109,
+        "checked": 122,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2393,7 +2393,9 @@
         "headerCount": 1,
         "footerCount": 1,
         "duplicateIds": [],
-        "headingJumps": [],
+        "headingJumps": [
+          "Route shield (h1) \u2192 FONT (h3)"
+        ],
         "missingAlt": [],
         "brokenImages": [],
         "unnamedControls": [],
@@ -2404,9 +2406,9 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 62,
+        "interactiveCount": 77,
         "imageCount": 2,
-        "headingCount": 7
+        "headingCount": 11
       },
       "contrast": {
         "checked": 98,
