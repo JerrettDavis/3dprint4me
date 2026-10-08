@@ -7,6 +7,10 @@ import { clampParams, validateParams } from "../../public/assets/js/customize/sc
 import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geometry.js";
 import { browserInflateRaw } from "../../public/assets/js/print-estimation/controller.js";
 import { renderForm, restoreParams, storableParams, esc, isFieldVisible } from "./form.js";
+import { hasSections, partSection, sectionLabel } from "./sections.js";
+import { DUR, enter, play, reducedMotion, setOpen } from "./motion.js";
+import { loadUi, saveUi } from "./ui-state.js";
+import { initWindows } from "./windows.js";
 import { createImageLoader, createTracer, drawTracePreview } from "./image-input.js";
 import { createWorkerClient } from "./worker-client.js";
 import { buildFailureStatus } from "./build-status.js";
@@ -14,7 +18,7 @@ import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
 import { writeHandoff } from "./handoff.js";
 import { createFontArea } from "./font-area.js";
-import { fontNeededMessage, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
+import { locationFontIds, fontNeededMessage, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 
 const STATUS_TEXT = {
   idle: "Preparing the model builder…",
@@ -103,7 +107,12 @@ function boot() {
     imageStatus: $("#cz-image-status"),
     imagePreview: $("#cz-image-preview"),
     reset: $("#cz-reset"),
-    factsNote: $("#cz-facts-note")
+    factsNote: $("#cz-facts-note"),
+    canvas: $("#cz-canvas"),
+    tip: $("#cz-tip"),
+    announce: $("#cz-announce"),
+    mode: $("#cz-mode"),
+    hint: $("#cz-hint")
   };
   noteEl = $("#cz-continue-note");
   if (els.factsNote) els.factsNote.textContent = FACTS_NOTE;
@@ -129,14 +138,20 @@ function boot() {
   let form = null;
 
   function setStatus(status, message, { retryable = true } = {}) {
+    const changed = state.status !== status;
     state.status = status;
     if (els.status) {
       els.status.textContent = message ?? STATUS_TEXT[status] ?? "";
       els.status.dataset.state = status;
+      // A state change gets a small pop; repeating "building" while typing must not flicker.
+      if (changed) play(els.status, [{ opacity: 0.35, transform: "translateY(6px) scale(.97)" }, { opacity: 1, transform: "none" }], { duration: DUR.base });
     }
     updateContinue();
-    if (els.retry) els.retry.hidden = !(status === "error" && retryable);
-    if (els.fallback) els.fallback.hidden = !(status === "error" && retryable);
+    const showFallback = status === "error" && retryable;
+    if (els.retry) els.retry.hidden = !showFallback;
+    if (els.fallback) {
+      if (showFallback && els.fallback.hidden) { els.fallback.hidden = false; enter(els.fallback, { y: -6 }); } else els.fallback.hidden = !showFallback;
+    }
     document.body.dataset.buildState = status;
   }
 
@@ -146,16 +161,29 @@ function boot() {
     if (next.note) setNote(next.note);
   }
 
+  // Warnings: only lines that were not shown a moment ago animate in; the list opens/closes with the
+  // shared height transition. While it closes, the old lines stay drawn.
+  let shownWarnings = [];
   function renderWarnings(list) {
     if (!els.warnings) return;
-    els.warnings.hidden = !list.length;
-    els.warnings.innerHTML = list.map(w => `<li>${esc(w)}</li>`).join("");
+    const fresh = new Set(list.filter(w => !shownWarnings.includes(w)));
+    shownWarnings = [...list];
+    if (list.length) {
+      els.warnings.innerHTML = list.map(w => `<li${fresh.has(w) ? ` class="is-new"` : ""}>${esc(w)}</li>`).join("");
+      if (els.warnings.hidden || els.warnings.__czAnim) setOpen(els.warnings, true);
+    } else if (!els.warnings.hidden) {
+      setOpen(els.warnings, false).then(() => { if (!shownWarnings.length) els.warnings.innerHTML = ""; });
+    }
   }
 
   function clearFacts() {
     if (els.facts) els.facts.innerHTML = EMPTY_FACTS;
     if (els.badge) { els.badge.textContent = ""; els.badge.hidden = true; }
   }
+  const showFacts = html => {
+    els.facts.innerHTML = html;
+    play(els.facts, [{ opacity: 0.4 }, { opacity: 1 }], { duration: DUR.base });
+  };
 
   async function renderFacts(result) {
     const colors = result.metrics?.unique_colors ?? 1;
@@ -164,19 +192,91 @@ function boot() {
       const metrics = await analyzeModelBytes({ name: result.filename, bytes: result.data, inflateRaw: browserInflateRaw });
       if (state.result !== result) return;
       const facts = describeFacts(metrics, { colors });
-      els.facts.innerHTML = facts.rows.map(r => `<div><dt>${esc(r.label)}</dt><dd>${esc(r.value)}</dd></div>`).join("");
+      showFacts(facts.rows.map(r => `<div><dt>${esc(r.label)}</dt><dd>${esc(r.value)}</dd></div>`).join(""));
       if (!facts.fitsBed) renderWarnings([...(result.warnings ?? []), "This model is larger than a typical build plate; we'll check how to split or scale it."]);
     } catch {
-      if (state.result === result) els.facts.innerHTML = `<div class="cz-facts-wide"><dt>Facts</dt><dd>Couldn't measure this model in the browser. We'll measure it when you send the request.</dd></div>`;
+      if (state.result === result) showFacts(`<div class="cz-facts-wide"><dt>Facts</dt><dd>Couldn't measure this model in the browser. We'll measure it when you send the request.</dd></div>`);
     }
   }
+
+  // ---- Sections: the preview and the settings point at each other ----------------------------
+  // link.preview: the part under the pointer; link.hover / link.focus: the settings under the
+  // pointer / holding keyboard focus; selected: the section the customer clicked or tapped.
+  const link = { preview: null, hover: null, focus: null };
+  let selected = null;
+  let inset = { left: 0, right: 0, top: 0, bottom: 0 };
+  let windows = null;
+  let announceTimer = 0;
+  let tipTimer = 0;
+
+  function announce(text) {
+    if (!els.announce) return;
+    els.announce.textContent = "";
+    clearTimeout(announceTimer);
+    announceTimer = setTimeout(() => { els.announce.textContent = text; }, 30);
+  }
+  function applyHighlight() {
+    viewer?.setHighlight({ hover: link.preview ?? link.hover ?? link.focus, selected });
+    form?.setLinked(link.preview ?? selected);
+  }
+  function hideTip() { els.tip?.classList.remove("is-visible"); }
+  function showTip(text, point) {
+    const tip = els.tip;
+    if (!tip || !els.stage) return;
+    clearTimeout(tipTimer);
+    if (tip.textContent !== text) tip.textContent = text;
+    const box = els.stage.getBoundingClientRect();
+    const x = Math.min(Math.max(8, point.x + 14), Math.max(8, box.width - tip.offsetWidth - 8));
+    const y = point.y + 18 > box.height - 44 ? Math.max(8, point.y - 38) : point.y + 18;
+    tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    tip.classList.add("is-visible");
+  }
+  function onPreviewHover(key, _name, point) {
+    if (key && point) showTip(sectionLabel(generator, key), point);
+    else hideTip();
+    if (key === link.preview) return;
+    link.preview = key;
+    applyHighlight();
+  }
+  function selectSection(key, { touch = false, point = null } = {}) {
+    selected = key;
+    applyHighlight();
+    viewer?.pulse(key);
+    windows?.reveal("settings");
+    const label = sectionLabel(generator, key);
+    const found = form.revealSection(key, { focus: !touch });
+    announce(found ? `${label} selected: ${found.count} setting${found.count === 1 ? "" : "s"}${touch ? "" : ". Focus is on the first one"}.` : `${label} selected. It has no settings to change here.`);
+    if (touch && point) {
+      showTip(label, point);
+      tipTimer = setTimeout(hideTip, 1500);
+    }
+  }
+  function clearSelection() {
+    if (!selected) return;
+    selected = null;
+    applyHighlight();
+    announce("Selection cleared.");
+  }
+  function onPreviewPick(key, _name, point, pointerType) {
+    if (key) selectSection(key, { touch: pointerType === "touch", point });
+    else clearSelection();
+  }
+  // Escape with focus outside the tool windows (or on the canvas) clears the selection.
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !event.defaultPrevented && selected) clearSelection();
+  });
 
   function ensureViewer() {
     if (viewer || !els.stage) return Promise.resolve(viewer);
     viewerLoading ??= import("./viewer3d.js")
       .then(({ createViewer }) => {
         viewer = createViewer(els.stage, { label: `${generator.title} preview` });
-        viewer.setView(view);
+        viewer.setPartResolver(name => partSection(generator, name));
+        viewer.onHover(onPreviewHover);
+        viewer.onPick(onPreviewPick);
+        viewer.setInset(inset);
+        viewer.setView(view, { animate: false });
+        applyHighlight();
         if (els.stageMessage) els.stageMessage.hidden = true;
         return viewer;
       })
@@ -242,6 +342,8 @@ function boot() {
         const { bytes, key } = fontArea.picked(ownFont);
         Object.assign(options, { fontBytes: bytes, fontKey: key });
       } else if (fontSpec && chosen !== "block") options.fontId = chosen;
+      const locationIds = locationFontIds(generator, checked.value);
+      if (locationIds.length) options.locationFontIds = locationIds;
       if (imageContours) options.imageContours = imageContours;
       const result = await client.build(generator.id, checked.value, options);
       if (seq !== buildSeq) return;
@@ -303,12 +405,24 @@ function boot() {
     build();
   }
 
-  form = renderForm(els.form, generator, state.params, { onChange });
-  // The image picker sits in the form, right under the field that turns it on.
-  if (imageSpec && els.imageArea) els.form.querySelector(`[data-field="${CSS.escape(imageField)}"]`)?.after(els.imageArea);
-  // The font area (file / installed font) sits right under the license confirmation it depends on.
+  // Layout preferences (localStorage, try/catch): the Settings grouping and collapsed groups.
+  const ui = loadUi();
+  const canSection = hasSections(generator);
+  const startMode = canSection ? (ui.mode === "category" ? "category" : "section") : "category";
+  const groupPrefix = `${generator.id}|`;
+  const collapsedGroups = Object.fromEntries(Object.entries(ui.groups ?? {}).filter(([k]) => k.startsWith(groupPrefix)).map(([k, v]) => [k.slice(groupPrefix.length), v === true]));
+  form = renderForm(els.form, generator, state.params, {
+    onChange,
+    mode: startMode,
+    collapsed: collapsedGroups,
+    onCollapse: (key, isCollapsed) => saveUi({ groups: { [groupPrefix + key]: isCollapsed } }),
+    onLink: (key, source) => { link[source] = key; applyHighlight(); }
+  });
+  // The image picker sits in the form, right under the field that turns it on; the font area
+  // (file / installed font) right under the license confirmation it depends on.
+  if (imageSpec && els.imageArea) form.attach(imageField, els.imageArea);
   if (fontArea) {
-    els.form.querySelector(`[data-field="${CSS.escape(fontSpec.ack)}"]`)?.after(fontArea.element);
+    form.attach(fontSpec.ack, fontArea.element);
     // A browser that can't list installed fonts can't offer that choice.
     if (!fontArea.supported) {
       const radio = els.form.querySelector(`input[name="${CSS.escape(fontSpec.key)}"][value="${CSS.escape(fontSpec.system)}"]`);
@@ -321,6 +435,23 @@ function boot() {
   }
   form.setValues(state.params);
   syncFontArea();
+
+  // Group by: Section | Category. Offered only when the definition names sections.
+  if (els.mode) {
+    const paintMode = current => { for (const button of els.mode.querySelectorAll("[data-mode]")) button.setAttribute("aria-pressed", String(button.dataset.mode === current)); };
+    els.mode.hidden = !canSection;
+    paintMode(form.getMode());
+    els.mode.addEventListener("click", event => {
+      const button = event.target.closest?.("[data-mode]");
+      if (!button || button.dataset.mode === form.getMode()) return;
+      form.setMode(button.dataset.mode);
+      paintMode(button.dataset.mode);
+      saveUi({ mode: button.dataset.mode });
+      announce(`Settings grouped by ${button.dataset.mode}.`);
+    });
+  }
+  if (els.tip) els.tip.hidden = false;
+  windows = els.canvas ? initWindows(els.canvas, { onLayout: next => { inset = next; viewer?.setInset(next); } }) : null;
 
   els.imageInput?.addEventListener("change", async () => {
     const file = els.imageInput.files?.[0];
@@ -363,7 +494,18 @@ function boot() {
       }
     }
     if (els.bedToggle) els.bedToggle.hidden = next !== "3d";
+    updateHint();
     viewer?.setView(next);
+  }
+  // The hint only promises what this page and view can do: turning exists in 3D, and clicking a
+  // part needs the definition's `focus` map.
+  function updateHint() {
+    if (!els.hint) return;
+    const parts = [];
+    if (view === "3d") parts.push("Drag to turn, scroll or pinch to zoom.");
+    if ((generator.focus ?? []).length) parts.push("Click a part to jump to its settings.");
+    els.hint.textContent = parts.join(" ");
+    els.hint.hidden = !parts.length;
   }
   els.tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => selectView(tab.dataset.view));

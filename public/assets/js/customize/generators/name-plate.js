@@ -1,18 +1,19 @@
 // Name plate: parameter schema and rules. A name in the built-in block font, one of the curated
 // self-hosted OFL fonts or the customer's own font file (parsed in the browser, never uploaded),
-// raised, outlined, shadowed or inlaid on a pill or rectangle plate, or cut out with a backing
-// outline (no plate). Optional keychain loop at the left end.
-import { contrastRatio } from "../color.js?v=400837523c07bad6";
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=400837523c07bad6";
+// raised, outlined, shadowed or inlaid on a contour-hugging, pill or rectangle plate, or cut out
+// with a backing outline (no plate). Optional keychain loop at the left end.
+import { contrastRatio } from "../color.js?v=122156b8914757f0";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=122156b8914757f0";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // plate kept under the relief (and under an inlay)
 const RELIEF_RANGE = [0.6, 2];
+const MARGIN_RANGE = [1, 10];
 const MIN_CONTRAST = 3;
 const round1 = v => Math.round(v * 10) / 10;
 const reliefMax = o => round1(Math.min(RELIEF_RANGE[1], o.thickness_mm - MIN_WEB));
 
-const INLAY_NEEDS_PLATE = "Inlay needs a plate to sit in. Choose a pill or rectangle plate, or another style.";
+const INLAY_NEEDS_PLATE = "Inlay needs a plate to sit in. Choose a contour, pill or rectangle plate, or another style.";
 
 function rules(o) {
   const fieldErrors = {};
@@ -38,7 +39,7 @@ function rules(o) {
 // A committed edit that would pair inlay with no plate moves the other control instead.
 function onParamChange(key, o) {
   if (key === "plate" && o.plate === "none" && o.style === "inlay") return { style: "raised" };
-  if (key === "style" && o.style === "inlay" && o.plate === "none") return { plate: "pill" };
+  if (key === "style" && o.style === "inlay" && o.plate === "none") return { plate: "hug" };
   return null;
 }
 
@@ -53,27 +54,40 @@ function errorField(message) {
   return null;
 }
 
+// Settings regions, in display order, and which previewed part focuses which one. The plate has a
+// single line of text, so there is no per-line font override: the main font is that line's font.
+const SECTIONS = { name: "Name & font", style: "Letter style", plate: "Plate & keychain loop", size: "Size & depth", colors: "Colors" };
+const FOCUS = [
+  { part: "Name", section: "name" },
+  { part: "Outline", section: "style" },
+  { part: "Shadow", section: "style" },
+  { part: "Plate", section: "plate" },
+  { part: "Backing", section: "plate" }
+];
+
 const SCHEMA = {
-  name: { type: "text", label: "Name", max: 20, default: "Alex", help: "Up to 20 characters. Characters the chosen font doesn't have are left out.", group: "text" },
-  ...fontSchema("text"),
+  name: { type: "text", label: "Name", max: 20, default: "Alex", help: "Up to 20 characters. Characters the chosen font doesn't have are left out.", group: "text", section: "name" },
+  ...Object.fromEntries(Object.entries(fontSchema("text")).map(([k, d]) => [k, { ...d, section: "name" }])),
   style: { type: "enum", label: "Style", options: [
     { value: "raised", label: "Raised letters" },
     { value: "outline", label: "Raised with an outline" },
     { value: "shadow", label: "Raised with a drop shadow" },
     { value: "inlay", label: "Inlaid, flush with the plate" }
-  ], default: "raised", help: "Inlay needs a plate.", group: "text" },
+  ], default: "raised", help: "Inlay needs a plate.", group: "text", section: "style" },
   plate: { type: "enum", label: "Plate", options: [
+    { value: "hug", label: "Contour (hugs letters)" },
     { value: "pill", label: "Pill" },
     { value: "rect", label: "Rounded rectangle" },
     { value: "none", label: "None: cut-out letters on a thin backing" }
-  ], default: "pill", group: "shape" },
-  keychain_loop: { type: "bool", label: "Keychain loop on the left", default: false, group: "shape" },
-  height_mm: { type: "number", label: "Letter height (whole name)", min: 14, max: 60, step: 1, default: 24, unit: "mm", group: "size" },
-  thickness_mm: { type: "number", label: "Total thickness", min: 2, max: 6, step: 0.2, default: 3, unit: "mm", group: "size" },
-  relief_mm: { type: "number", label: "Letter relief", min: RELIEF_RANGE[0], max: RELIEF_RANGE[1], step: 0.2, default: 1.2, unit: "mm", group: "size" },
-  text_color: { type: "color", label: "Letter color", default: "#ffffff", group: "colors" },
-  plate_color: { type: "color", label: "Plate color", default: "#2a6f97", visibleWhen: { plate: ["pill", "rect"] }, group: "colors" },
-  outline_color: { type: "color", label: "Outline and backing color", default: "#c1121f", visibleWhen: o => o.style === "outline" || o.style === "shadow" || o.plate === "none", group: "colors" }
+  ], default: "hug", group: "shape", section: "plate" },
+  plate_margin_mm: { type: "number", label: "Plate margin", help: "How far the plate extends beyond the letters.", min: MARGIN_RANGE[0], max: MARGIN_RANGE[1], step: 0.5, default: 3, unit: "mm", visibleWhen: { plate: ["hug", "pill", "rect"] }, group: "shape", section: "plate" },
+  keychain_loop: { type: "bool", label: "Keychain loop on the left", default: false, group: "shape", section: "plate" },
+  height_mm: { type: "number", label: "Letter height (whole name)", min: 14, max: 60, step: 1, default: 24, unit: "mm", group: "size", section: "size" },
+  thickness_mm: { type: "number", label: "Total thickness", min: 2, max: 6, step: 0.2, default: 3, unit: "mm", group: "size", section: "size" },
+  relief_mm: { type: "number", label: "Letter relief", min: RELIEF_RANGE[0], max: RELIEF_RANGE[1], step: 0.2, default: 1.2, unit: "mm", group: "size", section: "size" },
+  text_color: { type: "color", label: "Letter color", default: "#ffffff", group: "colors", section: "colors" },
+  plate_color: { type: "color", label: "Plate color", default: "#2a6f97", visibleWhen: { plate: ["hug", "pill", "rect"] }, group: "colors", section: "colors" },
+  outline_color: { type: "color", label: "Outline and backing color", default: "#c1121f", visibleWhen: o => o.style === "outline" || o.style === "shadow" || o.plate === "none", group: "colors", section: "colors" }
 };
 
 const PRESETS = {
@@ -84,12 +98,17 @@ const PRESETS = {
 
 export default {
   id: "name-plate",
-  version: 1,
+  // 2: the plate "hug" (contour) was added and became the default; plate_margin_mm sets the margin of
+  //    the hug, pill and rectangle plates (3 mm, as before, by default). Requests made at version 1
+  //    keep the plate they chose.
+  version: 2,
   title: "Name plate",
   blurb: "A name in a decorative font, raised, outlined, shadowed or inlaid on a plate, with an optional keychain loop.",
   category: "badges",
   origin: "house",
   rights: { publishable: true, note: "House design." },
+  sections: SECTIONS,
+  focus: FOCUS,
   schema: SCHEMA,
   rules,
   onParamChange,

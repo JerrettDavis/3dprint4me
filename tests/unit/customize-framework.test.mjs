@@ -162,13 +162,13 @@ test("shape helpers free their intermediates: only the returned cross-section st
   } finally { tracker.restore(); }
 });
 
-test("the 0.82 mm/module floor is exact: module == 0.82 builds, a hair smaller throws", async () => {
+test("the 0.6 mm/module floor is exact: module == 0.6 builds, a hair smaller throws", async () => {
   const { default: qrcode } = await import("qrcode-generator");
   const data = "https://3dprint4.me/";
   const qr = qrcode(0, "M"); qr.addData(data); qr.make();
   const n = qr.getModuleCount();
-  const ok = qrCrossSection(CrossSection, data, n * 0.82);
-  assert.ok(Math.abs(ok.module - 0.82) < 1e-12, String(ok.module));
+  const ok = qrCrossSection(CrossSection, data, n * 0.6);
+  assert.ok(Math.abs(ok.module - 0.6) < 1e-12, String(ok.module));
   ok.cs.delete();
-  assert.throws(() => qrCrossSection(CrossSection, data, n * 0.82 - 1e-9), /too dense/);
+  assert.throws(() => qrCrossSection(CrossSection, data, n * 0.6 - 1e-9), /too dense/);
 });

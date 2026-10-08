@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import uuid
 from pathlib import Path
 from typing import Iterator
@@ -18,9 +19,9 @@ from tests.support.server import request, running_server
 ROOT = Path(__file__).resolve().parents[2]
 BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
-DRAFT_KEY = "3dp-customize:route-shield:v2"
+DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 2}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2}
 
 
 @pytest.fixture(scope="module")
@@ -244,14 +245,14 @@ def test_continue_hands_the_model_to_the_order_page_and_the_operator_sees_proven
             page.locator("#submission-state.visible").wait_for(state="visible", timeout=15000)
 
             saved = json.loads(page.evaluate("localStorage.getItem('3dp-submitted-requests')"))[0]
-            assert saved["customization"] == {"generatorId": "route-shield", "generatorVersion": 2}, "stored copies keep no parameters"
+            assert saved["customization"] == {"generatorId": "route-shield", "generatorVersion": 3}, "stored copies keep no parameters"
 
             state = json.loads(store_path.read_text(encoding="utf-8"))
             stored = [record["request"] for record in state["requests"] if record["request"].get("customization")]
             assert stored, state["requests"]
             customization = stored[0]["customization"]
             assert customization["generatorId"] == "route-shield"
-            assert customization["generatorVersion"] == 2
+            assert customization["generatorVersion"] == 3
             assert customization["params"]["top_text"] == "HANDOFF"
             assert customization["redacted"] == []
 
@@ -312,7 +313,7 @@ def test_stale_or_missing_hand_off_leaves_the_order_page_usable(page: Page, base
 
 # --- Wi-Fi tag ---------------------------------------------------------------------------------
 
-WIFI_DRAFT_KEY = "3dp-customize:wifi-tag:v1"
+WIFI_DRAFT_KEY = "3dp-customize:wifi-tag:v2"
 WIFI_SECRET = "correct-horse-battery"
 
 
@@ -397,10 +398,16 @@ def test_wifi_keychain_builds_and_a_too_dense_code_is_explained_at_the_network_n
     expect(page.locator("#cz-facts-list")).to_contain_text("45 × 69")
     page.get_by_label("Network name (SSID)", exact=True).fill(";" * 32)
     page.get_by_label("Network password", exact=True).fill(";" * 63)
-    error = page.locator("[data-field='ssid'] #cz-ssid-error")
-    expect(error).to_contain_text("too dense", timeout=BUILD_TIMEOUT)
-    expect(error).to_contain_text("choose a larger tag format")
-    expect(page.get_by_label("Network name (SSID)", exact=True)).to_have_attribute("aria-invalid", "true")
+    # Dense but printable: the build succeeds and warns that scanning may be unreliable.
+    expect(page.locator("#cz-warnings")).to_contain_text("0.4 mm nozzle", timeout=BUILD_TIMEOUT)
+    # Shrinking it further crosses the printability floor: the error sits next to the QR size.
+    page.locator("#cz-qr_scale_pct").fill("25")
+    page.locator("#cz-qr_scale_pct").press("Tab")
+    error = page.locator("[data-field='qr_scale_pct'] #cz-qr_scale_pct-error")
+    expect(error).to_contain_text("QR code size", timeout=BUILD_TIMEOUT)
+    expect(page.locator("#cz-qr_scale_pct")).to_have_attribute("aria-invalid", "true")
+    page.locator("#cz-qr_scale_pct").fill("100")
+    page.locator("#cz-qr_scale_pct").press("Tab")
     page.get_by_label("Tag format").select_option("placard")
     wait_ready(page)
     expect(error).to_have_text("")
@@ -511,7 +518,7 @@ def test_wifi_label_too_small_to_read_is_an_error_at_the_network_name(page: Page
 
 # --- Rating card ------------------------------------------------------------------------------
 
-RATING_DRAFT_KEY = "3dp-customize:rating-card:v1"
+RATING_DRAFT_KEY = "3dp-customize:rating-card:v2"
 
 
 def paw_png() -> bytes:
@@ -604,7 +611,7 @@ def test_rating_card_mobile_layout_has_no_horizontal_scroll(browser: Browser, ba
 
 # --- Name plate -------------------------------------------------------------------------------
 
-NAME_DRAFT_KEY = "3dp-customize:name-plate:v1"
+NAME_DRAFT_KEY = "3dp-customize:name-plate:v2"
 FONT_FILES = ["Pacifico-Regular.ttf", "Lobster-Regular.ttf", "BebasNeue-Regular.ttf", "Righteous-Regular.ttf", "CaveatBrush-Regular.ttf", "RubikMonoOne-Regular.ttf", "Bangers-Regular.ttf", "TitanOne-Regular.ttf"]
 
 
@@ -658,18 +665,20 @@ def test_font_picker_is_keyboard_operable_and_fetches_fonts_same_origin(page: Pa
     expect(page.get_by_role("radio", name="Block (built-in)")).to_be_focused()
     # Arrow keys move the choice (each is a build); the list stays open until Enter or Escape.
     page.keyboard.press("ArrowDown")
-    expect(page.get_by_role("radio", name="Pacifico")).to_be_checked()
+    expect(page.get_by_role("radio", name=FONT_CHOICES[1], exact=True)).to_be_checked()
     expect(page.locator("#cz-font-list")).to_be_visible()
     page.keyboard.press("Enter")
     expect(page.locator("#cz-font-list")).to_be_hidden()
     expect(toggle).to_be_focused()
-    expect(toggle).to_have_text("Pacifico")
+    expect(toggle).to_have_text(FONT_CHOICES[1])
     wait_ready(page)
     # Each option is drawn in its own font, from this site.
     toggle.click()
+    page.locator("label[for='cz-font-lobster']").scroll_into_view_if_needed()  # faces load as options scroll into view
+    page.wait_for_function("() => getComputedStyle(document.querySelector(\"label[for='cz-font-lobster']\")).fontFamily.includes('cz-lobster')")
     family = page.locator("label[for='cz-font-lobster']").evaluate("el => getComputedStyle(el).fontFamily")
     assert "cz-lobster" in family, family
-    page.wait_for_function("document.fonts.check('16px \"cz-lobster\"')")
+    page.wait_for_function("() => document.fonts.check('16px \"cz-lobster\"')")
     page.locator("label[for='cz-font-bebas-neue']").click()
     expect(page.locator("#cz-font-list")).to_be_hidden()
     expect(toggle).to_have_text("Bebas Neue")
@@ -886,16 +895,16 @@ def test_arrowing_through_the_font_picker_builds_once(page: Page, base_url: str)
     for _ in range(5):
         page.keyboard.press("ArrowDown")
         page.wait_for_timeout(80)
-    expect(page.get_by_role("radio", name="Caveat Brush")).to_be_checked()
+    expect(page.get_by_role("radio", name=FONT_CHOICES[5], exact=True)).to_be_checked()
     page.keyboard.press("Enter")
-    expect(page.locator("#cz-font-toggle")).to_have_text("Caveat Brush")
+    expect(page.locator("#cz-font-toggle")).to_have_text(FONT_CHOICES[5])
     wait_settled(page)
     assert page.evaluate("window.__builds") == 1, page.evaluate("window.__builds")
     # Arrowing and pausing (no Enter) commits the settled choice once, too.
     page.keyboard.press("Enter")
     page.keyboard.press("ArrowDown")
     page.keyboard.press("ArrowDown")
-    expect(page.locator("#cz-font-toggle")).to_have_text("Bangers", timeout=BUILD_TIMEOUT)
+    expect(page.locator("#cz-font-toggle")).to_have_text(FONT_CHOICES[7], timeout=BUILD_TIMEOUT)
     wait_settled(page)
     assert page.evaluate("window.__builds") == 2, page.evaluate("window.__builds")
 
@@ -1197,7 +1206,15 @@ def test_the_catalog_page_has_no_csp_violations(browser: Browser, workspace: tup
 
 # ---- The shared font picker: the same on every generator, with installed fonts ------------------
 
-FONT_CHOICES = ["Block (built-in)", "Pacifico", "Lobster", "Bebas Neue", "Righteous", "Caveat Brush", "Rubik Mono One", "Bangers", "Titan One", "Installed on this computer", "My own font file"]
+def _font_choices() -> list[str]:
+    """The picker's labels, read from the shared catalogue so the test follows it."""
+    root = Path(__file__).resolve().parents[2]
+    code = "import('./public/assets/js/customize/fonts.js').then(m=>console.log(JSON.stringify(m.FONT_OPTIONS.map(o=>o.label))))"
+    out = subprocess.run(["node", "-e", code], cwd=root, capture_output=True, text=True, check=True).stdout
+    return json.loads(out)
+
+
+FONT_CHOICES = _font_choices()
 ACK_LABEL = "I have the right to use this font to make a printed item."
 INSTALLED_STUB = """
 window.queryLocalFonts = async () => [
@@ -1307,3 +1324,253 @@ def test_a_browser_that_cannot_list_fonts_still_offers_the_font_file(page: Page,
     page.locator("label[for='cz-font-custom']").click()
     page.get_by_label(ACK_LABEL).check()
     expect(page.locator("#cz-font-file")).to_be_enabled()
+
+
+# ---- The studio layout: a full-bleed canvas with docked, collapsible tool windows ------------------
+
+UI_KEY = "3dp-customize:ui:v1"
+
+
+def test_the_preview_fills_the_canvas_and_the_tool_windows_float_beside_it(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    stage = page.locator("#cz-stage").bounding_box()
+    canvas = page.locator("#cz-canvas").bounding_box()
+    assert stage and canvas
+    assert stage["width"] >= canvas["width"] - 1 and stage["height"] >= canvas["height"] - 1, (stage, canvas)
+    assert canvas["height"] >= 600, canvas  # the studio takes the viewport under the header
+    settings = page.locator("#cz-win-settings").bounding_box()
+    facts = page.locator("#cz-win-info").bounding_box()
+    assert settings and facts
+    assert settings["x"] + settings["width"] <= facts["x"], "the windows sit at opposite edges and never overlap"
+    expect(page.locator("#cz-stage canvas")).to_be_visible()
+    # The view tabs, bed toggle and Continue live in the top bar, above the canvas.
+    assert page.get_by_role("button", name="Continue to request").bounding_box()["y"] < canvas["y"]
+
+
+def test_a_tool_window_collapses_with_its_button_and_the_choice_is_remembered(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    toggle = page.locator("#cz-win-settings .cz-win-toggle")
+    body = page.locator("#cz-win-settings-body")
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    expect(body).to_be_visible()
+    toggle.click()
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    expect(body).to_be_hidden()
+    assert '"settings":true' in page.evaluate(f"localStorage.getItem({UI_KEY!r}) || ''")
+    page.reload()
+    wait_ready(page)
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    expect(body).to_be_hidden()
+    toggle.click()
+    expect(body).to_be_visible()
+    # Escape in a control moves focus to the window's title button; Escape there collapses it.
+    page.get_by_label("Upper text", exact=True).focus()
+    page.keyboard.press("Escape")
+    expect(toggle).to_be_focused()
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    page.keyboard.press("Escape")
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    # The facts window is independent.
+    expect(page.locator("#cz-win-info .cz-win-toggle")).to_have_attribute("aria-expanded", "true")
+
+
+def test_collapsing_is_instant_when_reduced_motion_is_requested(browser: Browser, base_url: str) -> None:
+    context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/customize/g/route-shield/")
+        wait_ready(page)
+        page.locator("#cz-win-settings .cz-win-toggle").click()
+        assert page.locator("#cz-win-settings-body").evaluate("el => el.hidden") is True, "no animation to wait for"
+        duration = page.locator("#cz-win-settings-body").evaluate("el => el.getAnimations().length")
+        assert duration == 0
+        assert page.evaluate("getComputedStyle(document.body).getPropertyValue('--cz-dur').trim()") in ("0ms", "0s")
+    finally:
+        context.close()
+
+
+def test_a_settings_group_collapses_and_a_field_error_opens_and_closes(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    if page.locator("#cz-mode").is_visible():  # sections are declared: the category groups are one click away
+        page.locator("#cz-mode").get_by_role("button", name="Category").click()
+    group = page.locator("[data-group-key='size'] .cz-group-toggle")
+    expect(group).to_have_attribute("aria-expanded", "true")
+    group.click()
+    expect(group).to_have_attribute("aria-expanded", "false")
+    expect(page.locator("#cz-width_mm")).to_be_hidden()
+    group.click()
+    expect(page.locator("#cz-width_mm")).to_be_visible()
+    width = page.locator("#cz-width_mm")
+    width.fill("20")
+    wrap = page.locator("[data-field='width_mm'] .cz-err")
+    expect(wrap).to_have_class(re.compile(r"\bis-open\b"))
+    width.press("Tab")
+    wait_ready(page)
+    expect(wrap).not_to_have_class(re.compile(r"\bis-open\b"))
+
+
+def test_mobile_uses_a_bottom_sheet_with_tabs_that_leaves_the_preview_room(browser: Browser, base_url: str) -> None:
+    context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark")
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/customize/g/route-shield/")
+        wait_ready(page)
+        expect(page.locator("#cz-win-settings")).to_be_visible()
+        expect(page.locator("#cz-win-info")).to_be_hidden()
+        sheet = page.locator(".cz-panels").bounding_box()
+        assert sheet and sheet["height"] <= 844 * 0.6 and sheet["y"] + sheet["height"] <= 844 + 1, sheet
+        page.get_by_role("button", name="Facts", exact=True).click()
+        expect(page.locator("#cz-win-info")).to_be_visible()
+        expect(page.locator("#cz-facts-list")).to_contain_text("cm³")
+        expect(page.locator("#cz-win-settings")).to_be_hidden()
+        page.get_by_role("button", name="Settings", exact=True).click()
+        expect(page.locator("#cz-win-settings")).to_be_visible()
+        # The chevron folds the sheet down to its tab strip and back.
+        toggle = page.locator("#cz-sheet-toggle")
+        toggle.click()
+        expect(toggle).to_have_attribute("aria-expanded", "false")
+        expect(page.locator("#cz-win-settings-body")).to_be_hidden()
+        assert page.locator(".cz-panels").bounding_box()["height"] < 120
+        toggle.click()
+        expect(page.locator("#cz-win-settings-body")).to_be_visible()
+        assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0
+    finally:
+        context.close()
+
+
+def test_font_picker_type_ahead_jumps_to_the_font_and_commits_once(page: Page, base_url: str) -> None:
+    open_name_plate(page, base_url)
+    toggle = page.locator("#cz-font-toggle")
+    toggle.click()
+    expect(page.get_by_role("radio", name="Block (built-in)")).to_be_focused()
+    page.keyboard.press("l")
+    expect(page.get_by_role("radio", name="Lobster")).to_be_checked()
+    expect(page.get_by_role("radio", name="Lobster")).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(toggle).to_have_text("Lobster")
+    wait_settled(page)
+    # The list scrolls inside its own bounded box and keeps heading rows out of the labels.
+    toggle.click()
+    scroller = page.locator("#cz-font-list .cz-picker-scroll")
+    assert scroller.evaluate("el => getComputedStyle(el).overflowY") == "auto"
+    assert scroller.bounding_box()["height"] <= 900 * 0.6
+    assert page.locator("#cz-font-list label").count() == len(FONT_CHOICES)
+
+
+# ---- Sections: group by Section | Category, and the preview that points at its settings -----------
+
+_CONTRACT_SCRIPT = """
+import { pathToFileURL } from 'node:url';
+const { GENERATORS } = await import(pathToFileURL(process.argv[1]).href);
+const out = {};
+for (const [id, g] of Object.entries(GENERATORS)) {
+  out[id] = {
+    sections: Object.keys(g.sections ?? {}).length > 0,
+    focus: Array.isArray(g.focus) && g.focus.length > 0,
+    fieldSections: Object.values(g.schema ?? {}).some(f => typeof f.section === 'string' && f.section)
+  };
+}
+console.log(JSON.stringify(out));
+"""
+
+
+def section_contract() -> dict[str, dict[str, bool]]:
+    """What each registered definition declares (read from the registry itself, so shorthand,
+    spreads and helpers count): { id: { sections, focus, fieldSections } }."""
+    import subprocess
+    done = subprocess.run(["node", "--input-type=module", "-e", _CONTRACT_SCRIPT, str(ROOT / "public/assets/js/customize/registry.js")],
+                          cwd=ROOT, capture_output=True, text=True, check=True)
+    return json.loads(done.stdout)
+
+
+def needs(generator_id: str, *flags: str) -> None:
+    declared = section_contract()[generator_id]
+    missing = [f for f in flags if not declared[f]]
+    if missing:
+        pytest.skip(f"{generator_id} does not declare {' / '.join(missing)} yet")
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_the_hint_only_promises_what_the_page_and_view_can_do(page: Page, base_url: str, generator_id: str) -> None:
+    open_generator(page, base_url, generator_id)
+    hint = page.locator("#cz-hint")
+    text = hint.text_content() or ""
+    assert "Drag to turn" not in text, "turning exists only in the 3D view"
+    assert ("Click a part" in text) == section_contract()[generator_id]["focus"], text
+    page.get_by_role("tab", name="3D").click()
+    expect(hint).to_contain_text("Drag to turn")
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_group_by_toggle_shows_the_same_fields_in_both_modes_and_is_remembered(page: Page, base_url: str, generator_id: str) -> None:
+    needs(generator_id, "fieldSections")
+    open_generator(page, base_url, generator_id)
+    mode = page.locator("#cz-mode")
+    expect(mode).to_be_visible()
+    expect(mode.get_by_role("button", name="Section")).to_have_attribute("aria-pressed", "true")
+    fields = page.locator("#cz-form [data-field]").evaluate_all("els => els.map(e => e.dataset.field).sort()")
+    assert page.locator("#cz-form .cz-group[data-section]").count() >= 1
+    mode.get_by_role("button", name="Category").click()
+    expect(mode.get_by_role("button", name="Category")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#cz-form .cz-group[data-section]")).to_have_count(0)
+    assert page.locator("#cz-form [data-field]").evaluate_all("els => els.map(e => e.dataset.field).sort()") == fields
+    page.reload()
+    open_generator(page, base_url, generator_id)
+    expect(page.locator("#cz-mode").get_by_role("button", name="Category")).to_have_attribute("aria-pressed", "true")
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_hovering_and_clicking_a_part_leads_to_its_settings(page: Page, base_url: str, generator_id: str) -> None:
+    needs(generator_id, "focus", "fieldSections")
+    open_generator(page, base_url, generator_id)
+    page.locator("#cz-mode").get_by_role("button", name="Section").click()
+    box = page.locator("#cz-stage").bounding_box()
+    assert box
+    tip = page.locator("#cz-tip")
+    headers = [t.strip() for t in page.locator("#cz-form .cz-group[data-section] .cz-group-toggle").all_text_contents()]
+    hit = None
+    # Scan the middle of the canvas for a part whose section has settings (a part without any
+    # settings only gets the tooltip, which the contract allows).
+    for row in range(1, 11):
+        for col in range(1, 15):
+            x = box["x"] + box["width"] * (0.28 + 0.44 * col / 15)
+            y = box["y"] + box["height"] * (0.12 + 0.76 * row / 11)
+            page.mouse.move(x, y)
+            page.wait_for_timeout(35)
+            if "is-visible" in (tip.get_attribute("class") or "") and (tip.text_content() or "").strip() in headers:
+                hit = (x, y)
+                break
+        if hit:
+            break
+    assert hit, f"no part of the model that maps to one of {headers} reacts to hovering"
+    label = (tip.text_content() or "").strip()
+    # The matching settings header is softly marked, and the part is outlined.
+    expect(page.locator("#cz-form .cz-group.is-linked")).to_have_count(1)
+    expect(page.locator("#cz-form .cz-group.is-linked .cz-group-toggle")).to_contain_text(label)
+    page.mouse.click(*hit)
+    expect(page.locator("#cz-announce")).to_contain_text("selected", timeout=3000)
+    section = page.locator("#cz-form .cz-group.is-linked")
+    expect(section).to_have_count(1)
+    expect(section.locator(".cz-group-toggle")).to_have_attribute("aria-expanded", "true")
+    focused_section = page.evaluate("document.activeElement.closest('.cz-group')?.dataset.section || ''")
+    assert focused_section == section.get_attribute("data-section"), focused_section
+    # Clicking empty canvas clears the selection.
+    page.mouse.move(box["x"] + 4, box["y"] + 4)
+    page.mouse.click(box["x"] + 4, box["y"] + 4)
+    expect(page.locator("#cz-announce")).to_contain_text("Selection cleared", timeout=3000)
+
+
+def test_a_per_location_font_loads_in_the_worker_and_builds(page: Page, base_url: str) -> None:
+    """The override font is requested by the page and handed to the builder (not just unit-built)."""
+    fonts: list[str] = []
+    page.on("request", lambda r: fonts.append(r.url) if "/customize/fonts/Pacifico" in r.url else None)
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    page.locator("#cz-top_font-toggle").click()
+    page.locator("label[for='cz-top_font-pacifico']").click()
+    wait_settled(page)
+    expect(page.locator("body[data-build-state]")).to_have_attribute("data-build-state", "ready", timeout=BUILD_TIMEOUT)
+    assert any(u.endswith(".ttf") and "Pacifico-Regular" in u for u in fonts), fonts

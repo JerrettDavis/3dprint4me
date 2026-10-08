@@ -1,9 +1,13 @@
 // Name plate geometry. The name is fitted into a box `height_mm` tall and at most 150 mm wide,
 // then stacked on a plate:
-//   plate "pill" / "rect": a rounded plate 3 mm larger than the name on every side;
+//   plate "hug" (default): a contour stroke of constant thickness around the letters,
+//     `plate_margin_mm` (3 mm) wide on every side, never thicker above or below any letter
+//     (see hugAround);
+//   plate "pill" / "rect": a rounded plate `plate_margin_mm` larger than the name on every side;
 //   plate "none": a thin backing that follows the letters (a morphological closing of the
 //     name: grown far enough to bridge the gaps between letters, then shrunk back to a 1.6 mm
-//     rim), so the letters print as one cut-out piece.
+//     rim), so the letters print as one cut-out piece; letters it leaves apart are joined by
+//     hard-edged rectangular bars (see bridgeBacking).
 // Styles (T = total thickness, R = letter relief; colored parts never overlap):
 //   raised:  plate T-R thick, letters R tall on top;
 //   outline: raised, plus a 1.2 mm ring around the letters at letter height (outline color);
@@ -37,7 +41,6 @@ export const DISCONNECTED_BLOCK = "The letters aren't connected — choose a pla
 export const THIN_STROKES = "Some strokes are thinner than 0.8 mm and may not print cleanly; increase the height or pick a bolder font.";
 const MIN_STROKE = 0.8;       // strokes thinner than this may not print cleanly: warn
 const THIN_LOSS = 0.02;       // ... when opening the letters by MIN_STROKE loses more than 2 % of their area
-const BRIDGE_OVERLAP = 1;     // a backing bridge reaches this far into each piece it joins (mm)
 const NO_FILE = "Choose a font file below, or pick one of the listed fonts.";
 const NOT_LOADED = "The selected font isn't loaded. Try again, or pick another font.";
 const tooSmall = h => `The name would print only ${h.toFixed(1)} mm tall at the ${MAX_WIDTH} mm width limit, too small to read. Shorten it.`;
@@ -56,38 +59,89 @@ export function drawableName(name, font) {
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
+const BRIDGE_OVERLAP = 1;     // how far a bar reaches into each neighbouring piece (mm)
+const BRIDGE_ROWS = 24;       // rows sampled across the centre band
+const MIN_PIECE_AREA = 0.01;  // smaller "pieces" are numeric slivers, not geometry (mm²)
+
+// The connected pieces of a cross-section. Offsets leave zero-area slivers behind as extra
+// "pieces"; those are dropped (and freed) here.
+function solidPieces(cs) {
+  const all = cs.decompose();
+  return all.filter(piece => (piece.area() > MIN_PIECE_AREA ? true : (free(piece), false)));
+}
+
 /**
- * Joins the pieces of a no-plate backing (letters a word gap apart, or letters whose closing
- * didn't meet) with horizontal bars at the name's vertical centre: a band max(2 × rim,
- * 0.25 × name height) tall spans each gap between neighbouring pieces, left to right, reaching
- * 1 mm into each. Only the backing changes; the letters stay as designed. Pieces that never
- * cross the centre band (stacked vertically) stay apart, and the caller reports them.
+ * Joins the pieces of a no-plate backing (letters a word gap apart, or letters whose rim didn't
+ * meet) with hard-edged rectangular bars across the name's centre band (max(2 × rim,
+ * 0.25 × name height) tall). The band is sampled in rows: the bar starts BRIDGE_OVERLAP inside the
+ * left piece's *narrowest* reach across the band and ends BRIDGE_OVERLAP inside the right piece's
+ * narrowest reach, so it overlaps both neighbours in every row, not just where a slanted letter
+ * (A, V, W...) happens to stick out furthest. The bar keeps its square corners and never leaves
+ * the band, so nothing protrudes above or below the letters. Only the backing changes. Pieces that
+ * never cross the centre band (stacked vertically) stay apart, and the caller reports them.
  * `t` registers temporaries; the result is registered too.
  */
 export function bridgeBacking(CrossSection, backing, { cy, height }, t) {
-  const pieces = backing.decompose();
+  const pieces = solidPieces(backing);
   try {
     if (pieces.length < 2) return backing;
     const half = Math.max(2 * BACKING, 0.25 * height) / 2;
     const bb = backing.bounds();
-    const band = t(t(CrossSection.square([bb.max[0] - bb.min[0] + 2, 2 * half], false)).translate([bb.min[0] - 1, cy - half]));
-    const spans = [];
-    for (const piece of pieces) {
-      const part = t(piece.intersect(band));
-      if (!part.isEmpty()) { const b = part.bounds(); spans.push([b.min[0], b.max[0]]); }
-    }
-    spans.sort((a, b) => a[0] - b[0]);
+    // Per piece: its leftmost / rightmost reach in every sampled row of the band, as the
+    // furthest the piece is guaranteed to cover across the whole band.
+    const rowH = (2 * half) / BRIDGE_ROWS;
+    const reach = piece => {
+      let left = -Infinity, right = Infinity, rows = 0;   // left = max of row minima, right = min of row maxima
+      for (let r = 0; r < BRIDGE_ROWS; r++) {
+        const strip = t(t(CrossSection.square([bb.max[0] - bb.min[0] + 2, rowH * 0.5], false)).translate([bb.min[0] - 1, cy - half + r * rowH + rowH * 0.25]));
+        const part = t(piece.intersect(strip));
+        if (part.isEmpty()) continue;
+        const pb = part.bounds();
+        left = Math.max(left, pb.min[0]); right = Math.min(right, pb.max[0]); rows++;
+      }
+      return rows ? { min: piece.bounds().min[0], max: piece.bounds().max[0], coverLeft: left, coverRight: right, rows } : null;
+    };
+    const spans = pieces.map(reach).filter(Boolean).sort((a, b) => a.min - b.min);
     const bars = [];
     for (let i = 1; i < spans.length; i++) {
       const [left, right] = [spans[i - 1], spans[i]];
-      if (right[0] <= left[1]) continue;   // already side by side across the band
-      const x0 = left[1] - BRIDGE_OVERLAP, x1 = right[0] + BRIDGE_OVERLAP;
-      bars.push(t(t(CrossSection.square([x1 - x0, 2 * half], false)).translate([x0, cy - half])));
+      // The left piece fully covers the band up to coverRight (its narrowest row), the right one from coverLeft.
+      const a = left.coverRight - BRIDGE_OVERLAP, b = right.coverLeft + BRIDGE_OVERLAP;
+      const x0 = Math.min(a, b), x1 = Math.max(a, b);   // (interleaved outlines, like A and V, can cross over)
+      bars.push(t(t(CrossSection.square([Math.max(x1 - x0, 0.1), 2 * half], false)).translate([x0, cy - half])));
     }
     return bars.length ? t(CrossSection.union([backing, ...bars])) : backing;
   } finally {
     pieces.forEach(free);
   }
+}
+
+/** Keeps outer contours only: fills every hole (counters of O, e, a, and gaps a loop closes off). */
+function fillHoles(CrossSection, cs) {
+  const solid = cs.toPolygons().filter(poly => poly.reduce((a, [x, y], i) => { const [x2, y2] = poly[(i + 1) % poly.length]; return a + x * y2 - x2 * y; }, 0) > 2 * MIN_PIECE_AREA);
+  return CrossSection.ofPolygons(solid, "NonZero");
+}
+
+/**
+ * The "contour" plate: a stroke of constant thickness around the whole name. The letters are
+ * grown by exactly `margin` (round joins), so the plate is `margin` wide on every side of every
+ * letter: a short letter next to tall ones keeps the same thin rim, nowhere thicker than the
+ * margin, and the top and bottom edges never rise above the margin over the highest ink or fall
+ * below it under the lowest (the result is clipped to that band to be exact). Neighbouring
+ * letters closer than twice the margin merge into one body; every interior hole is filled (the
+ * plate is one solid body), and pieces left apart (a word gap) are joined with the same
+ * hard-edged bars as the no-plate backing.
+ * `t` registers temporaries; the result is registered too.
+ */
+export function hugAround(CrossSection, text, margin, t) {
+  const b = text.bounds();
+  const h = b.max[1] - b.min[1];
+  const grown = t(text.offset(margin, "Round", 2, SEGMENTS));
+  const band = t(t(CrossSection.square([b.max[0] - b.min[0] + 2 * margin + 4, h + 2 * margin], false)).translate([b.min[0] - margin - 2, b.min[1] - margin]));
+  const clipped = t(grown.intersect(band));
+  const filled = t(fillHoles(CrossSection, clipped));
+  const bridged = bridgeBacking(CrossSection, filled, { cy: (b.min[1] + b.max[1]) / 2, height: h }, t);
+  return bridged === filled ? filled : t(fillHoles(CrossSection, bridged));   // a bar can close off a pocket between letters
 }
 
 /**
@@ -123,6 +177,7 @@ export default async function build(p, { wasm, font = null } = {}) {
     if (p.font !== "block" && p.font !== "custom" && !font) throw new Error(NOT_LOADED);
     const face = p.font === "block" ? null : font;
     const T = p.thickness_mm, R = p.relief_mm;
+    const margin = p.plate_margin_mm ?? PAD;   // plate margin around the name (hug, pill, rect)
 
     // ---- The name, fitted into its box ----
     const { text: drawable, skipped } = drawableName(p.name, face);
@@ -147,10 +202,12 @@ export default async function build(p, { wasm, font = null } = {}) {
       const grow = clamp(BRIDGE[0] * h, BACKING, BRIDGE[1]);
       const closed = t(t(text.offset(grow, "Round", 2, SEGMENTS)).offset(-(grow - BACKING), "Round", 2, SEGMENTS));
       plate = bridgeBacking(CrossSection, closed, { cy, height: h }, t);
+    } else if (p.plate === "hug") {
+      plate = hugAround(CrossSection, text, margin, t);
     } else if (p.plate === "pill") {
-      plate = t(pillAround(CrossSection, text, PAD));
+      plate = t(pillAround(CrossSection, text, margin));
     } else {
-      plate = t(t(roundedRect(CrossSection, w + 2 * PAD, h + 2 * PAD, RECT_RADIUS)).translate([cx, cy]));
+      plate = t(t(roundedRect(CrossSection, w + 2 * margin, h + 2 * margin, RECT_RADIUS)).translate([cx, cy]));
     }
 
     // ---- Keychain loop ----
@@ -176,7 +233,9 @@ export default async function build(p, { wasm, font = null } = {}) {
         parts.push(t(t(CrossSection.square([reach - lx, 7], false)).translate([lx, cy - 3.5])));
       }
       hole2d = t(t(CrossSection.circle(LOOP.holeR, 48)).translate([lx, cy]));
-      plate = t(t(CrossSection.union([plate, ...parts])).subtract(hole2d));
+      const joined = t(CrossSection.union([plate, ...parts]));
+      // The contour plate has no holes of its own: a pocket the loop ring closes off is filled too.
+      plate = t((p.plate === "hug" ? t(fillHoles(CrossSection, joined)) : joined).subtract(hole2d));
       loop = { cx: lx, cy, outerR: LOOP.outerR, holeR: LOOP.holeR, reach };
     }
 

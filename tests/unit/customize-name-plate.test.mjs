@@ -10,7 +10,7 @@ import { loadFont, CURATED_FONTS } from "../../customizer/framework/fonts.js";
 import { getGenerator, listPublicGenerators } from "../../public/assets/js/customize/registry.js";
 import { clampParams, validateParams } from "../../public/assets/js/customize/schema.js";
 import { contrastRatio } from "../../public/assets/js/customize/color.js";
-import { FONTS, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
+import { FONTS, findFont, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 import { normalizeCustomization } from "../../lib/customization/domain.js";
 import build from "../../customizer/generators/name-plate/build.js";
 import { trackLiveObjects } from "../support/manifold-live.mjs";
@@ -40,11 +40,13 @@ const volume = m => m.volume();
 
 // ---- Fonts: files, licenses, checksums ------------------------------------------------------
 
-test("eight curated OFL fonts with kebab-case ids, labels, files and the OFL-1.1 license", () => {
-  assert.deepEqual(FONTS.map(f => f.id), ["pacifico", "lobster", "bebas-neue", "righteous", "caveat-brush", "rubik-mono-one", "bangers", "titan-one"]);
+test("curated OFL fonts with kebab-case ids, labels, files and the OFL-1.1 license", () => {
+  // The original eight display fonts keep their ids (saved drafts and orders refer to them).
+  const original = ["pacifico", "lobster", "bebas-neue", "righteous", "caveat-brush", "rubik-mono-one", "bangers", "titan-one"];
+  assert.deepEqual(FONTS.filter(f => f.category === "display").map(f => f.id), original);
   for (const f of FONTS) {
     assert.match(f.id, /^[a-z]+(-[a-z]+)*$/);
-    assert.match(f.file, /^[A-Za-z]+-Regular\.ttf$/);
+    assert.match(f.file, /^[A-Za-z0-9]+-[A-Za-z]+\.ttf$/);
     assert.equal(f.license, "OFL-1.1");
     assert.ok(f.label.length > 2);
   }
@@ -66,7 +68,7 @@ test("the font list matches the files on disk and each has a recorded license", 
     assert.ok(font.charToGlyph("A").index > 0, `${f.label} draws A`);
     assert.ok(!font.tables.fvar, `${f.label} is a static font`);
     const family = font.names.windows?.fontFamily?.en ?? font.names.macintosh?.fontFamily?.en ?? font.names.fontFamily?.en;
-    assert.equal(family, f.label, "the label is the font's own family name");
+    assert.ok(f.label.startsWith(family), `the label ${f.label} starts with the font's own family name ${family}`);
     // The license entry names the family, the license and the shipped license text.
     assert.ok(licenses.includes(`## ${f.label}`), `license entry for ${f.label}`);
     const entry = licenses.split("## ").find(s => s.startsWith(f.label));
@@ -74,9 +76,9 @@ test("the font list matches the files on disk and each has a recorded license", 
     assert.match(entry, /Copyright/);
     assert.ok(entry.includes(f.licenseFile), `${f.label} names ${f.licenseFile}`);
     const ofl = await readFile(new URL(f.licenseFile, FONT_DIR), "utf8");
-    assert.match(ofl, /SIL OPEN FONT LICENSE Version 1\.1/);
+    assert.match(ofl, /SIL OPEN FONT LICENSE\s+Version 1\.1/);
   }
-  assert.ok(total < 1.5 * 1024 * 1024, `font payload ${total} bytes`);
+  assert.ok(total < 6.5 * 1024 * 1024, `font payload ${total} bytes`);
 });
 
 test("SHA256SUMS pins every font file (a silent change fails here)", async () => {
@@ -161,18 +163,18 @@ test("a curated font that can't be fetched or parsed is a retryable load failure
 
 test("generator definition: id, version, category, provenance, registered", () => {
   assert.equal(gen.id, "name-plate");
-  assert.equal(gen.version, 1);
+  assert.equal(gen.version, 2);
   assert.equal(gen.title, "Name plate");
   assert.equal(gen.origin, "house");
   assert.deepEqual(gen.rights, { publishable: true, note: "House design." });
   assert.ok(listPublicGenerators().some(g => g.id === "name-plate"));
 });
 
-test("defaults: Alex in the block font, raised on a pill plate, 24 mm text", () => {
+test("defaults: Alex in the block font, raised on a contour (hug) plate, 24 mm text", () => {
   const p = paramsFor();
   assert.deepEqual(
     { name: p.name, font: p.font, style: p.style, plate: p.plate, keychain_loop: p.keychain_loop, height_mm: p.height_mm, thickness_mm: p.thickness_mm, relief_mm: p.relief_mm },
-    { name: "Alex", font: "block", style: "raised", plate: "pill", keychain_loop: false, height_mm: 24, thickness_mm: 3, relief_mm: 1.2 }
+    { name: "Alex", font: "block", style: "raised", plate: "hug", keychain_loop: false, height_mm: 24, thickness_mm: 3, relief_mm: 1.2 }
   );
   assert.ok(contrastRatio(p.text_color, p.plate_color) >= 3);
   assert.ok(contrastRatio(p.text_color, p.outline_color) >= 3);
@@ -220,7 +222,7 @@ test("inlay needs a plate: the server refuses it, the page switches the other co
   assert.equal(r.ok, false);
   assert.match(r.fieldErrors.style, /Inlay needs a plate/);
   assert.equal(clampParams(gen, { ...paramsFor({ style: "inlay" }), plate: "none" }, "plate").style, "raised");
-  assert.equal(clampParams(gen, { ...paramsFor({ plate: "none" }), style: "inlay" }, "style").plate, "pill");
+  assert.equal(clampParams(gen, { ...paramsFor({ plate: "none" }), style: "inlay" }, "style").plate, "hug");
   assert.equal(clampParams(gen, { ...paramsFor(), plate: "rect" }, "plate").style, "raised");
 });
 
@@ -299,7 +301,7 @@ test("parts per style: names, colors, heights and no overlapping volume", async 
     shadow: ["Plate", "Shadow", "Name"],
     inlay: ["Plate", "Name"]
   };
-  for (const plate of ["pill", "rect", "none"]) for (const style of Object.keys(expected)) {
+  for (const plate of ["hug", "pill", "rect", "none"]) for (const style of Object.keys(expected)) {
     if (plate === "none" && style === "inlay") continue;
     const p = paramsFor({ name: "Jordan", font: "bebas-neue", style, plate });
     const built = await build(p, { wasm, font });
@@ -327,7 +329,7 @@ test("parts per style: names, colors, heights and no overlapping volume", async 
 });
 
 test("the plate (or backing) is one connected piece for every font", async () => {
-  for (const f of ["block", ...FONTS.map(x => x.id)]) for (const plate of ["pill", "rect", "none"]) {
+  for (const f of ["block", ...FONTS.map(x => x.id)]) for (const plate of ["hug", "pill", "rect", "none"]) {
     const p = paramsFor({ name: "Jordan", font: f, plate, keychain_loop: true });
     const built = await build(p, { wasm, font: await fontFor(p) });
     try {
@@ -339,7 +341,7 @@ test("the plate (or backing) is one connected piece for every font", async () =>
 
 test("the letters sit at least 3 mm inside a pill or rectangle plate (and inside the backing)", async () => {
   for (const [font, name] of [["block", "Alex"], ["block", "AW"], ["lobster", "Alex"], ["pacifico", "Jordan"], ["rubik-mono-one", "MAX"], ["bebas-neue", "I"], ["titan-one", "Maximiliana Rosalind"]]) {
-    for (const plate of ["pill", "rect", "none"]) {
+    for (const plate of ["hug", "pill", "rect", "none"]) {
       const p = paramsFor({ name, font, plate });
       const built = await build(p, { wasm, font: await fontFor(p) });
       const temps = [];
@@ -375,7 +377,13 @@ test("no-plate backings bridge ordinary names into one piece; only the backing c
     assert.equal(p.plate, "none");
     assert.equal(p.keychain_loop, true);
     const f = await fontFor(p);
-    const bridged = await build(p, { wasm, font: f });
+    // Hairline and ornamental faces (scripts, blackletter) may refuse to bridge: they must say so, readably.
+    const mayRefuse = findFont(font)?.category && findFont(font).category !== "display";
+    let bridged;
+    try { bridged = await build(p, { wasm, font: f }); } catch (e) {
+      if (!mayRefuse || !/letters aren't connected/.test(e.message)) throw e;
+      continue;
+    }
     const onPlate = await build({ ...p, plate: "rect" }, { wasm, font: f });
     const temps = [];
     const t = o => { temps.push(o); return o; };
@@ -588,7 +596,7 @@ test("filename, title and 3MF part names are plain and bounded", async () => {
 
 test("build() frees every temporary: only the returned solids stay alive", async () => {
   const cases = [];
-  for (const style of ["raised", "outline", "shadow", "inlay"]) for (const plate of ["pill", "rect", "none"]) for (const keychain_loop of [false, true]) {
+  for (const style of ["raised", "outline", "shadow", "inlay"]) for (const plate of ["hug", "pill", "rect", "none"]) for (const keychain_loop of [false, true]) {
     if (style === "inlay" && plate === "none") continue;
     cases.push({ style, plate, keychain_loop, font: "pacifico" });
   }
