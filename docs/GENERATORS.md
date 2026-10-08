@@ -384,8 +384,10 @@ A text location (the upper line, the back text, a plate's second line…) may us
   `{ mode, font }`: `inherit` (or a missing field) resolves to the main font, `block` to the
   built-in font (`font: null`), any other id to `ctx.fonts[id]` (loaded by the worker; it throws a
   readable "The selected font isn't loaded" otherwise).
-- **Load**: `locationFontIds(generator, params)` lists the curated ids the overrides ask for; the page
-  sends them to the worker as `options.locationFontIds`.
+- **Load**: `locationFontIds(generator, params)` lists the curated ids the overrides ask for (it finds
+  the fields by the `locationFont: true` flag `locationFontField` sets, not by option identity: the module can be
+  loaded twice, with and without `?v=`); the page sends them through `worker-client.js` to the worker as
+  `locationFontIds`, which loads them into `ctx.fonts`.
 
 ### The font picker (`picker: "font"`)
 
@@ -415,6 +417,17 @@ add a line to `SHA256SUMS` (`sha256sum`), a section to `LICENSES.md`, an `@font-
 `fonts.css` (the picker draws each option in its own face; the test checks one rule per font),
 and an entry to `FONTS` in
 `public/assets/js/customize/fonts.js`. Run the name-plate tests and look at the picker.
+
+## Generator parameter notes (current versions)
+
+| Generator | Version | Notes |
+|---|---|---|
+| `route-shield` | 3 | `top_font`/`lower_font`/`back_font` overrides (default `inherit`); `qr_scale_pct` (25-100, default 100). `top_offset_mm`/`lower_offset_mm` are measured from the **auto-centered** position (0 = glyph ink centered in its color field, positive = up). Back parts are named "Back text", "QR code", "3dprint4.me mark" (same color, three parts). |
+| `wifi-tag` | 2 | `qr_scale_pct`; border (`border_style` none/raised/engraved, `border_width_mm`, `border_inset_mm`); QR frame (`qr_frame`, `qr_frame_width_mm`, `qr_frame_gap_mm`); dividers (`title_divider`, `network_divider`, `divider_width_mm`, `divider_length_pct`); `decor_height_mm`, `decor_color`; `title_font`, `network_font`. All default to off/100, so the v1 look is unchanged. Parts "Title text inlay" and "Network name inlay" replace "Label text inlay". |
+| `rating-card` | 2 | `corner_style` (round/chamfer/notch), `border_style`, `frame_style`, widths/insets, `groove_depth_mm`, `divider` (none/caption/icon/both), `caption_font`. Raised decorations print in `icon_color` (the card already uses five colors). |
+| `name-plate` | 2 | New default plate `hug` ("Contour"): the letters grown by exactly `plate_margin_mm` (1-10, default 3) with round joins, clipped to ink ± margin, holes filled; constant thickness everywhere, never thicker above/below any letter. `none` keeps its hard-edged rectangular connector bars; they start/end inside each neighbour across the whole centre band (rows sampled), so slanted letters (A, V) are overlapped in every row. Old `none`/`pill`/`rect` values stay valid. |
+
+Old drafts and requests stay valid: missing keys take their defaults, and the server accepts versions 1..current.
 
 ## Images
 

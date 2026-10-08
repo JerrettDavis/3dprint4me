@@ -1561,3 +1561,16 @@ def test_hovering_and_clicking_a_part_leads_to_its_settings(page: Page, base_url
     page.mouse.move(box["x"] + 4, box["y"] + 4)
     page.mouse.click(box["x"] + 4, box["y"] + 4)
     expect(page.locator("#cz-announce")).to_contain_text("Selection cleared", timeout=3000)
+
+
+def test_a_per_location_font_loads_in_the_worker_and_builds(page: Page, base_url: str) -> None:
+    """The override font is requested by the page and handed to the builder (not just unit-built)."""
+    fonts: list[str] = []
+    page.on("request", lambda r: fonts.append(r.url) if "/customize/fonts/Pacifico" in r.url else None)
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    page.locator("#cz-top_font-toggle").click()
+    page.locator("label[for='cz-top_font-pacifico']").click()
+    wait_settled(page)
+    expect(page.locator("body[data-build-state]")).to_have_attribute("data-build-state", "ready", timeout=BUILD_TIMEOUT)
+    assert any(u.endswith(".ttf") and "Pacifico-Regular" in u for u in fonts), fonts

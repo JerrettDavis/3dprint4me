@@ -98,14 +98,14 @@ export const LOCATION_FONT_OPTIONS = Object.freeze([
 
 /** Schema entry for one location's font override. `key` should end in `_font`. */
 export const locationFontField = (key, label, { group = "text", section, visibleWhen } = {}) => ({
-  [key]: { type: "enum", label, picker: "font", options: LOCATION_FONT_OPTIONS, default: FONT_INHERIT, group, ...(section ? { section } : {}), ...(visibleWhen ? { visibleWhen } : {}) }
+  [key]: { type: "enum", label, picker: "font", options: LOCATION_FONT_OPTIONS, default: FONT_INHERIT, locationFont: true, group, ...(section ? { section } : {}), ...(visibleWhen ? { visibleWhen } : {}) }
 });
 
 /** Curated font ids that the override keys of `params` ask for (the page and worker load them). */
 export const locationFontIds = (generator, params) => {
   const ids = new Set();
   for (const [key, def] of Object.entries(generator.schema ?? {})) {
-    if (def.options !== LOCATION_FONT_OPTIONS) continue;
+    if (!def.locationFont) continue;   // a flag, not option identity: this module may be loaded twice (with and without ?v=)
     const v = params?.[key];
     if (v && v !== FONT_INHERIT && v !== FONT_BLOCK && findFont(v)) ids.add(v);
   }
