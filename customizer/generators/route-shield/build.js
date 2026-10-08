@@ -1,8 +1,9 @@
 // Route shield geometry, ported from the prototype's generator.js. Returns Manifold
 // solids; buildModel handles the XY shift, meshing, 3MF packaging and freeing the solids.
-import { blockText, fontText, fontDrawable, fitCrossSection, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING, FONT_CHARS_SKIPPED } from "../../framework/text.js";
+import { blockText, fontText, fontDrawable, fitCrossSection, locationFont, unsupportedBlockChars, BLOCK_SUBSTITUTION_WARNING, FONT_CHARS_SKIPPED } from "../../framework/text.js";
 import { fontNeededMessage, FONT_NOT_LOADED } from "../../../public/assets/js/customize/fonts.js";
 import { qrCrossSection } from "../../framework/qr.js";
+import { qrModuleStatus } from "../../../public/assets/js/customize/qr.js";
 import { safeName } from "../../framework/model.js";
 import { OUTER, UPPER, LOWER, positiveContour } from "./template.js";
 
@@ -17,10 +18,12 @@ const bounds2 = pts => ({
 });
 
 // `notes.skipped` is set when a real font lacked a character, so build() can warn once.
-function makeTextCS(CrossSection, text, o, font, notes) {
+// `face` is { mode, font } from locationFont(): the font for this text location.
+function makeTextCS(CrossSection, text, o, face, notes) {
   if (!String(text || "").trim()) return CrossSection.union([]);
-  if (o.font === "block") return blockText(CrossSection, text);
-  if (!font) throw new Error(o.font === "custom" || o.font === "system" ? fontNeededMessage(o.font) : FONT_NOT_LOADED);
+  const { mode, font } = face;
+  if (mode === "block") return blockText(CrossSection, text);
+  if (!font) throw new Error(mode === "custom" || mode === "system" ? fontNeededMessage(mode) : FONT_NOT_LOADED);
   // A real font draws only the characters it has (never its "missing glyph" box).
   const drawable = fontDrawable(text, font);
   if (drawable.skipped) notes.skipped = true;
@@ -43,7 +46,7 @@ const FIT_EPS = 1e-3;      // mm^2 of tolerated overhang (numeric noise)
 const textFits = (cs, region, t) => cs.isEmpty() || t(cs.subtract(region)).area() <= FIT_EPS;
 
 // `t` registers a temporary for release when build() finishes.
-function buildLayout(wasm, options, font, t, notes) {
+function buildLayout(wasm, options, ctx, t, notes) {
   const { CrossSection } = wasm;
   const sx = options.width_mm / TEMPLATE_WIDTH;
   const sy = options.height_mm / TEMPLATE_HEIGHT;
@@ -65,18 +68,22 @@ function buildLayout(wasm, options, font, t, notes) {
   // Prevent accidental cutters from touching the perimeter.
   const safeBack = t(outer.offset(-Math.max(0.8, 0.65 * scale)));
 
-  const frontSpec = (key, field, text, box, baseY) => ({ key, text: t(text), box, baseY, region: t(field.offset(-WALL)) });
+  const faceOf = key => locationFont(options, ctx, `${key}_font`);
+  // The text is centered on its color field's own center (the field's bounding box); the fit step
+  // centers the actual glyph ink there, so any font, size or string sits centered at offset 0.
+  const frontSpec = (key, field, text, box, centerY) => ({ key, text: t(text), box, baseY: centerY, region: t(field.offset(-WALL)) });
   const front = {
-    top: frontSpec("top", upper, makeTextCS(CrossSection, options.top_text, options, font, notes),
+    top: frontSpec("top", upper, makeTextCS(CrossSection, options.top_text, options, faceOf("top"), notes),
       { w: (upperB.maxX - upperB.minX) * 0.80, h: (upperB.maxY - upperB.minY) * 0.50 },
-      (upperB.minY + upperB.maxY) / 2 - 0.5 * sy),
-    lower: frontSpec("lower", lower, makeTextCS(CrossSection, options.lower_text, options, font, notes),
+      (upperB.minY + upperB.maxY) / 2),
+    lower: frontSpec("lower", lower, makeTextCS(CrossSection, options.lower_text, options, faceOf("lower"), notes),
       { w: (lowerB.maxX - lowerB.minX) * 0.72, h: (lowerB.maxY - lowerB.minY) * 0.58 },
-      (lowerB.minY + lowerB.maxY) / 2 - 1.0 * sy)
+      (lowerB.minY + lowerB.maxY) / 2)
   };
 
   const allLines = String(options.back_text || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-  const lines = allLines.slice(0, 4).map(line => t(makeTextCS(CrossSection, line, options, font, notes)));
+  const backFace = faceOf("back");
+  const lines = allLines.slice(0, 4).map(line => t(makeTextCS(CrossSection, line, options, backFace, notes)));
   const qrOn = !!options.qr_enabled;
   let qr = null;
   let qrTop = null;
@@ -85,12 +92,20 @@ function buildLayout(wasm, options, font, t, notes) {
     // QR_EDGE clearance on each side and above the bottom edge.
     const stemL = STEM_X[0] * sx, stemR = STEM_X[1] * sx;
     const bottomY = Math.min(...outerPts.map(p => p[1]));
-    const size = (stemR - stemL) - 2 * QR_EDGE;
-    const q = qrCrossSection(CrossSection, String(options.qr_data).trim(), size);
+    const maxSize = (stemR - stemL) - 2 * QR_EDGE;
+    const pct = options.qr_scale_pct ?? 100;
+    const size = maxSize * pct / 100;
+    let q;
+    try { q = qrCrossSection(CrossSection, String(options.qr_data).trim(), size); } catch (err) {
+      const need = /needs about ([\d.]+) mm/.exec(String(err?.message))?.[1];
+      if (pct < 100 && need) throw new Error(`The QR code is scaled too small to print: it needs about ${need} mm but is set to ${size.toFixed(1)} mm. Increase QR code size or shorten its content.`);
+      throw err;
+    }
     t(q.cs);
-    // The back is mirrored left-right, so the unmirrored x is the negated stem center.
-    qr = { ...q, cs: t(q.cs.translate([-(stemL + stemR) / 2, bottomY + QR_EDGE + size / 2])) };
-    qrTop = bottomY + QR_EDGE + size;
+    // Centered in its slot in the stem (the slot is sized for 100%). The back is mirrored
+    // left-right, so the unmirrored x is the negated stem center.
+    qr = { ...q, cs: t(q.cs.translate([-(stemL + stemR) / 2, bottomY + QR_EDGE + maxSize / 2])) };
+    qrTop = bottomY + QR_EDGE + maxSize;
   }
   // Back text fills the space above the QR (or a fixed band when there is no QR).
   const textTop = qrOn ? height * BACK_TEXT_TOP : height * 0.17 + height * 0.36 / Math.max(1, lines.length) / 2;
@@ -126,7 +141,7 @@ function fitBack(b, o, t, pct = pctOf(o, "back"), off = offOf(o, "back")) {
 
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 
-export default async function build(options, { wasm, font = null } = {}) {
+export default async function build(options, { wasm, font = null, fonts = {} } = {}) {
   const { CrossSection, Manifold } = wasm;
   const warnings = [];
   // Temporaries are freed on exit; only the returned solids outlive this call
@@ -137,12 +152,13 @@ export default async function build(options, { wasm, font = null } = {}) {
   let ok = false;
   try {
     const notes = { skipped: false };
-    const layout = buildLayout(wasm, options, font, t, notes);
+    const layout = buildLayout(wasm, options, { font, fonts }, t, notes);
     const { outerPts, outer, upper, lower, safeBack } = layout;
     const qr = layout.back.qr;
-    if (qr && qr.module < 0.9) warnings.push(`QR module size is ${qr.module.toFixed(2)} mm. A 0.4 mm nozzle and well-calibrated first layer are recommended.`);
+    if (qr) { const status = qrModuleStatus(qr.module); if (status.level !== "ok") warnings.push(status.message); }
     if (layout.back.truncated) warnings.push("Back text was limited to the first four non-empty lines.");
-    if (options.font === "block" && [options.top_text, options.lower_text, options.back_text].some(text => unsupportedBlockChars(text).length)) warnings.push(BLOCK_SUBSTITUTION_WARNING);
+    const blockAt = key => locationFont(options, { font, fonts }, `${key}_font`).mode === "block";
+    if ([["top", options.top_text], ["lower", options.lower_text], ["back", options.back_text]].some(([key, text]) => blockAt(key) && unsupportedBlockChars(text).length)) warnings.push(BLOCK_SUBSTITUTION_WARNING);
     if (notes.skipped) warnings.push(FONT_CHARS_SKIPPED);
 
     // Reaching here with text that doesn't fit is an error, never a silent crop.
@@ -157,16 +173,17 @@ export default async function build(options, { wasm, font = null } = {}) {
 
     // Back text and optional QR are built in 2D, then mirrored left-to-right (the badge
     // is flipped like a page) so they read normally from the back.
-    const backSections = [];
+    // The two are kept apart so each prints (and is hovered) as its own part.
+    const mirrored = cs => (cs && !cs.isEmpty() ? t(t(cs.mirror([1, 0])).intersect(safeBack)) : null);
+    let backTextRaw = null;
     if (layout.back.lines.length) {
-      const backText = t(fitBack(layout.back, options, t));
-      if (!textFits(t(backText.mirror([1, 0])), layout.back.region, t)) throw new Error("Back text doesn't fit at this size/position; reduce its size or move it back toward center.");
-      backSections.push(backText);
+      backTextRaw = t(fitBack(layout.back, options, t));
+      if (!textFits(t(backTextRaw.mirror([1, 0])), layout.back.region, t)) throw new Error("Back text doesn't fit at this size/position; reduce its size or move it back toward center.");
     }
-    if (qr) backSections.push(qr.cs);
-    let backCS = backSections.length ? t(CrossSection.union(backSections)) : t(CrossSection.union([]));
-    if (!backCS.isEmpty()) backCS = t(backCS.mirror([1, 0]));
-    if (!backCS.isEmpty()) backCS = t(backCS.intersect(safeBack));
+    const backTextCS = mirrored(backTextRaw);
+    const qrCS = mirrored(qr?.cs);
+    const backParts = [backTextCS, qrCS].filter(Boolean);
+    const backCS = backParts.length ? t(CrossSection.union(backParts)) : t(CrossSection.union([]));
 
     // Base uses two layers in Z. The lower layer is outer minus back features;
     // the upper core is full outer. This makes perfectly flush, non-overlapping inlays.
@@ -174,7 +191,6 @@ export default async function build(options, { wasm, font = null } = {}) {
     const bottomSkin = t(bottomSkinCS.extrude(options.inlay_depth_mm));
     const core = t(t(outer.extrude(options.base_thickness_mm - options.inlay_depth_mm)).translate([0, 0, options.inlay_depth_mm]));
     let body = t(Manifold.union([bottomSkin, core]));
-    const backInlay = backCS.isEmpty() ? null : t(backCS.extrude(options.inlay_depth_mm));
 
     // Fixed 3dprint4.me mark on the lower vertical edge.
     const ymin = Math.min(...outerPts.map(p => p[1]));
@@ -186,7 +202,6 @@ export default async function build(options, { wasm, font = null } = {}) {
     const sideMark = t(t(t(markCS.extrude(options.inlay_depth_mm)).rotate([-90, 0, 0])).translate([0, ymin, options.base_thickness_mm / 2]));
     const sideCutter = t(t(t(markCS.extrude(options.inlay_depth_mm + 0.12)).rotate([-90, 0, 0])).translate([0, ymin - 0.06, options.base_thickness_mm / 2]));
     body = t(body.subtract(sideCutter));
-    const backAndBrand = backInlay ? Manifold.union([backInlay, sideMark]) : sideMark.translate([0, 0, 0]);
 
     // Front stack. field_height_mm > 0 raises a color layer of that thickness above
     // the base top; < 0 recesses a layer of that thickness so its top sits |f| below
@@ -229,7 +244,10 @@ export default async function build(options, { wasm, font = null } = {}) {
     };
     frontLayer("Lower", lower, lowerText, options.lower_color);
     frontLayer("Upper", upper, topText, options.upper_color);
-    solids.push({ name: "Back inlays and fixed 3dprint4.me mark", solid: backAndBrand, color: options.back_color });
+    // Named parts of the back inlay (one color, so they print as one filament).
+    if (backTextCS) solids.push({ name: "Back text", solid: backTextCS.extrude(options.inlay_depth_mm), color: options.back_color });
+    if (qrCS) solids.push({ name: "QR code", solid: qrCS.extrude(options.inlay_depth_mm), color: options.back_color });
+    solids.push({ name: "3dprint4.me mark", solid: sideMark.translate([0, 0, 0]), color: options.back_color });
 
     ok = true;
     return {
