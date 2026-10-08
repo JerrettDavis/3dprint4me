@@ -9,8 +9,8 @@
   <title>Name plate | Customize | 3dprint4.me</title>
   <link rel="canonical" href="https://3dprint4.me/customize/g/name-plate/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" vite-ignore><link rel="manifest" href="/manifest.webmanifest" vite-ignore>
-  <link rel="stylesheet" href="/assets/css/site.css?v=122156b8914757f0" vite-ignore>
-  <link rel="stylesheet" href="/assets/css/shared.css?v=122156b8914757f0" vite-ignore>
+  <link rel="stylesheet" href="/assets/css/site.css?v=6d9507f2af48b563" vite-ignore>
+  <link rel="stylesheet" href="/assets/css/shared.css?v=6d9507f2af48b563" vite-ignore>
   <link rel="stylesheet" href="../../styles.css">
   <link rel="stylesheet" href="/customize/fonts/fonts.css" vite-ignore>
 </head>
@@ -74,6 +74,16 @@
               <button class="button ghost small-button" type="button" id="cz-reset" aria-label="Reset to defaults" title="Reset to defaults">Reset</button>
             </div>
             <form id="cz-form" class="cz-form" novalidate autocomplete="off"></form>
+            <div class="cz-image-area" id="cz-image-area" hidden>
+          <label class="cz-label" for="cz-image-file">Your image</label>
+          <input class="cz-file" type="file" id="cz-image-file" accept="image/png,image/jpeg,image/webp,image/gif" aria-describedby="cz-image-help cz-image-status">
+          <p class="help" id="cz-image-help">PNG, JPEG, WebP or GIF, up to 8 MB and 4096 pixels on a side. A bold, high-contrast picture on a plain background works best; a photograph comes out as one flat shape (posterized). Use the threshold and invert controls to choose what is raised.</p>
+          <div class="cz-image-row">
+            <canvas class="cz-trace-preview" id="cz-image-preview" width="96" height="96" role="img" aria-label="Traced outline preview" hidden></canvas>
+            <p class="cz-image-status" id="cz-image-status" aria-live="polite">No image chosen yet.</p>
+          </div>
+          <p class="cz-sensitive-note" id="cz-image-privacy">Your image stays in your browser. Only the traced outline goes into the model.</p>
+        </div>
           </div>
         </section>
 
@@ -89,7 +99,7 @@
             <p class="cz-continue-help">Next, on the request page, you'll choose quantity and add contact details. The model file goes with your request.</p>
             <div class="cz-about">
               <h3 class="cz-about-title">About this design</h3>
-              <p class="cz-intro">A name for a desk, a door or a keyring. Pick a font, a style and a plate; up to three colors. The listed fonts are open-licensed and served from this site; you can also use a font installed on your computer or your own font file. <a href="/customize/fonts/LICENSES.md">Font licenses</a></p>
+              <p class="cz-intro">A name for a desk, a door, a keyring or a standard 8 × 2 inch office sign (with an optional image of your own). Pick a font, a style and a plate; up to three colors. The listed fonts are open-licensed and served from this site; you can also use a font installed on your computer or your own font file. <a href="/customize/fonts/LICENSES.md">Font licenses</a></p>
             </div>
           </div>
         </section>
@@ -98,7 +108,7 @@
     </div>
   </main>
   <div id="site-footer"></div>
-  <script type="module" src="/assets/js/site.js?v=122156b8914757f0" vite-ignore></script>
+  <script type="module" src="/assets/js/site.js?v=6d9507f2af48b563" vite-ignore></script>
   <script type="module" src="../../framework/app.js"></script>
 </body>
 </html>
