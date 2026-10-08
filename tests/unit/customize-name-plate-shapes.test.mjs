@@ -50,7 +50,9 @@ test("no-plate connectors overlap both neighbours along their full span, for eve
         try {
           const backing = solidNamed(built, "Backing");
           assert.equal(solidComponents(backing, 0.1, 0), 1, `${font} "${name}" ${height}: backing is one body`);
-          assert.equal(solidComponents(backing, 0.1, 0.3), 1, `${font} "${name}" ${height}: connectors are not just touching a corner`);
+          // Hairline faces have strokes under 0.6 mm: a 0.3 mm erosion would erase the strokes themselves.
+          const thin = ["script", "handwriting", "blackletter", "fantasy"].includes(FONTS.find(f => f.id === font)?.category);
+          assert.equal(solidComponents(backing, 0.1, thin ? 0.08 : 0.3), 1, `${font} "${name}" ${height}: connectors are not just touching a corner`);
         } finally { freeAll(built); }
       }
     }
