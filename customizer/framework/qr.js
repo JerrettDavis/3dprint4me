@@ -1,4 +1,5 @@
 import qrcode from "qrcode-generator";
+import { QR_FLOOR_MODULE_MM } from "../../public/assets/js/customize/qr.js";
 
 // Builds the QR centered on the origin. `size` is the edge length of the dark-module
 // area (the quiet zone is just empty body around it).
@@ -7,10 +8,10 @@ export function qrCrossSection(CrossSection, data, size) {
   qr.addData(data);
   qr.make();
   const n = qr.getModuleCount();
-  const minimumModule = 0.82;
+  const minimumModule = QR_FLOOR_MODULE_MM;
   const required = n * minimumModule;
   if (required > size) {
-    throw new Error(`QR payload is too dense for this badge. It needs about ${required.toFixed(1)} mm at the 0.82 mm/module safety floor but only ${size.toFixed(1)} mm fits.`);
+    throw new Error(`QR payload is too dense for this item. It needs about ${required.toFixed(1)} mm at the ${minimumModule} mm/module printability floor but only ${size.toFixed(1)} mm fits.`);
   }
   const module = size / n;
   // Neighbouring dark modules overlap slightly so they union into solid regions.

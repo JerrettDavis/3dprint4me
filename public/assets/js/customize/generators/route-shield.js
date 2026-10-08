@@ -8,7 +8,8 @@
 //                    < 0  text is cut |t| into the color's top surface
 // Back/bottom inlays (inlay_depth_mm) are always inset and never protrude.
 
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=400837523c07bad6";
+import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=122156b8914757f0";
+import { qrScaleField } from "../qr.js?v=122156b8914757f0";
 
 const STEP = 0.2;
 const MIN_WEB = 0.8;       // solid base left between the front pocket and the back inlay
@@ -87,47 +88,70 @@ function errorField(message) {
   if (/^Upper text doesn't fit/i.test(text)) return "top_text";
   if (/^Lower text doesn't fit/i.test(text)) return "lower_text";
   if (/^Back text doesn't fit/i.test(text)) return "back_text";
+  if (/QR code is scaled too small/i.test(text)) return "qr_scale_pct";
   if (/QR payload is too dense/i.test(text)) return "qr_data";
   if (/font file|installed font/i.test(text)) return "font";
   return null;
 }
 
-const scale = (label, what) => ({ type: "number", label: `${label} text size`, min: SCALE_RANGE[0], max: SCALE_RANGE[1], step: 5, default: 100, unit: "%", group: what });
-const offset = (label, what) => ({ type: "number", label: `${label} text up/down`, min: OFFSET_RANGE[0], max: OFFSET_RANGE[1], step: 0.5, default: 0, unit: "mm", group: what });
+const scale = (label, section) => ({ type: "number", label: `${label} text size`, min: SCALE_RANGE[0], max: SCALE_RANGE[1], step: 5, default: 100, unit: "%", group: "layout", section });
+const offset = (label, section) => ({ type: "number", label: `${label} text up/down`, help: "0 = centered in its color field; positive moves it up.", min: OFFSET_RANGE[0], max: OFFSET_RANGE[1], step: 0.5, default: 0, unit: "mm", group: "layout", section });
+const inSection = (fields, section) => Object.fromEntries(Object.entries(fields).map(([k, d]) => [k, { ...d, section }]));
+
+// Settings regions, in display order, and which previewed part focuses which one.
+const SECTIONS = { general: "Font", top: "Upper text", lower: "Lower text", back: "Back text", qr: "QR code", shape: "Shape & thickness", colors: "Colors" };
+const FOCUS = [
+  { part: "Upper color field", section: "top" },
+  { part: "Lower color field", section: "lower" },
+  { part: "Upper text", section: "top" },
+  { part: "Lower text", section: "lower" },
+  { part: "Back text", section: "back" },
+  { part: "QR code", section: "qr" },
+  { part: "3dprint4.me mark", section: "shape" },
+  { part: "Shield body", section: "shape" }
+];
 
 export default {
   id: "route-shield",
   // 2: the font control became the shared one (key font, was font_mode) with a license confirmation.
-  version: 2,
+  // 3: *_offset_mm is measured from the automatically centered position (0 = centered); per-location
+  //    fonts (top_font, lower_font, back_font) and an independent QR size (qr_scale_pct) were added.
+  version: 3,
   title: "Route shield",
   blurb: "Highway-style badge with two color fields, front text and an optional back QR code.",
   category: "badges",
   origin: "house",
   rights: { publishable: true, note: "House design." },
+  sections: SECTIONS,
+  focus: FOCUS,
   schema: {
-    top_text: { type: "text", label: "Upper text", max: 18, optional: true, default: "ROUTE", group: "text" },
-    lower_text: { type: "text", label: "Lower text", max: 18, optional: true, default: "66", group: "text" },
-    ...fontSchema("text"),
-    width_mm: { type: "number", label: "Width", min: WIDTH_RANGE[0], max: WIDTH_RANGE[1], step: 1, default: 80, unit: "mm", group: "size" },
-    height_mm: { type: "number", label: "Height", min: HEIGHT_RANGE[0], max: HEIGHT_RANGE[1], step: 1, default: 88, unit: "mm", group: "size" },
-    base_thickness_mm: { type: "number", label: "Base thickness", min: BASE_RANGE[0], max: BASE_RANGE[1], step: STEP, default: 4, unit: "mm", group: "size" },
-    field_height_mm: { type: "number", label: "Color field", min: -MAX_FIELD, max: MAX_FIELD, step: STEP, default: 0.6, unit: "mm", group: "size" },
-    text_height_mm: { type: "number", label: "Front text", min: -MAX_TEXT, max: MAX_TEXT, step: STEP, default: 1.2, unit: "mm", group: "size" },
-    inlay_depth_mm: { type: "number", label: "Back inlay (recessed)", min: 0.4, max: MAX_INLAY, step: STEP, default: 0.8, unit: "mm", group: "size" },
-    top_scale_pct: scale("Upper", "layout"),
-    top_offset_mm: offset("Upper", "layout"),
-    lower_scale_pct: scale("Lower", "layout"),
-    lower_offset_mm: offset("Lower", "layout"),
-    back_scale_pct: scale("Back", "layout"),
-    back_offset_mm: offset("Back", "layout"),
-    back_text: { type: "text", label: "Back text, up to 4 lines", max: 160, multiline: true, optional: true, default: "100 Years on the Mother Road\n1926-2026\nTulsa, OK", group: "back" },
-    qr_enabled: { type: "bool", label: "Include QR code", default: true, group: "back" },
-    qr_data: { type: "text", label: "QR content", max: 400, optional: true, default: "https://3dprint4.me/", group: "back" },
-    base_color: { type: "color", label: "Body", default: "#ffffff", group: "colors" },
-    upper_color: { type: "color", label: "Upper", default: "#ef233c", group: "colors" },
-    lower_color: { type: "color", label: "Lower", default: "#2797e8", group: "colors" },
-    text_color: { type: "color", label: "Front text", default: "#ffffff", group: "colors" },
-    back_color: { type: "color", label: "Back inlay", default: "#171717", group: "colors" }
+    top_text: { type: "text", label: "Upper text", max: 18, optional: true, default: "ROUTE", group: "text", section: "top" },
+    lower_text: { type: "text", label: "Lower text", max: 18, optional: true, default: "66", group: "text", section: "lower" },
+    ...inSection(fontSchema("text"), "general"),
+    ...locationFontField("top_font", "Upper text font", { group: "text", section: "top" }),
+    ...locationFontField("lower_font", "Lower text font", { group: "text", section: "lower" }),
+    width_mm: { type: "number", label: "Width", min: WIDTH_RANGE[0], max: WIDTH_RANGE[1], step: 1, default: 80, unit: "mm", group: "size", section: "shape" },
+    height_mm: { type: "number", label: "Height", min: HEIGHT_RANGE[0], max: HEIGHT_RANGE[1], step: 1, default: 88, unit: "mm", group: "size", section: "shape" },
+    base_thickness_mm: { type: "number", label: "Base thickness", min: BASE_RANGE[0], max: BASE_RANGE[1], step: STEP, default: 4, unit: "mm", group: "size", section: "shape" },
+    field_height_mm: { type: "number", label: "Color field", min: -MAX_FIELD, max: MAX_FIELD, step: STEP, default: 0.6, unit: "mm", group: "size", section: "shape" },
+    text_height_mm: { type: "number", label: "Front text", min: -MAX_TEXT, max: MAX_TEXT, step: STEP, default: 1.2, unit: "mm", group: "size", section: "shape" },
+    inlay_depth_mm: { type: "number", label: "Back inlay (recessed)", min: 0.4, max: MAX_INLAY, step: STEP, default: 0.8, unit: "mm", group: "size", section: "shape" },
+    top_scale_pct: scale("Upper", "top"),
+    top_offset_mm: offset("Upper", "top"),
+    lower_scale_pct: scale("Lower", "lower"),
+    lower_offset_mm: offset("Lower", "lower"),
+    back_scale_pct: scale("Back", "back"),
+    back_offset_mm: { ...offset("Back", "back"), help: "Moves the back text lines up or down together." },
+    back_text: { type: "text", label: "Back text, up to 4 lines", max: 160, multiline: true, optional: true, default: "100 Years on the Mother Road\n1926-2026\nTulsa, OK", group: "back", section: "back" },
+    ...locationFontField("back_font", "Back text font", { group: "back", section: "back" }),
+    qr_enabled: { type: "bool", label: "Include QR code", default: true, group: "back", section: "qr" },
+    qr_data: { type: "text", label: "QR content", max: 400, optional: true, default: "https://3dprint4.me/", group: "back", section: "qr" },
+    qr_scale_pct: qrScaleField("back", { section: "qr", visibleWhen: { qr_enabled: [true] }, help: "100% is the largest code that fits the bottom of the badge; larger cells scan more reliably." }),
+    base_color: { type: "color", label: "Body", default: "#ffffff", group: "colors", section: "colors" },
+    upper_color: { type: "color", label: "Upper", default: "#ef233c", group: "colors", section: "top" },
+    lower_color: { type: "color", label: "Lower", default: "#2797e8", group: "colors", section: "lower" },
+    text_color: { type: "color", label: "Front text", default: "#ffffff", group: "colors", section: "colors" },
+    back_color: { type: "color", label: "Back inlay", default: "#171717", group: "colors", section: "colors" }
   },
   rules,
   errorField,

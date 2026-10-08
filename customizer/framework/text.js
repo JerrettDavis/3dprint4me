@@ -310,3 +310,17 @@ export function fitCrossSection(cs, { maxWidth, maxHeight, centerX = 0, centerY 
   scaled.delete?.();
   return placed;
 }
+
+/**
+ * Resolves the font for one text location. `key` is the location's override field (e.g.
+ * "top_font"); "inherit" (or a missing field) uses the main font. Returns { mode, font }:
+ * mode "block" draws the built-in block font (font null); otherwise `font` is an opentype Font.
+ */
+export function locationFont(options, ctx, key) {
+  const pick = key ? options[key] : undefined;
+  if (!pick || pick === "inherit") return { mode: options.font ?? "block", font: ctx.font ?? null };
+  if (pick === "block") return { mode: "block", font: null };
+  const font = ctx.fonts?.[pick];
+  if (!font) throw new Error("The selected font isn't loaded. Try again, or pick another font.");
+  return { mode: pick, font };
+}

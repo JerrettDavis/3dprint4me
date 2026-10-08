@@ -251,22 +251,25 @@ test("an unsupported character in the label becomes '?' with a warning; lower ca
   assert.ok(!key.warnings.some(w => /replaced|capital/i.test(w)), "no label, no label warnings");
 });
 
-test("a maximum-length SSID and password still fit the keychain at or above the 0.82 mm floor", async () => {
+test("a maximum-length SSID and password still fit the keychain at or above the 0.6 mm floor", async () => {
   const params = paramsFor({ format: "keychain", ssid: "S".repeat(32), password: "p".repeat(63) });
   const n = expectedMatrix(wifiPayload(params)).length;
   const built = await build(params, { wasm, font: null });
   try {
     const got = readQr(built, n);
-    assert.ok(got.m >= 0.82, `module ${got.m}`);
-    assert.ok(built.warnings.some(w => /QR module size/.test(w)), "small modules are flagged");
+    assert.ok(got.m >= 0.6, `module ${got.m}`);
+    assert.ok(built.warnings.some(w => /Each QR cell is/.test(w)), "marginal modules are flagged");
   } finally {
     built.solids.forEach(s => s.solid.delete());
   }
 });
 
+// Squeezed by a wide border and a frame, the densest payload the schema allows no longer reaches the
+// 0.6 mm printability floor.
+const DENSE = { format: "keychain", ssid: ";".repeat(32), password: ";".repeat(63), border_style: "raised", border_width_mm: 3, border_inset_mm: 4, qr_frame: "square", qr_frame_width_mm: 3, qr_frame_gap_mm: 4 };
+
 test("a payload too dense for the keychain fails clearly instead of producing a tiny QR", async () => {
-  // Every ';' is escaped to two characters, so this is the densest payload the schema allows.
-  const value = paramsFor({ format: "keychain", ssid: ";".repeat(32), password: ";".repeat(63) });
+  const value = paramsFor(DENSE);
   await assert.rejects(() => buildModel(gen, value, { wasm, font: null }), error => {
     assert.match(error.message, /too dense/);
     assert.match(error.message, /Use a shorter network name\/password or choose a larger tag format\./);
@@ -360,7 +363,7 @@ test("build() frees every temporary: only the returned solids stay alive", async
 });
 
 test("failed builds do not leak either", async () => {
-  const value = paramsFor({ format: "keychain", ssid: ";".repeat(32), password: ";".repeat(63) });
+  const value = paramsFor(DENSE);
   const tracker = trackLiveObjects(wasm);
   try {
     await assert.rejects(() => build(value, { wasm: tracker.ctxWasm, font: null }), /too dense/);

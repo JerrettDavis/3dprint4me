@@ -24,6 +24,7 @@ differs, this document and the code win (see [Differences from the design spec](
 | `customizer/generators/index.js` | `loadBuilder` (id → dynamic `import()` of the builder) | worker |
 | `customizer/generators/<id>/build.js` | The generator **builder**: params → solids (Manifold) | worker only |
 | `customizer/framework/` | Engine loader, text/QR/shapes/icons/image tracing, 3MF writer, `buildModel`, worker + client, form, page app, catalog, hand-off writer | browser / worker |
+| `customizer/framework/{app,form,windows,viewer3d,sections,motion,ui-state}.js`, `customizer/styles.css` | The page UI: the studio layout, tool windows, section grouping, part picking, transitions (see [Page layout](#page-layout-the-studio)) | browser |
 | `customizer/g/<id>/index.html` | The generator page (Vite entry) | — |
 | `customizer/static/fonts/` | Self-hosted OFL fonts, licenses, `SHA256SUMS`, `fonts.css` | served at `/customize/fonts/` |
 | `public/assets/js/order/customize-handoff.js` | Order-page reader of the hand-off record | browser |
@@ -54,18 +55,22 @@ Geometry code never ships to the server.
 | `image` | no | `{ when: { <field>: <value> }, threshold: <int field>, invert: <bool field> }` — while `when` holds, the page shows a local image picker under that field and traces the image (rating card). |
 | `font` | no | The shared font spec `FONT_SPEC` (`public/assets/js/customize/fonts.js`): `{ key: "font", custom: "custom", system: "system", ack: "font_license_ack", curated: true }`. Every generator that prints text sets it; see *Fonts*. |
 | `publicParams(params)` | no | Last-chance filter for the parameters written into 3MF metadata (applied after redaction). No launch generator uses it. |
+| `sections` | no | `{ sectionKey: "Label", … }`, **ordered**: the model regions the Settings panel can group by (see [Sections and focus](#sections-and-focus)). |
+| `focus` | no | `[{ part: "<solid name or prefix>", section: "<sectionKey>" }, …]`: which built solid belongs to which section, so the preview can be hovered and clicked. |
 
 ### Schema fields
 
 `schema` maps a key to a field definition. Common options: `type`, `default` (required), `label`,
-`help` (replaces the generated help text), `group` (fieldset: `text`, `size`, `layout`, `back`,
-`colors`, or any word, title-cased), and `visibleWhen`.
+`help` (replaces the generated help text; for a number it is shown under the slider, e.g.
+"0 = automatic / centered"), `group` (the **category** fieldset: `text`, `size`, `layout`, `back`,
+`colors`, `font`, or any word, title-cased), `section` (the **model region** the field belongs
+to, a key of `sections`) and `visibleWhen`.
 
 | `type` | Options | Validation (`validateParams`) | Control |
 |---|---|---|---|
 | `number` | `min`, `max`, `step`, `unit` | finite, within `[min, max]`, on the step grid counted from `min` | slider + number box |
 | `int` | same | as `number`, plus whole | slider + number box |
-| `enum` | `options: [{ value, label, face? }]`, `picker: "font"` | value is one of the options | `<select>`; `picker: "font"` renders the font picker (each option drawn in its own face) |
+| `enum` | `options: [{ value, label, face?, group? }]`, `picker: "font"` | value is one of the options | `<select>`; `picker: "font"` renders the font picker (each option drawn in its own face; an option's `group` is a category heading, see [Fonts](#fonts)) |
 | `bool` | — | boolean | checkbox |
 | `color` | — | `#rrggbb` (stored lower-case) | color input |
 | `text` | `max`, `optional`, `multiline`, `preserveWhitespace`, `sensitive` | string; no control characters (newlines allowed only when `multiline`; CRLF is normalized); at most `max` visible characters (zero-width characters are not counted; raw length is capped at `4 × max`); trimmed unless `preserveWhitespace`; whitespace alone never satisfies a required (non-`optional`) field | text box; `multiline` → textarea; `sensitive` → masked single-line box (never a textarea) with a fixed privacy note |
@@ -83,6 +88,42 @@ validated and become `"[redacted]"`.
 `onParamChange`, snaps the changed number to its own field range and step, then makes every other
 number yield to the `limits` that `rules()` computes from the updated values ("the moved parameter
 wins"). Without `changedKey` every number is clamped to the current limits.
+
+### Sections and focus
+
+`group` stays the **category** (text, size, colors…). `section` names the **region of the model** a
+field changes, so the colors, fonts and sizes of one region sit together. All of it is optional
+and isomorphic (plain data, no browser imports); a generator without it keeps the Category
+grouping and no hover/click linking.
+
+```js
+export default {
+  sections: { top: "Upper text", lower: "Lower text", back: "Back", qr: "QR code" }, // ORDERED: panel order
+  focus: [                       // built solid name (or name prefix) -> section
+    { part: "Upper text", section: "top" },
+    { part: "Lower text", section: "lower" },
+    { part: "Back", section: "back" }
+  ],
+  schema: {
+    top_text: { type: "text", label: "Upper text", group: "text", section: "top", /* … */ },
+    top_color: { type: "color", label: "Upper text color", group: "colors", section: "top", /* … */ },
+    width_mm: { type: "number", label: "Width", group: "size", /* no section: "General" */ }
+  }
+};
+```
+
+- `sections` is an ordered object `{ key: "Label" }`. Keys that no field or `focus` entry uses are
+  dropped; a key used by a field or `focus` but not declared gets a title-cased label.
+  Fields without `section` go to **General**, placed last unless `sections` has a `general` key
+  (then it sits where you put it). The Section grouping is offered only when at least one field
+  has a `section`.
+- `focus[].part` is matched against the `name` of each solid the builder returns (the `name` in
+  `build()`'s `solids`, also the part name in the 3MF). An exact name wins; otherwise the longest
+  prefix wins; ties go to the first entry. Several solids may map to one section, and a section
+  may have settings but no part (or the reverse: a part with no settings just gets the tooltip).
+- Pure helpers (unit-tested, `customizer/framework/sections.js`): `sectionList`, `sectionLabel`,
+  `fieldSection`, `hasSections`, `partSection`, `partsOfSection`; `groupFields(generator, mode)`
+  in `form.js` returns the groups for `"section"` or `"category"`. Both modes list the same fields.
 
 ### `rules(params)`
 
@@ -164,6 +205,55 @@ build); typing rebuilds after a 150 ms debounce; a committed edit (change, slide
 is clamped, and a commit that changes nothing does not rebuild (`applyEdit`). Facts (size,
 volume, rough weight/time, color count) come from analysing the built 3MF with the site's own
 `print-estimation/geometry.js`. Drafts are kept in `sessionStorage` without sensitive fields.
+
+## Page layout (the studio)
+
+A generator page is one full-height workspace under the site header (`customizer/g/<id>/index.html`
+is the same markup for every generator; only title, intro and the generator-specific notes differ):
+
+- **Top bar**: back link, title (`h1.cz-title`), the **Front / Back / 3D** view tabs (`[data-view]`,
+  roving `tabindex`, arrow keys), **Print bed** (3D only; `#cz-bed-toggle`), and **Continue to
+  request** (`#cz-continue`). Changing view eases in (a camera tween for 3D framing changes, a quick
+  fade/flip of the canvas between views).
+- **Canvas** (`#cz-stage`): the preview fills the whole area; the model is centred in the space the
+  floating windows leave free (`viewer.setInset`). Dark in both themes so light model colors stay
+  visible. `#cz-status` (state chip), the Try again strip (`#cz-fallback`) and the Continue note
+  (`#cz-continue-note`) float over it; a separate visually hidden live region (`#cz-announce`)
+  announces section selections.
+- **Tool windows** (`framework/windows.js`): **Settings** (left: group-by toggle, Reset to defaults,
+  the form, image/font areas, privacy note) and **Local facts** (right: color badge, facts,
+  warnings, "About this design" with the intro and font-license link). Each title bar is a real
+  button (`aria-expanded`) that collapses the window; collapsed state is remembered. **Escape**
+  inside a window moves focus to its title button; Escape on the title button collapses it; Escape
+  elsewhere clears the selected section. Windows are docked, not draggable.
+- **At 899 px and below** the windows are one **bottom sheet** with a **Settings | Facts** tab
+  strip and a chevron that collapses it to the strip; the preview keeps the rest of the screen and
+  the model is centred above the sheet. Sheet motion is `transform`/`opacity` only (no horizontal
+  overflow at 390 px).
+- **Group by: Section | Category** (Settings window, persisted per user): Section groups by
+  `section` (labels from `sections`), Category by `group` (the original fieldsets). Every group is a
+  collapsible `h3 > button` with `aria-expanded`; switching re-parents the same field nodes (values,
+  secrets and attached areas survive) with a short fade. Hidden when no field has a `section`.
+- **Preview ⇄ settings linking** (needs `focus`): hovering a part outlines and tints it, shows a
+  label tooltip (the section's label) and softly marks that section's settings; hovering or focusing
+  a section's settings tints its parts. Clicking or tapping a part selects its section: the window
+  opens, the section expands and scrolls into view with a brief pulse, keyboard focus moves to its
+  first control (Category mode: the section's fields; touch does not move focus, to avoid the
+  on-screen keyboard), and `#cz-announce` says which section was selected. Dragging (more than 6 px,
+  a long press, or two fingers) orbits/pans and never picks. Parts are per-solid meshes tagged with
+  the solid's `name`; picking is a raycast in both the 3D and the flat views.
+- **Motion**: panel and group expand/collapse (height + opacity), mode switch, field errors opening
+  and closing, new warnings, status changes, model swap (cross-fade and scale-in), view and camera
+  changes, bottom-sheet tab switch. Everything uses WAAPI/transitions on `transform`/`opacity` (one
+  height transition for collapsing), never gates state (`hidden`/`aria-*` are set at once), and is
+  instant under `prefers-reduced-motion: reduce` (`motion.js`, the `--cz-dur*` tokens).
+- **Remembered per user** (`localStorage` key `3dp-customize:ui:v1`, try/catch, no parameter
+  values): window collapsed state, the sheet tab, the group-by mode and collapsed groups.
+
+Stable hooks (tests, `customize-handoff`, screenshots): `#cz-form`, `#cz-status`, `#cz-facts-list`,
+`#cz-color-badge`, `#cz-warnings`, `#cz-continue`, `#cz-continue-note`, `#cz-retry`, `#cz-fallback`,
+`#cz-stage`, `#cz-stage-message`, `#cz-reset`, `#cz-bed-toggle`, `[data-view]`, `#cz-image-area` and
+its children, `#cz-font-*`, `.cz-preview`, `.cz-summary`, `body[data-build-state]`, `[data-field]`.
 
 ## Hand-off to the order page and server validation
 
@@ -281,6 +371,45 @@ order: `block` (built-in), the curated fonts, `system` (installed font), `custom
 - A font collection (`.ttc`) or some variable fonts do not parse; the customer is told to try
   another font or a font file.
 
+### Per-location fonts
+
+A text location (the upper line, the back text, a plate's second line…) may use its own font:
+
+- **Schema**: `...locationFontField("top_font", "Upper text font", { group: "text", section: "top", visibleWhen })`
+  (`public/assets/js/customize/fonts.js`) adds an enum whose options are `LOCATION_FONT_OPTIONS`:
+  `inherit` ("Same as main font", the default), `block`, then every curated font. Overrides never
+  offer the customer's own font or an installed font (those stay the single, license-confirmed main
+  font). Keys should end in `_font`; the page renders them with the same font picker.
+- **Build**: `locationFont(options, ctx, "top_font")` (`customizer/framework/text.js`) returns
+  `{ mode, font }`: `inherit` (or a missing field) resolves to the main font, `block` to the
+  built-in font (`font: null`), any other id to `ctx.fonts[id]` (loaded by the worker; it throws a
+  readable "The selected font isn't loaded" otherwise).
+- **Load**: `locationFontIds(generator, params)` lists the curated ids the overrides ask for (it finds
+  the fields by the `locationFont: true` flag `locationFontField` sets, not by option identity: the module can be
+  loaded twice, with and without `?v=`); the page sends them through `worker-client.js` to the worker as
+  `locationFontIds`, which loads them into `ctx.fonts`.
+
+### The font picker (`picker: "font"`)
+
+Options keep definition order and may carry `group` (a category such as "Script"): the list draws a
+heading whenever the group changes (an ungrouped option after grouped ones gets a plain divider), so
+arrow-key order is always option order. The list scrolls inside a bounded box, supports type-ahead
+(type a name; repeat a letter to cycle) and the usual arrow/Enter/Escape keys. Each option is drawn
+in its own `cz-ff-<face>` class, but only the first ten are styled when the list opens; the rest get
+their face as they scroll into view (IntersectionObserver), so a 35-font list does not download
+every font file at once. Every face is same-origin (`fonts.css`, `font-display: swap`).
+
+### QR size and printability
+
+`public/assets/js/customize/qr.js` is shared by the page, the builders and the server:
+`qrScaleField(group = "back", extra)` adds a `QR code size` number (25-100 %, default 100, step 5)
+and `qrModuleStatus(moduleMm)` returns `{ level: "ok" | "marginal" | "unprintable", message }` for a
+module (cell) width: below 0.6 mm (`QR_FLOOR_MODULE_MM`) a code cannot be printed (the builder
+throws a readable error that `errorField` points at the QR fields; `framework/qr.js` already
+refuses codes under the floor), from 0.6 to 1.0 mm (`QR_COMFORT_MODULE_MM`) it prints but may not
+scan reliably (the builder returns `status.message` as a warning, shown under the facts), and from
+1.0 mm it is fine.
+
 To add a curated font: download the unmodified TTF from the OFL folder of the Google Fonts
 repository (`https://github.com/google/fonts/raw/main/ofl/<family>/`; check the license is OFL,
 not Apache), add the file and its `OFL.txt` (as `OFL-<family>.txt`) to `customizer/static/fonts/`,
@@ -288,6 +417,17 @@ add a line to `SHA256SUMS` (`sha256sum`), a section to `LICENSES.md`, an `@font-
 `fonts.css` (the picker draws each option in its own face; the test checks one rule per font),
 and an entry to `FONTS` in
 `public/assets/js/customize/fonts.js`. Run the name-plate tests and look at the picker.
+
+## Generator parameter notes (current versions)
+
+| Generator | Version | Notes |
+|---|---|---|
+| `route-shield` | 3 | `top_font`/`lower_font`/`back_font` overrides (default `inherit`); `qr_scale_pct` (25-100, default 100). `top_offset_mm`/`lower_offset_mm` are measured from the **auto-centered** position (0 = glyph ink centered in its color field, positive = up). Back parts are named "Back text", "QR code", "3dprint4.me mark" (same color, three parts). |
+| `wifi-tag` | 2 | `qr_scale_pct`; border (`border_style` none/raised/engraved, `border_width_mm`, `border_inset_mm`); QR frame (`qr_frame`, `qr_frame_width_mm`, `qr_frame_gap_mm`); dividers (`title_divider`, `network_divider`, `divider_width_mm`, `divider_length_pct`); `decor_height_mm`, `decor_color`; `title_font`, `network_font`. All default to off/100, so the v1 look is unchanged. Parts "Title text inlay" and "Network name inlay" replace "Label text inlay". |
+| `rating-card` | 2 | `corner_style` (round/chamfer/notch), `border_style`, `frame_style`, widths/insets, `groove_depth_mm`, `divider` (none/caption/icon/both), `caption_font`. Raised decorations print in `icon_color` (the card already uses five colors). |
+| `name-plate` | 2 | New default plate `hug` ("Contour"): the letters grown by exactly `plate_margin_mm` (1-10, default 3) with round joins, clipped to ink ± margin, holes filled; constant thickness everywhere, never thicker above/below any letter. `none` keeps its hard-edged rectangular connector bars; they start/end inside each neighbour across the whole centre band (rows sampled), so slanted letters (A, V) are overlapped in every row. Old `none`/`pill`/`rect` values stay valid. |
+
+Old drafts and requests stay valid: missing keys take their defaults, and the server accepts versions 1..current.
 
 ## Images
 
@@ -352,8 +492,12 @@ names. The E2E matrix in `tests/e2e/test_customize.py` runs every generator page
 3. **Registry** — import it in `registry.js` and add it to `GENERATORS`; add
    `"<id>": () => import("./<id>/build.js")` to `customizer/generators/index.js`.
 4. **Page** — copy `customizer/g/<existing>/index.html` to `customizer/g/<id>/index.html`; set
-   `<meta name="generator-id">`, title, canonical, `<h1 class="cz-title">`, intro and any
-   generator-specific notes. No inline scripts (CSP). Vite picks the folder up automatically.
+   `<meta name="generator-id">`, title, canonical, `<h1 class="cz-title">` (top bar), the
+   `<p class="cz-intro">` in the "About this design" block and any generator-specific notes (a
+   note under `#cz-form`, an area attached with `form.attach`). Keep the studio markup and ids
+   intact ([Page layout](#page-layout-the-studio)). No inline scripts (CSP). Vite picks the
+   folder up automatically. Declare `sections`/`focus` in the definition and a `section` on each
+   field to get the Section grouping and the click-a-part behavior.
 5. **Sitemap** — add `<url><loc>https://3dprint4.me/customize/g/<id>/</loc>…</url>` to
    `public/sitemap.xml` (publishable generators only).
 6. **Screenshots** — add views of the page to `scripts/capture_screenshots.py`.
