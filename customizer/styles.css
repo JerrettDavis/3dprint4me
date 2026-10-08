@@ -82,7 +82,7 @@
 /* ---------- Tool windows ---------- */
 .cz-panels{display:contents}
 .cz-sheet-tabs{display:none}
-.cz-win{position:absolute;top:var(--cz-edge);z-index:2;display:flex;flex-direction:column;min-height:0;max-height:calc(100% - 2 * var(--cz-edge));overflow:hidden;overflow:clip;border:1px solid color-mix(in srgb,var(--line) 88%,transparent);border-radius:14px;background:color-mix(in srgb,var(--surface) 97%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);box-shadow:var(--shadow-md)}
+.cz-win{position:absolute;top:var(--cz-edge);z-index:2;display:flex;flex-direction:column;min-height:0;max-height:calc(100% - 2 * var(--cz-edge));overflow:hidden;overflow:clip;border:1px solid color-mix(in srgb,var(--line) 88%,transparent);border-radius:14px;background:var(--surface);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);box-shadow:var(--shadow-md)}
 .cz-controls{left:var(--cz-edge);width:var(--cz-win-left)}
 .cz-summary{right:var(--cz-edge);width:var(--cz-win-right)}
 .cz-win-bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:0 .35rem;border-bottom:1px solid var(--line);transition:border-color var(--cz-dur) var(--cz-ease)}

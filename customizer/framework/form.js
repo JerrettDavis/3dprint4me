@@ -328,7 +328,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     el.className = `cz-group cz-group-${slug(g.key)}`;
     el.dataset.groupKey = g.key;
     if (mode === "section") el.dataset.section = g.key;
-    const head = document.createElement("h3");
+    const head = document.createElement("h2");
     head.className = "cz-legend";
     const toggle = document.createElement("button");
     toggle.type = "button";
