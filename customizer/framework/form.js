@@ -624,9 +624,13 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     }, { rootMargin: "120px" })
     : null;
   function loadFaces(list) {
+    // Options already on screen get their face at once (no frame of waiting); the rest on scroll.
+    const view = (list.querySelector(".cz-picker-scroll") ?? list).getBoundingClientRect();
     for (const label of list.querySelectorAll(".cz-picker-option[data-face]")) {
-      if (faceObserver) faceObserver.observe(label);
-      else drawFace(label);
+      const box = label.getBoundingClientRect();
+      const showing = view.height > 0 && box.bottom >= view.top && box.top <= view.bottom;
+      if (showing || !faceObserver || label.control?.checked) drawFace(label);
+      else faceObserver.observe(label);
     }
   }
   function openPicker(field, open, { focus = false } = {}) {

@@ -51,7 +51,7 @@
 .cz-tab:focus-visible,.cz-bar-button:focus-visible{outline:3px solid var(--focus-color);outline-offset:2px}
 
 /* The canvas. The stage is always dark so light model colors (white body) stay visible in both themes. */
-.cz-canvas{position:relative;flex:1;min-height:0;overflow:hidden;--cz-inset-l:calc(var(--cz-win-left) + 24px);--cz-inset-r:calc(var(--cz-win-right) + 24px);--cz-inset-b:0px;background:#151d27}
+.cz-canvas{position:relative;flex:1;min-height:0;overflow:hidden;overflow:clip;--cz-inset-l:calc(var(--cz-win-left) + 24px);--cz-inset-r:calc(var(--cz-win-right) + 24px);--cz-inset-b:0px;background:#151d27}
 .cz-preview{position:absolute;inset:0}
 .cz-stage{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;background-color:#1b2430;background-image:radial-gradient(ellipse at 50% 42%,rgb(70 100 130 / .22),transparent 62%),linear-gradient(rgb(255 255 255/.035) 1px,transparent 1px),linear-gradient(90deg,rgb(255 255 255/.035) 1px,transparent 1px);background-size:auto,24px 24px,24px 24px}
 .cz-stage canvas{position:absolute;inset:0;width:100%!important;height:100%!important;touch-action:none;outline:none}
@@ -82,7 +82,7 @@
 /* ---------- Tool windows ---------- */
 .cz-panels{display:contents}
 .cz-sheet-tabs{display:none}
-.cz-win{position:absolute;top:var(--cz-edge);z-index:2;display:flex;flex-direction:column;min-height:0;max-height:calc(100% - 2 * var(--cz-edge));overflow:hidden;border:1px solid color-mix(in srgb,var(--line) 88%,transparent);border-radius:14px;background:color-mix(in srgb,var(--surface) 97%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);box-shadow:var(--shadow-md)}
+.cz-win{position:absolute;top:var(--cz-edge);z-index:2;display:flex;flex-direction:column;min-height:0;max-height:calc(100% - 2 * var(--cz-edge));overflow:hidden;overflow:clip;border:1px solid color-mix(in srgb,var(--line) 88%,transparent);border-radius:14px;background:color-mix(in srgb,var(--surface) 97%,transparent);-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);box-shadow:var(--shadow-md)}
 .cz-controls{left:var(--cz-edge);width:var(--cz-win-left)}
 .cz-summary{right:var(--cz-edge);width:var(--cz-win-right)}
 .cz-win-bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:0 .35rem;border-bottom:1px solid var(--line);transition:border-color var(--cz-dur) var(--cz-ease)}
