@@ -161,18 +161,18 @@ test("a curated font that can't be fetched or parsed is a retryable load failure
 
 test("generator definition: id, version, category, provenance, registered", () => {
   assert.equal(gen.id, "name-plate");
-  assert.equal(gen.version, 1);
+  assert.equal(gen.version, 2);
   assert.equal(gen.title, "Name plate");
   assert.equal(gen.origin, "house");
   assert.deepEqual(gen.rights, { publishable: true, note: "House design." });
   assert.ok(listPublicGenerators().some(g => g.id === "name-plate"));
 });
 
-test("defaults: Alex in the block font, raised on a pill plate, 24 mm text", () => {
+test("defaults: Alex in the block font, raised on a contour (hug) plate, 24 mm text", () => {
   const p = paramsFor();
   assert.deepEqual(
     { name: p.name, font: p.font, style: p.style, plate: p.plate, keychain_loop: p.keychain_loop, height_mm: p.height_mm, thickness_mm: p.thickness_mm, relief_mm: p.relief_mm },
-    { name: "Alex", font: "block", style: "raised", plate: "pill", keychain_loop: false, height_mm: 24, thickness_mm: 3, relief_mm: 1.2 }
+    { name: "Alex", font: "block", style: "raised", plate: "hug", keychain_loop: false, height_mm: 24, thickness_mm: 3, relief_mm: 1.2 }
   );
   assert.ok(contrastRatio(p.text_color, p.plate_color) >= 3);
   assert.ok(contrastRatio(p.text_color, p.outline_color) >= 3);
@@ -220,7 +220,7 @@ test("inlay needs a plate: the server refuses it, the page switches the other co
   assert.equal(r.ok, false);
   assert.match(r.fieldErrors.style, /Inlay needs a plate/);
   assert.equal(clampParams(gen, { ...paramsFor({ style: "inlay" }), plate: "none" }, "plate").style, "raised");
-  assert.equal(clampParams(gen, { ...paramsFor({ plate: "none" }), style: "inlay" }, "style").plate, "pill");
+  assert.equal(clampParams(gen, { ...paramsFor({ plate: "none" }), style: "inlay" }, "style").plate, "hug");
   assert.equal(clampParams(gen, { ...paramsFor(), plate: "rect" }, "plate").style, "raised");
 });
 
@@ -299,7 +299,7 @@ test("parts per style: names, colors, heights and no overlapping volume", async 
     shadow: ["Plate", "Shadow", "Name"],
     inlay: ["Plate", "Name"]
   };
-  for (const plate of ["pill", "rect", "none"]) for (const style of Object.keys(expected)) {
+  for (const plate of ["hug", "pill", "rect", "none"]) for (const style of Object.keys(expected)) {
     if (plate === "none" && style === "inlay") continue;
     const p = paramsFor({ name: "Jordan", font: "bebas-neue", style, plate });
     const built = await build(p, { wasm, font });
@@ -327,7 +327,7 @@ test("parts per style: names, colors, heights and no overlapping volume", async 
 });
 
 test("the plate (or backing) is one connected piece for every font", async () => {
-  for (const f of ["block", ...FONTS.map(x => x.id)]) for (const plate of ["pill", "rect", "none"]) {
+  for (const f of ["block", ...FONTS.map(x => x.id)]) for (const plate of ["hug", "pill", "rect", "none"]) {
     const p = paramsFor({ name: "Jordan", font: f, plate, keychain_loop: true });
     const built = await build(p, { wasm, font: await fontFor(p) });
     try {
@@ -339,7 +339,7 @@ test("the plate (or backing) is one connected piece for every font", async () =>
 
 test("the letters sit at least 3 mm inside a pill or rectangle plate (and inside the backing)", async () => {
   for (const [font, name] of [["block", "Alex"], ["block", "AW"], ["lobster", "Alex"], ["pacifico", "Jordan"], ["rubik-mono-one", "MAX"], ["bebas-neue", "I"], ["titan-one", "Maximiliana Rosalind"]]) {
-    for (const plate of ["pill", "rect", "none"]) {
+    for (const plate of ["hug", "pill", "rect", "none"]) {
       const p = paramsFor({ name, font, plate });
       const built = await build(p, { wasm, font: await fontFor(p) });
       const temps = [];
@@ -588,7 +588,7 @@ test("filename, title and 3MF part names are plain and bounded", async () => {
 
 test("build() frees every temporary: only the returned solids stay alive", async () => {
   const cases = [];
-  for (const style of ["raised", "outline", "shadow", "inlay"]) for (const plate of ["pill", "rect", "none"]) for (const keychain_loop of [false, true]) {
+  for (const style of ["raised", "outline", "shadow", "inlay"]) for (const plate of ["hug", "pill", "rect", "none"]) for (const keychain_loop of [false, true]) {
     if (style === "inlay" && plate === "none") continue;
     cases.push({ style, plate, keychain_loop, font: "pacifico" });
   }
