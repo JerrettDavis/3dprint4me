@@ -2,6 +2,10 @@
 // renderForm wires it to the DOM. No Vite-only imports here.
 import { sensitiveKeys, validateParams } from "../../public/assets/js/customize/schema.js";
 import { fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
+import { GENERAL, fieldSection, hasSections, sectionLabel, sectionList } from "./sections.js";
+import { DUR, EASE, play, reducedMotion, setOpen } from "./motion.js";
+
+export { hasSections };
 
 export const SENSITIVE_NOTE = "This is encoded in your model file. The file is stored privately like any upload and seen by us when we print it. It is not copied into our request records, emails or your saved draft.";
 const GROUP_LABELS = { text: "Text", size: "Size and depth", layout: "Text layout", back: "Back", colors: "Colors" };
@@ -27,20 +31,24 @@ function describe(base, key, error) {
   const ids = error ? [...base, errorId(key)] : base;
   return `${ids.length ? ` aria-describedby="${ids.join(" ")}"` : ""} data-describedby="${base.join(" ")}"${error ? ` aria-invalid="true"` : ""}`;
 }
-const errorSlot = (key, error) => `<p class="cz-field-error" id="${errorId(key)}">${esc(error ?? "")}</p>`;
+// The slot sits in a wrapper that opens and closes with a transition (see styles.css .cz-err).
+const errorSlot = (key, error) => `<div class="cz-err${error ? " is-open" : ""}"><p class="cz-field-error" id="${errorId(key)}">${esc(error ?? "")}</p></div>`;
 
 function numberField(key, def, value, error) {
   const id = controlId(key);
   const step = def.step ?? (def.type === "int" ? 1 : "any");
   const unit = def.unit ? ` <span class="cz-unit">(${esc(def.unit)})</span>` : "";
   const bounds = `${attr("min", def.min)}${attr("max", def.max)}${attr("step", step)}${attr("value", value)}`;
+  // def.help: e.g. "0 = automatic / centered". Both controls point at it.
+  const base = def.help ? [`${id}-help`] : [];
   return `<div class="cz-field cz-field-number" data-field="${esc(key)}">
   <label class="cz-label" id="${id}-label" for="${id}">${esc(def.label ?? key)}${unit}</label>
   <div class="cz-number-row">
-    <input class="cz-range" type="range" id="${id}-range" data-for="${esc(key)}" aria-label="${esc(def.label ?? key)} slider"${bounds}${describe([], key, error)}>
-    <input class="input cz-number" type="number" id="${id}" name="${esc(key)}"${bounds} inputmode="decimal"${describe([], key, error)}>
+    <input class="cz-range" type="range" id="${id}-range" data-for="${esc(key)}" aria-label="${esc(def.label ?? key)} slider"${bounds}${describe(base, key, error)}>
+    <input class="input cz-number" type="number" id="${id}" name="${esc(key)}"${bounds} inputmode="decimal"${describe(base, key, error)}>
   </div>
-  ${errorSlot(key, error)}
+  ${errorSlot(key, error)}${def.help ? `
+  <p class="help" id="${id}-help">${esc(def.help)}</p>` : ""}
 </div>`;
 }
 
@@ -102,9 +110,21 @@ function fontPickerField(key, def, value, error) {
   const id = controlId(key);
   const options = def.options ?? [];
   const current = options.find(o => o.value === value) ?? options[0];
+  // Options may carry `group` (a category label): a heading is drawn whenever it changes, in
+  // option order (never sorted, so arrow-key order stays the option order). An ungrouped option
+  // after grouped ones gets a plain divider.
+  const grouped = options.some(o => o.group);
+  let lastGroup = null;
   const radios = options.map(o => {
     const rid = `${id}-${slug(o.value)}`;
-    return `<div class="cz-picker-item"><input class="cz-picker-radio" type="radio" name="${esc(key)}" id="${rid}" value="${esc(o.value)}"${o.value === value ? " checked" : ""}${describe([], key, error)}>
+    let heading = "";
+    if (grouped && (o.group ?? null) !== lastGroup) {
+      lastGroup = o.group ?? null;
+      heading = lastGroup ? `<div class="cz-picker-group" role="presentation">${esc(lastGroup)}</div>
+    ` : `<div class="cz-picker-group cz-picker-group-plain" role="presentation"></div>
+    `;
+    }
+    return `${heading}<div class="cz-picker-item"><input class="cz-picker-radio" type="radio" name="${esc(key)}" id="${rid}" value="${esc(o.value)}"${o.value === value ? " checked" : ""}${describe([], key, error)}>
     <label for="${rid}" class="cz-picker-option ${faceClass(o)}">${esc(o.label ?? o.value)}</label></div>`;
   }).join("\n    ");
   return `<div class="cz-field cz-field-picker" data-field="${esc(key)}" data-picker="${esc(def.picker)}">
@@ -112,7 +132,9 @@ function fontPickerField(key, def, value, error) {
   <button class="cz-picker-toggle" type="button" id="${id}-toggle" aria-expanded="false" aria-controls="${id}-list" aria-labelledby="${id}-label ${id}-toggle"><span class="cz-picker-current ${faceClass(current)}">${esc(current?.label ?? "")}</span></button>
   <fieldset class="cz-picker-list" id="${id}-list" hidden>
     <legend class="visually-hidden">${esc(def.label ?? key)}</legend>
+    <div class="cz-picker-scroll">
     ${radios}
+    </div>
   </fieldset>
   ${errorSlot(key, error)}
 </div>`;
@@ -166,22 +188,44 @@ export function summaryHtml(errors = [], fieldErrors = {}) {
   return parts.join("");
 }
 
-export function renderFormHtml(generator, params = {}, { errors = [], fieldErrors = {} } = {}) {
+/**
+ * The fields of a generator grouped for display, as [{ key, label, keys: [fieldKey...] }].
+ * mode "category" (default): by `group`, in schema order (the original fieldsets).
+ * mode "section": by `section` in the definition's `sections` order, "General" for fields
+ * with none (see sections.js).
+ */
+export function groupFields(generator, mode = "category") {
+  const entries = Object.entries(generator.schema).filter(([, def]) => RENDERERS[def.type]);
+  if (mode === "section") {
+    const buckets = new Map(sectionList(generator).map(s => [s.key, { key: s.key, label: s.label, keys: [] }]));
+    for (const [key, def] of entries) {
+      const section = fieldSection(def);
+      if (!buckets.has(section)) buckets.set(section, { key: section, label: sectionLabel(generator, section), keys: [] });
+      buckets.get(section).keys.push(key);
+    }
+    return [...buckets.values()].filter(g => g.keys.length);
+  }
   const groups = new Map();
-  const current = Object.fromEntries(Object.entries(generator.schema).map(([k, d]) => [k, Object.hasOwn(params, k) ? params[k] : d.default]));
-  for (const [key, def] of Object.entries(generator.schema)) {
-    const render = RENDERERS[def.type];
-    if (!render) continue;
-    const value = Object.hasOwn(params, key) ? params[key] : def.default;
+  for (const [key, def] of entries) {
     const group = def.group ?? "";
     if (!groups.has(group)) groups.set(group, []);
-    let field = render(key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : "");
-    if (!isFieldVisible(def, current)) field = field.replace(`data-field="${esc(key)}">`, `data-field="${esc(key)}" hidden>`);
-    groups.get(group).push(field);
+    groups.get(group).push(key);
   }
-  const fieldsets = [...groups].map(([group, fields]) => `<fieldset class="cz-group cz-group-${esc(slug(group || "options"))}">
-<legend class="cz-legend">${esc(groupLabel(group))}</legend>
-${fields.join("\n")}
+  return [...groups].map(([group, keys]) => ({ key: group || "options", label: groupLabel(group), keys }));
+}
+
+export function renderFormHtml(generator, params = {}, { errors = [], fieldErrors = {}, mode = "category" } = {}) {
+  const current = Object.fromEntries(Object.entries(generator.schema).map(([k, d]) => [k, Object.hasOwn(params, k) ? params[k] : d.default]));
+  const renderField = key => {
+    const def = generator.schema[key];
+    const value = Object.hasOwn(params, key) ? params[key] : def.default;
+    let field = RENDERERS[def.type](key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : "");
+    if (!isFieldVisible(def, current)) field = field.replace(`data-field="${esc(key)}">`, `data-field="${esc(key)}" hidden>`);
+    return field;
+  };
+  const fieldsets = groupFields(generator, mode).map(g => `<fieldset class="cz-group cz-group-${esc(slug(g.key))}">
+<legend class="cz-legend">${esc(g.label)}</legend>
+${g.keys.map(renderField).join("\n")}
 </fieldset>`);
   // The summary region is always in the DOM (a persistent polite live region); only its text changes.
   return `<div class="cz-form-errors" id="cz-form-errors" aria-live="polite">${summaryHtml(errors, fieldErrors)}</div>
@@ -232,7 +276,7 @@ export function cssTextMasking() {
  * typing into a number or text box is reported debounced with final=false so the page can
  * validate without snapping a half-typed number.
  */
-export function renderForm(container, generator, params, { onChange = () => {}, limits, cssMasking = cssTextMasking() } = {}) {
+export function renderForm(container, generator, params, { onChange = () => {}, limits, cssMasking = cssTextMasking(), mode: initialMode = "category", collapsed = {}, onCollapse = () => {}, onLink = () => {} } = {}) {
   container.innerHTML = renderFormHtml(generator, params);
   const secret = secretInputAttributes(cssMasking);
   for (const input of container.querySelectorAll("input.cz-secret")) {
@@ -250,6 +294,175 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   const toggleOf = key => container.querySelector(`#${CSS.escape(controlId(key))}-toggle`);
   const range = key => container.querySelector(`[data-for="${CSS.escape(key)}"]`);
   const errorBox = container.querySelector("#cz-form-errors");
+
+  // ---- Grouping: the same field nodes are re-parented between "Section" and "Category" groups,
+  // never re-rendered, so values, listeners, a secret's live value and attached areas survive.
+  const fieldEls = new Map();
+  for (const wrapper of container.querySelectorAll(".cz-field[data-field]")) {
+    const def = generator.schema[wrapper.dataset.field];
+    if (!def) continue;
+    wrapper.dataset.group = def.group ?? "";
+    wrapper.dataset.section = fieldSection(def);
+    fieldEls.set(wrapper.dataset.field, wrapper);
+  }
+  for (const fieldset of container.querySelectorAll("fieldset.cz-group")) fieldset.remove();
+  const host = document.createElement("div");
+  host.className = "cz-groups";
+  container.append(host);
+  const attachments = new Map(); // field key -> [elements placed right under that field]
+  const groupEls = new Map(); // group key -> { el, toggle, body, key, mode }
+  let mode = hasSections(generator) && initialMode === "section" ? "section" : "category";
+  let linked = null;
+
+  const collapseKey = (m, key) => `${m}:${key}`;
+  function setGroupOpen(entry, open, { animate = true, remember = true } = {}) {
+    entry.toggle.setAttribute("aria-expanded", String(open));
+    entry.el.classList.toggle("is-collapsed", !open);
+    if (animate) setOpen(entry.body, open);
+    else entry.body.hidden = !open;
+    if (remember) onCollapse(collapseKey(entry.mode, entry.key), !open);
+  }
+  function buildGroup(g) {
+    const bodyId = `cz-grp-${mode}-${slug(g.key)}-body`;
+    const el = document.createElement("section");
+    el.className = `cz-group cz-group-${slug(g.key)}`;
+    el.dataset.groupKey = g.key;
+    if (mode === "section") el.dataset.section = g.key;
+    const head = document.createElement("h3");
+    head.className = "cz-legend";
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "cz-group-toggle";
+    toggle.setAttribute("aria-controls", bodyId);
+    const label = document.createElement("span");
+    label.textContent = g.label;
+    const chevron = document.createElement("span");
+    chevron.className = "cz-chev";
+    chevron.setAttribute("aria-hidden", "true");
+    toggle.append(label, chevron);
+    head.append(toggle);
+    const body = document.createElement("div");
+    body.className = "cz-group-body";
+    body.id = bodyId;
+    el.append(head, body);
+    const entry = { el, toggle, body, key: g.key, mode };
+    toggle.addEventListener("click", () => setGroupOpen(entry, toggle.getAttribute("aria-expanded") !== "true"));
+    for (const key of g.keys) {
+      const wrapper = fieldEls.get(key);
+      if (!wrapper) continue;
+      body.append(wrapper, ...(attachments.get(key) ?? []));
+    }
+    setGroupOpen(entry, collapsed[collapseKey(mode, g.key)] !== true, { animate: false, remember: false });
+    return entry;
+  }
+  function refreshGroupVisibility() {
+    for (const { el, body } of groupEls.values()) el.hidden = ![...body.querySelectorAll(".cz-field[data-field]")].some(f => !f.hidden);
+  }
+  function layout(nextMode) {
+    const active = container.contains(document.activeElement) ? document.activeElement : null;
+    mode = nextMode;
+    host.replaceChildren();
+    host.dataset.mode = mode;
+    groupEls.clear();
+    for (const g of groupFields(generator, mode)) {
+      const entry = buildGroup(g);
+      groupEls.set(g.key, entry);
+      host.append(entry.el);
+    }
+    refreshGroupVisibility();
+    applyLinked();
+    if (active?.isConnected) active.focus({ preventScroll: true });
+  }
+  let modeToken = 0;
+  async function setMode(next, { animate = true } = {}) {
+    const target = next === "section" && hasSections(generator) ? "section" : "category";
+    if (target === mode) return;
+    const token = ++modeToken;
+    if (!animate || reducedMotion() || typeof host.animate !== "function") { layout(target); return; }
+    const out = host.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 90, easing: EASE, fill: "forwards" });
+    await out.finished.catch(() => {});
+    if (token !== modeToken) { out.cancel(); return; }
+    layout(target);
+    out.cancel();
+    await play(host, [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: DUR.base });
+  }
+
+  // Which section a pointer / focus target belongs to (null for General and non-section areas).
+  const sectionAt = target => {
+    const el = target?.closest?.(mode === "section" ? ".cz-group[data-section]" : ".cz-field[data-section]");
+    const key = el?.dataset.section;
+    return key && key !== GENERAL ? key : null;
+  };
+  function applyLinked() {
+    for (const el of container.querySelectorAll(".is-linked")) el.classList.remove("is-linked");
+    if (!linked) return;
+    const css = CSS.escape(linked);
+    const targets = mode === "section" ? container.querySelectorAll(`.cz-group[data-section="${css}"]`) : container.querySelectorAll(`.cz-field[data-section="${css}"]:not([hidden])`);
+    for (const el of targets) el.classList.add("is-linked");
+  }
+  /** Softly marks the settings of one section (the preview is hovering its part). */
+  function setLinked(key) {
+    if (linked === (key ?? null)) return;
+    linked = key ?? null;
+    applyLinked();
+  }
+  let hoverKey = null;
+  container.addEventListener("pointerover", event => {
+    if (event.pointerType === "touch") return;
+    const key = sectionAt(event.target);
+    if (key !== hoverKey) { hoverKey = key; onLink(key, "hover"); }
+  });
+  container.addEventListener("pointerleave", () => { if (hoverKey) { hoverKey = null; onLink(null, "hover"); } });
+  container.addEventListener("focusin", event => onLink(sectionAt(event.target), "focus"));
+  container.addEventListener("focusout", event => { if (!container.contains(event.relatedTarget)) onLink(null, "focus"); });
+
+  /**
+   * Brings a section's settings into view: expands the group(s), scrolls to them, pulses them
+   * and moves keyboard focus to the first control. Returns { count, control } or null.
+   */
+  function revealSection(key, { focus = true } = {}) {
+    let targets;
+    if (mode === "section") {
+      const entry = groupEls.get(key);
+      if (!entry || entry.el.hidden) return null;
+      if (entry.body.hidden) setGroupOpen(entry, true);
+      targets = [entry.el];
+    } else {
+      targets = [...fieldEls.values()].filter(w => w.dataset.section === key && !w.hidden);
+      if (!targets.length) return null;
+      for (const w of targets) {
+        const entry = groupEls.get(w.dataset.group || "options");
+        if (entry?.body.hidden) setGroupOpen(entry, true);
+      }
+    }
+    const control = targets.map(t => t.querySelector(".cz-field:not([hidden]) :is(input:not(.cz-picker-radio):not(.cz-range), select, textarea, button.cz-picker-toggle)") ?? (t.matches(".cz-field") ? t.querySelector(":is(input:not(.cz-picker-radio):not(.cz-range), select, textarea, button.cz-picker-toggle)") : null)).find(Boolean) ?? null;
+    const scroller = container.closest(".cz-win-body") ?? container;
+    // Leave room for the sticky tool row at the top of the window.
+    const sticky = scroller.querySelector(".cz-win-tools")?.offsetHeight ?? 0;
+    const delta = targets[0].getBoundingClientRect().top - scroller.getBoundingClientRect().top - sticky - 8;
+    if (Math.abs(delta) > 2) scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: reducedMotion() ? "auto" : "smooth" });
+    for (const t of targets) {
+      t.classList.remove("cz-pulse");
+      void t.offsetWidth;
+      t.classList.add("cz-pulse");
+      setTimeout(() => t.classList.remove("cz-pulse"), 1300);
+    }
+    if (focus && control) {
+      control.focus({ preventScroll: true });
+      control.dataset.czRing = "1";
+      control.addEventListener("blur", () => { delete control.dataset.czRing; }, { once: true });
+    }
+    return { count: targets.reduce((n, t) => n + (t.matches(".cz-field") ? 1 : t.querySelectorAll(".cz-field:not([hidden])").length), 0), control };
+  }
+  /** Places `element` right under the field `key` (the image picker, the own-font panel). */
+  function attach(key, element) {
+    const list = attachments.get(key) ?? [];
+    list.push(element);
+    attachments.set(key, list);
+    fieldEls.get(key)?.after(element);
+  }
+  // Fields go back into the document right away: the listeners below look them up in `container`.
+  layout(mode);
 
   // data-settling marks the form while an edit waits on its debounce/settle timer (tests and
   // anything else that must know every edit has been reported).
@@ -336,6 +549,8 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       const wrapper = container.querySelector(`[data-field="${CSS.escape(key)}"]`);
       if (wrapper) wrapper.hidden = !isFieldVisible(def, values);
     }
+    refreshGroupVisibility();
+    applyLinked();
     if (generator.rules) setLimits(generator.rules(values).limits ?? {});
   }
 
@@ -344,7 +559,19 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     for (const key of Object.keys(generator.schema)) {
       const message = Object.hasOwn(fieldErrors, key) ? String(fieldErrors[key]) : "";
       const slot = container.querySelector(`#${CSS.escape(errorId(key))}`);
-      if (slot && slot.textContent !== message) slot.textContent = message;
+      if (slot && slot.textContent !== message) {
+        const previous = slot.textContent;
+        slot.textContent = message;
+        // The wrapper opens/closes with a CSS transition; a cleared message stays drawn (as a
+        // ghost) until the close has run, so it fades out instead of vanishing.
+        const wrap = slot.parentElement;
+        if (message) { delete slot.dataset.ghost; wrap?.classList.add("is-open"); }
+        else if (previous) {
+          slot.dataset.ghost = previous;
+          wrap?.classList.remove("is-open");
+          setTimeout(() => { if (!slot.textContent) delete slot.dataset.ghost; }, DUR.base + 60);
+        }
+      }
       for (const control of [...allNamed(key), range(key), toggleOf(key)]) {
         if (!control) continue;
         const base = (control.dataset.describedby ?? "").split(" ").filter(Boolean);
@@ -357,7 +584,11 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     }
     if (errorBox) {
       const html = summaryHtml(errors, fieldErrors);
-      if (errorBox.innerHTML !== html) errorBox.innerHTML = html;
+      if (errorBox.innerHTML !== html) {
+        const appearing = !errorBox.innerHTML && html;
+        errorBox.innerHTML = html;
+        if (appearing) play(errorBox, [{ opacity: 0, transform: "translateY(-4px)" }, { opacity: 1, transform: "none" }], { duration: DUR.base });
+      }
     }
   }
 
@@ -371,24 +602,81 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       label.className = `cz-picker-current ${faceClass(option)}`;
     }
   }
+  // A long list (35 fonts) must not download every face when it opens: only the first few
+  // options are drawn in their own face at once; the rest get theirs as they scroll into view
+  // (all at once without IntersectionObserver). Faces are same-origin and font-display: swap.
+  const EAGER_FACES = 10;
+  const faceOf = label => [...label.classList].find(c => c.startsWith("cz-ff-"));
+  const drawFace = label => {
+    if (label?.dataset.face) { label.classList.add(label.dataset.face); delete label.dataset.face; }
+  };
+  for (const list of container.querySelectorAll(".cz-picker-list")) {
+    list.querySelectorAll(".cz-picker-option").forEach((label, index) => {
+      const face = faceOf(label);
+      if (index < EAGER_FACES || !face) return;
+      label.dataset.face = face;
+      label.classList.remove(face);
+    });
+  }
+  const faceObserver = typeof IntersectionObserver === "function"
+    ? new IntersectionObserver(entries => {
+      for (const entry of entries) if (entry.isIntersecting) { drawFace(entry.target); faceObserver.unobserve(entry.target); }
+    }, { rootMargin: "120px" })
+    : null;
+  function loadFaces(list) {
+    // Options already on screen get their face at once (no frame of waiting); the rest on scroll.
+    const view = (list.querySelector(".cz-picker-scroll") ?? list).getBoundingClientRect();
+    for (const label of list.querySelectorAll(".cz-picker-option[data-face]")) {
+      const box = label.getBoundingClientRect();
+      const showing = view.height > 0 && box.bottom >= view.top && box.top <= view.bottom;
+      if (showing || !faceObserver || label.control?.checked) drawFace(label);
+      else faceObserver.observe(label);
+    }
+  }
   function openPicker(field, open, { focus = false } = {}) {
     const toggle = field.querySelector(".cz-picker-toggle");
     const list = field.querySelector(".cz-picker-list");
     if (!toggle || !list) return;
     toggle.setAttribute("aria-expanded", String(open));
     list.hidden = !open;
-    if (open && focus) (list.querySelector("input:checked") ?? list.querySelector("input"))?.focus();
+    if (open) loadFaces(list);
+    if (open && focus) {
+      const target = list.querySelector("input:checked") ?? list.querySelector("input");
+      target?.focus();
+      // Keep the current choice in view in a long list.
+      target?.closest(".cz-picker-item")?.scrollIntoView?.({ block: "nearest" });
+    }
     if (!open && focus) toggle.focus();
   }
   for (const field of container.querySelectorAll("[data-picker]")) {
     const toggle = field.querySelector(".cz-picker-toggle");
     const key = field.dataset.field;
+    let typed = "";
+    let typedTimer = 0;
     toggle?.addEventListener("click", () => openPicker(field, toggle.getAttribute("aria-expanded") !== "true", { focus: true }));
     field.addEventListener("keydown", event => {
       delete field.dataset.pointerPick;
       if (event.key === "Escape" && toggle?.getAttribute("aria-expanded") === "true") { event.preventDefault(); openPicker(field, false, { focus: true }); }
       // Enter on a choice confirms it, like a select.
       if (event.key === "Enter" && event.target.matches?.(".cz-picker-radio")) { event.preventDefault(); emit(key, true); openPicker(field, false, { focus: true }); }
+      // Type-ahead: typing a font's name jumps to it (a repeated letter cycles through the
+      // names that start with it). The choice settles like an arrow key would.
+      if (event.key.length === 1 && event.key !== " " && !event.ctrlKey && !event.metaKey && !event.altKey && event.target.matches?.(".cz-picker-radio")) {
+        typed += event.key.toLowerCase();
+        clearTimeout(typedTimer);
+        typedTimer = setTimeout(() => { typed = ""; }, 700);
+        const radios = [...field.querySelectorAll(".cz-picker-radio")];
+        const from = radios.indexOf(event.target) + (typed.length > 1 ? 0 : 1);
+        const name = radio => (field.querySelector(`label[for="${CSS.escape(radio.id)}"]`)?.textContent ?? "").trim().toLowerCase();
+        const hit = [...radios.slice(from), ...radios.slice(0, from)].find(radio => name(radio).startsWith(typed));
+        if (hit) {
+          event.preventDefault();
+          drawFace(field.querySelector(`label[for="${CSS.escape(hit.id)}"]`));
+          hit.checked = true;
+          hit.focus();
+          hit.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
     });
     // Pressing a choice must not blur the group first (that would close it before the click),
     // and marks the coming change as a pointer pick (committed at once in onCommit).
@@ -419,6 +707,11 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     setValues,
     setLimits,
     setErrors,
+    setMode,
+    getMode: () => mode,
+    setLinked,
+    revealSection,
+    attach,
     destroy() {
       for (const timer of timers.values()) clearTimeout(timer);
       timers.clear();

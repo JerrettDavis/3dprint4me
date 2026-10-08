@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { DUR, play, reducedMotion } from './motion.js';
 
 // Everything lives in the printer's Z-up frame (millimetres), matching the 3MF.
 const BED = 256; // Bambu Lab X1/P1/A1 Max-class 256 x 256 mm build plate
@@ -108,6 +109,9 @@ function makeBed() {
   return g;
 }
 
+// Each solid becomes its own mesh, tagged with the solid's name (userData.name) so the preview can
+// be hovered and clicked part by part. Polygon offset keeps the highlight outline in front of
+// coplanar faces.
 function makeBadgeMesh(parts) {
   const group = new THREE.Group();
   for (const p of parts) {
@@ -120,15 +124,37 @@ function makeBadgeMesh(parts) {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.computeVertexNormals();
-    group.add(new THREE.Mesh(geo, mat(p.color, { roughness: .5, flatShading: true })));
+    const mesh = new THREE.Mesh(geo, mat(p.color, { roughness: .5, flatShading: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
+    mesh.userData.name = p.name;
+    group.add(mesh);
   }
   return group;
 }
 
+const ACCENT = 0x38a6d8;
+const EDGE = 0x8fe3ff;
+const LEVEL = { hover: .2, selected: .34 };
+const ease = t => 1 - Math.pow(1 - t, 3);
+
+function setOpacity(object, value) {
+  object.traverse(o => {
+    if (!o.material || o.isLineSegments) return;
+    o.material.transparent = value < 1;
+    o.material.opacity = value;
+    o.material.depthWrite = value >= 1;
+  });
+}
+
 // One renderer serves every preview tab: "3d" orbits a perspective camera; "front" and
 // "back" look straight down/up the Z axis through an orthographic camera (a flat 2D view of
-// each face). Frames render on demand (no constant animation loop), which also keeps motion
-// to a minimum for visitors who prefer reduced motion.
+// each face). Frames render on demand, and the short transitions (a model swap, a camera move,
+// a pulse) run their own frame loop only while they last; under prefers-reduced-motion they
+// are skipped and every change is instant.
+//
+// Picking: each part can map to a section (setPartResolver). Hovering reports
+// onHover(sectionKey|null, partName|null, { x, y }); a tap or click (little movement, short,
+// one pointer) reports onPick(sectionKey|null, partName|null, { x, y }, pointerType); dragging
+// to orbit or pan never picks. The viewer draws what the page asks for with setHighlight.
 export function createViewer(container, { label = '3D model preview' } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -174,43 +200,124 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
   let bedMode = false;
   let view = '3d';
   let queued = false;
+  let inset = { left: 0, right: 0, top: 0, bottom: 0 };
+  let resolver = () => null;
+  let hoverCb = () => {};
+  let pickCb = () => {};
+  let hl = { hover: null, selected: null };
+  let swap = null;
+  let camTween = null;
+  let pulseRun = null;
 
   function render() {
     if (queued) return;
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      renderer.render(scene, view === '3d' ? camera : ortho);
+      renderNow();
     });
   }
+  function renderNow() { renderer.render(scene, view === '3d' ? camera : ortho); }
   controls.addEventListener('change', render);
+  controls.addEventListener('start', () => camTween?.cancel());
+
+  // A short frame loop for one transition. Resolves when done (at once under reduced motion).
+  function run(ms, step) {
+    if (reducedMotion() || ms <= 0) {
+      step(1);
+      renderNow();
+      return { cancel() {}, done: Promise.resolve() };
+    }
+    let raf = 0;
+    let cancelled = false;
+    const start = performance.now();
+    const done = new Promise(resolve => {
+      const tick = now => {
+        if (cancelled) { resolve(); return; }
+        const t = Math.min(1, (now - start) / ms);
+        step(ease(t));
+        renderNow();
+        if (t < 1) raf = requestAnimationFrame(tick); else resolve();
+      };
+      raf = requestAnimationFrame(tick);
+    });
+    return { cancel() { cancelled = true; cancelAnimationFrame(raf); }, done };
+  }
+
+  const size = () => ({ w: container.clientWidth || 1, h: container.clientHeight || 1 });
+  const free = () => {
+    const { w, h } = size();
+    return { w, h, freeW: Math.max(120, w - inset.left - inset.right), freeH: Math.max(120, h - inset.top - inset.bottom) };
+  };
 
   // Orbiting under the model is only blocked when the opaque bed is shown.
   function limitOrbit() { controls.maxPolarAngle = bedMode ? Math.PI / 2 - .02 : Math.PI; }
 
-  function frame(side = 'front') {
-    // Distance at which a bounding sphere of `radius` fits the narrower viewport axis.
-    const fit = radius => radius * 1.15 / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.min(1, camera.aspect));
-    // Front face is +Z (up); the back face is the underside resting on the bed.
-    const dir = new THREE.Vector3(.25, side === 'back' ? .75 : -.75, side === 'back' ? -.62 : .62).normalize();
-    if (bedMode) {
-      controls.target.set(0, -5, 0);
-      camera.position.copy(controls.target).addScaledVector(dir, fit(BED * .62));
-    } else {
-      const span = Math.max(dims.w, dims.d, dims.h, 40);
-      controls.target.set(0, 0, dims.h / 3);
-      camera.position.copy(controls.target).addScaledVector(dir, fit(span * .7));
-    }
-    controls.update();
+  // Floating tool windows cover part of the canvas: shift the projection so the model is
+  // centred in the free space, without moving the camera.
+  function applyViewOffset() {
+    const { w, h } = size();
+    const sx = (inset.left - inset.right) / 2;
+    const sy = (inset.top - inset.bottom) / 2;
+    if (sx || sy) camera.setViewOffset(w, h, -sx, -sy, w, h);
+    else camera.clearViewOffset();
   }
 
+  function frameTarget(side = 'front') {
+    // Distance at which a bounding sphere of `radius` fits the free part of the canvas.
+    const fit = radius => {
+      const { h, freeW, freeH } = free();
+      return radius * 1.15 / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * (Math.min(freeW, freeH) / h));
+    };
+    // Front face is +Z (up); the back face is the underside resting on the bed.
+    const dir = new THREE.Vector3(.25, side === 'back' ? .75 : -.75, side === 'back' ? -.62 : .62).normalize();
+    const target = new THREE.Vector3();
+    const position = new THREE.Vector3();
+    if (bedMode) {
+      target.set(0, -5, 0);
+      position.copy(target).addScaledVector(dir, fit(BED * .62));
+    } else {
+      const span = Math.max(dims.w, dims.d, dims.h, 40);
+      target.set(0, 0, dims.h / 3);
+      position.copy(target).addScaledVector(dir, fit(span * .7));
+    }
+    return { position, target };
+  }
+
+  function moveCamera({ position, target }, animate) {
+    camTween?.cancel();
+    camTween = null;
+    if (!animate || reducedMotion() || view !== '3d') {
+      camera.position.copy(position);
+      controls.target.copy(target);
+      controls.update();
+      render();
+      return;
+    }
+    const p0 = camera.position.clone();
+    const t0 = controls.target.clone();
+    camTween = run(DUR.slow + 60, t => {
+      camera.position.lerpVectors(p0, position, t);
+      controls.target.lerpVectors(t0, target, t);
+      controls.update();
+    });
+  }
+  const frame = (side = 'front', animate = false) => moveCamera(frameTarget(side), animate);
+
   function frameOrtho() {
-    const { clientWidth: w, clientHeight: h } = container;
-    const aspect = w && h ? w / h : 1;
+    const { w, h, freeW, freeH } = free();
+    // Units per pixel such that the model fits the free space; the frustum covers the whole
+    // canvas and is shifted so the model sits in the middle of the free space.
     const half = Math.max(dims.w, dims.d, 20) * .58;
-    const halfW = aspect >= 1 ? half * aspect : half;
-    const halfH = aspect >= 1 ? half : half / aspect;
-    Object.assign(ortho, { left: -halfW, right: halfW, top: halfH, bottom: -halfH });
+    const upp = (2 * half) / Math.min(freeW, freeH);
+    const sx = (inset.left - inset.right) / 2;
+    const sy = (inset.top - inset.bottom) / 2;
+    Object.assign(ortho, {
+      left: -w * upp / 2 - sx * upp,
+      right: w * upp / 2 - sx * upp,
+      top: h * upp / 2 + sy * upp,
+      bottom: -h * upp / 2 + sy * upp
+    });
     // Back: look up from below; the image is mirrored exactly as the turned-over part reads.
     ortho.position.set(0, 0, view === 'back' ? -1000 : 1000);
     ortho.up.set(0, 1, 0);
@@ -235,51 +342,206 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
     renderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    applyViewOffset();
     frameOrtho();
     render();
   }
   const observer = new ResizeObserver(resize);
   observer.observe(container);
 
+  // ---- Highlighting: emissive tint plus an edge outline, per mesh ----
+  function edgesOf(mesh) {
+    if (!mesh.userData.edges) {
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 28), new THREE.LineBasicMaterial({ color: EDGE, transparent: true, opacity: 1, depthWrite: false }));
+      edges.renderOrder = 2;
+      edges.visible = false;
+      mesh.add(edges);
+      mesh.userData.edges = edges;
+    }
+    return mesh.userData.edges;
+  }
+  function paintHighlights() {
+    if (!model) return;
+    for (const mesh of model.children) {
+      if (!mesh.isMesh) continue;
+      const key = mesh.userData.section;
+      const level = key && key === hl.selected ? 'selected' : key && key === hl.hover ? 'hover' : null;
+      mesh.material.emissive.setHex(level ? ACCENT : 0x000000);
+      mesh.material.emissiveIntensity = level ? LEVEL[level] : 0;
+      if (level || mesh.userData.edges) {
+        const edges = edgesOf(mesh);
+        edges.visible = Boolean(level);
+        edges.material.opacity = level === 'selected' ? 1 : .6;
+      }
+    }
+    render();
+  }
+  function tagParts() {
+    if (!model) return;
+    for (const mesh of model.children) if (mesh.isMesh) mesh.userData.section = resolver(mesh.userData.name) ?? null;
+  }
+
+  // ---- Picking ----
+  const dom = renderer.domElement;
+  const ndc = new THREE.Vector2();
+  const raycaster = new THREE.Raycaster();
+  function partAt(clientX, clientY) {
+    if (!model) return null;
+    const rect = dom.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(ndc, view === '3d' ? camera : ortho);
+    model.updateMatrixWorld(true);
+    return raycaster.intersectObjects(model.children.filter(c => c.isMesh), false)[0]?.object ?? null;
+  }
+  const pointOf = e => { const r = dom.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  let hoverEvent = null;
+  let hoverFrame = 0;
+  let hoverKey = null;
+  function reportHover() {
+    hoverFrame = 0;
+    const e = hoverEvent;
+    if (!e) return;
+    const mesh = partAt(e.clientX, e.clientY);
+    const key = mesh?.userData.section ?? null;
+    dom.style.cursor = key ? 'pointer' : '';
+    hoverKey = key;
+    hoverCb(key, mesh?.userData.name ?? null, pointOf(e));
+  }
+  function clearHover() {
+    hoverEvent = null;
+    if (hoverKey !== null || dom.style.cursor) { hoverKey = null; dom.style.cursor = ''; hoverCb(null, null, null); }
+  }
+  const pointers = new Set();
+  let press = null;
+  dom.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    pointers.add(e.pointerId);
+    if (pointers.size > 1) { if (press) press.multi = true; return; }
+    press = { x: e.clientX, y: e.clientY, at: performance.now(), moved: false, multi: false };
+  });
+  dom.addEventListener('pointermove', e => {
+    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 6) press.moved = true;
+    // Hover only for a mouse or pen with no button down (a touch drag is an orbit).
+    if (e.pointerType === 'touch' || e.buttons) return;
+    hoverEvent = e;
+    if (!hoverFrame) hoverFrame = requestAnimationFrame(reportHover);
+  });
+  dom.addEventListener('pointerup', e => {
+    pointers.delete(e.pointerId);
+    const p = press;
+    if (pointers.size === 0) press = null;
+    if (!p || p.moved || p.multi || performance.now() - p.at > 600) return;
+    const mesh = partAt(e.clientX, e.clientY);
+    pickCb(mesh?.userData.section ?? null, mesh?.userData.name ?? null, pointOf(e), e.pointerType);
+  });
+  dom.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); press = null; });
+  dom.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') clearHover(); });
+
+  // ---- Model swap: the old model fades out while the new one fades and scales in ----
+  function disposeObject(object) {
+    object.traverse(o => { o.geometry?.dispose(); o.material?.dispose(); });
+  }
+  function finishSwap() {
+    if (!swap) return;
+    swap.run.cancel();
+    const { old, next } = swap;
+    swap = null;
+    scene.remove(old);
+    disposeObject(old);
+    if (next) { setOpacity(next, 1); next.scale.setScalar(1); }
+  }
+
+  function setView(next, { animate = true } = {}) {
+    const prev = view;
+    view = next === 'front' || next === 'back' ? next : '3d';
+    layout();
+    frameOrtho();
+    render();
+    if (!animate || prev === view || reducedMotion()) return;
+    // The two flat views flip, anything else eases in.
+    const flip = prev !== '3d' && view !== '3d';
+    play(dom, flip
+      ? [{ opacity: 0, transform: `perspective(900px) rotateY(${view === 'back' ? '-' : ''}70deg) scale(.96)` }, { opacity: 1, transform: 'none' }]
+      : [{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 280 });
+  }
+
   return {
     setParts(parts) {
       const first = !model;
-      if (model) {
-        scene.remove(model);
-        model.traverse(o => { o.geometry?.dispose(); o.material?.dispose(); });
-      }
+      finishSwap();
+      const old = model;
       model = makeBadgeMesh(parts);
       // Centre XY on the origin, rest on Z=0.
       const box = new THREE.Box3().setFromObject(model);
       const c = box.getCenter(new THREE.Vector3());
       model.children.forEach(m => m.position.set(-c.x, -c.y, -box.min.z));
       scene.add(model);
-      const size = box.getSize(new THREE.Vector3());
-      dims = { w: size.x, d: size.y, h: size.z };
+      const size3 = box.getSize(new THREE.Vector3());
+      dims = { w: size3.x, d: size3.y, h: size3.z };
+      tagParts();
       layout();
       if (first) { resize(); frame(); }
       frameOrtho();
+      paintHighlights();
+      if (old) {
+        if (first || reducedMotion()) { scene.remove(old); disposeObject(old); } else {
+          setOpacity(old, 1);
+          setOpacity(model, 0);
+          const next = model;
+          swap = { old, next, run: run(DUR.base + 40, t => {
+            setOpacity(old, 1 - t);
+            setOpacity(next, t);
+            next.scale.setScalar(.94 + .06 * t);
+          }) };
+          const mine = swap;
+          mine.run.done.then(() => { if (swap === mine) finishSwap(); });
+        }
+      }
       render();
       return dims;
     },
-    setView(next) {
-      view = next === 'front' || next === 'back' ? next : '3d';
-      layout();
-      frameOrtho();
-      render();
-    },
+    setView,
     setBedMode(on) {
+      finishSwap();
       bedMode = on;
       layout();
       resize();
-      frame();
+      frame('front', true);
+      render();
+    },
+    /** Which section (or null) a part belongs to: fn(partName) => key. */
+    setPartResolver(fn) { resolver = typeof fn === 'function' ? fn : () => null; tagParts(); paintHighlights(); },
+    onHover(fn) { hoverCb = typeof fn === 'function' ? fn : () => {}; },
+    onPick(fn) { pickCb = typeof fn === 'function' ? fn : () => {}; },
+    /** { hover, selected }: section keys to draw (tint + outline); null for none. */
+    setHighlight(next) { hl = { hover: next?.hover ?? null, selected: next?.selected ?? null }; paintHighlights(); },
+    /** A short glow on a section's parts (after it was selected). */
+    pulse(key) {
+      if (!model || !key || reducedMotion()) return;
+      const meshes = model.children.filter(m => m.isMesh && m.userData.section === key);
+      if (!meshes.length) return;
+      pulseRun?.cancel();
+      const run1 = run(650, t => { for (const m of meshes) m.material.emissiveIntensity = LEVEL.selected + (1 - t) * .8; });
+      pulseRun = run1;
+      run1.done.then(() => { if (pulseRun === run1) paintHighlights(); });
+    },
+    /** Pixels the floating panels cover on each side; the model is centred in what is left. */
+    setInset(next) {
+      inset = { left: next?.left ?? 0, right: next?.right ?? 0, top: next?.top ?? 0, bottom: next?.bottom ?? 0 };
+      applyViewOffset();
+      frameOrtho();
       render();
     },
     show() { resize(); render(); },
     hide() {},
-    showSide(side) { if (bedMode) return false; frame(side); render(); return true; },
-    resetCamera() { frame(); render(); },
+    showSide(side) { if (bedMode) return false; frame(side, true); render(); return true; },
+    resetCamera() { frame('front', true); render(); },
     dispose() {
+      camTween?.cancel();
+      pulseRun?.cancel();
+      finishSwap();
+      cancelAnimationFrame(hoverFrame);
       observer.disconnect();
       controls.dispose();
       scene.traverse(o => { o.geometry?.dispose(); o.material?.map?.dispose?.(); o.material?.dispose?.(); });
