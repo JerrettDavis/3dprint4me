@@ -2,7 +2,7 @@
 // the server's re-validation all read this list). Every file is served same-origin from
 // /customize/fonts/ (CSP font-src 'self'); its license text ships beside it and is recorded in
 // customizer/static/fonts/LICENSES.md. Only SIL Open Font License 1.1 fonts belong here.
-const font = (id, label, file, licenseFile) => Object.freeze({ id, label, file, license: "OFL-1.1", licenseFile });
+const font = (id, label, file, licenseFile, category = "display") => Object.freeze({ id, label, file, license: "OFL-1.1", licenseFile, category });
 
 export const FONTS = Object.freeze([
   font("pacifico", "Pacifico", "Pacifico-Regular.ttf", "OFL-pacifico.txt"),
@@ -35,6 +35,34 @@ export const FONT_OPTIONS = Object.freeze([
   Object.freeze({ value: FONT_SYSTEM, label: "Installed on this computer", face: FONT_SYSTEM }),
   Object.freeze({ value: FONT_CUSTOM, label: "My own font file", face: FONT_CUSTOM })
 ]);
+
+// ---- Per-location font override ----------------------------------------------------------
+// A generator may let a text location (upper line, back text, a plate's second line...) use its own
+// font. The override is an enum `<location>_font` whose default `inherit` means "use the main font".
+// Overrides offer only fonts we ship (block or curated): a customer's own file or installed font
+// is a single, license-confirmed choice and stays the main font only.
+export const FONT_INHERIT = "inherit";
+export const LOCATION_FONT_OPTIONS = Object.freeze([
+  Object.freeze({ value: FONT_INHERIT, label: "Same as main font", face: FONT_BLOCK }),
+  Object.freeze({ value: FONT_BLOCK, label: "Block (built-in)", face: FONT_BLOCK }),
+  ...FONTS.map(f => Object.freeze({ value: f.id, label: f.label, face: f.id }))
+]);
+
+/** Schema entry for one location's font override. `key` should end in `_font`. */
+export const locationFontField = (key, label, { group = "text", section, visibleWhen } = {}) => ({
+  [key]: { type: "enum", label, picker: "font", options: LOCATION_FONT_OPTIONS, default: FONT_INHERIT, group, ...(section ? { section } : {}), ...(visibleWhen ? { visibleWhen } : {}) }
+});
+
+/** Curated font ids that the override keys of `params` ask for (the page and worker load them). */
+export const locationFontIds = (generator, params) => {
+  const ids = new Set();
+  for (const [key, def] of Object.entries(generator.schema ?? {})) {
+    if (def.options !== LOCATION_FONT_OPTIONS) continue;
+    const v = params?.[key];
+    if (v && v !== FONT_INHERIT && v !== FONT_BLOCK && findFont(v)) ids.add(v);
+  }
+  return [...ids];
+};
 
 /** True for the two choices that bring a font we have not vetted. */
 export const fontNeedsLicense = value => value === FONT_SYSTEM || value === FONT_CUSTOM;

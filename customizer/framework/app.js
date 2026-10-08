@@ -14,7 +14,7 @@ import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
 import { writeHandoff } from "./handoff.js";
 import { createFontArea } from "./font-area.js";
-import { fontNeededMessage, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
+import { locationFontIds, fontNeededMessage, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 
 const STATUS_TEXT = {
   idle: "Preparing the model builder…",
@@ -242,6 +242,8 @@ function boot() {
         const { bytes, key } = fontArea.picked(ownFont);
         Object.assign(options, { fontBytes: bytes, fontKey: key });
       } else if (fontSpec && chosen !== "block") options.fontId = chosen;
+      const locationIds = locationFontIds(generator, checked.value);
+      if (locationIds.length) options.locationFontIds = locationIds;
       if (imageContours) options.imageContours = imageContours;
       const result = await client.build(generator.id, checked.value, options);
       if (seq !== buildSeq) return;
