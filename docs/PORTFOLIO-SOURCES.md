@@ -20,6 +20,17 @@ On 2026-09-14, Jerrett reviewed the Fusion project candidates individually and a
 
 The images were captured from the owner's Fusion documents through the local Fusion MCP connection. Construction geometry was hidden for presentation, solid bodies were shown with their saved appearances, and the source documents were closed without saving those view-only changes.
 
+## Owner photographs of printed work
+
+On 2026-10-07 the owner supplied two photographs of their own prints, shown in the "Printed and delivered" section of `portfolio.html`:
+
+| Local image | Subject | Permission note |
+|---|---|---|
+| `projects/plate-plug-signs.jpg` | Black-and-gold counter signs and card stand made for a catering client, with the owner's keychains | Owner confirmed they have the client's permission to show the client's branding, contact details, and QR codes |
+| `projects/route-66-magnets.jpg` | Route 66 shield magnets (own design/giveaway) | Own product; cropped from the original |
+
+Images are re-encoded (EXIF/location metadata stripped) and resized for the web.
+
 Unapproved and third-party candidates remain outside the repository and public site. A logo-conversion project was removed because permission to publish the source artwork has not been obtained.
 
 | Local image | Listing source | Original listing image |

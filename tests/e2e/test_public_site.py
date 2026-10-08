@@ -104,7 +104,7 @@ def test_approved_original_projects_lead_the_portfolio() -> None:
         assert work.locator(".designed-work .project-card a").count() == 0
 
         images = work.locator(".project-card img.project-image")
-        assert images.count() == 9
+        assert images.count() == 11
         for image in images.all():
             image.scroll_into_view_if_needed()
             image.evaluate("img => img.decode()")
