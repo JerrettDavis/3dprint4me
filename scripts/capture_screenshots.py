@@ -177,7 +177,18 @@ def capture_customize_states() -> list[tuple[str, Path]]:
 
 def show_3d_preview(page) -> None:
     page.get_by_role("tab", name="3D").click()
-    page.locator(".cz-preview").scroll_into_view_if_needed()
+    page.wait_for_timeout(400)
+
+
+def scroll_in_panel(page, selector: str) -> None:
+    """Scrolls a control to the top of its settings window. (Element.scrollIntoView would also
+    scroll the document itself, which a studio page never does for a visitor.)"""
+    page.evaluate("""(selector) => {
+      const el = document.querySelector(selector);
+      const body = el.closest('.cz-win-body');
+      const sticky = body.querySelector('.cz-win-tools')?.offsetHeight ?? 0;
+      body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top - sticky - 8;
+    }""", selector)
 
 
 def show_facts(page) -> None:
@@ -196,9 +207,7 @@ def wifi_tag(fmt: str, *, mobile: bool = False, show: str = "preview"):
         page.get_by_label("Network password", exact=True).fill("correct-horse-battery")
         page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
         if show == "form":
-            page.evaluate("document.querySelector('[data-field=\"ssid\"]').scrollIntoView({ block: 'start' })")
-        elif mobile:
-            page.evaluate("document.querySelector('.cz-preview').scrollIntoView({ block: 'start' })")
+            scroll_in_panel(page, "[data-field='ssid']")
         page.wait_for_timeout(600)
     return prepare
 
@@ -224,9 +233,9 @@ def rating_card(*, image: bool = False, mobile: bool = False):
             page.locator("#cz-image-file").set_input_files({"name": "paw.png", "mimeType": "image/png", "buffer": paw_png()})
             page.locator("#cz-image-preview:not([hidden])").wait_for(timeout=30000)
             page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
-        target = "#cz-image-area" if image and mobile else ".cz-preview"
-        if mobile or image:
-            page.evaluate(f"document.querySelector('{target}').scrollIntoView({{ block: 'start' }})")
+        if image and mobile:
+            # The controls live in the bottom sheet's scrolling body; the studio itself never scrolls.
+            scroll_in_panel(page, "#cz-image-area")
         page.wait_for_timeout(600)
     return prepare
 
@@ -248,10 +257,8 @@ def name_plate(*, font: str = "block", name: str = "Alex", style: str = "raised"
             page.get_by_role("tab", name=view).click()
         if open_picker:
             page.locator("#cz-font-toggle").click()
-            page.evaluate("document.querySelector('[data-field=\"font\"]').scrollIntoView({ block: 'start' })")
+            scroll_in_panel(page, "[data-field='font']")
             page.evaluate("document.fonts.ready.then(() => true)")
-        elif page.viewport_size["width"] < 600:
-            page.evaluate("document.querySelector('.cz-preview').scrollIntoView({ block: 'start' })")
         page.wait_for_timeout(600)
     return prepare
 

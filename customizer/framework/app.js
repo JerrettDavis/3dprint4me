@@ -111,7 +111,8 @@ function boot() {
     canvas: $("#cz-canvas"),
     tip: $("#cz-tip"),
     announce: $("#cz-announce"),
-    mode: $("#cz-mode")
+    mode: $("#cz-mode"),
+    hint: $("#cz-hint")
   };
   noteEl = $("#cz-continue-note");
   if (els.factsNote) els.factsNote.textContent = FACTS_NOTE;
@@ -493,7 +494,18 @@ function boot() {
       }
     }
     if (els.bedToggle) els.bedToggle.hidden = next !== "3d";
+    updateHint();
     viewer?.setView(next);
+  }
+  // The hint only promises what this page and view can do: turning exists in 3D, and clicking a
+  // part needs the definition's `focus` map.
+  function updateHint() {
+    if (!els.hint) return;
+    const parts = [];
+    if (view === "3d") parts.push("Drag to turn, scroll or pinch to zoom.");
+    if ((generator.focus ?? []).length) parts.push("Click a part to jump to its settings.");
+    els.hint.textContent = parts.join(" ");
+    els.hint.hidden = !parts.length;
   }
   els.tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => selectView(tab.dataset.view));

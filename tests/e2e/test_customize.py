@@ -1445,19 +1445,51 @@ def test_font_picker_type_ahead_jumps_to_the_font_and_commits_once(page: Page, b
 
 # ---- Sections: group by Section | Category, and the preview that points at its settings -----------
 
-def definition_text(generator_id: str) -> str:
-    return (ROOT / f"public/assets/js/customize/generators/{generator_id}.js").read_text(encoding="utf-8")
+_CONTRACT_SCRIPT = """
+import { pathToFileURL } from 'node:url';
+const { GENERATORS } = await import(pathToFileURL(process.argv[1]).href);
+const out = {};
+for (const [id, g] of Object.entries(GENERATORS)) {
+  out[id] = {
+    sections: Object.keys(g.sections ?? {}).length > 0,
+    focus: Array.isArray(g.focus) && g.focus.length > 0,
+    fieldSections: Object.values(g.schema ?? {}).some(f => typeof f.section === 'string' && f.section)
+  };
+}
+console.log(JSON.stringify(out));
+"""
 
 
-def needs_sections(generator_id: str) -> None:
-    text = definition_text(generator_id)
-    if not (re.search(r"^\s*sections\s*:", text, re.M) and re.search(r"^\s*focus\s*:", text, re.M)):
-        pytest.skip(f"{generator_id} does not declare sections and focus yet")
+def section_contract() -> dict[str, dict[str, bool]]:
+    """What each registered definition declares (read from the registry itself, so shorthand,
+    spreads and helpers count): { id: { sections, focus, fieldSections } }."""
+    import subprocess
+    done = subprocess.run(["node", "--input-type=module", "-e", _CONTRACT_SCRIPT, str(ROOT / "public/assets/js/customize/registry.js")],
+                          cwd=ROOT, capture_output=True, text=True, check=True)
+    return json.loads(done.stdout)
+
+
+def needs(generator_id: str, *flags: str) -> None:
+    declared = section_contract()[generator_id]
+    missing = [f for f in flags if not declared[f]]
+    if missing:
+        pytest.skip(f"{generator_id} does not declare {' / '.join(missing)} yet")
+
+
+@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+def test_the_hint_only_promises_what_the_page_and_view_can_do(page: Page, base_url: str, generator_id: str) -> None:
+    open_generator(page, base_url, generator_id)
+    hint = page.locator("#cz-hint")
+    text = hint.text_content() or ""
+    assert "Drag to turn" not in text, "turning exists only in the 3D view"
+    assert ("Click a part" in text) == section_contract()[generator_id]["focus"], text
+    page.get_by_role("tab", name="3D").click()
+    expect(hint).to_contain_text("Drag to turn")
 
 
 @pytest.mark.parametrize("generator_id", GENERATOR_IDS)
 def test_group_by_toggle_shows_the_same_fields_in_both_modes_and_is_remembered(page: Page, base_url: str, generator_id: str) -> None:
-    needs_sections(generator_id)
+    needs(generator_id, "fieldSections")
     open_generator(page, base_url, generator_id)
     mode = page.locator("#cz-mode")
     expect(mode).to_be_visible()
@@ -1475,28 +1507,29 @@ def test_group_by_toggle_shows_the_same_fields_in_both_modes_and_is_remembered(p
 
 @pytest.mark.parametrize("generator_id", GENERATOR_IDS)
 def test_hovering_and_clicking_a_part_leads_to_its_settings(page: Page, base_url: str, generator_id: str) -> None:
-    needs_sections(generator_id)
+    needs(generator_id, "focus", "fieldSections")
     open_generator(page, base_url, generator_id)
     page.locator("#cz-mode").get_by_role("button", name="Section").click()
     box = page.locator("#cz-stage").bounding_box()
     assert box
     tip = page.locator("#cz-tip")
+    headers = [t.strip() for t in page.locator("#cz-form .cz-group[data-section] .cz-group-toggle").all_text_contents()]
     hit = None
-    # Scan the middle of the canvas for a part that maps to a section.
+    # Scan the middle of the canvas for a part whose section has settings (a part without any
+    # settings only gets the tooltip, which the contract allows).
     for row in range(1, 11):
         for col in range(1, 15):
             x = box["x"] + box["width"] * (0.28 + 0.44 * col / 15)
             y = box["y"] + box["height"] * (0.12 + 0.76 * row / 11)
             page.mouse.move(x, y)
             page.wait_for_timeout(35)
-            if "is-visible" in (tip.get_attribute("class") or ""):
+            if "is-visible" in (tip.get_attribute("class") or "") and (tip.text_content() or "").strip() in headers:
                 hit = (x, y)
                 break
         if hit:
             break
-    assert hit, "no part of the model reacts to hovering"
-    label = tip.text_content()
-    assert label
+    assert hit, f"no part of the model that maps to one of {headers} reacts to hovering"
+    label = (tip.text_content() or "").strip()
     # The matching settings header is softly marked, and the part is outlined.
     expect(page.locator("#cz-form .cz-group.is-linked")).to_have_count(1)
     expect(page.locator("#cz-form .cz-group.is-linked .cz-group-toggle")).to_contain_text(label)
