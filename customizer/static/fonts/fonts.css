@@ -9,6 +9,34 @@
 @font-face { font-family: "cz-rubik-mono-one"; src: url("RubikMonoOne-Regular.ttf") format("truetype"); font-display: swap; }
 @font-face { font-family: "cz-bangers"; src: url("Bangers-Regular.ttf") format("truetype"); font-display: swap; }
 @font-face { font-family: "cz-titan-one"; src: url("TitanOne-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-inter-bold"; src: url("Inter-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-montserrat-extrabold"; src: url("Montserrat-ExtraBold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-open-sans-bold"; src: url("OpenSans-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-poppins-bold"; src: url("Poppins-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-work-sans-bold"; src: url("WorkSans-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-cinzel-bold"; src: url("Cinzel-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-spectral-bold"; src: url("Spectral-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-crimson-text-bold"; src: url("CrimsonText-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-cardo-bold"; src: url("Cardo-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-gelasio-bold"; src: url("Gelasio-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-zilla-slab-bold"; src: url("ZillaSlab-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-arvo-bold"; src: url("Arvo-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-jetbrains-mono-bold"; src: url("JetBrainsMono-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-ibm-plex-mono-bold"; src: url("IBMPlexMono-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-sacramento"; src: url("Sacramento-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-alex-brush"; src: url("AlexBrush-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-kaushan-script"; src: url("KaushanScript-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-caveat-bold"; src: url("Caveat-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-indie-flower"; src: url("IndieFlower-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-patrick-hand"; src: url("PatrickHand-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-unifraktur-cook"; src: url("UnifrakturCook-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-pirata-one"; src: url("PirataOne-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-medievalsharp"; src: url("MedievalSharp-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-uncial-antiqua"; src: url("UncialAntiqua-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-metamorphous"; src: url("Metamorphous-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-cinzel-decorative-bold"; src: url("CinzelDecorative-Bold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-rye"; src: url("Rye-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "cz-sancreek"; src: url("Sancreek-Regular.ttf") format("truetype"); font-display: swap; }
 
 .cz-ff-pacifico { font-family: "cz-pacifico", system-ui, sans-serif; }
 .cz-ff-lobster { font-family: "cz-lobster", system-ui, sans-serif; }
@@ -18,4 +46,32 @@
 .cz-ff-rubik-mono-one { font-family: "cz-rubik-mono-one", system-ui, sans-serif; }
 .cz-ff-bangers { font-family: "cz-bangers", system-ui, sans-serif; }
 .cz-ff-titan-one { font-family: "cz-titan-one", system-ui, sans-serif; }
+.cz-ff-inter-bold { font-family: "cz-inter-bold", system-ui, sans-serif; }
+.cz-ff-montserrat-extrabold { font-family: "cz-montserrat-extrabold", system-ui, sans-serif; }
+.cz-ff-open-sans-bold { font-family: "cz-open-sans-bold", system-ui, sans-serif; }
+.cz-ff-poppins-bold { font-family: "cz-poppins-bold", system-ui, sans-serif; }
+.cz-ff-work-sans-bold { font-family: "cz-work-sans-bold", system-ui, sans-serif; }
+.cz-ff-cinzel-bold { font-family: "cz-cinzel-bold", system-ui, sans-serif; }
+.cz-ff-spectral-bold { font-family: "cz-spectral-bold", system-ui, sans-serif; }
+.cz-ff-crimson-text-bold { font-family: "cz-crimson-text-bold", system-ui, sans-serif; }
+.cz-ff-cardo-bold { font-family: "cz-cardo-bold", system-ui, sans-serif; }
+.cz-ff-gelasio-bold { font-family: "cz-gelasio-bold", system-ui, sans-serif; }
+.cz-ff-zilla-slab-bold { font-family: "cz-zilla-slab-bold", system-ui, sans-serif; }
+.cz-ff-arvo-bold { font-family: "cz-arvo-bold", system-ui, sans-serif; }
+.cz-ff-jetbrains-mono-bold { font-family: "cz-jetbrains-mono-bold", system-ui, sans-serif; }
+.cz-ff-ibm-plex-mono-bold { font-family: "cz-ibm-plex-mono-bold", system-ui, sans-serif; }
+.cz-ff-sacramento { font-family: "cz-sacramento", system-ui, sans-serif; }
+.cz-ff-alex-brush { font-family: "cz-alex-brush", system-ui, sans-serif; }
+.cz-ff-kaushan-script { font-family: "cz-kaushan-script", system-ui, sans-serif; }
+.cz-ff-caveat-bold { font-family: "cz-caveat-bold", system-ui, sans-serif; }
+.cz-ff-indie-flower { font-family: "cz-indie-flower", system-ui, sans-serif; }
+.cz-ff-patrick-hand { font-family: "cz-patrick-hand", system-ui, sans-serif; }
+.cz-ff-unifraktur-cook { font-family: "cz-unifraktur-cook", system-ui, sans-serif; }
+.cz-ff-pirata-one { font-family: "cz-pirata-one", system-ui, sans-serif; }
+.cz-ff-medievalsharp { font-family: "cz-medievalsharp", system-ui, sans-serif; }
+.cz-ff-uncial-antiqua { font-family: "cz-uncial-antiqua", system-ui, sans-serif; }
+.cz-ff-metamorphous { font-family: "cz-metamorphous", system-ui, sans-serif; }
+.cz-ff-cinzel-decorative-bold { font-family: "cz-cinzel-decorative-bold", system-ui, sans-serif; }
+.cz-ff-rye { font-family: "cz-rye", system-ui, sans-serif; }
+.cz-ff-sancreek { font-family: "cz-sancreek", system-ui, sans-serif; }
 .cz-ff-block { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
