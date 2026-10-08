@@ -88,7 +88,7 @@ test("drafts keep neither the confirmation nor a font that has to be picked agai
 test("route shield's old font_mode key is gone, and the version moved", () => {
   const g = getGenerator("route-shield");
   assert.ok(!("font_mode" in g.schema));
-  assert.equal(g.version, 2);
+  assert.equal(g.version, 3);
   assert.equal(validateParams(g, { font_mode: "block" }).ok, false);
 });
 

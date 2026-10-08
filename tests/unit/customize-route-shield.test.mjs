@@ -17,7 +17,8 @@ test("default parameters validate and build a valid multi-part 3MF", async () =>
   const { ok, errors, value } = validateParams(gen, {});
   assert.ok(ok, errors.join("; "));
   const out = await buildModel(gen, value, { wasm, font: null });
-  assert.ok(out.parts.length === 6);
+  // body, 2 color fields, 2 front texts, back text, QR code and the fixed mark
+  assert.deepEqual(out.parts.map(p => p.name).sort(), ["3dprint4.me mark", "Back text", "Lower color field", "Lower text", "QR code", "Shield body", "Upper color field", "Upper text"]);
   const a = await analyzeModelBytes({ name: out.filename, bytes: out.data, inflateRaw });
   assert.ok(a.volumeMm3 > 15000 && a.volumeMm3 < 40000, `volume ${a.volumeMm3}`);
   assert.deepEqual(a.warnings.filter(w => w !== "embedded_settings_ignored"), []);
@@ -32,7 +33,8 @@ test("volume matches the prototype's reference sample within 2 percent", async (
 });
 
 test("QR too dense for the badge fails with a readable error, never a thin code", async () => {
-  const { value } = validateParams(gen, { qr_enabled: true, qr_data: "https://example.com/" + "a".repeat(360) });
+  // A 400-byte payload is 81 modules (48.6 mm at the 0.6 mm floor); a 50 mm wide badge fits ~30 mm.
+  const { value } = validateParams(gen, { width_mm: 50, qr_enabled: true, qr_data: "https://example.com/" + "a".repeat(380) });
   await assert.rejects(() => buildModel(gen, value, { wasm, font: null }), /too dense/);
 });
 
