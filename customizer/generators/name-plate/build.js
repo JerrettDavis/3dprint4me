@@ -8,6 +8,11 @@
 //     name: grown far enough to bridge the gaps between letters, then shrunk back to a 1.6 mm
 //     rim), so the letters print as one cut-out piece; letters it leaves apart are joined by
 //     hard-edged rectangular bars (see bridgeBacking).
+// Size "office": the standard 8 × 2 in desk sign (203.2 × 50.8 mm). The plate is that rounded
+//   rectangle whatever the plate setting says, the name is fitted into the room inside a
+//   OFFICE_PAD margin (at most `height_mm` tall), and a customer's image (traced in the browser,
+//   passed as ctx.imageContours) sits in a square zone at the left with the name centered in the
+//   rest. The image is a fifth part ("Image"), raised or inlaid like the letters. No keychain loop.
 // Styles (T = total thickness, R = letter relief; colored parts never overlap):
 //   raised:  plate T-R thick, letters R tall on top;
 //   outline: raised, plus a 1.2 mm ring around the letters at letter height (outline color);
@@ -19,6 +24,7 @@
 // with a readable message. buildModel frees the returned solids; everything else is freed here.
 import { roundedRect } from "../../framework/shapes.js";
 import { blockText, fontText, fitCrossSection, unsupportedBlockChars } from "../../framework/text.js";
+import { imageCrossSection } from "../../framework/image-trace.js";
 import { safeName } from "../../framework/model.js";
 
 const MAX_WIDTH = 150;        // the name never gets wider than this (mm)
@@ -32,6 +38,12 @@ const MIN_FEATURE = 0.4;      // shadow slivers thinner than this are dropped (m
 const MIN_HEIGHT = 4;         // a name printed shorter than this is not legible: fail
 const LOOP = Object.freeze({ outerR: 6, holeR: 2.75, overlap: 3 });
 const SEGMENTS = 24;
+export const OFFICE = Object.freeze({ w: 203.2, h: 50.8 });   // 8 × 2 inches (mm)
+const OFFICE_PAD = 5;         // clear border inside the office plate edge (mm)
+const OFFICE_GAP = 5;         // between the image zone and the name (mm)
+const MIN_IMAGE_FEATURE = 0.8; // thinnest printable part of a traced image (mm)
+const NO_IMAGE = "Choose an image below, or turn the image off.";
+const TOO_THIN = "The traced image is too thin to print at this size: its parts must be at least 0.8 mm wide. Make it larger, adjust the threshold, or choose a bolder image.";
 
 export const SKIPPED = "Some characters aren't in this font and were skipped.";
 export const NONE_AVAILABLE = "None of these characters are available in this font.";
@@ -43,7 +55,7 @@ const MIN_STROKE = 0.8;       // strokes thinner than this may not print cleanly
 const THIN_LOSS = 0.02;       // ... when opening the letters by MIN_STROKE loses more than 2 % of their area
 const NO_FILE = "Choose a font file below, or pick one of the listed fonts.";
 const NOT_LOADED = "The selected font isn't loaded. Try again, or pick another font.";
-const tooSmall = h => `The name would print only ${h.toFixed(1)} mm tall at the ${MAX_WIDTH} mm width limit, too small to read. Shorten it.`;
+const tooSmall = (h, maxW) => `The name would print only ${h.toFixed(1)} mm tall at the ${Math.round(maxW)} mm width limit, too small to read. Shorten it.`;
 
 /**
  * The characters of `name` the font can draw, and whether any were left out. The block font
@@ -165,7 +177,7 @@ export function pillAround(CrossSection, text, pad) {
 }
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 
-export default async function build(p, { wasm, font = null } = {}) {
+export default async function build(p, { wasm, font = null, imageContours = null } = {}) {
   const { CrossSection } = wasm;
   const warnings = [];
   const temps = [];
@@ -178,18 +190,43 @@ export default async function build(p, { wasm, font = null } = {}) {
     const face = p.font === "block" ? null : font;
     const T = p.thickness_mm, R = p.relief_mm;
     const margin = p.plate_margin_mm ?? PAD;   // plate margin around the name (hug, pill, rect)
+    const office = p.size === "office";
+    const plateKind = office ? "rect" : p.plate;
+    const withImage = office && p.plate_image === "custom";
+
+    // ---- Office sign: the image zone and the room left for the name ----
+    let imageCs = null;
+    let room = { maxWidth: MAX_WIDTH, maxHeight: p.height_mm, centerX: 0, centerY: 0 };
+    if (office) {
+      const innerH = OFFICE.h - 2 * OFFICE_PAD;
+      let left = -OFFICE.w / 2 + OFFICE_PAD;
+      const right = OFFICE.w / 2 - OFFICE_PAD;
+      if (withImage) {
+        if (!imageContours) throw new Error(NO_IMAGE);
+        const zone = { x0: left, y0: -innerH / 2 };
+        const raw = t(imageCrossSection(CrossSection, imageContours));
+        if (raw.isEmpty()) throw new Error(TOO_THIN);
+        const size = (innerH * (p.image_scale_pct ?? 100)) / 100;
+        const fitted = t(fitCrossSection(raw, { maxWidth: size, maxHeight: size, centerX: zone.x0 + innerH / 2, centerY: 0 }));
+        imageCs = t(t(fitted.offset(-MIN_IMAGE_FEATURE / 2, "Round", 2, SEGMENTS)).offset(MIN_IMAGE_FEATURE / 2, "Round", 2, SEGMENTS));
+        if (imageCs.isEmpty() || imageCs.area() < 1) throw new Error(TOO_THIN);
+        if (imageCs.area() < 0.9 * fitted.area()) warnings.push("Some fine detail in your image is thinner than 0.8 mm and was left out. A larger size or a bolder image keeps more of it.");
+        left += innerH + OFFICE_GAP;
+      }
+      room = { maxWidth: right - left, maxHeight: Math.min(p.height_mm, innerH), centerX: (left + right) / 2, centerY: 0 };
+    }
 
     // ---- The name, fitted into its box ----
     const { text: drawable, skipped } = drawableName(p.name, face);
     if (!drawable) throw new Error(NONE_AVAILABLE);
     if (skipped) warnings.push(SKIPPED);
-    if (p.plate === "none" && (p.style === "outline" || p.style === "shadow")) warnings.push(SAME_COLOR);
+    if (plateKind === "none" && (p.style === "outline" || p.style === "shadow")) warnings.push(SAME_COLOR);
     const raw = t(face ? fontText(CrossSection, face, drawable, { fillRule: "NonZero" }) : blockText(CrossSection, drawable));
     if (raw.isEmpty()) throw new Error(NONE_AVAILABLE);
-    const text = t(fitCrossSection(raw, { maxWidth: MAX_WIDTH, maxHeight: p.height_mm, centerX: 0, centerY: 0 }));
+    const text = t(fitCrossSection(raw, room));
     const tb = text.bounds();
     const w = tb.max[0] - tb.min[0], h = tb.max[1] - tb.min[1];
-    if (h < MIN_HEIGHT) throw new Error(tooSmall(h));
+    if (h < MIN_HEIGHT) throw new Error(tooSmall(h, room.maxWidth));
     const cx = (tb.min[0] + tb.max[0]) / 2, cy = (tb.min[1] + tb.max[1]) / 2;
     // Strokes thinner than the nozzle comfortably prints vanish under an opening (erode, then
     // dilate, by half the minimum stroke): warn when that loses a noticeable share of the area.
@@ -198,13 +235,15 @@ export default async function build(p, { wasm, font = null } = {}) {
 
     // ---- Plate (or backing) outline ----
     let plate;
-    if (p.plate === "none") {
+    if (office) {
+      plate = t(roundedRect(CrossSection, OFFICE.w, OFFICE.h, RECT_RADIUS));
+    } else if (plateKind === "none") {
       const grow = clamp(BRIDGE[0] * h, BACKING, BRIDGE[1]);
       const closed = t(t(text.offset(grow, "Round", 2, SEGMENTS)).offset(-(grow - BACKING), "Round", 2, SEGMENTS));
       plate = bridgeBacking(CrossSection, closed, { cy, height: h }, t);
-    } else if (p.plate === "hug") {
+    } else if (plateKind === "hug") {
       plate = hugAround(CrossSection, text, margin, t);
-    } else if (p.plate === "pill") {
+    } else if (plateKind === "pill") {
       plate = t(pillAround(CrossSection, text, margin));
     } else {
       plate = t(t(roundedRect(CrossSection, w + 2 * margin, h + 2 * margin, RECT_RADIUS)).translate([cx, cy]));
@@ -212,7 +251,7 @@ export default async function build(p, { wasm, font = null } = {}) {
 
     // ---- Keychain loop ----
     let loop = null, hole2d = null;
-    if (p.keychain_loop) {
+    if (p.keychain_loop && !office) {
       // Leftmost point of `cs` within a horizontal band around the loop's axis.
       const leftIn = (cs, half) => {
         const pb = plate.bounds();
@@ -244,7 +283,8 @@ export default async function build(p, { wasm, font = null } = {}) {
     let base;
     if (p.style === "inlay") {
       // Plate at full thickness with the name's pocket; the letters fill it flush.
-      base = t(at(plate, T, 0).subtract(at(text, R + 1, T - R)));
+      const inset = imageCs ? t(CrossSection.union([text, imageCs])) : text;
+      base = t(at(plate, T, 0).subtract(at(inset, R + 1, T - R)));
     } else {
       base = at(plate, T - R, 0);
     }
@@ -269,9 +309,10 @@ export default async function build(p, { wasm, font = null } = {}) {
     // Every part gets the hole (only the plate actually reaches it). Results are the output.
     const hole3d = hole2d ? at(hole2d, T + 2, -1) : null;
     const finish = solid => (hole3d ? solid.subtract(hole3d) : solid.translate([0, 0, 0]));
-    solids.push({ name: p.plate === "none" ? "Backing" : "Plate", solid: finish(base), color: p.plate === "none" ? p.outline_color : p.plate_color });
+    solids.push({ name: plateKind === "none" ? "Backing" : "Plate", solid: finish(base), color: plateKind === "none" ? p.outline_color : p.plate_color });
     for (const e of extras) solids.push({ ...e, solid: finish(e.solid) });
     solids.push({ name: "Name", solid: finish(letters), color: p.text_color });
+    if (imageCs) solids.push({ name: "Image", solid: finish(at(imageCs, R, T - R)), color: p.image_color ?? p.text_color });
 
     ok = true;
     // The title is plain text (the 3MF writer escapes it); the filename is sanitized and short.
