@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import uuid
 from pathlib import Path
 from typing import Iterator
@@ -18,9 +19,9 @@ from tests.support.server import request, running_server
 ROOT = Path(__file__).resolve().parents[2]
 BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
-DRAFT_KEY = "3dp-customize:route-shield:v2"
+DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 2}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2}
 
 
 @pytest.fixture(scope="module")
@@ -244,14 +245,14 @@ def test_continue_hands_the_model_to_the_order_page_and_the_operator_sees_proven
             page.locator("#submission-state.visible").wait_for(state="visible", timeout=15000)
 
             saved = json.loads(page.evaluate("localStorage.getItem('3dp-submitted-requests')"))[0]
-            assert saved["customization"] == {"generatorId": "route-shield", "generatorVersion": 2}, "stored copies keep no parameters"
+            assert saved["customization"] == {"generatorId": "route-shield", "generatorVersion": 3}, "stored copies keep no parameters"
 
             state = json.loads(store_path.read_text(encoding="utf-8"))
             stored = [record["request"] for record in state["requests"] if record["request"].get("customization")]
             assert stored, state["requests"]
             customization = stored[0]["customization"]
             assert customization["generatorId"] == "route-shield"
-            assert customization["generatorVersion"] == 2
+            assert customization["generatorVersion"] == 3
             assert customization["params"]["top_text"] == "HANDOFF"
             assert customization["redacted"] == []
 
@@ -312,7 +313,7 @@ def test_stale_or_missing_hand_off_leaves_the_order_page_usable(page: Page, base
 
 # --- Wi-Fi tag ---------------------------------------------------------------------------------
 
-WIFI_DRAFT_KEY = "3dp-customize:wifi-tag:v1"
+WIFI_DRAFT_KEY = "3dp-customize:wifi-tag:v2"
 WIFI_SECRET = "correct-horse-battery"
 
 
@@ -397,10 +398,16 @@ def test_wifi_keychain_builds_and_a_too_dense_code_is_explained_at_the_network_n
     expect(page.locator("#cz-facts-list")).to_contain_text("45 × 69")
     page.get_by_label("Network name (SSID)", exact=True).fill(";" * 32)
     page.get_by_label("Network password", exact=True).fill(";" * 63)
-    error = page.locator("[data-field='ssid'] #cz-ssid-error")
-    expect(error).to_contain_text("too dense", timeout=BUILD_TIMEOUT)
-    expect(error).to_contain_text("choose a larger tag format")
-    expect(page.get_by_label("Network name (SSID)", exact=True)).to_have_attribute("aria-invalid", "true")
+    # Dense but printable: the build succeeds and warns that scanning may be unreliable.
+    expect(page.locator("#cz-warnings")).to_contain_text("0.4 mm nozzle", timeout=BUILD_TIMEOUT)
+    # Shrinking it further crosses the printability floor: the error sits next to the QR size.
+    page.locator("#cz-qr_scale_pct").fill("25")
+    page.locator("#cz-qr_scale_pct").press("Tab")
+    error = page.locator("[data-field='qr_scale_pct'] #cz-qr_scale_pct-error")
+    expect(error).to_contain_text("QR code size", timeout=BUILD_TIMEOUT)
+    expect(page.locator("#cz-qr_scale_pct")).to_have_attribute("aria-invalid", "true")
+    page.locator("#cz-qr_scale_pct").fill("100")
+    page.locator("#cz-qr_scale_pct").press("Tab")
     page.get_by_label("Tag format").select_option("placard")
     wait_ready(page)
     expect(error).to_have_text("")
@@ -511,7 +518,7 @@ def test_wifi_label_too_small_to_read_is_an_error_at_the_network_name(page: Page
 
 # --- Rating card ------------------------------------------------------------------------------
 
-RATING_DRAFT_KEY = "3dp-customize:rating-card:v1"
+RATING_DRAFT_KEY = "3dp-customize:rating-card:v2"
 
 
 def paw_png() -> bytes:
@@ -604,7 +611,7 @@ def test_rating_card_mobile_layout_has_no_horizontal_scroll(browser: Browser, ba
 
 # --- Name plate -------------------------------------------------------------------------------
 
-NAME_DRAFT_KEY = "3dp-customize:name-plate:v1"
+NAME_DRAFT_KEY = "3dp-customize:name-plate:v2"
 FONT_FILES = ["Pacifico-Regular.ttf", "Lobster-Regular.ttf", "BebasNeue-Regular.ttf", "Righteous-Regular.ttf", "CaveatBrush-Regular.ttf", "RubikMonoOne-Regular.ttf", "Bangers-Regular.ttf", "TitanOne-Regular.ttf"]
 
 
@@ -658,18 +665,20 @@ def test_font_picker_is_keyboard_operable_and_fetches_fonts_same_origin(page: Pa
     expect(page.get_by_role("radio", name="Block (built-in)")).to_be_focused()
     # Arrow keys move the choice (each is a build); the list stays open until Enter or Escape.
     page.keyboard.press("ArrowDown")
-    expect(page.get_by_role("radio", name="Pacifico")).to_be_checked()
+    expect(page.get_by_role("radio", name=FONT_CHOICES[1], exact=True)).to_be_checked()
     expect(page.locator("#cz-font-list")).to_be_visible()
     page.keyboard.press("Enter")
     expect(page.locator("#cz-font-list")).to_be_hidden()
     expect(toggle).to_be_focused()
-    expect(toggle).to_have_text("Pacifico")
+    expect(toggle).to_have_text(FONT_CHOICES[1])
     wait_ready(page)
     # Each option is drawn in its own font, from this site.
     toggle.click()
+    page.locator("label[for='cz-font-lobster']").scroll_into_view_if_needed()  # faces load as options scroll into view
+    page.wait_for_function("() => getComputedStyle(document.querySelector(\"label[for='cz-font-lobster']\")).fontFamily.includes('cz-lobster')")
     family = page.locator("label[for='cz-font-lobster']").evaluate("el => getComputedStyle(el).fontFamily")
     assert "cz-lobster" in family, family
-    page.wait_for_function("document.fonts.check('16px \"cz-lobster\"')")
+    page.wait_for_function("() => document.fonts.check('16px \"cz-lobster\"')")
     page.locator("label[for='cz-font-bebas-neue']").click()
     expect(page.locator("#cz-font-list")).to_be_hidden()
     expect(toggle).to_have_text("Bebas Neue")
@@ -886,16 +895,16 @@ def test_arrowing_through_the_font_picker_builds_once(page: Page, base_url: str)
     for _ in range(5):
         page.keyboard.press("ArrowDown")
         page.wait_for_timeout(80)
-    expect(page.get_by_role("radio", name="Caveat Brush")).to_be_checked()
+    expect(page.get_by_role("radio", name=FONT_CHOICES[5], exact=True)).to_be_checked()
     page.keyboard.press("Enter")
-    expect(page.locator("#cz-font-toggle")).to_have_text("Caveat Brush")
+    expect(page.locator("#cz-font-toggle")).to_have_text(FONT_CHOICES[5])
     wait_settled(page)
     assert page.evaluate("window.__builds") == 1, page.evaluate("window.__builds")
     # Arrowing and pausing (no Enter) commits the settled choice once, too.
     page.keyboard.press("Enter")
     page.keyboard.press("ArrowDown")
     page.keyboard.press("ArrowDown")
-    expect(page.locator("#cz-font-toggle")).to_have_text("Bangers", timeout=BUILD_TIMEOUT)
+    expect(page.locator("#cz-font-toggle")).to_have_text(FONT_CHOICES[7], timeout=BUILD_TIMEOUT)
     wait_settled(page)
     assert page.evaluate("window.__builds") == 2, page.evaluate("window.__builds")
 
@@ -1197,7 +1206,15 @@ def test_the_catalog_page_has_no_csp_violations(browser: Browser, workspace: tup
 
 # ---- The shared font picker: the same on every generator, with installed fonts ------------------
 
-FONT_CHOICES = ["Block (built-in)", "Pacifico", "Lobster", "Bebas Neue", "Righteous", "Caveat Brush", "Rubik Mono One", "Bangers", "Titan One", "Installed on this computer", "My own font file"]
+def _font_choices() -> list[str]:
+    """The picker's labels, read from the shared catalogue so the test follows it."""
+    root = Path(__file__).resolve().parents[2]
+    code = "import('./public/assets/js/customize/fonts.js').then(m=>console.log(JSON.stringify(m.FONT_OPTIONS.map(o=>o.label))))"
+    out = subprocess.run(["node", "-e", code], cwd=root, capture_output=True, text=True, check=True).stdout
+    return json.loads(out)
+
+
+FONT_CHOICES = _font_choices()
 ACK_LABEL = "I have the right to use this font to make a printed item."
 INSTALLED_STUB = """
 window.queryLocalFonts = async () => [
