@@ -3,8 +3,8 @@
 // A customer image is never a parameter: the page traces it in the browser and passes only the
 // outline to the build (ctx.imageContours), so it never reaches drafts, the hand-off record or
 // the server.
-import { contrastRatio } from "../color.js?v=6d9507f2af48b563";
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY, locationFontField } from "../fonts.js?v=6d9507f2af48b563";
+import { contrastRatio } from "../color.js?v=6b0e56012c841e99";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY, locationFontField } from "../fonts.js?v=6b0e56012c841e99";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // card kept under the relief
@@ -85,10 +85,10 @@ const SCHEMA = {
     { value: "house", label: "House" },
     { value: "mug", label: "Mug" },
     { value: "custom", label: "My own image" }
-  ], default: "toilet", group: "icon", section: "icon" },
-  image_threshold: { type: "int", label: "Image threshold", min: 0, max: 255, step: 1, default: 128, visibleWhen: { icon: "custom" }, group: "icon", section: "icon" },
-  image_invert: { type: "bool", label: "Invert: trace the light parts instead of the dark parts", default: false, visibleWhen: { icon: "custom" }, group: "icon", section: "icon" },
-  image_scale_pct: { type: "int", label: "Image size", min: 30, max: 120, step: 5, default: 100, unit: "%", visibleWhen: { icon: "custom" }, group: "icon", section: "icon" },
+  ], default: "toilet", randomizeExclude: ["custom"], group: "icon", section: "icon" },
+  image_threshold: { randomize: false, type: "int", label: "Image threshold", min: 0, max: 255, step: 1, default: 128, visibleWhen: { icon: "custom" }, group: "icon", section: "icon" },
+  image_invert: { randomize: false, type: "bool", label: "Invert: trace the light parts instead of the dark parts", default: false, visibleWhen: { icon: "custom" }, group: "icon", section: "icon" },
+  image_scale_pct: { randomize: false, type: "int", label: "Image size", min: 30, max: 120, step: 5, default: 100, unit: "%", visibleWhen: { icon: "custom" }, group: "icon", section: "icon" },
   rating: { type: "number", label: "Stars", min: 0, max: 5, step: 0.5, default: 3.5, group: "rating", section: "rating" },
   show_stars: { type: "bool", label: "Show the stars", default: true, group: "rating", section: "rating" },
   caption: { type: "text", label: "Caption", max: 40, optional: true, default: "Would poop here again", help: "Optional. Up to 40 characters. The built-in font prints capital letters, digits and common punctuation; other fonts leave out characters they don't have.", group: "text", section: "caption" },
@@ -164,6 +164,19 @@ const PRESETS = {
   dark: { base_color: "#1d2733", icon_color: "#e8d5bf", star_color: "#f5b301", empty_star_color: "#5b6675", text_color: "#f2f2f2" }
 };
 
+// Ready-made designs, offered before customizing (see docs/GENERATORS.md). Each is a partial
+// parameter set over the defaults, so every one is also a complete, buildable card.
+const DESIGNS = [
+  { id: "toilet", label: "Throne review", blurb: "The classic toilet review card. The default.", group: "Icons", params: PRESETS.toilet },
+  { id: "heart", label: "Heart", blurb: "A heart card with a loving caption.", group: "Icons", params: { ...PRESETS.heart, caption: "Loved it", rating: 5, star_color: "#e11d48", icon_color: "#be123c" } },
+  { id: "house", label: "Home sweet home", blurb: "A house card for rentals and open houses.", group: "Icons", params: { ...PRESETS.house, caption: "Home sweet home", rating: 4.5 } },
+  { id: "mug", label: "Coffee review", blurb: "A mug card for the cafe or the break room.", group: "Icons", params: { ...PRESETS.mug, caption: "Best coffee in town", rating: 5 } },
+  { id: "ticket", label: "Ticket stub", blurb: "Notched corners, an engraved border and a rule above the caption.", group: "Styles", params: { ...PRESETS.ticket, caption: "Admit one good time", rating: 4 } },
+  { id: "dark", label: "Midnight", blurb: "A dark card with gold stars.", group: "Styles", params: PRESETS.dark },
+  { id: "five-star", label: "Five stars", blurb: "Full gold stars and a confident caption.", group: "Styles", params: { rating: 5, caption: "Five stars, would recommend", star_color: "#a86b00" } },
+  { id: "mint-chip", label: "Mint chip", blurb: "A soft mint card with chamfered corners.", group: "Styles", params: { base_color: "#d9f5e8", icon_color: "#0f5c46", star_color: "#0f8a62", empty_star_color: "#9cc7b6", text_color: "#0b3d2e", corner_style: "chamfer", corner_radius_mm: 3 } }
+];
+
 export default {
   id: "rating-card",
   version: 2,
@@ -178,6 +191,8 @@ export default {
   sections: SECTIONS,
   focus: FOCUS,
   presets: PRESETS,
+  designs: DESIGNS,
+  defaultDesign: "toilet",
   // The page traces a customer image while `when` holds, using these parameters.
   font: FONT_SPEC,
   image: { when: { icon: "custom" }, threshold: "image_threshold", invert: "image_invert" }

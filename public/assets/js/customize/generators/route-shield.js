@@ -8,8 +8,8 @@
 //                    < 0  text is cut |t| into the color's top surface
 // Back/bottom inlays (inlay_depth_mm) are always inset and never protrude.
 
-import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=6d9507f2af48b563";
-import { qrScaleField } from "../qr.js?v=6d9507f2af48b563";
+import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=6b0e56012c841e99";
+import { qrScaleField } from "../qr.js?v=6b0e56012c841e99";
 
 const STEP = 0.2;
 const MIN_WEB = 0.8;       // solid base left between the front pocket and the back inlay
@@ -94,8 +94,8 @@ function errorField(message) {
   return null;
 }
 
-const scale = (label, section) => ({ type: "number", label: `${label} text size`, min: SCALE_RANGE[0], max: SCALE_RANGE[1], step: 5, default: 100, unit: "%", group: "layout", section });
-const offset = (label, section) => ({ type: "number", label: `${label} text up/down`, help: "0 = centered in its color field; positive moves it up.", min: OFFSET_RANGE[0], max: OFFSET_RANGE[1], step: 0.5, default: 0, unit: "mm", group: "layout", section });
+const scale = (label, section) => ({ type: "number", label: `${label} text size`, min: SCALE_RANGE[0], max: SCALE_RANGE[1], step: 5, default: 100, unit: "%", group: "layout", section, randomize: false });
+const offset = (label, section) => ({ type: "number", label: `${label} text up/down`, help: "0 = centered in its color field; positive moves it up.", min: OFFSET_RANGE[0], max: OFFSET_RANGE[1], step: 0.5, default: 0, unit: "mm", group: "layout", section, randomize: false });
 const inSection = (fields, section) => Object.fromEntries(Object.entries(fields).map(([k, d]) => [k, { ...d, section }]));
 
 // Settings regions, in display order, and which previewed part focuses which one.
@@ -109,6 +109,25 @@ const FOCUS = [
   { part: "QR code", section: "qr" },
   { part: "3dprint4.me mark", section: "shape" },
   { part: "Shield body", section: "shape" }
+];
+
+// Ready-made designs, offered before customizing (see docs/GENERATORS.md). Each is a partial
+// parameter set over the defaults, so every one is also a complete, buildable shield.
+const interstate = (number, route) => ({ top_text: "INTERSTATE", lower_text: String(number), back_text: route, top_scale_pct: 80 });
+const DESIGNS = [
+  { id: "route-66", label: "Route 66", blurb: "The Mother Road centennial badge. The default.", group: "Historic", params: {} },
+  { id: "small-66", label: "Route 66, small", blurb: "A pocket-size 52 × 58 mm Route 66 badge.", group: "Historic", params: { width_mm: 52, height_mm: 58, back_text: "Route 66\n1926-2026" } },
+  { id: "route-66-night", label: "Route 66, night drive", blurb: "A black shield with amber and gold fields.", group: "Historic", params: { base_color: "#171717", upper_color: "#c2410c", lower_color: "#b45309", text_color: "#fff7e6", back_color: "#c2410c" } },
+  { id: "i-95", label: "Interstate 95", blurb: "Maine to Florida along the east coast.", group: "Interstates", params: interstate(95, "Interstate 95\nMaine to Florida") },
+  { id: "i-10", label: "Interstate 10", blurb: "Santa Monica to Jacksonville across the south.", group: "Interstates", params: interstate(10, "Interstate 10\nSanta Monica to Jacksonville") },
+  { id: "i-40", label: "Interstate 40", blurb: "Barstow to Wilmington, often along old Route 66.", group: "Interstates", params: interstate(40, "Interstate 40\nBarstow to Wilmington") },
+  { id: "i-5", label: "Interstate 5", blurb: "Canada to Mexico down the west coast.", group: "Interstates", params: interstate(5, "Interstate 5\nCanada to Mexico") },
+  { id: "i-80", label: "Interstate 80", blurb: "San Francisco to New Jersey.", group: "Interstates", params: interstate(80, "Interstate 80\nSan Francisco to New Jersey") },
+  { id: "i-90", label: "Interstate 90", blurb: "Seattle to Boston, the longest interstate.", group: "Interstates", params: interstate(90, "Interstate 90\nSeattle to Boston") },
+  { id: "i-66", label: "Interstate 66", blurb: "Front Royal to Washington, DC.", group: "Interstates", params: interstate(66, "Interstate 66\nFront Royal to Washington, DC") },
+  { id: "us-1", label: "US Route 1", blurb: "Black and white US highway shield: Fort Kent to Key West.", group: "US and state routes", params: { top_text: "US", lower_text: "1", back_text: "US Route 1\nFort Kent to Key West", upper_color: "#171717", lower_color: "#171717", text_color: "#ffffff" } },
+  { id: "us-101", label: "US Route 101", blurb: "Black and white US highway shield along the Pacific coast.", group: "US and state routes", params: { top_text: "US", lower_text: "101", back_text: "US Route 101\nOlympia to Los Angeles", upper_color: "#171717", lower_color: "#171717", text_color: "#ffffff" } },
+  { id: "state-route", label: "State route", blurb: "A green state route badge to put your own number on.", group: "US and state routes", params: { top_text: "STATE ROUTE", lower_text: "9", top_scale_pct: 75, back_text: "State Route 9", upper_color: "#1b7a3f", lower_color: "#1b7a3f" } }
 ];
 
 export default {
@@ -130,8 +149,8 @@ export default {
     ...inSection(fontSchema("text"), "general"),
     ...locationFontField("top_font", "Upper text font", { group: "text", section: "top" }),
     ...locationFontField("lower_font", "Lower text font", { group: "text", section: "lower" }),
-    width_mm: { type: "number", label: "Width", min: WIDTH_RANGE[0], max: WIDTH_RANGE[1], step: 1, default: 80, unit: "mm", group: "size", section: "shape" },
-    height_mm: { type: "number", label: "Height", min: HEIGHT_RANGE[0], max: HEIGHT_RANGE[1], step: 1, default: 88, unit: "mm", group: "size", section: "shape" },
+    width_mm: { randomize: false, type: "number", label: "Width", min: WIDTH_RANGE[0], max: WIDTH_RANGE[1], step: 1, default: 80, unit: "mm", group: "size", section: "shape" },
+    height_mm: { randomize: false, type: "number", label: "Height", min: HEIGHT_RANGE[0], max: HEIGHT_RANGE[1], step: 1, default: 88, unit: "mm", group: "size", section: "shape" },
     base_thickness_mm: { type: "number", label: "Base thickness", min: BASE_RANGE[0], max: BASE_RANGE[1], step: STEP, default: 4, unit: "mm", group: "size", section: "shape" },
     field_height_mm: { type: "number", label: "Color field", min: -MAX_FIELD, max: MAX_FIELD, step: STEP, default: 0.6, unit: "mm", group: "size", section: "shape" },
     text_height_mm: { type: "number", label: "Front text", min: -MAX_TEXT, max: MAX_TEXT, step: STEP, default: 1.2, unit: "mm", group: "size", section: "shape" },
@@ -144,7 +163,7 @@ export default {
     back_offset_mm: { ...offset("Back", "back"), help: "Moves the back text lines up or down together." },
     back_text: { type: "text", label: "Back text, up to 4 lines", max: 160, multiline: true, optional: true, default: "100 Years on the Mother Road\n1926-2026\nTulsa, OK", group: "back", section: "back" },
     ...locationFontField("back_font", "Back text font", { group: "back", section: "back" }),
-    qr_enabled: { type: "bool", label: "Include QR code", default: true, group: "back", section: "qr" },
+    qr_enabled: { type: "bool", label: "Include QR code", default: true, randomize: false, group: "back", section: "qr" },
     qr_data: { type: "text", label: "QR content", max: 400, optional: true, default: "https://3dprint4.me/", group: "back", section: "qr" },
     qr_scale_pct: qrScaleField("back", { section: "qr", visibleWhen: { qr_enabled: [true] }, help: "100% is the largest code that fits the bottom of the badge; larger cells scan more reliably." }),
     base_color: { type: "color", label: "Body", default: "#ffffff", group: "colors", section: "colors" },
@@ -156,5 +175,7 @@ export default {
   rules,
   errorField,
   font: FONT_SPEC,
-  presets: { default: {}, "small-66": { width_mm: 52, height_mm: 58 } }
+  presets: { default: {}, "small-66": { width_mm: 52, height_mm: 58 } },
+  designs: DESIGNS,
+  defaultDesign: "route-66"
 };

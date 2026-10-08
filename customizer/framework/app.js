@@ -18,6 +18,9 @@ import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
 import { writeHandoff } from "./handoff.js";
 import { createFontArea } from "./font-area.js";
+import { applyDesign, designsOf } from "./designs.js";
+import { createDesignPanel, mountLocks } from "./explore-ui.js";
+import { randomizeUntilBuilds } from "./randomize.js";
 import { locationFontIds, fontNeededMessage, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 
 const STATUS_TEXT = {
@@ -295,6 +298,24 @@ function boot() {
     if (v && state.result === result) v.setParts(result.parts);
   }
 
+  // A trial build for Randomize: the same inputs as build() for a curated font, with no effect on
+  // the page. Resolves false when the model does not build or a newer edit superseded it.
+  async function canBuild(params) {
+    const checked = validateParams(generator, params);
+    if (!checked.ok) return false;
+    try {
+      const options = {};
+      const chosen = fontUsable(checked.value) ? checked.value[fontSpec?.key] : "block";
+      if (fontSpec && chosen !== "block" && !fontNeedsLicense(chosen)) options.fontId = chosen;
+      const ids = locationFontIds(generator, checked.value);
+      if (ids.length) options.locationFontIds = ids;
+      await client.build(generator.id, checked.value, options);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   let buildSeq = 0;
   async function build() {
     const seq = ++buildSeq;
@@ -400,6 +421,7 @@ function boot() {
     // A commit that changes nothing must not rebuild (see applyEdit).
     if (!changed) return;
     state.params = next;
+    explore.touched();
     saveDraft(generator, state.params);
     syncFontArea();
     build();
@@ -471,9 +493,118 @@ function boot() {
     build();
   });
 
+  // ---- Explore: ready-made designs, padlocks and Randomize --------------------------------
+  // Every jump (a design, a randomize, a reset) remembers the settings it replaced for one Undo.
+  const explore = (() => {
+    const designs = designsOf(generator);
+    const tools = els.reset?.parentElement ?? null;
+    const defaultDesign = designs.find(d => d.id === generator.defaultDesign) ?? null;
+    let designId = null;
+    let modified = false;
+    let previous = null;
+    let panel = null;
+    let locks = null;
+    let undoButton = null;
+    let randomButton = null;
+    const same = (a, b) => JSON.stringify(storableParams(generator, a)) === JSON.stringify(storableParams(generator, b));
+    const paint = () => panel?.setCurrent(designId, { modified });
+    function jump(next, { id, message }) {
+      previous = { params: state.params, designId, modified };
+      state.params = next;
+      designId = id;
+      modified = false;
+      saveDraft(generator, state.params);
+      form.setValues(state.params);
+      syncFontArea();
+      paint();
+      if (undoButton) undoButton.hidden = false;
+      announce(message);
+      build();
+    }
+    function undo() {
+      if (!previous) return;
+      const back = previous;
+      previous = null;
+      state.params = back.params;
+      designId = back.designId;
+      modified = back.modified;
+      saveDraft(generator, state.params);
+      form.setValues(state.params);
+      syncFontArea();
+      paint();
+      if (undoButton) undoButton.hidden = true;
+      announce("Undone. Your previous settings are back.");
+      build();
+    }
+    function pick(design) {
+      const next = applyDesign(generator, design, state.params);
+      if (!next) { announce(`${design.label} couldn't be applied.`); return; }
+      jump(next, { id: design.id, message: `${design.label} applied. Use Undo to go back.` });
+      panel?.collapse();
+    }
+    async function randomize() {
+      if (randomButton.disabled) return;
+      randomButton.disabled = true;
+      randomButton.setAttribute("aria-busy", "true");
+      let result;
+      try {
+        result = await randomizeUntilBuilds(generator, state.params, { locked: locks?.locked() ?? new Set(), tryBuild: canBuild });
+      } finally {
+        randomButton.disabled = false;
+        randomButton.removeAttribute("aria-busy");
+      }
+      if (!result.ok) { announce("Couldn't find a new look that builds. Unlock a setting or try again."); build(); return; }
+      const lockedCount = locks?.count() ?? 0;
+      jump(result.params, { id: null, message: `Randomized ${result.changed.length} setting${result.changed.length === 1 ? "" : "s"}${lockedCount ? `; ${lockedCount} locked` : ""}. Text and QR codes are never changed. Use Undo to go back.` });
+    }
+    if (designs.length) {
+      // Open for a first visit on a wide screen; a phone starts on the settings themselves.
+      const fresh = loadDraft(generator) === null && !globalThis.matchMedia?.("(max-width: 760px)").matches;
+      panel = createDesignPanel(generator, { open: fresh, onPick: pick });
+      (tools ?? els.form).after(panel.element);
+      designId = defaultDesign && same(state.params, applyDesign(generator, defaultDesign, state.params) ?? {}) ? defaultDesign.id : (designs.find(d => { const p = applyDesign(generator, d, state.params); return p && same(state.params, p); })?.id ?? null);
+      paint();
+    }
+    if (tools) {
+      randomButton = document.createElement("button");
+      randomButton.type = "button";
+      randomButton.className = "button ghost small-button";
+      randomButton.id = "cz-randomize";
+      randomButton.textContent = "Randomize";
+      randomButton.title = "Try a random look. Padlocked settings, text and QR codes stay as they are.";
+      undoButton = document.createElement("button");
+      undoButton.type = "button";
+      undoButton.className = "button ghost small-button";
+      undoButton.id = "cz-undo";
+      undoButton.textContent = "Undo";
+      undoButton.hidden = true;
+      els.reset.before(randomButton, undoButton);
+      randomButton.addEventListener("click", randomize);
+      undoButton.addEventListener("click", undo);
+      const help = document.createElement("p");
+      help.className = "help cz-random-help";
+      help.id = "cz-random-help";
+      help.textContent = "Randomize re-rolls colors, fonts, styles and sizes. Lock a setting with its padlock to keep it. Names, other text and QR codes never change.";
+      (panel?.element ?? tools).after(help);
+      randomButton.setAttribute("aria-describedby", help.id);
+      locks = mountLocks(els.form, generator);
+    }
+    return {
+      touched() { if (!modified && designId) { modified = true; paint(); } else if (!designId) paint(); },
+      reset() {
+        previous = null;
+        if (undoButton) undoButton.hidden = true;
+        designId = defaultDesign?.id ?? null;
+        modified = false;
+        paint();
+      }
+    };
+  })();
+
   els.reset?.addEventListener("click", () => {
     clearDraft(generator);
     state.params = validateParams(generator, {}).value;
+    explore.reset();
     form.setValues(state.params);
     syncFontArea();
     build();

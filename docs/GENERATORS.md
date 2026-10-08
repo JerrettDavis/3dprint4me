@@ -49,7 +49,8 @@ Geometry code never ships to the server.
 | `rights` | yes | `{ publishable: boolean, note: string }`. Only `publishable: true` generators appear in the catalog and sitemap (see [Provenance and rights](#provenance-and-rights)). |
 | `schema` | yes | Parameter fields (next section). |
 | `rules(params)` | no | Cross-field rules; returns `{ limits, errors, fieldErrors }`. |
-| `presets` | no | Named partial parameter sets. Today they are **data only**: the page does not offer a preset picker; the all-generators test builds every preset. |
+| `presets` | no | Named partial parameter sets, **data only** (the all-generators test builds every preset). The page offers `designs`, below. |
+| `designs`, `defaultDesign` | no | Ready-made starting points shown in the page's "Start from a design" gallery: `[{ id, label, blurb, group?, params }]`, `params` a partial parameter set over the schema defaults (never a sensitive key). `defaultDesign` names the one equal to the defaults (marked "default"). See *Designs and Randomize*. |
 | `errorField(message)` | no | Maps a build (geometry) error message to the schema key it belongs next to, or `null` for the Settings summary. An unkeyed error keeps **Try again** visible. |
 | `onParamChange(key, params)` | no | Runs only for a committed edit of `key`; returns values derived from it (e.g. a format's own defaults), or `null`/`{}`. |
 | `image` | no | `{ when: { <field>: <value> }, threshold: <int field>, invert: <bool field> }` — while `when` holds, the page shows a local image picker under that field and traces the image (rating card). |
@@ -483,10 +484,35 @@ must pass with a value there), a build under 20 s, 1–5 colors, no analyzer war
 `embedded_settings_ignored`, and no sensitive canary anywhere in the 3MF text, filename or part
 names. The E2E matrix in `tests/e2e/test_customize.py` runs every generator page end to end.
 
+## Designs and Randomize
+
+**Designs** (`customizer/framework/designs.js`, `explore-ui.js`). A generator lists `designs`; the
+settings window gets a collapsible "Start from a design" gallery above the form (open on a first
+visit on a wide screen). Choosing a card applies *schema defaults, then the design's `params`,
+then clamping*, so a design also replaces the sample text and colors; a sensitive value the
+customer already typed (the Wi-Fi password) is kept and never stored in a design. The page notes
+"Based on <design>" (", with your changes" after an edit) and every jump offers one **Undo**.
+Every design is built in `customize-all-generators.test.mjs` (with its curated font), so a design
+that does not fit fails CI. Designs can group (`group`), e.g. route shield: Historic /
+Interstates (Route 66 first and the default) / US and state routes; name plate: Plate styles /
+Common names.
+
+**Randomize** (`customizer/framework/randomize.js`). The toolbar's Randomize re-rolls *appearance*:
+colors, curated fonts, enum styles, booleans and numbers (a number moves at most 20 % of its range
+from where it is, inside the live `rules().limits`). It never changes text, a sensitive or
+transient field, a per-location font, the customer's own font/image or QR code settings, and
+fields that opt out with `randomize: false` (function-changing switches such as the name-plate
+`size`, the Wi-Fi `format`, QR size/depth, text scale/offset). An enum option can be excluded with
+`randomizeExclude` (rating card: `custom`). Each field that can be randomized gets a padlock;
+a locked field keeps its value. A draw must pass `validateParams` (contrast rules included); the page
+then trial-builds it (same worker, curated fonts only) and tries up to 8 draws before saying it
+found nothing that builds, leaving the settings as they were. Opt a new field out with
+`randomize: false` when changing it can break fit or scanning.
+
 ## Adding a generator
 
 1. **Definition** — `public/assets/js/customize/generators/<id>.js` (schema, rules, presets,
-   `origin`, `rights` with a real note, hooks). Isomorphic imports only, with `?v=` suffixes like
+   `origin`, `rights` with a real note, `designs` (with a `defaultDesign` equal to the defaults), hooks). Isomorphic imports only, with `?v=` suffixes like
    its neighbours (`npm run assets:version` maintains them).
 2. **Builder** — `customizer/generators/<id>/build.js` per [Builder](#builder): `CrossSection.union([])`
    for empties, temporaries freed in `finally`, readable errors, ≤ 5 colors.
@@ -531,7 +557,7 @@ names. The E2E matrix in `tests/e2e/test_customize.py` runs every generator page
   are imported from `customizer/framework/`).
 - Adding a generator needs a page, a sitemap entry, registry and `loadBuilder` lines and a screenshot
   entry — not "only a folder plus a catalog entry" (success criterion 3).
-- Presets are not offered in the UI yet.
+- Presets themselves are data only; the UI offers `designs` (and Randomize) instead.
 - "Reopen in customizer" from the operator detail is not implemented.
 
 ## Known notes

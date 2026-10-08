@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-10-08T14:07:27.510502+00:00",
+  "generatedAt": "2026-10-08T17:31:01.197751+00:00",
   "status": "pass",
   "summary": {
     "checks": 241,
@@ -828,7 +828,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "81 visible interactive elements have accessible names."
+      "details": "106 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -863,7 +863,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "118 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "154 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/",
@@ -1668,7 +1668,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "77 visible interactive elements have accessible names."
+      "details": "89 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -1703,7 +1703,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "98 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "103 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/",
@@ -2054,12 +2054,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 81,
+        "interactiveCount": 106,
         "imageCount": 2,
-        "headingCount": 14
+        "headingCount": 18
       },
       "contrast": {
-        "checked": 118,
+        "checked": 154,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2404,12 +2404,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 77,
+        "interactiveCount": 89,
         "imageCount": 2,
-        "headingCount": 11
+        "headingCount": 12
       },
       "contrast": {
-        "checked": 98,
+        "checked": 103,
         "complexSkipped": 0,
         "failures": []
       }
