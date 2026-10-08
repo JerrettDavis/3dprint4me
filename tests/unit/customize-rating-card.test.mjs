@@ -43,11 +43,11 @@ function discContours() {
 
 test("generator definition: id, version, category, provenance", () => {
   assert.equal(gen.id, "rating-card");
-  assert.equal(gen.version, 1);
+  assert.equal(gen.version, 2);
   assert.equal(gen.category, "cards");
   assert.equal(gen.origin, "house");
   assert.deepEqual(gen.rights, { publishable: true, note: "House design." });
-  assert.deepEqual(Object.keys(gen.presets).sort(), ["dark", "heart", "house", "mug", "toilet"]);
+  assert.deepEqual(Object.keys(gen.presets).sort(), ["dark", "heart", "house", "mug", "ticket", "toilet"]);
   for (const name of ["heart", "house", "mug", "toilet"]) assert.equal(paramsFor(gen.presets[name]).icon, name);
 });
 

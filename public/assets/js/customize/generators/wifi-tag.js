@@ -176,7 +176,9 @@ const FOCUS = [
 const PRESETS = {
   placard: { format: "placard" },
   keychain: { format: "keychain", show_text: false, hole: true },
-  card: { format: "card" }
+  card: { format: "card" },
+  // A raised rim, a rounded frame around the code and a rule under the title and over the network name.
+  framed: { format: "placard", border_style: "raised", qr_frame: "rounded", title_divider: true, network_divider: true }
 };
 
 export default {
