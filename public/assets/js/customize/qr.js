@@ -8,7 +8,7 @@ export const QR_SCALE_RANGE = Object.freeze([25, 100]);
 
 /** Schema entry for the independent QR size (percent of the largest size that fits). */
 export const qrScaleField = (group = "back", extra = {}) => ({
-  type: "number", label: "QR code size", min: QR_SCALE_RANGE[0], max: QR_SCALE_RANGE[1], step: 5, default: 100, unit: "%", group, ...extra
+  type: "number", label: "QR code size", min: QR_SCALE_RANGE[0], max: QR_SCALE_RANGE[1], step: 5, default: 100, unit: "%", group, randomize: false, ...extra
 });
 
 // Byte-mode capacity per QR version (1..40) at error-correction level M, as the builders use.

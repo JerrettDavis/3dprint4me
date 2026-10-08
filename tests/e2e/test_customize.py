@@ -1574,3 +1574,61 @@ def test_a_per_location_font_loads_in_the_worker_and_builds(page: Page, base_url
     wait_settled(page)
     expect(page.locator("body[data-build-state]")).to_have_attribute("data-build-state", "ready", timeout=BUILD_TIMEOUT)
     assert any(u.endswith(".ttf") and "Pacifico-Regular" in u for u in fonts), fonts
+
+
+def test_design_gallery_applies_a_design_and_undo_restores(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    # A fresh visit opens the gallery, with 66 the default.
+    expect(page.locator("#cz-designs-toggle")).to_have_attribute("aria-expanded", "true")
+    expect(page.locator("#cz-designs-current")).to_have_text("Based on Route 66.")
+    expect(page.locator("button.cz-design")).to_have_count(13)
+    expect(page.locator("button.cz-design[data-design='route-66']")).to_have_attribute("aria-pressed", "true")
+    page.locator("button.cz-design[data-design='i-95']").click()
+    expect(page.locator("#cz-lower_text")).to_have_value("95")
+    expect(page.locator("#cz-top_text")).to_have_value("INTERSTATE")
+    expect(page.locator("#cz-designs-current")).to_have_text("Based on Interstate 95.")
+    expect(page.locator("#cz-designs-toggle")).to_have_attribute("aria-expanded", "false")
+    wait_settled(page)
+    # Editing afterwards is noted, and Undo brings the previous settings back.
+    page.locator("#cz-lower_text").fill("96")
+    expect(page.locator("#cz-designs-current")).to_have_text("Based on Interstate 95, with your changes.")
+    page.get_by_role("button", name="Undo", exact=True).click()
+    expect(page.locator("#cz-lower_text")).to_have_value("66")
+    expect(page.locator("#cz-designs-current")).to_have_text("Based on Route 66.")
+    wait_settled(page)
+
+
+def test_randomize_respects_locks_and_never_touches_text(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    base_before = page.locator("#cz-base_color").input_value()
+    text_before = page.locator("#cz-top_text").input_value()
+    lock = page.locator("button.cz-lock[data-lock='base_color']")
+    lock.click()
+    expect(lock).to_have_attribute("aria-pressed", "true")
+    changed = False
+    for _ in range(4):
+        page.get_by_role("button", name="Randomize", exact=True).click()
+        wait_settled(page)
+        assert page.locator("#cz-base_color").input_value() == base_before
+        assert page.locator("#cz-top_text").input_value() == text_before
+        assert page.locator("#cz-qr_data").input_value() == "https://3dprint4.me/"
+        changed = changed or page.locator("#cz-upper_color").input_value() != "#ef233c"
+    assert changed
+    expect(page.locator("#cz-designs-current")).to_have_text("Your own settings.")
+    expect(page.get_by_role("button", name="Undo", exact=True)).to_be_visible()
+    expect(page.locator("#cz-continue")).to_be_enabled()
+
+
+def test_name_plate_offers_common_names_and_randomizes_to_a_buildable_plate(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/name-plate/")
+    wait_ready(page)
+    page.locator("button.cz-design[data-design='emma']").click()
+    expect(page.locator("#cz-name")).to_have_value("Emma")
+    wait_settled(page)
+    for _ in range(3):
+        page.get_by_role("button", name="Randomize", exact=True).click()
+        wait_settled(page)
+        expect(page.locator("#cz-name")).to_have_value("Emma")
+        expect(page.locator("body[data-build-state='ready']")).to_be_attached()

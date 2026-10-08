@@ -7,6 +7,8 @@ import { randomUUID } from "node:crypto";
 import test from "node:test";
 import { inflateRawSync } from "node:zlib";
 import { unzipSync, strFromU8 } from "fflate";
+import { applyDesign } from "../../customizer/framework/designs.js";
+import { randomizeUntilBuilds } from "../../customizer/framework/randomize.js";
 import { loadEngine } from "../../customizer/framework/engine.js";
 import { buildModel } from "../../customizer/framework/model.js";
 import { loadBuilder } from "../../customizer/generators/index.js";
@@ -113,6 +115,43 @@ for (const g of generators) {
       // A preset is applied like the page applies values: over the defaults, then clamped.
       const params = validated(g, clampParams(g, { ...defaults(g), ...preset }), `${g.id} preset ${name}`);
       await buildAndCheck(g, params, `${g.id} preset ${name}`);
+    }
+  });
+
+  test(`${g.id}: randomize finds a model that builds, from every design`, async () => {
+    let seed = 12345;
+    const rng = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const { default: build } = await loadBuilder[g.id]();
+    const tryBuild = async params => {
+      try {
+        const font = FONTS.some(f => f.id === params.font) ? await curatedFont(params.font) : null;
+        const out = await buildModel({ ...g, build }, validated(g, params, `${g.id} random`), { wasm, font });
+        return out.parts.length >= 1;
+      } catch { return false; }
+    };
+    for (const d of g.designs) {
+      let current = applyDesign(g, d, {});
+      for (let i = 0; i < 3; i++) {
+        const out = await randomizeUntilBuilds(g, current, { rng, tryBuild });
+        assert.ok(out.ok, `${g.id} after ${d.id}: no buildable draw in ${out.tries} tries`);
+        current = out.params;
+      }
+    }
+  });
+
+  test(`${g.id}: every ready-made design applies cleanly and builds`, async () => {
+    const designs = g.designs ?? [];
+    assert.ok(designs.length >= 4, `${g.id} offers too few designs`);
+    assert.ok(designs.some(d => d.id === g.defaultDesign), `${g.id}: defaultDesign names no design`);
+    assert.deepEqual(designs.find(d => d.id === g.defaultDesign).params === undefined, false);
+    assert.equal(new Set(designs.map(d => d.id)).size, designs.length, `${g.id}: duplicate design ids`);
+    for (const d of designs) {
+      assert.ok(d.label && d.blurb, `${g.id} design ${d.id}: label and blurb are required`);
+      for (const key of Object.keys(d.params)) assert.ok(Object.hasOwn(g.schema, key) && !g.schema[key].sensitive, `${g.id} design ${d.id}: bad key ${key}`);
+      const params = applyDesign(g, d, {});
+      assert.ok(params, `${g.id} design ${d.id} does not validate`);
+      const font = FONTS.some(f => f.id === params.font) ? await curatedFont(params.font) : null;
+      await buildAndCheck(g, validated(g, params, `${g.id} design ${d.id}`), `${g.id} design ${d.id}`, { font });
     }
   });
 }

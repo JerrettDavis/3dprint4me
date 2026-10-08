@@ -2,10 +2,10 @@
 // the TOP face. The password is sensitive: it lives only in the QR geometry of the model file
 // and is redacted from drafts, the hand-off record, the server, email and webhooks.
 
-import { luminance, contrastRatio } from "../color.js?v=6d9507f2af48b563";
+import { luminance, contrastRatio } from "../color.js?v=6b0e56012c841e99";
 
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY, locationFontField } from "../fonts.js?v=6d9507f2af48b563";
-import { qrScaleField } from "../qr.js?v=6d9507f2af48b563";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY, locationFontField } from "../fonts.js?v=6b0e56012c841e99";
+import { qrScaleField } from "../qr.js?v=6b0e56012c841e99";
 
 export { contrastRatio };
 
@@ -108,24 +108,24 @@ const SCHEMA = {
     { value: "placard", label: "Placard, 90 × 120 mm" },
     { value: "keychain", label: "Keychain, 45 × 60 mm" },
     { value: "card", label: "Business card, 85.6 × 54 mm" }
-  ], default: "placard", group: "tag", section: "general" },
-  hole: { type: "bool", label: "Key-ring loop", default: true, visibleWhen: { format: "keychain" }, group: "tag", section: "general" },
+  ], default: "placard", randomize: false, group: "tag", section: "general" },
+  hole: { type: "bool", label: "Key-ring loop", default: true, randomize: false, visibleWhen: { format: "keychain" }, group: "tag", section: "general" },
   ssid: { type: "text", label: "Network name (SSID)", max: 32, default: "Guest WiFi", preserveWhitespace: true, group: "network", section: "network" },
   password: { type: "text", label: "Network password", max: 63, optional: true, default: "", sensitive: true, preserveWhitespace: true, help: "Needed unless the network is open. Up to 63 characters, exactly as typed.", group: "network", section: "network" },
   security: { type: "enum", label: "Security", options: [
     { value: "WPA", label: "WPA, WPA2 or WPA3" },
     { value: "WEP", label: "WEP (older networks)" },
     { value: "nopass", label: "No password (open network)" }
-  ], default: "WPA", group: "network", section: "network" },
-  hidden: { type: "bool", label: "Hidden network", default: false, group: "network", section: "network" },
+  ], default: "WPA", randomize: false, group: "network", section: "network" },
+  hidden: { type: "bool", label: "Hidden network", default: false, randomize: false, group: "network", section: "network" },
   ...locationFontField("network_font", "Network name font", { group: "network", section: "network", visibleWhen: labelOn }),
-  show_text: { type: "bool", label: "Show title and network name. Text is not shown on keychain tags.", default: true, group: "text", section: "general" },
+  show_text: { type: "bool", label: "Show title and network name. Text is not shown on keychain tags.", default: true, randomize: false, group: "text", section: "general" },
   title: { type: "text", label: "Title", max: 20, optional: true, default: "WiFi", group: "text", section: "title" },
   ...locationFontField("title_font", "Title font", { group: "text", section: "title", visibleWhen: labelOn }),
   ...withSection(fontSchema("text", usesText), "general"),
   corner_radius_mm: { type: "number", label: "Corner radius", min: 0, max: 12, step: 0.5, default: 4, unit: "mm", group: "size", section: "general" },
   thickness_mm: { type: "number", label: "Thickness", min: 2, max: 6, step: 0.2, default: 3, unit: "mm", group: "size", section: "general" },
-  qr_depth_mm: { type: "number", label: "QR and text depth", min: DEPTH_RANGE[0], max: DEPTH_RANGE[1], step: 0.2, default: 1, unit: "mm", group: "size", section: "general" },
+  qr_depth_mm: { randomize: false, type: "number", label: "QR and text depth", min: DEPTH_RANGE[0], max: DEPTH_RANGE[1], step: 0.2, default: 1, unit: "mm", group: "size", section: "general" },
   qr_scale_pct: qrScaleField("size", { section: "qr", help: "Shrinks the code about its center. Smaller codes print finer cells; the tag warns when a code may not scan." }),
   qr_frame: { type: "enum", label: "Frame around the QR code", options: [
     { value: "none", label: "None" },
@@ -181,6 +181,19 @@ const PRESETS = {
   framed: { format: "placard", border_style: "raised", qr_frame: "rounded", title_divider: true, network_divider: true }
 };
 
+// Ready-made designs, offered before customizing (see docs/GENERATORS.md). Each is a partial
+// parameter set over the defaults; the QR code color stays darker than the base color.
+const DESIGNS = [
+  { id: "placard", label: "Placard", blurb: "A 90 × 120 mm tag for a shelf or a wall. The default.", group: "Formats", params: PRESETS.placard },
+  { id: "keychain", label: "Keychain", blurb: "A 45 × 60 mm code with a key-ring loop.", group: "Formats", params: PRESETS.keychain },
+  { id: "card", label: "Business card", blurb: "An 85.6 × 54 mm card for the guest drawer.", group: "Formats", params: PRESETS.card },
+  { id: "framed", label: "Framed placard", blurb: "A raised rim, a rounded frame around the code and two rules.", group: "Styles", params: PRESETS.framed },
+  { id: "sunny", label: "Sunny yellow", blurb: "A warm yellow placard with a rounded frame.", group: "Colors", params: { base_color: "#ffe9a8", qr_color: "#1a1a1a", text_color: "#1a1a1a", qr_frame: "rounded" } },
+  { id: "mint", label: "Mint", blurb: "A fresh mint placard with a green code.", group: "Colors", params: { base_color: "#d6f5e3", qr_color: "#0b3d2e", text_color: "#0b3d2e", border_style: "engraved" } },
+  { id: "sky", label: "Sky blue card", blurb: "A pale blue business card with a navy code.", group: "Colors", params: { format: "card", base_color: "#dbeafe", qr_color: "#0b2a5b", text_color: "#0b2a5b" } },
+  { id: "blush", label: "Blush keychain", blurb: "A pink keychain with a plum code.", group: "Colors", params: { ...PRESETS.keychain, base_color: "#fde2ea", qr_color: "#4a1230" } }
+];
+
 export default {
   id: "wifi-tag",
   version: 2,
@@ -196,5 +209,7 @@ export default {
   font: FONT_SPEC,
   sections: SECTIONS,
   focus: FOCUS,
-  presets: PRESETS
+  presets: PRESETS,
+  designs: DESIGNS,
+  defaultDesign: "placard"
 };
