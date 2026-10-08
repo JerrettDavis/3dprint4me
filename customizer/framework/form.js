@@ -132,7 +132,9 @@ function fontPickerField(key, def, value, error) {
   <button class="cz-picker-toggle" type="button" id="${id}-toggle" aria-expanded="false" aria-controls="${id}-list" aria-labelledby="${id}-label ${id}-toggle"><span class="cz-picker-current ${faceClass(current)}">${esc(current?.label ?? "")}</span></button>
   <fieldset class="cz-picker-list" id="${id}-list" hidden>
     <legend class="visually-hidden">${esc(def.label ?? key)}</legend>
+    <div class="cz-picker-scroll">
     ${radios}
+    </div>
   </fieldset>
   ${errorSlot(key, error)}
 </div>`;
@@ -457,6 +459,8 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     attachments.set(key, list);
     fieldEls.get(key)?.after(element);
   }
+  // Fields go back into the document right away: the listeners below look them up in `container`.
+  layout(mode);
 
   // data-settling marks the form while an edit waits on its debounce/settle timer (tests and
   // anything else that must know every edit has been reported).
@@ -692,7 +696,6 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   }
 
   setLimits(limits ?? generator.rules?.(params).limits ?? {});
-  layout(mode);
 
   return {
     setValues,
