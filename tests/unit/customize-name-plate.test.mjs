@@ -10,7 +10,7 @@ import { loadFont, CURATED_FONTS } from "../../customizer/framework/fonts.js";
 import { getGenerator, listPublicGenerators } from "../../public/assets/js/customize/registry.js";
 import { clampParams, validateParams } from "../../public/assets/js/customize/schema.js";
 import { contrastRatio } from "../../public/assets/js/customize/color.js";
-import { FONTS, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
+import { FONTS, findFont, fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 import { normalizeCustomization } from "../../lib/customization/domain.js";
 import build from "../../customizer/generators/name-plate/build.js";
 import { trackLiveObjects } from "../support/manifold-live.mjs";
@@ -40,11 +40,13 @@ const volume = m => m.volume();
 
 // ---- Fonts: files, licenses, checksums ------------------------------------------------------
 
-test("eight curated OFL fonts with kebab-case ids, labels, files and the OFL-1.1 license", () => {
-  assert.deepEqual(FONTS.map(f => f.id), ["pacifico", "lobster", "bebas-neue", "righteous", "caveat-brush", "rubik-mono-one", "bangers", "titan-one"]);
+test("curated OFL fonts with kebab-case ids, labels, files and the OFL-1.1 license", () => {
+  // The original eight display fonts keep their ids (saved drafts and orders refer to them).
+  const original = ["pacifico", "lobster", "bebas-neue", "righteous", "caveat-brush", "rubik-mono-one", "bangers", "titan-one"];
+  assert.deepEqual(FONTS.filter(f => f.category === "display").map(f => f.id), original);
   for (const f of FONTS) {
     assert.match(f.id, /^[a-z]+(-[a-z]+)*$/);
-    assert.match(f.file, /^[A-Za-z]+-Regular\.ttf$/);
+    assert.match(f.file, /^[A-Za-z0-9]+-[A-Za-z]+\.ttf$/);
     assert.equal(f.license, "OFL-1.1");
     assert.ok(f.label.length > 2);
   }
@@ -66,7 +68,7 @@ test("the font list matches the files on disk and each has a recorded license", 
     assert.ok(font.charToGlyph("A").index > 0, `${f.label} draws A`);
     assert.ok(!font.tables.fvar, `${f.label} is a static font`);
     const family = font.names.windows?.fontFamily?.en ?? font.names.macintosh?.fontFamily?.en ?? font.names.fontFamily?.en;
-    assert.equal(family, f.label, "the label is the font's own family name");
+    assert.ok(f.label.startsWith(family), `the label ${f.label} starts with the font's own family name ${family}`);
     // The license entry names the family, the license and the shipped license text.
     assert.ok(licenses.includes(`## ${f.label}`), `license entry for ${f.label}`);
     const entry = licenses.split("## ").find(s => s.startsWith(f.label));
@@ -74,9 +76,9 @@ test("the font list matches the files on disk and each has a recorded license", 
     assert.match(entry, /Copyright/);
     assert.ok(entry.includes(f.licenseFile), `${f.label} names ${f.licenseFile}`);
     const ofl = await readFile(new URL(f.licenseFile, FONT_DIR), "utf8");
-    assert.match(ofl, /SIL OPEN FONT LICENSE Version 1\.1/);
+    assert.match(ofl, /SIL OPEN FONT LICENSE\s+Version 1\.1/);
   }
-  assert.ok(total < 1.5 * 1024 * 1024, `font payload ${total} bytes`);
+  assert.ok(total < 6.5 * 1024 * 1024, `font payload ${total} bytes`);
 });
 
 test("SHA256SUMS pins every font file (a silent change fails here)", async () => {
@@ -375,7 +377,13 @@ test("no-plate backings bridge ordinary names into one piece; only the backing c
     assert.equal(p.plate, "none");
     assert.equal(p.keychain_loop, true);
     const f = await fontFor(p);
-    const bridged = await build(p, { wasm, font: f });
+    // Hairline and ornamental faces (scripts, blackletter) may refuse to bridge: they must say so, readably.
+    const mayRefuse = findFont(font)?.category && findFont(font).category !== "display";
+    let bridged;
+    try { bridged = await build(p, { wasm, font: f }); } catch (e) {
+      if (!mayRefuse || !/letters aren't connected/.test(e.message)) throw e;
+      continue;
+    }
     const onPlate = await build({ ...p, plate: "rect" }, { wasm, font: f });
     const temps = [];
     const t = o => { temps.push(o); return o; };

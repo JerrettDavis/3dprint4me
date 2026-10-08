@@ -4,7 +4,28 @@
 // customizer/static/fonts/LICENSES.md. Only SIL Open Font License 1.1 fonts belong here.
 const font = (id, label, file, licenseFile, category = "display") => Object.freeze({ id, label, file, license: "OFL-1.1", licenseFile, category });
 
+// Listed in picker order (FONT_CATEGORIES), so FONT_OPTIONS follows this array.
 export const FONTS = Object.freeze([
+  font("inter-bold", "Inter Bold", "Inter-Bold.ttf", "OFL-inter.txt", "sans"),
+  font("montserrat-extrabold", "Montserrat ExtraBold", "Montserrat-ExtraBold.ttf", "OFL-montserrat.txt", "sans"),
+  font("open-sans-bold", "Open Sans Bold", "OpenSans-Bold.ttf", "OFL-opensans.txt", "sans"),
+  font("poppins-bold", "Poppins Bold", "Poppins-Bold.ttf", "OFL-poppins.txt", "sans"),
+  font("work-sans-bold", "Work Sans Bold", "WorkSans-Bold.ttf", "OFL-worksans.txt", "sans"),
+  font("cinzel-bold", "Cinzel Bold", "Cinzel-Bold.ttf", "OFL-cinzel.txt", "serif"),
+  font("spectral-bold", "Spectral Bold", "Spectral-Bold.ttf", "OFL-spectral.txt", "serif"),
+  font("crimson-text-bold", "Crimson Text Bold", "CrimsonText-Bold.ttf", "OFL-crimsontext.txt", "serif"),
+  font("cardo-bold", "Cardo Bold", "Cardo-Bold.ttf", "OFL-cardo.txt", "serif"),
+  font("gelasio-bold", "Gelasio Bold", "Gelasio-Bold.ttf", "OFL-gelasio.txt", "serif"),
+  font("zilla-slab-bold", "Zilla Slab Bold", "ZillaSlab-Bold.ttf", "OFL-zillaslab.txt", "slab"),
+  font("arvo-bold", "Arvo Bold", "Arvo-Bold.ttf", "OFL-arvo.txt", "slab"),
+  font("jetbrains-mono-bold", "JetBrains Mono Bold", "JetBrainsMono-Bold.ttf", "OFL-jetbrainsmono.txt", "mono"),
+  font("ibm-plex-mono-bold", "IBM Plex Mono Bold", "IBMPlexMono-Bold.ttf", "OFL-ibmplexmono.txt", "mono"),
+  font("sacramento", "Sacramento", "Sacramento-Regular.ttf", "OFL-sacramento.txt", "script"),
+  font("alex-brush", "Alex Brush", "AlexBrush-Regular.ttf", "OFL-alexbrush.txt", "script"),
+  font("kaushan-script", "Kaushan Script", "KaushanScript-Regular.ttf", "OFL-kaushanscript.txt", "script"),
+  font("caveat-bold", "Caveat Bold", "Caveat-Bold.ttf", "OFL-caveat.txt", "handwriting"),
+  font("indie-flower", "Indie Flower", "IndieFlower-Regular.ttf", "OFL-indieflower.txt", "handwriting"),
+  font("patrick-hand", "Patrick Hand", "PatrickHand-Regular.ttf", "OFL-patrickhand.txt", "handwriting"),
   font("pacifico", "Pacifico", "Pacifico-Regular.ttf", "OFL-pacifico.txt"),
   font("lobster", "Lobster", "Lobster-Regular.ttf", "OFL-lobster.txt"),
   font("bebas-neue", "Bebas Neue", "BebasNeue-Regular.ttf", "OFL-bebasneue.txt"),
@@ -12,10 +33,37 @@ export const FONTS = Object.freeze([
   font("caveat-brush", "Caveat Brush", "CaveatBrush-Regular.ttf", "OFL-caveatbrush.txt"),
   font("rubik-mono-one", "Rubik Mono One", "RubikMonoOne-Regular.ttf", "OFL-rubikmonoone.txt"),
   font("bangers", "Bangers", "Bangers-Regular.ttf", "OFL-bangers.txt"),
-  font("titan-one", "Titan One", "TitanOne-Regular.ttf", "OFL-titanone.txt")
+  font("titan-one", "Titan One", "TitanOne-Regular.ttf", "OFL-titanone.txt"),
+  font("unifraktur-cook", "UnifrakturCook", "UnifrakturCook-Bold.ttf", "OFL-unifrakturcook.txt", "blackletter"),
+  font("pirata-one", "Pirata One", "PirataOne-Regular.ttf", "OFL-pirataone.txt", "blackletter"),
+  font("medievalsharp", "MedievalSharp", "MedievalSharp-Regular.ttf", "OFL-medievalsharp.txt", "fantasy"),
+  font("uncial-antiqua", "Uncial Antiqua", "UncialAntiqua-Regular.ttf", "OFL-uncialantiqua.txt", "fantasy"),
+  font("metamorphous", "Metamorphous", "Metamorphous-Regular.ttf", "OFL-metamorphous.txt", "fantasy"),
+  font("cinzel-decorative-bold", "Cinzel Decorative Bold", "CinzelDecorative-Bold.ttf", "OFL-cinzeldecorative.txt", "fantasy"),
+  font("rye", "Rye", "Rye-Regular.ttf", "OFL-rye.txt", "western"),
+  font("sancreek", "Sancreek", "Sancreek-Regular.ttf", "OFL-sancreek.txt", "western")
 ]);
 
 export const findFont = id => FONTS.find(f => f.id === id);
+
+// The groups the picker shows, in order. The neutral families are offered in bold or heavy weights
+// on purpose (thin strokes print badly); the label names the weight, e.g. "Montserrat ExtraBold".
+export const FONT_CATEGORIES = Object.freeze([
+  Object.freeze({ id: "sans", label: "Sans-serif" }),
+  Object.freeze({ id: "serif", label: "Serif" }),
+  Object.freeze({ id: "slab", label: "Slab serif" }),
+  Object.freeze({ id: "mono", label: "Monospace" }),
+  Object.freeze({ id: "script", label: "Script" }),
+  Object.freeze({ id: "handwriting", label: "Handwriting" }),
+  Object.freeze({ id: "display", label: "Display" }),
+  Object.freeze({ id: "blackletter", label: "Blackletter" }),
+  Object.freeze({ id: "fantasy", label: "Fantasy & medieval" }),
+  Object.freeze({ id: "western", label: "Western" })
+]);
+
+// The curated fonts as picker options in FONT_CATEGORIES order; `group` is the heading to show.
+const curatedOptions = () => FONT_CATEGORIES.flatMap(c => FONTS.filter(f => f.category === c.id)
+  .map(f => Object.freeze({ value: f.id, label: f.label, face: f.id, group: c.label })));
 
 // ---- The font control every generator shares ---------------------------------------------
 // One definition, so every customizer offers the same choices in the same order: the built-in
@@ -31,7 +79,7 @@ export const FONT_ACK_KEY = "font_license_ack";
 
 export const FONT_OPTIONS = Object.freeze([
   Object.freeze({ value: FONT_BLOCK, label: "Block (built-in)", face: FONT_BLOCK }),
-  ...FONTS.map(f => Object.freeze({ value: f.id, label: f.label, face: f.id })),
+  ...curatedOptions(),
   Object.freeze({ value: FONT_SYSTEM, label: "Installed on this computer", face: FONT_SYSTEM }),
   Object.freeze({ value: FONT_CUSTOM, label: "My own font file", face: FONT_CUSTOM })
 ]);
@@ -45,7 +93,7 @@ export const FONT_INHERIT = "inherit";
 export const LOCATION_FONT_OPTIONS = Object.freeze([
   Object.freeze({ value: FONT_INHERIT, label: "Same as main font", face: FONT_BLOCK }),
   Object.freeze({ value: FONT_BLOCK, label: "Block (built-in)", face: FONT_BLOCK }),
-  ...FONTS.map(f => Object.freeze({ value: f.id, label: f.label, face: f.id }))
+  ...curatedOptions()
 ]);
 
 /** Schema entry for one location's font override. `key` should end in `_font`. */
