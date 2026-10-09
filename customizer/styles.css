@@ -300,3 +300,5 @@
 .cz-dl-close{position:absolute;top:.6rem;right:.6rem;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer}
 .cz-dl-close:hover{color:var(--ink)}
 @media (prefers-reduced-motion:no-preference){.cz-dialog[open]{animation:cz-dl-in 160ms ease-out}@keyframes cz-dl-in{from{opacity:0;transform:translateY(8px)}}}
+
+.cz-dl-stl{margin:.8rem 0 0;font-size:.82rem;color:var(--muted)}.cz-link-button{padding:0;border:0;background:none;color:var(--ink);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}.cz-link-button:focus-visible{outline:3px solid var(--focus-color);outline-offset:2px}

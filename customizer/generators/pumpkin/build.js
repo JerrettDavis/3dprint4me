@@ -1,8 +1,8 @@
 // Pumpkin geometry. The body is a closed parametric surface (pumpkin-shape.js); hollow shells
-// subtract a scaled-in copy of the smooth shape; faces, a lattice, the stem pocket and a bowl's
+// subtract an inset copy of the smooth shape; faces, a lattice, the stem pocket and a bowl's
 // tongue-and-recess joint are booleans on top of that. Every temporary goes through `t` and is
 // freed in `finally`; only the returned solids stay alive (buildModel frees those).
-import { baseCut, cavityScale, faceBox, geometry, openCut, resolution, splitCut, surfaceMesh, tealightFit, TEALIGHT_OPENING_MM } from "../../../public/assets/js/customize/pumpkin-shape.js";
+import { baseCut, faceBox, geometry, openCut, resolution, splitCut, surfaceMesh, tealightFit, TEALIGHT_OPENING_MM } from "../../../public/assets/js/customize/pumpkin-shape.js";
 import { safeName } from "../../framework/model.js";
 import { buildFace, faceSpec } from "./faces.js";
 import { latticeCutter } from "./lattice.js";
@@ -54,21 +54,29 @@ export default async function build(p, ctx) {
     // ---- Outer surface, flat base and (vase / open top) the top cut ----
     const res = resolution(p);
     const rough = t(solidFromMesh(wasm, surfaceMesh(g, res, { withTexture: true })));
-    const smooth = g.tex > 0 ? t(solidFromMesh(wasm, surfaceMesh(g, res, { withTexture: false }))) : rough;
     const base = baseCut(p, g);
     const zBase = base.z;
     let outer = t(rough.trimByPlane([0, 0, 1], zBase));
     if (topOpen) outer = t(outer.trimByPlane([0, 0, -1], -openCut(p, g).z));
-    const shrunk = w => t(smooth.scale(cavityScale({ ...p, wall_mm: w }, g)));
+    // Inner surfaces (the cavity, a face's skin, a bowl's joint) are the smooth shape inset by w mm
+    // along the surface normal, so the wall is even whatever the shape.
+    const shrunk = w => t(solidFromMesh(wasm, surfaceMesh(g, res, { withTexture: false, inset: w })));
 
     // ---- Hollow: subtract a scaled-in copy. The scaled copy must stay inside the real surface. ----
     let cavity = null, c0 = null;
     if (hollow) {
-      c0 = shrunk(wall);
-      const stray = t(c0.subtract(rough));
-      if (stray.volume() > 1e-3) throw new Error("The wall doesn't fit inside this shape. Make the wall thinner or the shape milder.");
+      // The inset follows the smooth meridian, so a steep, deeply grooved shoulder can leave a
+      // sliver outside the real surface. A slightly thicker inset (noted) fixes it; refuse if not.
+      let thick = 1;
+      for (const step of [1, 1.15, 1.3, 1.5]) {
+        c0 = shrunk(wall * step);
+        thick = step;
+        if (!(t(c0.subtract(rough)).volume() > 1e-3)) break;
+        if (step === 1.5) throw new Error("The wall doesn't fit inside this shape. Make the wall thinner or the shape milder.");
+      }
+      if (thick > 1) warnings.push("This shape is steep and deeply grooved, so the wall is a little thicker than asked in places.");
       if (p.style === "hollow" && p.opening === "bottom") {
-        const floorLevel = Math.max(zBase, -g.b * cavityScale(p, g)[2]) + 0.6;
+        const floorLevel = Math.max(zBase, -g.b + wall) + 0.6;
         const section = t(c0.slice(floorLevel));
         const column = t(t(section.extrude(floorLevel - zBase + 1.6)).translate([0, 0, zBase - 1]));
         cavity = t(Manifold.union([c0, column]));
@@ -97,7 +105,7 @@ export default async function build(p, ctx) {
     const faceSolids = [];
     if (faceStyle !== "none") {
       const fb = faceBox(p, g);
-      if (fb.top > g.b * 0.8) throw new Error("The face reaches the top of the pumpkin. Move the face lower or make it smaller.");
+      if (fb.top > g.top * 0.8) throw new Error("The face reaches the top of the pumpkin. Move the face lower or make it smaller.");
       if (fb.bottom < zBase + 2) throw new Error("The face reaches the base. Move the face higher or make it smaller.");
       const parts = buildFace(CrossSection, faceSpec(p), fb.width, t);
       const reach = g.a * (1 + g.ob) + 5;
@@ -156,6 +164,7 @@ export default async function build(p, ctx) {
       bowlSolid = t(shell.trimByPlane([0, 0, -1], -zs));
       let lid = t(shell.trimByPlane([0, 0, 1], zs));
       const section = t(c0.slice(zs));
+      if (section.isEmpty()) throw new Error("The lid split is above the inside of the pumpkin. Lower the lid split.");
       const column = (cs, h, z) => t(t(cs.extrude(h)).translate([0, 0, z]));
       const half = wall / 2;
       const tongue = t(t(column(t(section.offset(half - JOINT_GAP, "Round", 2, 48)), LIP + 0.4, zs - 0.4).intersect(shrunk(half + JOINT_GAP))).subtract(c0));

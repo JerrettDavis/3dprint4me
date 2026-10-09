@@ -28,7 +28,7 @@ export function checkEmail(value) {
   return email && !EMAIL.test(email) ? { ok: false, email } : { ok: true, email };
 }
 
-export function createDownloadDialog({ doc = document, onDownload, onPrint, track = trackDownload } = {}) {
+export function createDownloadDialog({ doc = document, onDownload, onDownloadStl = () => {}, onPrint, track = trackDownload } = {}) {
   const dialog = doc.createElement("dialog");
   dialog.className = "cz-dialog";
   dialog.id = "cz-download-dialog";
@@ -47,6 +47,7 @@ export function createDownloadDialog({ doc = document, onDownload, onPrint, trac
         <button class="button primary" type="button" data-act="print">Yes, I'd like a print</button>
         <button class="button ghost" type="button" data-act="download">No, just give me my file</button>
       </div>
+      <p class="cz-dl-stl"><button class="cz-link-button" type="button" data-act="download-stl">Download as STL instead</button> <span id="cz-dl-stl-note">One combined mesh with no colors, for slicers that don't read 3MF. The 3MF keeps the colored parts separate.</span></p>
       <button class="cz-dl-close" type="button" data-act="close" aria-label="Close without downloading">×</button>
     </form>`;
   doc.body.append(dialog);
@@ -72,7 +73,8 @@ export function createDownloadDialog({ doc = document, onDownload, onPrint, trac
     email.removeAttribute("aria-invalid");
     // The download starts inside the click, so the browser treats it as user-initiated.
     if (action === "download") onDownload(context);
-    const tracked = track({ generatorId: context.generatorId, action, email: checked.email });
+    if (action === "download-stl") onDownloadStl(context);
+    const tracked = track({ generatorId: context.generatorId, action: action === "download-stl" ? "download" : action, email: checked.email });
     if (action === "print") { await Promise.race([tracked, new Promise(r => setTimeout(r, 800))]); close(); await onPrint(context); return; }
     close();
   }

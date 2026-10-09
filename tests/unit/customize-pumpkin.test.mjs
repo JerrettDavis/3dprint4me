@@ -148,7 +148,7 @@ const MATRIX = [
   ["hollow lattice circles", { style: "hollow", decoration: "lattice", lattice_shape: "round", face: "none", diameter_mm: 120, multicolor: false }, ["Pumpkin"], 1],
   ["hollow lattice slots", { style: "hollow", decoration: "lattice", lattice_shape: "slot", face: "none", diameter_mm: 120, multicolor: false }, ["Pumpkin"], 1],
   ["hollow ridged tealight", { style: "hollow", decoration: "ridges", segments: 12, face: "none", diameter_mm: 120, multicolor: false, tealight_fit: true }, ["Pumpkin"], 1],
-  ["bowl with lid and peg stem", { style: "bowl", wall_mm: 2.4, stem: "peg", face: "none", diameter_mm: 120 }, ["Bowl", "Lid", "Stem"], 2],
+  ["bowl with lid and peg stem", { style: "bowl", wall_mm: 2.4, stem: "peg", face: "none", diameter_mm: 105 }, ["Bowl", "Lid", "Stem"], 2],
   ["bowl with a face and attached stem", { style: "bowl", wall_mm: 2.4, face: "happy", face_height_pct: 35, face_size_pct: 45 }, ["Bowl", "Face", "Cheeks", "Lid", "Stem"], 4],
   ["vase", { style: "vase", segments: 12, rib_depth_pct: 14 }, ["Pumpkin"], 1],
   ["oblong twisted irregular", { oblong_pct: 20, twist_deg: -60, irregularity_pct: 90, taper_pct: 25, face: "sleepy" }, ["Pumpkin", "Face", "Stem"], 3]

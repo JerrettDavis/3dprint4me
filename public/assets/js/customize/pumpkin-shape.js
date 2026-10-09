@@ -98,7 +98,11 @@ export function geometry(p) {
     return tex * (stitch(u - Math.floor(u), (arc / rowPitch) % 1) - 0.4) * fade;
   }
 
-  return { a, b, H, k, depth, ob, dip, e, taper, tex, cols, rowPitch, profile, lobe, texture, deco, twist };
+  // The highest point of the body: a deep stem dimple takes the shoulders down with it, so this
+  // can sit below the nominal half height b.
+  let top = -Infinity;
+  for (let i = 0; i <= 360; i++) top = Math.max(top, profile(Math.PI * i / 360).z);
+  return { a, b, H, top, k, depth, ob, dip, e, taper, tex, cols, rowPitch, profile, lobe, texture, deco, twist };
 }
 
 /** Rings spaced evenly by arc length along the meridian: phi, rho, z, outward normal, arc. */
@@ -150,26 +154,29 @@ export function resolution(p) {
  * The closed surface as flat arrays: positions (xyz triples) and triangle indices, counter
  * clockwise from outside. Ring 0 and the last ring are single pole vertices.
  */
-export function surfaceMesh(g, { nu, rows }, { withTexture = true } = {}) {
+export function surfaceMesh(g, { nu, rows }, { withTexture = true, inset = 0 } = {}) {
   const { rings } = meridian(g, rows);
   const verts = 2 + (rows - 1) * nu;
   const pos = new Float32Array(verts * 3);
   const idx = new Uint32Array((2 * nu + 2 * (rows - 2) * nu) * 3);
-  pos.set([0, 0, rings[0].z], 0);
+  // `inset` moves every ring inward along the meridian normal by that many mm (the inner surface
+  // of a hollow shell: an even wall whatever the shape, grooves kept at their absolute depth).
+  pos.set([0, 0, rings[0].z - inset * rings[0].nz], 0);
   const ringBase = j => (j === 0 ? 0 : j === rows ? verts - 1 : 1 + (j - 1) * nu);
   for (let j = 1; j < rows; j++) {
     const r = rings[j];
     for (let i = 0; i < nu; i++) {
       const th = TAU * i / nu;
       let rho = r.rho * g.lobe(th, r.phi), z = r.z;
-      if (withTexture) { const d = g.texture(th, r.phi, r.arc, r.rho); rho += d * r.nr; z += d * r.nz; }
+      if (inset) { rho = Math.max(rho - inset * r.nr, 0); z -= inset * r.nz; }
+      if (withTexture && !inset) { const d = g.texture(th, r.phi, r.arc, r.rho); rho += d * r.nr; z += d * r.nz; }
       const o = (ringBase(j) + i) * 3;
       pos[o] = rho * Math.cos(th) * (1 + g.ob);
       pos[o + 1] = rho * Math.sin(th) * (1 - g.ob);
       pos[o + 2] = z;
     }
   }
-  pos.set([0, 0, rings[rows].z], (verts - 1) * 3);
+  pos.set([0, 0, rings[rows].z - inset * rings[rows].nz], (verts - 1) * 3);
   let t = 0;
   const tri = (a, b, c) => { idx[t++] = a; idx[t++] = b; idx[t++] = c; };
   for (let i = 0; i < nu; i++) {
@@ -211,8 +218,7 @@ export function openCut(p, g = geometry(p)) {
 /** The bowl/lid split plane: a fraction of the height above the flat base. */
 export function splitCut(p, g = geometry(p)) {
   const base = baseCut(p, g).z;
-  const top = g.b;
-  return { z: base + (top - base) * p.split_pct / 100 };
+  return { z: base + (g.top - base) * p.split_pct / 100 };
 }
 
 /** Per-axis scale of the inner copy that leaves roughly `wall` mm of shell. */
@@ -255,6 +261,6 @@ export function minTealightDiameter(p, max = 200) {
 export function faceBox(p, g = geometry(p)) {
   const width = p.face_size_pct / 100 * p.diameter_mm * 0.75;
   const base = baseCut(p, g).z;
-  const centerZ = base + p.face_height_pct / 100 * (g.b - base);
+  const centerZ = base + p.face_height_pct / 100 * (g.top - base);
   return { width, centerZ, top: centerZ + width * 0.32, bottom: centerZ - width * 0.42 };
 }

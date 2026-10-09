@@ -1769,3 +1769,22 @@ def test_a_pumpkin_design_builds_and_continues_to_the_request(page: Page, base_u
     page.get_by_role("button", name="Continue to request").click()
     expect(page).to_have_url(re.compile(r"/order\.html\?service=print&from=customize$"))
     expect(page.locator("#customize-notice")).to_have_text("Loaded from the customizer — review and continue.")
+
+
+@pytest.mark.parametrize("generator_id", ["pumpkin", "route-shield"])
+def test_the_download_dialog_offers_an_stl_with_the_same_parts_combined(browser: Browser, workspace: tuple[str, str, Path], generator_id: str) -> None:
+    storefront, _operator, _store = workspace
+    page = new_matrix_page(browser, accept_downloads=True)
+    try:
+        edit_and_wait(page, storefront, generator_id, uuid.uuid4().hex)
+        page.get_by_role("button", name="Download my model").click()
+        with page.expect_download() as download_info:
+            page.get_by_role("button", name="Download as STL instead").click()
+        download = download_info.value
+        assert download.suggested_filename.endswith(".stl"), download.suggested_filename
+        data = Path(download.path()).read_bytes()
+        count = int.from_bytes(data[80:84], "little")
+        assert count > 100 and len(data) == 84 + count * 50, (count, len(data))
+        assert not data.startswith(b"solid"), "binary STL, not ASCII"
+    finally:
+        page.context.close()
