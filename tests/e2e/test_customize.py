@@ -89,6 +89,41 @@ def test_route_shield_builds_and_continue_is_enabled(page: Page, base_url: str) 
     expect(page.locator("#cz-status")).to_have_attribute("aria-live", "polite")
 
 
+def test_download_is_gated_by_a_thank_you_dialog_and_email_is_optional(page: Page, base_url: str) -> None:
+    events: list[dict] = []
+
+    def capture(route) -> None:
+        events.append(route.request.post_data_json)
+        route.fulfill(status=200, content_type="application/json", body='{"ok":true}')
+
+    page.route("**/api/inquiry?kind=customize-download", capture)
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    download = page.get_by_role("button", name="Download my model")
+    expect(download).to_be_disabled()
+    wait_ready(page)
+    expect(download).to_be_enabled()
+    download.click()
+    dialog = page.get_by_role("dialog", name="Thanks for using 3dprint4.me")
+    expect(dialog).to_be_visible()
+    expect(dialog.get_by_role("button", name="Yes, I'd like a print")).to_be_visible()
+    # Closing the dialog downloads nothing and tracks nothing.
+    page.keyboard.press("Escape")
+    expect(dialog).to_be_hidden()
+    assert events == []
+    # A bad email blocks the choice with a message; clearing it lets the customer skip.
+    download.click()
+    dialog.get_by_label("Email (optional)").fill("not-an-email")
+    dialog.get_by_role("button", name="No, just give me my file").click()
+    expect(dialog.get_by_role("alert")).to_be_visible()
+    dialog.get_by_label("Email (optional)").fill("")
+    with page.expect_download() as info:
+        dialog.get_by_role("button", name="No, just give me my file").click()
+    assert info.value.suggested_filename.endswith(".3mf")
+    expect(dialog).to_be_hidden()
+    page.wait_for_timeout(200)
+    assert events == [{"generatorId": "route-shield", "action": "download"}]
+
+
 def test_csp_allows_wasm_and_blocks_remote(page: Page, base_url: str) -> None:
     errors: list[str] = []
     requests: list[str] = []

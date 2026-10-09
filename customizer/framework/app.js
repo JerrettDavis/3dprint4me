@@ -17,6 +17,7 @@ import { buildFailureStatus } from "./build-status.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
 import { writeHandoff } from "./handoff.js";
+import { createDownloadDialog, safeFilename } from "./download-dialog.js";
 import { createFontArea } from "./font-area.js";
 import { applyDesign, designsOf } from "./designs.js";
 import { createDesignPanel, mountLocks } from "./explore-ui.js";
@@ -99,6 +100,7 @@ function boot() {
     badge: $("#cz-color-badge"),
     warnings: $("#cz-warnings"),
     continueButton: $("#cz-continue"),
+    downloadButton: null,
     retry: $("#cz-retry"),
     fallback: $("#cz-fallback"),
     stage: $("#cz-stage"),
@@ -161,6 +163,7 @@ function boot() {
   function updateContinue() {
     const next = continueState({ status: state.status, hasResult: !!state.result });
     if (els.continueButton) els.continueButton.disabled = next.disabled;
+    if (els.downloadButton) els.downloadButton.disabled = next.disabled;
     if (next.note) setNote(next.note);
   }
 
@@ -660,9 +663,8 @@ function boot() {
   });
 
   let continuing = false;
-  els.continueButton?.addEventListener("click", async () => {
-    const result = state.result;
-    if (!result || state.status !== "ready" || continuing) return;
+  async function continueToRequest(result) {
+    if (continuing) return;
     continuing = true;
     try {
       await continueHandler(continuePayload(generator, state.params, result));
@@ -671,7 +673,34 @@ function boot() {
     } finally {
       continuing = false;
     }
+  }
+  els.continueButton?.addEventListener("click", () => {
+    const result = state.result;
+    if (result && state.status === "ready") continueToRequest(result);
   });
+
+  // Download: a thank-you dialog first (a print offer and an optional email), then the file.
+  // The model that is downloaded is the one that was ready when the dialog opened.
+  if (els.continueButton) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button ghost";
+    button.id = "cz-download";
+    button.disabled = true;
+    button.innerHTML = '<span class="cz-long">Download my model</span><span class="cz-short" aria-hidden="true">Download</span>';
+    button.setAttribute("aria-label", "Download my model");
+    els.continueButton.before(button);
+    els.downloadButton = button;
+    const dialog = createDownloadDialog({
+      onDownload: ({ result }) => downloadFile(new Blob([result.data], { type: "model/3mf" }), safeFilename(result.filename)),
+      onPrint: ({ result }) => continueToRequest(result)
+    });
+    button.addEventListener("click", () => {
+      const result = state.result;
+      if (result && state.status === "ready") dialog.open({ result, generatorId: generator.id }, button);
+    });
+    updateContinue();
+  }
 
   clearFacts();
   setStatus("idle");
