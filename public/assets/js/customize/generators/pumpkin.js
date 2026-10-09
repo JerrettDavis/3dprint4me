@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=8f0fb7bff5365647";
-import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=8f0fb7bff5365647";
+import { contrastRatio } from "../color.js?v=fbc13f804a77bd37";
+import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=fbc13f804a77bd37";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -26,9 +26,8 @@ function rules(o) {
   const fieldErrors = {};
   const errors = [];
   const add = (keys, message) => { errors.push(message); for (const k of keys) fieldErrors[k] ??= message; };
-  // A vase prints one continuous wall: no face and no stem to fit. The controls are hidden.
-  if (isVase(o)) o.face = "none";
-  if (noTop(o)) o.stem = "none";
+  // A vase prints one continuous wall and an open top has nowhere for a stem: the controls are
+  // hidden and the builder ignores them, but the values are kept so switching back restores them.
   const limits = {};
   const hollow = hollowStyle(o);
   const minWall = o.style === "bowl" ? BOWL_WALL : MIN_WALL;
@@ -226,7 +225,7 @@ const PRESETS = {
   knitted: { decoration: "knit", rib_depth_pct: 6, texture_depth_mm: 0.7, face: "cute" },
   ridged: { style: "hollow", opening: "bottom", tealight_fit: true, multicolor: false, stem: "peg", decoration: "ridges", segments: 12, rib_depth_pct: 12, face: "none", diameter_mm: 120 },
   lattice: { style: "hollow", opening: "bottom", tealight_fit: true, multicolor: false, stem: "peg", decoration: "lattice", face: "none", diameter_mm: 120 },
-  bowl: { style: "bowl", wall_mm: 2.4, stem: "peg", face: "none", diameter_mm: 120 },
+  bowl: { style: "bowl", wall_mm: 2.4, stem: "peg", face: "none", diameter_mm: 105 },
   vase: { style: "vase", segments: 12, rib_depth_pct: 14, diameter_mm: 100 }
 };
 

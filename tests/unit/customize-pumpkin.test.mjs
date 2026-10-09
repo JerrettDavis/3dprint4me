@@ -43,11 +43,17 @@ test("parameters stay well under the server's 8000-byte limit", () => {
   assert.ok(JSON.stringify(ok({})).length < 2500);
 });
 
-test("vase mode has no face or stem: the rule normalizes them away", () => {
+test("vase mode and an open top ignore the face and stem but keep the customer's choices", async () => {
   const v = ok({ style: "vase", face: "cute", stem: "peg" });
-  assert.equal(v.face, "none");
-  assert.equal(v.stem, "none");
-  assert.equal(ok({ style: "hollow", opening: "top", stem: "fused" }).stem, "none", "an open top has nowhere for a stem");
+  assert.equal(v.face, "cute", "kept, so switching back to Solid restores it");
+  assert.equal(v.stem, "peg");
+  const vase = await make({ style: "vase", face: "cute", stem: "peg" });
+  assert.deepEqual(vase.names, ["Pumpkin"], "no face or stem part in a vase");
+  const open = await make({ style: "hollow", opening: "top", face: "none", stem: "fused" });
+  assert.deepEqual(open.names, ["Pumpkin"], "an open top gets no stem");
+  assert.equal(ok({ style: "hollow", opening: "top", stem: "fused" }).stem, "fused");
+  // A rule on a face the vase never prints must not block it.
+  assert.ok(check({ style: "vase", face: "cute", diameter_mm: 50, face_size_pct: 30 }).ok);
 });
 
 test("a cut-through face needs a hollow shell or a bowl", () => {
