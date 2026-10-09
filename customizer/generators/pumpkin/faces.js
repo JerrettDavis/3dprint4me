@@ -9,7 +9,19 @@ export const FACE_PRESETS = {
   happy: { eye: "happy", nose: "none", mouth: "grin", eyeSize: 0.2, eyeX: 0.21, eyeY: 0.12, noseSize: 0.1, noseY: -0.04, mouthW: 0.5, mouthY: -0.16, cheeks: true },
   spooky: { eye: "angry", nose: "triangle", mouth: "jagged", eyeSize: 0.22, eyeX: 0.2, eyeY: 0.14, noseSize: 0.11, noseY: -0.05, mouthW: 0.8, mouthY: -0.24 },
   surprised: { eye: "circle", nose: "round", mouth: "round", eyeSize: 0.17, eyeX: 0.2, eyeY: 0.12, noseSize: 0.09, noseY: -0.04, mouthW: 0.3, mouthY: -0.2 },
-  sleepy: { eye: "slit", nose: "none", mouth: "smile", eyeSize: 0.19, eyeX: 0.21, eyeY: 0.08, noseSize: 0.1, noseY: -0.04, mouthW: 0.3, mouthY: -0.12 }
+  sleepy: { eye: "slit", nose: "none", mouth: "smile", eyeSize: 0.19, eyeX: 0.21, eyeY: 0.08, noseSize: 0.1, noseY: -0.04, mouthW: 0.3, mouthY: -0.12 },
+  // The familiar faces: domed eyes with a small open mouth and blush; the wide-eyed epic grin;
+  // sunglasses; a wink; heart and star eyes; tongue out; a cat; angry; scared.
+  adorable: { eye: "dome", nose: "none", mouth: "open", eyeSize: 0.22, eyeX: 0.2, eyeY: 0.1, noseSize: 0.1, noseY: -0.04, mouthW: 0.26, mouthY: -0.1, cheeks: true },
+  awesome: { eye: "oval", nose: "none", mouth: "open", eyeSize: 0.17, eyeX: 0.2, eyeY: 0.14, noseSize: 0.1, noseY: -0.04, mouthW: 0.66, mouthY: -0.1 },
+  cool: { eye: "shades", nose: "none", mouth: "smile", eyeSize: 0.19, eyeX: 0.2, eyeY: 0.1, noseSize: 0.1, noseY: -0.04, mouthW: 0.34, mouthY: -0.16 },
+  wink: { eye: "oval", eyeR: "happy", nose: "none", mouth: "open", eyeSize: 0.17, eyeX: 0.21, eyeY: 0.1, noseSize: 0.1, noseY: -0.04, mouthW: 0.3, mouthY: -0.1, cheeks: true },
+  love: { eye: "heart", nose: "none", mouth: "smile", eyeSize: 0.2, eyeX: 0.2, eyeY: 0.1, noseSize: 0.1, noseY: -0.04, mouthW: 0.34, mouthY: -0.1, cheeks: true },
+  starstruck: { eye: "star", nose: "none", mouth: "open", eyeSize: 0.23, eyeX: 0.21, eyeY: 0.12, noseSize: 0.1, noseY: -0.04, mouthW: 0.5, mouthY: -0.12 },
+  tongue: { eye: "oval", eyeR: "happy", nose: "none", mouth: "tongue", eyeSize: 0.16, eyeX: 0.21, eyeY: 0.1, noseSize: 0.1, noseY: -0.04, mouthW: 0.44, mouthY: -0.1, cheeks: true },
+  cat: { eye: "triangle", nose: "triangle", mouth: "cat", eyeSize: 0.17, eyeX: 0.21, eyeY: 0.1, noseSize: 0.08, noseY: -0.06, mouthW: 0.4, mouthY: -0.1 },
+  angry: { eye: "angry", nose: "none", mouth: "zigzag", eyeSize: 0.2, eyeX: 0.2, eyeY: 0.12, noseSize: 0.1, noseY: -0.04, mouthW: 0.5, mouthY: -0.2 },
+  scared: { eye: "circle", nose: "none", mouth: "wavy", eyeSize: 0.2, eyeX: 0.2, eyeY: 0.12, noseSize: 0.1, noseY: -0.04, mouthW: 0.52, mouthY: -0.2 }
 };
 
 /** The settings for a face (a preset, or the custom feature choices). */
@@ -66,6 +78,10 @@ export function buildFace(CrossSection, spec, W, t) {
         return poly(pts);
       }
       case "diamond": return poly([[0, s * 0.6], [s * 0.45, 0], [0, -s * 0.6], [-s * 0.45, 0]]);
+      // A dome: round on top, flat underneath.
+      case "dome": return sub(circle(s * 0.55), at(lowerHalf(s), 0, -s * 0.15));
+      // One sunglasses lens; the bridge joining the two is added with the eyes.
+      case "shades": return t(poly([[-s * 0.6, s * 0.35], [s * 0.6, s * 0.35], [s * 0.5, -s * 0.4], [-s * 0.5, -s * 0.4]]).offset(s * 0.12, "Round", 2, 16));
       default: return circle(s / 2);
     }
   };
@@ -93,6 +109,21 @@ export function buildFace(CrossSection, spec, W, t) {
       case "smile": return arc(w, false);
       case "grin": return t(t(circle(R).intersect(lowerHalf(R))).scale([1, 0.85]));
       case "round": return t(circle(w * 0.3).scale([0.85, 1.15]));
+      // A small open mouth: flat across the top with softened corners, round below.
+      case "open": {
+        const d = t(t(circle(R).intersect(lowerHalf(R))).scale([1, 0.95])), r = R * 0.18;
+        return t(t(d.offset(-r, "Round", 2, 16)).offset(r, "Round", 2, 16));
+      }
+      // A grin with the tongue sticking out at one corner.
+      case "tongue": {
+        const grin = t(t(circle(R).intersect(lowerHalf(R))).scale([1, 0.8]));
+        return union([grin, at(t(circle(R * 0.36).scale([0.85, 1.15])), R * 0.3, -R * 0.62)]);
+      }
+      case "wavy": {
+        const n = 16, th = Math.max(2.4, 0.13 * R), pts = [];
+        for (let i = 0; i <= n; i++) pts.push([-R + (2 * R * i) / n, R * 0.16 * Math.sin((i / n) * Math.PI * 4)]);
+        return union(pts.slice(1).map((pt, i) => bar(pts[i], pt, th)));
+      }
       case "cat": {
         const small = arc(w / 2, false);
         return union([at(small, -w / 4, 0), at(small, w / 4, 0)]);
@@ -115,8 +146,9 @@ export function buildFace(CrossSection, spec, W, t) {
   const main = [];
   const eyeS = spec.eyeSize * W;
   for (const side of [-1, 1]) {
-    main.push(at(eyeShape(spec.eye, eyeS, side), side * spec.eyeX * W, spec.eyeY * W));
+    main.push(at(eyeShape(side > 0 && spec.eyeR ? spec.eyeR : spec.eye, eyeS, side), side * spec.eyeX * W, spec.eyeY * W));
   }
+  if (spec.eye === "shades") main.push(bar([-spec.eyeX * W, (spec.eyeY + 0.03) * W], [spec.eyeX * W, (spec.eyeY + 0.03) * W], Math.max(2.4, 0.1 * eyeS)));
   const nose = noseShape(spec.nose, spec.noseSize * W);
   if (nose) main.push(at(nose, 0, spec.noseY * W));
   const mouth = mouthShape(spec.mouth, spec.mouthW * W);

@@ -409,3 +409,34 @@ test("a generator can only set slicer options the template already has", () => {
   assert.throws(() => package3mf(parts, { title: "t", description: "d", parameters: {}, settings: { not_a_real_setting: "1" } }), /Unknown slicer setting/);
   assert.ok(package3mf(parts, { title: "t", description: "d", parameters: {}, settings: { enable_support: "1" } }).length > 100);
 });
+
+// ---- Faces ----------------------------------------------------------------------------------
+
+const PRESET_FACES = pumpkin.schema.face.options.map(o => o.value).filter(v => v !== "none" && v !== "custom");
+
+test("the face size is a Simple-mode control and the well-known faces are on offer", () => {
+  assert.ok(!pumpkin.schema.face_size_pct.advanced, "Face size shows without Advanced");
+  for (const f of ["adorable", "awesome", "cool", "wink", "love", "starstruck", "tongue", "cat", "angry", "scared"]) assert.ok(PRESET_FACES.includes(f), f);
+});
+
+test("every face preset prints clean as a cut-through, an inlay and glue-in pieces, at the smallest and the largest size", async () => {
+  const dim = { style: "hollow", opening: "bottom", stem: "none", diameter_mm: 110 };
+  for (const face of PRESET_FACES) {
+    for (const size of [30, 90]) {
+      const height = size === 90 ? { face_height_pct: 45 } : {};
+      for (const style of [{ face_style: "cutout", multicolor: false }, { face_style: "inlay", multicolor: true }, { face_style: "inlay", multicolor: false }]) {
+        const over = { ...dim, ...height, face, face_size_pct: size, ...style };
+        const r = check(over);
+        if (!r.ok) { assert.match(r.errors.join(), /at least \d+ mm|top of the pumpkin|base/, `${face}@${size}: ${r.errors}`); continue; }
+        const built = await make(over);
+        assert.deepEqual(clean(built), [], `${face} ${size}% ${JSON.stringify(style)}`);
+      }
+    }
+  }
+});
+
+test("a bigger face slider setting cuts more out of a cut-through face", async () => {
+  const small = await make({ style: "hollow", face: "adorable", face_style: "cutout", face_size_pct: 40, stem: "none", multicolor: false });
+  const large = await make({ style: "hollow", face: "adorable", face_style: "cutout", face_size_pct: 70, stem: "none", multicolor: false });
+  assert.ok(large.analysis.volumeMm3 < small.analysis.volumeMm3 - 50);
+});
