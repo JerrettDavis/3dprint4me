@@ -65,7 +65,7 @@ const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 
 export async function buildModel(generator, params, ctx) {
   const built = await generator.build(params, ctx);
-  const { solids = [], warnings = [], title = generator.title ?? generator.id, filenameBase = generator.id } = built;
+  const { solids = [], warnings = [], title = generator.title ?? generator.id, filenameBase = generator.id, slicerSettings } = built;
   const shiftedCopies = [];
   try {
     if (!solids.length) throw fail("no-geometry", "The model has no geometry.");
@@ -93,7 +93,7 @@ export async function buildModel(generator, params, ctx) {
     let meta = generator.schema ? redactSensitive(generator, params) : { ...params };
     if (generator.publicParams) meta = generator.publicParams(meta);
     const parameters = { ...meta, template: `${generator.id}-v${generator.version ?? 1}`, generator: "browser/manifold-3d" };
-    const data = package3mf(parts, { title, description: "Parametrically generated in-browser by 3dprint4.me.", parameters });
+    const data = package3mf(parts, { title, description: "Parametrically generated in-browser by 3dprint4.me.", parameters, settings: slicerSettings });
     return {
       data, parts, warnings,
       filename: `${safeName(filenameBase)}.3mf`,
