@@ -171,12 +171,16 @@ const RENDERERS = { number: numberField, int: numberField, text: textField, enum
  * { key: value | [values], ... } needs every listed parameter to have that value (or one of
  * those values); a function (params) => boolean decides on its own.
  */
-export const isFieldVisible = (def, params) => {
+export const isFieldVisible = (def, params, advanced = true) => {
+  if (def.advanced && !advanced) return false;
   const when = def.visibleWhen;
   if (!when) return true;
   if (typeof when === "function") return Boolean(when(params ?? {}));
   return Object.entries(when).every(([k, v]) => (Array.isArray(v) ? v.includes(params?.[k]) : params?.[k] === v));
 };
+
+/** True when any field is marked `advanced` (the page then offers Simple | Advanced). */
+export const hasAdvanced = generator => Object.values(generator.schema).some(def => def.advanced);
 
 /** Summary text for the form-level live region: unkeyed messages in full, keyed ones as a pointer. */
 export function summaryHtml(errors = [], fieldErrors = {}) {
@@ -214,13 +218,13 @@ export function groupFields(generator, mode = "category") {
   return [...groups].map(([group, keys]) => ({ key: group || "options", label: groupLabel(group), keys }));
 }
 
-export function renderFormHtml(generator, params = {}, { errors = [], fieldErrors = {}, mode = "category" } = {}) {
+export function renderFormHtml(generator, params = {}, { errors = [], fieldErrors = {}, mode = "category", advanced = true } = {}) {
   const current = Object.fromEntries(Object.entries(generator.schema).map(([k, d]) => [k, Object.hasOwn(params, k) ? params[k] : d.default]));
   const renderField = key => {
     const def = generator.schema[key];
     const value = Object.hasOwn(params, key) ? params[key] : def.default;
     let field = RENDERERS[def.type](key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : "");
-    if (!isFieldVisible(def, current)) field = field.replace(`data-field="${esc(key)}">`, `data-field="${esc(key)}" hidden>`);
+    if (!isFieldVisible(def, current, advanced)) field = field.replace(`data-field="${esc(key)}">`, `data-field="${esc(key)}" hidden>`);
     return field;
   };
   const fieldsets = groupFields(generator, mode).map(g => `<fieldset class="cz-group cz-group-${esc(slug(g.key))}">
@@ -276,8 +280,10 @@ export function cssTextMasking() {
  * typing into a number or text box is reported debounced with final=false so the page can
  * validate without snapping a half-typed number.
  */
-export function renderForm(container, generator, params, { onChange = () => {}, limits, cssMasking = cssTextMasking(), mode: initialMode = "category", collapsed = {}, onCollapse = () => {}, onLink = () => {} } = {}) {
-  container.innerHTML = renderFormHtml(generator, params);
+export function renderForm(container, generator, params, { onChange = () => {}, limits, cssMasking = cssTextMasking(), mode: initialMode = "category", advanced: initialAdvanced = true, collapsed = {}, onCollapse = () => {}, onLink = () => {}, onShowAdvanced = () => {} } = {}) {
+  let advanced = !hasAdvanced(generator) || initialAdvanced !== false;
+  let lastValues = params;
+  container.innerHTML = renderFormHtml(generator, params, { advanced });
   const secret = secretInputAttributes(cssMasking);
   for (const input of container.querySelectorAll("input.cz-secret")) {
     input.type = secret.type;
@@ -530,6 +536,23 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     }
   }
 
+  function applyVisibility() {
+    for (const [key, def] of Object.entries(generator.schema)) {
+      if (!def.visibleWhen && !def.advanced) continue;
+      const wrapper = container.querySelector(`[data-field="${CSS.escape(key)}"]`);
+      if (wrapper) wrapper.hidden = !isFieldVisible(def, lastValues, advanced);
+    }
+    refreshGroupVisibility();
+  }
+  function setAdvanced(next) {
+    next = !hasAdvanced(generator) || next !== false;
+    if (next === advanced) return;
+    advanced = next;
+    applyVisibility();
+    applyLinked();
+    setErrors(lastErrors.errors, lastErrors.fieldErrors);
+  }
+
   function setValues(values) {
     for (const [key, def] of Object.entries(generator.schema)) {
       if (!Object.hasOwn(values, key)) continue;
@@ -544,18 +567,20 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
         if (slider && Number.isFinite(value)) slider.value = String(value);
       } else if (element.value !== String(value ?? "")) element.value = String(value ?? "");
     }
-    for (const [key, def] of Object.entries(generator.schema)) {
-      if (!def.visibleWhen) continue;
-      const wrapper = container.querySelector(`[data-field="${CSS.escape(key)}"]`);
-      if (wrapper) wrapper.hidden = !isFieldVisible(def, values);
-    }
-    refreshGroupVisibility();
+    lastValues = values;
+    applyVisibility();
     applyLinked();
     if (generator.rules) setLimits(generator.rules(values).limits ?? {});
   }
 
   /** Shows each keyed message under its control (aria-invalid + aria-describedby) and the rest in the summary. */
+  let lastErrors = { errors: [], fieldErrors: {} };
   function setErrors(errors = [], fieldErrors = {}) {
+    lastErrors = { errors, fieldErrors };
+    // A message for a field that Simple mode hides can't point at its control: it is listed in the
+    // summary, with a way to show the advanced settings.
+    const hiddenAdvanced = Object.keys(fieldErrors).filter(k => generator.schema[k]?.advanced && !advanced);
+    const visibleErrors = Object.fromEntries(Object.entries(fieldErrors).filter(([k]) => !hiddenAdvanced.includes(k)));
     for (const key of Object.keys(generator.schema)) {
       const message = Object.hasOwn(fieldErrors, key) ? String(fieldErrors[key]) : "";
       const slot = container.querySelector(`#${CSS.escape(errorId(key))}`);
@@ -583,7 +608,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       }
     }
     if (errorBox) {
-      const html = summaryHtml(errors, fieldErrors);
+      const html = summaryHtml(errors, visibleErrors) + (hiddenAdvanced.length ? '<p><button type="button" class="button secondary small-button" data-show-advanced>Show advanced settings</button></p>' : "");
       if (errorBox.innerHTML !== html) {
         const appearing = !errorBox.innerHTML && html;
         errorBox.innerHTML = html;
@@ -703,7 +728,12 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
 
   setLimits(limits ?? generator.rules?.(params).limits ?? {});
 
+  const onShowAdvancedClick = event => { if (event.target.closest?.("[data-show-advanced]")) onShowAdvanced(); };
+  container.addEventListener("click", onShowAdvancedClick);
+
   return {
+    setAdvanced,
+    getAdvanced: () => advanced,
     setValues,
     setLimits,
     setErrors,
@@ -719,6 +749,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       container.removeEventListener("input", onInput);
       container.removeEventListener("change", onCommit);
       container.removeEventListener("submit", onSubmit);
+      container.removeEventListener("click", onShowAdvancedClick);
       container.innerHTML = "";
     }
   };

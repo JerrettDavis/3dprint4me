@@ -8,7 +8,42 @@ export function manifoldToMesh(manifold) {
   const triangles = new Array(mesh.triVerts.length / 3);
   for (let i = 0, t = 0; i < mesh.triVerts.length; i += 3, t++) triangles[t] = [mesh.triVerts[i], mesh.triVerts[i + 1], mesh.triVerts[i + 2]];
   mesh.delete?.();
-  return { vertices, triangles };
+  return weldSlivers({ vertices, triangles });
+}
+
+// Boolean results are exported in float32, so two vertices a few millionths of a millimetre apart
+// can land on the same printed coordinates and leave a zero-area fin (a triangle with two
+// coincident corners). Merging such a pair and dropping the fin keeps the mesh closed (the fin's
+// two long edges become one) and removes what the site's analyzer would call a degenerate triangle.
+export function weldSlivers(mesh) {
+  const { vertices, triangles } = mesh;
+  // The 3MF writer prints six decimals, so that is the precision that matters.
+  const q = v => Math.round(v * 1e6);
+  const same = (a, b) => q(a[0]) === q(b[0]) && q(a[1]) === q(b[1]) && q(a[2]) === q(b[2]);
+  let parent = null;
+  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+  const slivers = [];
+  triangles.forEach(([a, b, c], k) => {
+    const A = vertices[a], B = vertices[b], C = vertices[c];
+    if (a === b || b === c || a === c || same(A, B) || same(B, C) || same(A, C)) slivers.push(k);
+  });
+  if (!slivers.length) return mesh;
+  parent = Array.from({ length: vertices.length }, (_, i) => i);
+  const join = (x, y) => { const rx = find(x), ry = find(y); if (rx !== ry) parent[Math.max(rx, ry)] = Math.min(rx, ry); };
+  for (const k of slivers) {
+    const [a, b, c] = triangles[k];
+    if (same(vertices[a], vertices[b])) join(a, b);
+    if (same(vertices[b], vertices[c])) join(b, c);
+    if (same(vertices[a], vertices[c])) join(a, c);
+  }
+  const drop = new Set(slivers);
+  const kept = [];
+  triangles.forEach((tri, k) => {
+    if (drop.has(k)) return;
+    const [a, b, c] = tri.map(find);
+    if (a !== b && b !== c && a !== c) kept.push([a, b, c]);
+  });
+  return { vertices, triangles: kept };
 }
 
 export const safeName = s => String(s || "custom").trim().replace(/[^A-Za-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "custom";
