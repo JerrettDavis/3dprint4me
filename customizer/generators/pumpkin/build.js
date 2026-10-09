@@ -18,7 +18,8 @@ const BED_WARN = 250;       // widest layout before we mention the printer bed (
 // noise), which the site's analyzer counts as zero-area triangles. Collapsing edges this short
 // moves a surface by at most this much, far below anything printable.
 const CLEAN_MM = 0.0005;
-const PIECE_GAP = 0.15;     // clearance around a glue-in face piece, and under it (mm)
+const PEG_MIN_DEPTH = 3;    // shallowest usable peg hole (mm)
+const PIECE_GAP = 0.15;    // clearance around a glue-in face piece, and under it (mm)
 
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 const STYLE_TITLE = { solid: "solid", hollow: "hollow", vase: "vase", bowl: "bowl" };
@@ -143,21 +144,27 @@ export default async function build(p, ctx) {
       if (stemMode === "none") return top;
       const pocketR = sizes.flangeR + (stemMode === "peg" ? 0.2 : 0);
       let body = top;
+      let sp = p;
       if (stemMode === "peg") {
-        if (hollow) {
-          const tubeR = p.peg_diameter_mm / 2 + p.peg_clearance_mm + 1.6;
-          const height = p.peg_length_mm + 1.8;
-          const tube = t(t(t(CrossSection.circle(tubeR, 40)).extrude(height)).translate([0, 0, zFloor + 0.3 - height]));
-          body = t(Manifold.union([body, tube]));
-        }
-        const hole = t(t(pegHole(wasm, p, p.peg_length_mm + 0.8, t)).translate([0, 0, zFloor]));
+        // A keyed hole in the top of the pumpkin, nothing hanging below it. In a hollow pumpkin it
+        // simply runs on through the wall into the cavity (vertical walls: nothing to bridge or
+        // support), as far as the cavity floor allows.
+        let depth = p.peg_length_mm + 0.8;
+        if (hollow) depth = Math.min(depth, zFloor - (zBase + Math.max(FLOOR_MIN, wall)) - 1);
+        if (depth < PEG_MIN_DEPTH) throw new Error("The pumpkin is too small for a plugged stem. Use a fused stem, or make the pumpkin taller.");
+        const hole = t(t(pegHole(wasm, p, depth, t)).translate([0, 0, zFloor]));
         body = t(body.subtract(hole));
+        const peg = Math.min(p.peg_length_mm, depth - 0.8);
+        if (peg < p.peg_length_mm - 1e-9) {
+          sp = { ...p, peg_length_mm: peg };
+          warnings.push(`The peg is ${peg.toFixed(1)} mm long, as deep as the wall at the top allows. A thicker wall allows a longer peg.`);
+        }
       }
       if (stemMode === "peg" || multi) {
         const pocket = t(t(t(CrossSection.circle(pocketR, 48)).extrude(pocketDepth + 12)).translate([0, 0, zFloor]));
         body = t(body.subtract(pocket));
       }
-      const whole = t(stemBody(wasm, p, pocketDepth, stemMode === "peg"));
+      const whole = t(stemBody(wasm, sp, pocketDepth, stemMode === "peg"));
       stem = { solid: whole, loose: stemMode === "peg" };
       if (stemMode === "fused" && !multi) { body = t(Manifold.union([body, t(whole.translate([0, 0, zFloor]))])); stem = null; }
       return body;
