@@ -133,7 +133,7 @@ test("sections list every field once", () => {
 const MATRIX = [
   ["solid, cute inlay, fused stem", {}, ["Pumpkin", "Face", "Cheeks", "Stem"], 4],
   ["solid, engraved face", { face_style: "engraved", multicolor: true }, ["Pumpkin", "Stem"], 2],
-  ["solid, single color: inlay becomes engraving, fused stem merges", { multicolor: false }, ["Pumpkin"], 1],
+  ["solid, single color: glue-in face pieces, fused stem merges", { multicolor: false }, ["Pumpkin", "Face piece 1", "Face piece 2", "Face piece 3", "Cheeks piece 4", "Cheeks piece 5"], 1],
   ["solid, peg stem, no face", { stem: "peg", face: "none" }, ["Pumpkin", "Stem"], 2],
   ["solid, no stem, no face", { stem: "none", face: "none" }, ["Pumpkin"], 1],
   ["solid, traditional inlay", { face: "traditional" }, ["Pumpkin", "Face", "Stem"], 3],
@@ -266,11 +266,38 @@ test("bowl assembly: translating the lid back onto the bowl leaves a clear gap a
   } finally { for (const s of built.solids) s.solid.delete(); }
 });
 
-test("single color: everything shares the body color, no inlay part, and a note says why", async () => {
+test("single color: every part shares the body color and the face becomes glue-in pieces", async () => {
   const m = await make({ multicolor: false });
   assert.equal(m.out.metrics.unique_colors, 1);
-  assert.deepEqual(m.names, ["Pumpkin"]);
-  assert.ok(m.out.warnings.some(w => /engraved instead of inlaid/.test(w)));
+  assert.equal(m.names[0], "Pumpkin");
+  assert.ok(m.names.length >= 4 && m.names.slice(1).every(n => /piece \d+$/.test(n)), m.names.join());
+  assert.ok(m.out.warnings.some(w => /face pieces print flat/.test(w)));
+});
+
+test("glue-in pieces: smaller than their pockets all round, resting on the bed, laid out in front of the pumpkin", async () => {
+  const multi = await make({ stem: "none", face: "traditional" });
+  const glued = await make({ stem: "none", face: "traditional", multicolor: false });
+  const inlayVolume = multi.out.parts.find(p => p.name === "Face");
+  const volumeOf = part => {
+    const v = part.mesh.vertices;
+    let sum = 0;
+    for (const [a, b, c] of part.mesh.triangles) { const A = v[a], B = v[b], C = v[c]; sum += (A[0] * (B[1] * C[2] - B[2] * C[1]) - A[1] * (B[0] * C[2] - B[2] * C[0]) + A[2] * (B[0] * C[1] - B[1] * C[0])) / 6; }
+    return Math.abs(sum);
+  };
+  const pocket = volumeOf(inlayVolume);
+  const pieces = glued.out.parts.filter(p => /piece/.test(p.name));
+  const total = pieces.reduce((n, p) => n + volumeOf(p), 0);
+  assert.ok(total < pocket * 0.95 && total > pocket * 0.5, `pieces ${total.toFixed(1)} mm3 vs pocket ${pocket.toFixed(1)} mm3`);
+  const body = glued.out.parts.find(p => p.name === "Pumpkin");
+  const bodyMinY = Math.min(...body.mesh.vertices.map(v => v[1]));
+  for (const piece of pieces) {
+    const ys = piece.mesh.vertices.map(v => v[1]), zs = piece.mesh.vertices.map(v => v[2]);
+    assert.ok(Math.abs(Math.min(...zs)) < 1e-3, `${piece.name} rests on the bed`);
+    assert.ok(Math.max(...ys) < bodyMinY, `${piece.name} sits in front of the pumpkin, not on it`);
+  }
+  // The pumpkin body keeps the full-size pockets: its volume matches the multi-color body.
+  const multiBody = multi.out.parts.find(p => p.name === "Pumpkin");
+  assert.ok(Math.abs(volumeOf(body) - volumeOf(multiBody)) < 5);
 });
 
 test("multi-color uses at most four colors: body, stem, face, cheeks", async () => {
@@ -281,7 +308,7 @@ test("multi-color uses at most four colors: body, stem, face, cheeks", async () 
 test("notes: tealight size, supports, vase mode and sealed shells", async () => {
   const tea = await make({ style: "hollow", opening: "bottom", face: "none", diameter_mm: 120, stem: "none" });
   assert.ok(tea.out.warnings.some(w => /tealight/.test(w)));
-  assert.ok(tea.out.warnings.some(w => /supports/.test(w)));
+  assert.ok(tea.out.warnings.some(w => /tree supports from the build plate/.test(w)));
   const vase = await make({ style: "vase" });
   assert.ok(vase.out.warnings.some(w => /Spiral vase/.test(w)));
   const sealed = await make({ style: "hollow", opening: "closed", face: "none", stem: "none" });
@@ -332,4 +359,31 @@ test("errorField sends geometry errors to the right control", () => {
   assert.equal(pumpkin.errorField("The face reaches the base."), "face");
   assert.equal(pumpkin.errorField("The wall doesn't fit inside this shape."), "wall_mm");
   assert.equal(pumpkin.errorField("something else"), null);
+});
+
+// ---- Slicer settings embedded in the 3MF -------------------------------------------------------
+
+import { strFromU8, unzipSync } from "fflate";
+import { package3mf } from "../../customizer/framework/three-mf.js";
+const projectSettings = out => JSON.parse(strFromU8(unzipSync(out.data)["Metadata/project_settings.config"]));
+
+test("hollow types ask the slicer for build-plate supports; a vase asks for spiral vase mode; solids change nothing", async () => {
+  const hollow = projectSettings((await make({ style: "hollow", face: "none", stem: "none" })).out);
+  assert.equal(hollow.enable_support, "1");
+  assert.equal(hollow.support_on_build_plate_only, "1", "supports grow from the bed inside the cavity, never onto the pumpkin");
+  assert.equal(hollow.spiral_mode, "0");
+  assert.equal(projectSettings((await make({ style: "bowl", wall_mm: 2.4, face: "none", stem: "none", diameter_mm: 100 })).out).enable_support, "1");
+  const vase = projectSettings((await make({ style: "vase" })).out);
+  assert.equal(vase.spiral_mode, "1");
+  assert.equal(vase.enable_support, "0");
+  const solid = projectSettings((await make({})).out);
+  assert.equal(solid.spiral_mode, "0");
+  assert.equal(solid.enable_support, "0");
+});
+
+test("a generator can only set slicer options the template already has", () => {
+  const mesh = { vertices: [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], triangles: [[0, 2, 1], [0, 1, 3], [1, 2, 3], [0, 3, 2]] };
+  const parts = [{ name: "a", color: "#ff0000", mesh }];
+  assert.throws(() => package3mf(parts, { title: "t", description: "d", parameters: {}, settings: { not_a_real_setting: "1" } }), /Unknown slicer setting/);
+  assert.ok(package3mf(parts, { title: "t", description: "d", parameters: {}, settings: { enable_support: "1" } }).length > 100);
 });

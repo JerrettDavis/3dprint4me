@@ -90,9 +90,15 @@ function modelSettingsXml(parts, title, slots) {
     `</config>`;
 }
 
-function projectSettings(slots) {
+function projectSettings(slots, overrides = {}) {
   const cfg = structuredClone(BAMBU_PROJECT_SETTINGS);
   slots.forEach((c, i) => { cfg.filament_colour[i] = c; });
+  // A generator may set slicer options (supports for a hollow dome, spiral vase mode). Only keys
+  // the template already has, so a typo cannot slip a bogus setting into the file.
+  for (const [key, value] of Object.entries(overrides)) {
+    if (!Object.hasOwn(cfg, key)) throw new Error(`Unknown slicer setting "${key}".`);
+    cfg[key] = value;
+  }
   return JSON.stringify(cfg, null, 4);
 }
 
@@ -113,7 +119,7 @@ function relationshipsXml() {
     `</Relationships>`;
 }
 
-export function package3mf(parts, { title, description, parameters }) {
+export function package3mf(parts, { title, description, parameters, settings }) {
   if (!parts.length) throw new Error('No geometry parts were generated.');
   for (const p of parts) {
     if (!p.mesh.vertices.length || !p.mesh.triangles.length) throw new Error(`Part ${p.name} is empty.`);
@@ -125,7 +131,7 @@ export function package3mf(parts, { title, description, parameters }) {
     '_rels/.rels': strToU8(relationshipsXml()),
     '3D/3dmodel.model': strToU8(model),
     'Metadata/model_settings.config': strToU8(modelSettingsXml(parts, title, slots)),
-    'Metadata/project_settings.config': strToU8(projectSettings(slots)),
+    'Metadata/project_settings.config': strToU8(projectSettings(slots, settings)),
     'Metadata/customizer.json': strToU8(JSON.stringify(parameters, null, 2))
   }, { level: 6 });
 }
