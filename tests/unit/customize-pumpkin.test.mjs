@@ -236,6 +236,28 @@ test("a longer or wider peg changes the model, and the clearance opens the hole"
   assert.ok(long.analysis.volumeMm3 > a.analysis.volumeMm3 - 1000);
 });
 
+test("hollow plugged stem: keyed hole in the top wall only, no holder hanging inside the cavity", async () => {
+  for (const wall of [2.4, 3]) {
+    const r = await make({ style: "hollow", opening: "bottom", face: "none", stem: "peg", wall_mm: wall });
+    const body = r.out.parts.find(p => p.name === "Pumpkin");
+    assert.ok(body && r.names.includes("Stem"));
+    assert.equal(clean(r).length, 0, clean(r).join(", "));
+    // Near the axis in the top half, the peg version reaches no lower than the same pumpkin without
+    // a stem (its cavity ceiling): a holder tube hanging into the cavity would reach far below it.
+    const bare = await make({ style: "hollow", opening: "bottom", face: "none", stem: "none", wall_mm: wall });
+    const lowestNearAxis = res => {
+      const vs = res.out.parts.find(p => p.name === "Pumpkin").mesh.vertices;
+      const zs = vs.map(v => v[2]), mid = (Math.max(...zs) + Math.min(...zs)) / 2;
+      const ext = i => [Math.min(...vs.map(v => v[i])), Math.max(...vs.map(v => v[i]))];
+      const cx = (ext(0)[0] + ext(0)[1]) / 2, cy = (ext(1)[0] + ext(1)[1]) / 2;
+      const near = vs.filter(v => Math.hypot(v[0] - cx, v[1] - cy) < 6 && v[2] > mid);
+      assert.ok(near.length > 0);
+      return Math.min(...near.map(v => v[2]));
+    };
+    assert.ok(lowestNearAxis(r) >= lowestNearAxis(bare) - 0.05, `wall ${wall}: something hangs ${lowestNearAxis(bare) - lowestNearAxis(r)} mm below the ceiling`);
+  }
+});
+
 test("bowl: the lid has a recess, the bowl a tongue, and the two never overlap (clearance on every side)", async () => {
   const m = await make({ style: "bowl", wall_mm: 2.4, face: "none", stem: "none", diameter_mm: 100 });
   assert.deepEqual(m.names, ["Bowl", "Lid"]);
