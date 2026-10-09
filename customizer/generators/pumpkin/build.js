@@ -18,6 +18,7 @@ const BED_WARN = 250;       // widest layout before we mention the printer bed (
 // noise), which the site's analyzer counts as zero-area triangles. Collapsing edges this short
 // moves a surface by at most this much, far below anything printable.
 const CLEAN_MM = 0.0005;
+const PIECE_GAP = 0.15;     // clearance around a glue-in face piece, and under it (mm)
 
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 const STYLE_TITLE = { solid: "solid", hollow: "hollow", vase: "vase", bowl: "bowl" };
@@ -45,10 +46,9 @@ export default async function build(p, ctx) {
 
     let faceStyle = p.face === "none" || vase ? "none" : p.face_style;
     if (faceStyle === "cutout" && !hollow) throw new Error("A cut-through face needs a hollow shell or a bowl.");
-    if (faceStyle === "inlay" && !multi) {
-      faceStyle = "engraved";
-      warnings.push("Single-color printing: the face is engraved instead of inlaid. Turn on Multi-color for a colored inlay.");
-    }
+    // Without multi-color the inlay is made as separate pieces: pockets in the pumpkin, and loose
+    // pieces (slightly smaller all round) printed flat beside it, to glue in.
+    const glueIn = faceStyle === "inlay" && !multi;
     if (p.decoration === "lattice" && p.style !== "hollow") throw new Error("A lattice needs a hollow shell.");
 
     // ---- Outer surface, flat base and (vase / open top) the top cut ----
@@ -103,6 +103,7 @@ export default async function build(p, ctx) {
 
     // ---- Face ----
     const faceSolids = [];
+    const gluePieces = [];     // [{ name, solid }]: loose pieces to glue into the pockets
     if (faceStyle !== "none") {
       const fb = faceBox(p, g);
       if (fb.top > g.top * 0.8) throw new Error("The face reaches the top of the pumpkin. Move the face lower or make it smaller.");
@@ -121,7 +122,13 @@ export default async function build(p, ctx) {
           if (!cs) continue;
           const inlay = region(cs);
           shell = t(shell.subtract(inlay));
-          if (faceStyle === "inlay") faceSolids.push({ name, solid: inlay, color: color(c) });
+          if (faceStyle === "inlay" && !glueIn) faceSolids.push({ name, solid: inlay, color: color(c) });
+          if (glueIn) {
+            const small = t(cs.offset(-PIECE_GAP, "Round", 2, 24));
+            if (small.isEmpty()) continue;
+            const pieceSkin = hollow && depth >= wall - 1e-9 ? shrunk(Math.max(wall - PIECE_GAP - 0.05, 0.2)) : shrunk(Math.max(depth - PIECE_GAP - 0.05, 0.2));
+            gluePieces.push({ name, solid: t(t(prism(small).intersect(outer)).subtract(pieceSkin)) });
+          }
         }
       }
     }
@@ -185,6 +192,23 @@ export default async function build(p, ctx) {
     solids.push({ name: bowl ? "Bowl" : "Pumpkin", solid: bodyFinal, color: p.body_color });
     for (const f of faceSolids) solids.push({ name: f.name, solid: finish(f.solid.translate([0, 0, dz])), color: f.color });
     let right = bodyFinal.boundingBox().max[0];
+    // Glue-in face pieces lie flat (outer face up) in a row in front of the pumpkin.
+    if (gluePieces.length) {
+      const bb = bodyFinal.boundingBox();
+      let cursor = bb.min[0], count = 0;
+      const rowTop = bb.min[1] - BED_GAP;
+      for (const { name, solid } of gluePieces) {
+        for (const comp of t(solid).decompose().map(x => t(x))) {
+          const lying = t(comp.rotate([-90, 0, 0]));
+          const b = lying.boundingBox();
+          if (b.max[0] - b.min[0] < 1 || b.max[2] - b.min[2] < 0.3) continue;   // a sliver, not a piece
+          count++;
+          solids.push({ name: `${name} piece ${count}`, solid: finish(lying.translate([cursor - b.min[0], rowTop - b.max[1], -b.min[2]])), color: p.body_color });
+          cursor += b.max[0] - b.min[0] + 4;
+        }
+      }
+      if (count) warnings.push(`${count} face pieces print flat in front of the pumpkin, outer side up (a little support under the curve helps). Glue each into its pocket; they are 0.15 mm smaller all round, in any color you like.`);
+    }
     let stemAnchor = null;     // the stem's fused/loose placement for a lid
     if (bowl) {
       const zs = splitCut(p, g).z;
@@ -211,10 +235,10 @@ export default async function build(p, ctx) {
 
     // ---- Notes for the customer ----
     const tall = bodyFinal.boundingBox();
-    if (vase) warnings.push("Slice with your slicer's Spiral vase (single wall) mode: it prints the outline and leaves the top open. Use at least 3 solid bottom layers.");
+    if (vase) warnings.push("The file is set to Spiral vase mode (one continuous wall, open top; about a quarter of the time and filament of a solid). If your slicer ignores that setting, switch Spiral vase on and use at least 3 solid bottom layers.");
     if (hollow && !topOpen) {
       if (p.style === "hollow" && p.opening === "closed" && faceStyle !== "cutout" && p.decoration !== "lattice") warnings.push("A sealed hollow pumpkin traps its print supports inside. Choose Open bottom, or cut the face through, so they can come out.");
-      else warnings.push("Print with supports: the inside of the dome needs them." + (bowl ? " Print the lid on its flat rim." : ""));
+      else warnings.push("The inside of the dome needs supports: the file turns on tree supports from the build plate (they grow inside the cavity and come out through the opening)." + (bowl ? " Print the lid on its flat rim." : ""));
     }
     if (p.style === "hollow" && p.opening === "bottom") {
       const fit = tealightFit(p);
@@ -225,9 +249,14 @@ export default async function build(p, ctx) {
     const span = Math.max(right - tall.min[0], tall.max[1] - tall.min[1]);
     if (span > BED_WARN) warnings.push(`The parts laid out side by side are about ${Math.round(span)} mm wide; check that they fit your printer's bed or split them in the slicer.`);
 
+    // Slicer options embedded in the 3MF: a hollow dome needs supports (from the bed only, inside
+    // the cavity), and a vase is meant for spiral vase mode. Both are the customer's to change.
+    const slicerSettings = {};
+    if (hollow) Object.assign(slicerSettings, { enable_support: "1", support_type: "tree(auto)", support_on_build_plate_only: "1" });
+    if (vase) Object.assign(slicerSettings, { spiral_mode: "1" });
     ok = true;
     const label = p.face !== "none" && !vase ? ` ${p.face}` : "";
-    return { solids, warnings, title: `Pumpkin (${STYLE_TITLE[p.style]}${label})`, filenameBase: safeName(`pumpkin-${p.style}-${Math.round(p.diameter_mm)}mm`) };
+    return { solids, warnings, slicerSettings, title: `Pumpkin (${STYLE_TITLE[p.style]}${label})`, filenameBase: safeName(`pumpkin-${p.style}-${Math.round(p.diameter_mm)}mm`) };
   } finally {
     for (const o of temps) free(o);
     if (!ok) for (const s of solids) free(s.solid);

@@ -30,7 +30,7 @@ Stem = lofted ridged bent column + flange; `fused` (pocket in body, union if sin
 
 ## Rules (fieldErrors, never raw errors)
 cut-out face needs hollow/bowl; lattice needs hollow; vase has no face/stem (controls hidden, ignored by the builder, values kept);
-single-color inlay is built as engraved with a note; tealight fit check (>= 41 mm opening, >= 17 mm
+single-color inlay becomes glue-in pieces (pockets plus loose smaller pieces on the bed); tealight fit check (>= 41 mm opening, >= 17 mm
 cavity); min wall after ribs/texture; bowl split must clear the face.
 
 ## Parts and colors (<= 4 used)
@@ -57,3 +57,11 @@ Not found: usable Yeggi or Thingiverse listings through plain search; MakerWorld
 only a disclaimer. Everything numeric that no page stated (the 41 mm / 17 mm tealight cavity, wall
 defaults, 78 % lid split, peg size and clearance) is inferred from the above plus standard FDM practice
 and has not been print-tested.
+
+## Slicer validation (Bambu Studio 02.08 CLI, X-series defaults, 0.2 mm layers, PLA)
+All 11 designs slice with return code 0. With the first 3MFs, the four hollow designs (classic, ridged,
+lattice, bowl) drew the slicer's "floating regions" warning (the unsupported inside of the dome); the
+vase sliced as a normal solid (240 min, 121 g). The 3MF now carries `enable_support` (tree, build plate
+only) for hollow types and `spiral_mode` for the vase. Re-sliced: no warnings; supports 45-84 min;
+the vase prints in 65 min and 13 g. Cute 308 min / 87 g (+11/2/3 g), classic 301 min / 87 g with
+supports, bowl 502 min / 108 g + 28 g, lattice 364 min / 90 g. Not yet on a printer.

@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=8b580d4116242dd0";
-import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=8b580d4116242dd0";
+import { contrastRatio } from "../color.js?v=c3ea9b8ac54c513f";
+import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=c3ea9b8ac54c513f";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -108,7 +108,7 @@ const SCHEMA = {
   help: "A sealed shell traps its print supports unless the face is cut through." },
   tealight_fit: { type: "bool", label: "Fit a tealight (41 mm opening, 17 mm tall)", default: false, randomize: false, visibleWhen: when({ style: "hollow", opening: "bottom" }), group: "type", section: "type" },
   multicolor: { type: "bool", label: "Multi-color (AMS / multi-material)", default: true, randomize: false, group: "type", section: "type",
-    help: "Off prints every part in the body color: an inlay becomes an engraving and the stem is its own part." },
+    help: "Off prints every part in the body color. An inlay face then comes as separate pieces to glue into pockets (0.15 mm clearance), and a peg stem is its own part." },
   stem: { type: "enum", label: "Stem", options: [
     { value: "fused", label: "Printed attached" },
     { value: "peg", label: "Separate, with a peg" },
