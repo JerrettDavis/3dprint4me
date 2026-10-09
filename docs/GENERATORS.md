@@ -7,7 +7,7 @@ preview, local planning facts, and **Continue to request**, which hands the buil
 ordinary print request on `/order.html`. The server never builds geometry; it re-validates the
 parameters as provenance. The uploaded 3MF is the object that is estimated and printed.
 
-Launch set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`.
+Launch set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`.
 
 This document describes the contract **as implemented**. Where the design spec
 ([2026-10-02-parametric-generators-design.md](superpowers/specs/2026-10-02-parametric-generators-design.md))
@@ -21,6 +21,7 @@ differs, this document and the code win (see [Differences from the design spec](
 | `public/assets/js/customize/generators/<id>.js` | The generator **definition**: schema, rules, presets, rights, hooks | browser, worker, server |
 | `public/assets/js/customize/schema.js` | `validateParams`, `clampParams`, `redactSensitive`, `sensitiveKeys` | browser, worker, server |
 | `public/assets/js/customize/{color,fonts,wifi}.js` | Shared isomorphic helpers (contrast, curated font list, WIFI: payload) | browser, worker, server |
+| `public/assets/js/customize/pumpkin-shape.js` | The pumpkin's pure shape math (profile, lobes, texture, mesh arrays, base/opening/split planes, tealight fit); the definition's rules and the builder both use it | browser, worker, server |
 | `customizer/generators/index.js` | `loadBuilder` (id → dynamic `import()` of the builder) | worker |
 | `customizer/generators/<id>/build.js` | The generator **builder**: params → solids (Manifold) | worker only |
 | `customizer/framework/` | Engine loader, text/QR/shapes/icons/image tracing, 3MF writer, `buildModel`, worker + client, form, page app, catalog, hand-off writer | browser / worker |
@@ -56,6 +57,7 @@ Geometry code never ships to the server.
 | `image` | no | `{ when: { <field>: <value> }, threshold: <int field>, invert: <bool field> }` — while `when` holds, the page shows a local image picker under that field and traces the image (rating card). |
 | `font` | no | The shared font spec `FONT_SPEC` (`public/assets/js/customize/fonts.js`): `{ key: "font", custom: "custom", system: "system", ack: "font_license_ack", curated: true }`. Every generator that prints text sets it; see *Fonts*. |
 | `publicParams(params)` | no | Last-chance filter for the parameters written into 3MF metadata (applied after redaction). No launch generator uses it. |
+| `initialView`, `viewLabels` | no | `initialView: "3d"` opens the page in the 3D view; `viewLabels: { front: "Top", back: "Bottom" }` renames the flat views (a round object is not a "front"). The pumpkin uses both. |
 | `sections` | no | `{ sectionKey: "Label", … }`, **ordered**: the model regions the Settings panel can group by (see [Sections and focus](#sections-and-focus)). |
 | `focus` | no | `[{ part: "<solid name or prefix>", section: "<sectionKey>" }, …]`: which built solid belongs to which section, so the preview can be hovered and clicked. |
 
@@ -75,6 +77,14 @@ to, a key of `sections`) and `visibleWhen`.
 | `bool` | — | boolean | checkbox |
 | `color` | — | `#rrggbb` (stored lower-case) | color input |
 | `text` | `max`, `optional`, `multiline`, `preserveWhitespace`, `sensitive` | string; no control characters (newlines allowed only when `multiline`; CRLF is normalized); at most `max` visible characters (zero-width characters are not counted; raw length is capped at `4 × max`); trimmed unless `preserveWhitespace`; whitespace alone never satisfies a required (non-`optional`) field | text box; `multiline` → textarea; `sensitive` → masked single-line box (never a textarea) with a fixed privacy note |
+
+A field may also set `advanced: true`. When any field does, the Settings window offers **Simple | Advanced**
+(`#cz-level`, remembered as `level` in the per-user UI state; the default is Simple): Simple hides the
+advanced controls. A hidden advanced field keeps its value, is still validated and built and is still
+sent, exactly like `visibleWhen`. A rule error that belongs to a hidden advanced field cannot point at
+its control, so the summary lists the message with a **Show advanced settings** button. A generator
+with no advanced field shows no switch (the other four are unchanged); pick the simple controls so a
+first-time visitor can finish with them alone (the pumpkin has 14 of 49).
 
 `visibleWhen` hides a control (and the page ignores it) unless it holds: an object
 `{ key: value }` or `{ key: [values…] }` (all entries must match), or a function
@@ -439,6 +449,7 @@ and an entry to `FONTS` in
 | `rating-card` | 2 | `corner_style` (round/chamfer/notch), `border_style`, `frame_style`, widths/insets, `groove_depth_mm`, `divider` (none/caption/icon/both), `caption_font`. Raised decorations print in `icon_color` (the card already uses five colors). |
 | `name-plate` | 2 | New default plate `hug` ("Contour"): the letters grown by exactly `plate_margin_mm` (1-10, default 3) with round joins, clipped to ink ± margin, holes filled; constant thickness everywhere, never thicker above/below any letter. `none` keeps its hard-edged rectangular connector bars; they start/end inside each neighbour across the whole centre band (rows sampled), so slanted letters (A, V) are overlapped in every row. Old `none`/`pill`/`rect` values stay valid. |
 | `name-plate` (office sign) | 2 (no bump) | `size: "office"` makes the standard 8 × 2 in desk sign (203.2 × 50.8 mm): a rounded rectangle regardless of `plate`, the name centered in the room inside a 5 mm margin (at most `height_mm` tall), no keychain loop. `plate_image: "custom"` (office only; `onParamChange` resets it when the size goes back to `fit`) adds the customer's image at the left, traced in the browser like the rating card (`image` spec, `ctx.imageContours`, never a parameter), as an extra "Image" part in `image_color`, raised or inlaid with the style. Defaults (`fit`, no image) keep old requests identical. |
+| `pumpkin` | 1 | Types: `style` solid / hollow / vase / bowl (`opening` bottom (tealight cover) / top / sealed for hollow; `tealight_fit` enforces a 41 mm opening and 17 mm of cavity). Shape: width, `height_pct`, `boxiness_pct`, `taper_pct`, `oblong_pct`, `twist_deg`, `dimple_pct`, `flat_base_pct` (never under 30 mm across), `segments` (6-16 lobes), `rib_depth_pct`, `rib_sharpness`, `irregularity_pct` + `seed`. Surface: `decoration` smooth / ridges / knit / lattice (hollow only; diamond, round or slot holes keep at least 1.6 mm bars). Face: `face` presets or custom eyes/nose/mouth; `face_style` inlay (own-color part) / engraved / cutout (hollow or bowl); inlay with `multicolor: false` is built as engraved with a note. Stem: `stem` fused (pocket in the body; one part in single color) / peg (separate part printed upside down, D-keyed peg, socket tube inside hollow tops) / none; the peg switch is independent of `multicolor`. Parts: "Pumpkin" (or "Bowl" + "Lid"), "Stem", "Face", "Cheeks"; at most four colors. A vase is the **solid** body cut flat at the opening (the slicer's Spiral vase mode makes the wall), with no face or stem. A bowl splits at `split_pct` with a tongue (bowl) and recess (lid), 0.25 mm clearance, and the lid, stem and face never overlap the bowl. Geometry: a closed ring mesh wrapped as a Manifold; the hollow's cavity is the smooth surface scaled in about the center (checked to stay inside, with a readable error if not). Vertex pairs that coincide at 3MF precision are merged and the zero-area fin dropped in `manifoldToMesh` (`weldSlivers`), so boolean seams don't trip the analyzer. STL is not written (the framework writes 3MF only). |
 
 Old drafts and requests stay valid: missing keys take their defaults, and the server accepts versions 1..current.
 
