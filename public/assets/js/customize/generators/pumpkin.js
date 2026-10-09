@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=fbc13f804a77bd37";
-import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=fbc13f804a77bd37";
+import { contrastRatio } from "../color.js?v=8b580d4116242dd0";
+import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=8b580d4116242dd0";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -55,7 +55,7 @@ function rules(o) {
     if (hasFace(o)) {
       const box = faceBox(o, g);
       if (box.width < MIN_FACE_MM - EPS) add(["face_size_pct"], `The face would be only ${box.width.toFixed(0)} mm wide; at least ${MIN_FACE_MM} mm is needed to print its features. Make the face or the pumpkin larger.`);
-      if (box.top > g.b * 0.8) add(["face_size_pct", "face_height_pct"], "The face reaches the top of the pumpkin. Move the face lower or make it smaller.");
+      if (box.top > g.top * 0.8) add(["face_size_pct", "face_height_pct"], "The face reaches the top of the pumpkin. Move the face lower or make it smaller.");
       if (box.bottom < baseCut(o, g).z + 2) add(["face_size_pct", "face_height_pct"], "The face reaches the base. Move the face higher or make it smaller.");
       if (o.style === "bowl" && box.top > splitCut(o, g).z - 3) add(["split_pct", "face_height_pct"], "The face reaches the lid. Move the face lower or the lid split higher.");
     }
