@@ -21,7 +21,8 @@ const FONT_DIR = new URL("../../customizer/static/fonts/", import.meta.url);
 const bebasBytes = await readFile(new URL("BebasNeue-Regular.ttf", FONT_DIR));
 const toBuffer = b => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 const bebas = parse(toBuffer(bebasBytes));
-const generators = Object.values(GENERATORS);
+// Generators that print text (the pumpkin has none and so no font control).
+const generators = Object.values(GENERATORS).filter(g => g.font);
 const withBuild = async g => ({ ...g, build: (await loadBuilder[g.id]()).default });
 // Parameters a generator needs besides the font (the Wi-Fi tag needs a password).
 const needed = g => (g.id === "wifi-tag" ? { password: "correct-horse" } : {});

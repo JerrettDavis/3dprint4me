@@ -162,6 +162,10 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Name plate keychain Mary Ann (Bangers) · desktop · light", "/customize/g/name-plate/", "customize-name-plate-keychain-mary-ann-bangers-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, name_plate(font="bangers", name="Mary Ann", plate="none", loop=True)),
             ("Name plate font picker · desktop · light", "/customize/g/name-plate/", "customize-name-plate-picker-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, name_plate(font="caveat-brush", name="Jordan", open_picker=True)),
             ("Name plate font picker · mobile · dark", "/customize/g/name-plate/", "customize-name-plate-picker-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, name_plate(font="righteous", name="Jordan", open_picker=True)),
+            ("Pumpkin cute · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin()),
+            ("Pumpkin lantern advanced · desktop · dark", "/customize/g/pumpkin/", "customize-pumpkin-lantern-advanced-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, pumpkin("Jack-o'-lantern", advanced=True)),
+            ("Pumpkin bowl · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-bowl-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin("Pumpkin bowl")),
+            ("Pumpkin knitted · mobile · dark", "/customize/g/pumpkin/", "customize-pumpkin-knitted-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, pumpkin("Knitted pumpkin")),
         ]:
             path = OUTPUT / filename
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
@@ -260,6 +264,20 @@ def name_plate(*, font: str = "block", name: str = "Alex", style: str = "raised"
             scroll_in_panel(page, "[data-field='font']")
             page.evaluate("document.fonts.ready.then(() => true)")
         page.wait_for_timeout(600)
+    return prepare
+
+
+def pumpkin(design: str | None = None, *, advanced: bool = False):
+    """Optionally start from a named design and switch to Advanced; wait for the model."""
+    def prepare(page) -> None:
+        page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        if design:
+            page.evaluate("""(label) => { const n = [...document.querySelectorAll('.cz-design-name')].find(e => e.textContent.trim() === label); n.closest('button').click(); }""", design)
+            page.wait_for_timeout(400)
+            page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        if advanced:
+            page.get_by_role("button", name="Advanced", exact=True).click()
+        page.wait_for_timeout(700)
     return prepare
 
 
