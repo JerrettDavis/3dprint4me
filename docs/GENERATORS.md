@@ -256,6 +256,17 @@ Stable hooks (tests, `customize-handoff`, screenshots): `#cz-form`, `#cz-status`
 `#cz-stage`, `#cz-stage-message`, `#cz-reset`, `#cz-bed-toggle`, `[data-view]`, `#cz-image-area` and
 its children, `#cz-font-*`, `.cz-preview`, `.cz-summary`, `body[data-build-state]`, `[data-field]`.
 
+## Download my model
+
+Every generator page has **Download my model** (`#cz-download`, enabled with Continue). It opens a
+thank-you dialog (`download-dialog.js`, `#cz-download-dialog`): "Yes, I'd like a print" runs the
+normal Continue hand-off; "No, just give me my file" downloads the 3MF; Escape or × does neither.
+The email field is optional and never gates the download. Each choice posts
+`{ generatorId, action: "download"|"print", email? }` to the same-origin `/api/inquiry?kind=customize-download` (the quick-inquiry function; Hobby caps functions at twelve)
+(`lib/customization/download-event.js`): a privacy-safe log line (no email), plus an owner email via
+Resend when delivery is configured and an email was given. Settings, text, sensitive values and the
+file are never sent; a failed or missing endpoint never blocks the file. Privacy copy: `privacy.html`.
+
 ## Hand-off to the order page and server validation
 
 **Continue to request** (`continue.js`) stores one record in IndexedDB (`3dp-customize` /
