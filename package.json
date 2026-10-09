@@ -21,7 +21,7 @@
     "estimate:cleanup": "node scripts/print-estimate-maintenance.mjs",
     "estimate:worker": "node scripts/print-estimate-worker.mjs",
     "test": "npm run customizer:build && npm run validate && npm run test:unit && npm run test:e2e && npm run audit",
-    "vercel-build": "npm run customizer:build && npm run assets:version && npm run validate",
+    "vercel-build": "node scripts/vercel-build.mjs",
     "test:unit": "node --test tests/unit/*.test.mjs tests/contract/*.test.mjs",
     "customizer:build": "vite build --config customizer/vite.config.js",
     "customizer:dev": "vite --config customizer/vite.config.js"
