@@ -6,7 +6,7 @@ import { getGenerator } from "../../public/assets/js/customize/registry.js";
 import { clampParams, validateParams } from "../../public/assets/js/customize/schema.js";
 import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geometry.js";
 import { browserInflateRaw } from "../../public/assets/js/print-estimation/controller.js";
-import { renderForm, restoreParams, storableParams, esc, isFieldVisible } from "./form.js";
+import { renderForm, restoreParams, storableParams, esc, isFieldVisible, hasAdvanced } from "./form.js";
 import { hasSections, partSection, sectionLabel } from "./sections.js";
 import { DUR, enter, play, reducedMotion, setOpen } from "./motion.js";
 import { loadUi, saveUi } from "./ui-state.js";
@@ -139,7 +139,9 @@ function boot() {
   const client = createWorkerClient();
   let viewer = null;
   let viewerLoading = null;
-  let view = "front";
+  // A definition may start in another view and rename the flat views (a round 3D object reads
+  // as "Top" / "Bottom", not "Front" / "Back").
+  let view = generator.initialView ?? "front";
   let form = null;
 
   function setStatus(status, message, { retryable = true } = {}) {
@@ -439,6 +441,8 @@ function boot() {
   form = renderForm(els.form, generator, state.params, {
     onChange,
     mode: startMode,
+    advanced: !hasAdvanced(generator) || ui.level === "advanced",
+    onShowAdvanced: () => setLevel("advanced"),
     collapsed: collapsedGroups,
     onCollapse: (key, isCollapsed) => saveUi({ groups: { [groupPrefix + key]: isCollapsed } }),
     onLink: (key, source) => { link[source] = key; applyHighlight(); }
@@ -474,6 +478,31 @@ function boot() {
       saveUi({ mode: button.dataset.mode });
       announce(`Settings grouped by ${button.dataset.mode}.`);
     });
+  }
+  // Simple | Advanced: offered only when the definition marks fields `advanced`. Hidden advanced
+  // fields keep their values, are still validated and built, and stay reachable from any error.
+  let levelBar = null;
+  function setLevel(level) {
+    form.setAdvanced(level === "advanced");
+    saveUi({ level });
+    if (levelBar) for (const button of levelBar.querySelectorAll("[data-level]")) button.setAttribute("aria-pressed", String(button.dataset.level === level));
+    announce(`${level === "advanced" ? "Advanced" : "Simple"} settings shown.`);
+  }
+  if (hasAdvanced(generator) && els.mode?.parentElement) {
+    levelBar = document.createElement("div");
+    levelBar.className = "cz-seg";
+    levelBar.id = "cz-level";
+    levelBar.setAttribute("role", "group");
+    levelBar.setAttribute("aria-label", "Settings detail");
+    const now = form.getAdvanced() ? "advanced" : "simple";
+    levelBar.innerHTML = `<span class="cz-seg-label" aria-hidden="true">Settings</span>
+      <button class="cz-seg-button" type="button" data-level="simple" aria-pressed="${now === "simple"}">Simple</button>
+      <button class="cz-seg-button" type="button" data-level="advanced" aria-pressed="${now === "advanced"}">Advanced</button>`;
+    levelBar.addEventListener("click", event => {
+      const button = event.target.closest?.("[data-level]");
+      if (button && button.getAttribute("aria-pressed") !== "true") setLevel(button.dataset.level);
+    });
+    els.mode.before(levelBar);
   }
   if (els.tip) els.tip.hidden = false;
   windows = els.canvas ? initWindows(els.canvas, { onLayout: next => { inset = next; viewer?.setInset(next); } }) : null;
@@ -641,6 +670,7 @@ function boot() {
     els.hint.textContent = parts.join(" ");
     els.hint.hidden = !parts.length;
   }
+  els.tabs.forEach(tab => { const label = generator.viewLabels?.[tab.dataset.view]; if (label) tab.textContent = label; });
   els.tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => selectView(tab.dataset.view));
     tab.addEventListener("keydown", event => {

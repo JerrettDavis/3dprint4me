@@ -971,6 +971,8 @@ def test_picking_a_font_then_typing_a_name_keeps_both(page: Page, base_url: str)
 # each test finds its own request by a value unique to that run).
 
 GENERATOR_IDS = sorted(p.name for p in (ROOT / "customizer/g").iterdir() if (p / "index.html").is_file())
+# Generators that print text and so have the shared font control (the pumpkin has none).
+TEXT_GENERATOR_IDS = [g for g in GENERATOR_IDS if "fontSchema" in (ROOT / f"public/assets/js/customize/generators/{g}.js").read_text(encoding="utf-8")]
 DEV_LOG = ROOT / "data/dev-requests.ndjson"
 CSP_PROBE = """
 window.__cspViolations = [];
@@ -1009,10 +1011,19 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         key, label, value = "caption", "Caption", f"GREAT {token[:6].upper()}"
     elif generator_id == "name-plate":
         key, label, value = "name", "Name", f"Robin {token[:4].upper()}"
+    elif generator_id == "pumpkin":
+        # No text to type: the width is a whole number of millimetres, unique per run inside the store.
+        key, label, value = "diameter_mm", None, str(60 + int(token[:4], 16) % 100)
     else:  # a new generator needs a flow here (see test_the_matrix_covers_every_registered_generator)
         pytest.fail(f"No matrix flow for generator {generator_id}")
-    page.get_by_label(label, exact=True).fill(value)
-    values[key] = value
+    if label is None:
+        box = page.locator(f"[name='{key}']")
+        box.fill(value)
+        box.press("Tab")
+        values[key] = int(value)
+    else:
+        page.get_by_label(label, exact=True).fill(value)
+        values[key] = value
     draft_key = f"3dp-customize:{generator_id}:v{GENERATOR_VERSIONS.get(generator_id, 1)}"
     needle = json.dumps(value)[1:-1]
     for _ in range(100):  # the draft is written in the same step that starts the rebuild
@@ -1276,7 +1287,7 @@ def choose_font(page: Page, value: str) -> None:
     page.locator(f"label[for='cz-font-{value}']").click()
 
 
-@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+@pytest.mark.parametrize("generator_id", TEXT_GENERATOR_IDS)
 def test_every_generator_offers_the_same_font_picker(page: Page, base_url: str, generator_id: str) -> None:
     open_generator(page, base_url, generator_id)
     toggle = page.locator("#cz-font-toggle")
@@ -1300,7 +1311,7 @@ def test_every_generator_offers_the_same_font_picker(page: Page, base_url: str, 
     expect(page.locator("#cz-font-file")).to_be_disabled()
 
 
-@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+@pytest.mark.parametrize("generator_id", TEXT_GENERATOR_IDS)
 def test_an_installed_font_needs_the_confirmation_and_is_never_uploaded(page: Page, base_url: str, generator_id: str) -> None:
     requests: list[tuple[str, str]] = []
     page.on("request", lambda r: requests.append((r.method, r.url)))
@@ -1349,7 +1360,7 @@ def test_a_refused_font_permission_is_explained(page: Page, base_url: str) -> No
     expect(page.locator("#cz-font-status")).to_have_attribute("data-state", "error")
 
 
-@pytest.mark.parametrize("generator_id", GENERATOR_IDS)
+@pytest.mark.parametrize("generator_id", TEXT_GENERATOR_IDS)
 def test_a_browser_that_cannot_list_fonts_still_offers_the_font_file(page: Page, base_url: str, generator_id: str) -> None:
     page.context.add_init_script("Object.defineProperty(window, 'queryLocalFonts', { configurable: true, value: undefined });")
     open_generator(page, base_url, generator_id)
@@ -1533,7 +1544,9 @@ def test_the_hint_only_promises_what_the_page_and_view_can_do(page: Page, base_u
     open_generator(page, base_url, generator_id)
     hint = page.locator("#cz-hint")
     text = hint.text_content() or ""
-    assert "Drag to turn" not in text, "turning exists only in the 3D view"
+    starts_in_3d = page.locator("[data-view][aria-selected='true']").get_attribute("data-view") == "3d"
+    if not starts_in_3d:
+        assert "Drag to turn" not in text, "turning exists only in the 3D view"
     assert ("Click a part" in text) == section_contract()[generator_id]["focus"], text
     page.get_by_role("tab", name="3D").click()
     expect(hint).to_contain_text("Drag to turn")
@@ -1667,3 +1680,87 @@ def test_name_plate_offers_common_names_and_randomizes_to_a_buildable_plate(page
         wait_settled(page)
         expect(page.locator("#cz-name")).to_have_value("Emma")
         expect(page.locator("body[data-build-state='ready']")).to_be_attached()
+
+
+# --- Pumpkin: Simple / Advanced, designs and the type switches ---------------------------------
+
+def pick_design(page: Page, label: str) -> None:
+    page.evaluate("""(label) => { const n = [...document.querySelectorAll('.cz-design-name')].find(e => e.textContent.trim() === label); n.closest('button').click(); }""", label)
+    wait_settled(page)
+
+
+def test_the_pumpkin_starts_simple_and_advanced_shows_the_shape_controls(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/pumpkin/")
+    wait_ready(page)
+    level = page.locator("#cz-level")
+    expect(level).to_be_visible()
+    expect(level.get_by_role("button", name="Simple")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("[data-field='boxiness_pct']")).to_be_hidden()
+    expect(page.locator("[data-field='segments']")).to_be_visible()
+    expect(page.locator("[data-field='style']")).to_be_visible()
+    # The page opens in 3D and the flat views are named for what they show.
+    expect(page.get_by_role("tab", name="3D")).to_have_attribute("aria-selected", "true")
+    expect(page.get_by_role("tab", name="Top")).to_be_visible()
+    level.get_by_role("button", name="Advanced").click()
+    expect(page.locator("[data-field='boxiness_pct']")).to_be_visible()
+    expect(page.locator("[data-field='twist_deg']")).to_be_visible()
+    stored = json.loads(page.evaluate("localStorage.getItem('3dp-customize:ui:v1')"))
+    assert stored["level"] == "advanced"
+    page.reload()
+    wait_ready(page)
+    expect(page.locator("#cz-level").get_by_role("button", name="Advanced")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("[data-field='boxiness_pct']")).to_be_visible()
+
+
+def test_a_rule_error_on_a_hidden_advanced_setting_can_be_reached(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/pumpkin/")
+    wait_ready(page)
+    # A 50 mm pumpkin with the default face leaves a face narrower than 24 mm: an advanced setting's rule.
+    box = page.locator("[name='diameter_mm']")
+    box.fill("50")
+    box.press("Tab")
+    summary = page.locator("#cz-form-errors")
+    expect(summary).to_contain_text("at least 24 mm")
+    show = summary.get_by_role("button", name="Show advanced settings")
+    expect(show).to_be_visible()
+    show.click()
+    expect(page.locator("[data-field='face_size_pct']")).to_be_visible()
+    expect(page.locator("#cz-level").get_by_role("button", name="Advanced")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("[data-field='face_size_pct'] .cz-error, #cz-error-face_size_pct")).to_contain_text("at least 24 mm")
+
+
+def test_other_generators_have_no_simple_advanced_switch(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/route-shield/")
+    wait_ready(page)
+    expect(page.locator("#cz-level")).to_have_count(0)
+
+
+def test_the_pumpkin_types_switch_their_own_controls(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/pumpkin/")
+    wait_ready(page)
+    style = page.locator("[name='style']")
+    style.select_option("hollow")
+    expect(page.locator("[data-field='opening']")).to_be_visible()
+    style.select_option("vase")
+    wait_settled(page)
+    expect(page.locator("[data-field='face']")).to_be_hidden()
+    expect(page.locator("[data-field='stem']")).to_be_hidden()
+    expect(page.locator("#cz-warnings")).to_contain_text("Spiral vase")
+    style.select_option("bowl")
+    wait_settled(page)
+    expect(page.locator("[name='wall_mm']")).to_have_value("2")
+    page.locator("[name='stem']").select_option("peg")
+    wait_settled(page)
+    expect(page.locator("#cz-warnings")).to_contain_text("prints on its own")
+
+
+def test_a_pumpkin_design_builds_and_continues_to_the_request(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/pumpkin/")
+    wait_ready(page)
+    pick_design(page, "Jack-o'-lantern")
+    expect(page.locator("[name='style']")).to_have_value("hollow")
+    expect(page.locator("#cz-color-badge")).to_have_text("1 color")
+    expect(page.locator("#cz-warnings")).to_contain_text("tealight")
+    page.get_by_role("button", name="Continue to request").click()
+    expect(page).to_have_url(re.compile(r"/order\.html\?service=print&from=customize$"))
+    expect(page.locator("#customize-notice")).to_have_text("Loaded from the customizer — review and continue.")
