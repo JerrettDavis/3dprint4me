@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=edf0ac7d83450b6f";
-import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=edf0ac7d83450b6f";
+import { contrastRatio } from "../color.js?v=8f0fb7bff5365647";
+import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=8f0fb7bff5365647";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
