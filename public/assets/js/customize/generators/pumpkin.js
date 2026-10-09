@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=c3ea9b8ac54c513f";
-import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=c3ea9b8ac54c513f";
+import { contrastRatio } from "../color.js?v=b02beb96949fe963";
+import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=b02beb96949fe963";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -14,13 +14,13 @@ const MIN_FACE_MM = 24;         // narrowest printable face
 const MIN_CONTRAST = 2;
 const round1 = v => Math.round(v * 10) / 10;
 
-const FACE_PRESETS = ["traditional", "cute", "happy", "spooky", "surprised", "sleepy"];
+const FACE_PRESETS = ["traditional", "cute", "happy", "spooky", "surprised", "sleepy", "adorable", "awesome", "cool", "wink", "love", "starstruck", "tongue", "cat", "angry", "scared"];
 const hollowStyle = o => o.style === "hollow" || o.style === "bowl";
 const isVase = o => o.style === "vase";
 const hasFace = o => o.face !== "none" && !isVase(o);
 const noTop = o => isVase(o) || (o.style === "hollow" && o.opening === "top");
 const hasStem = o => o.stem !== "none" && !noTop(o);
-const hasCheeks = o => hasFace(o) && ["cute", "happy", "custom"].includes(o.face);
+const hasCheeks = o => hasFace(o) && ["cute", "happy", "adorable", "wink", "love", "tongue", "custom"].includes(o.face);
 
 function rules(o) {
   const fieldErrors = {};
@@ -156,10 +156,20 @@ const SCHEMA = {
 
   face: { type: "enum", label: "Face", options: [
     { value: "none", label: "No face" },
+    { value: "adorable", label: "Adorable (dome eyes, open smile)" },
     { value: "cute", label: "Cute" },
+    { value: "awesome", label: "Awesome (big open grin)" },
+    { value: "cool", label: "Cool (sunglasses)" },
+    { value: "wink", label: "Wink" },
+    { value: "love", label: "Heart eyes" },
+    { value: "starstruck", label: "Star-struck" },
+    { value: "tongue", label: "Tongue out" },
+    { value: "cat", label: "Cat" },
     { value: "traditional", label: "Traditional jack-o'-lantern" },
     { value: "happy", label: "Happy" },
     { value: "spooky", label: "Spooky" },
+    { value: "angry", label: "Angry" },
+    { value: "scared", label: "Scared" },
     { value: "surprised", label: "Surprised" },
     { value: "sleepy", label: "Sleepy" },
     { value: "custom", label: "Custom (pick each feature)" }
@@ -172,7 +182,8 @@ const SCHEMA = {
   eye_shape: { type: "enum", label: "Eyes", options: [
     { value: "circle", label: "Round" }, { value: "oval", label: "Oval" }, { value: "triangle", label: "Triangle" },
     { value: "angry", label: "Angry" }, { value: "happy", label: "Happy arches" }, { value: "slit", label: "Sleepy slits" },
-    { value: "star", label: "Stars" }, { value: "heart", label: "Hearts" }, { value: "diamond", label: "Diamonds" }
+    { value: "star", label: "Stars" }, { value: "heart", label: "Hearts" }, { value: "diamond", label: "Diamonds" },
+    { value: "dome", label: "Domes" }, { value: "shades", label: "Sunglasses" }
   ], default: "oval", advanced: true, visibleWhen: when({ face: "custom" }, notVase), group: "face", section: "face" },
   nose_shape: { type: "enum", label: "Nose", options: [
     { value: "none", label: "None" }, { value: "triangle", label: "Triangle" }, { value: "round", label: "Round" },
@@ -180,10 +191,11 @@ const SCHEMA = {
   ], default: "triangle", advanced: true, visibleWhen: when({ face: "custom" }, notVase), group: "face", section: "face" },
   mouth_shape: { type: "enum", label: "Mouth", options: [
     { value: "none", label: "None" }, { value: "smile", label: "Smile" }, { value: "grin", label: "Big grin" },
-    { value: "jagged", label: "Jagged teeth" }, { value: "zigzag", label: "Zigzag" }, { value: "round", label: "Round" }, { value: "cat", label: "Cat" }
+    { value: "jagged", label: "Jagged teeth" }, { value: "zigzag", label: "Zigzag" }, { value: "round", label: "Round" }, { value: "cat", label: "Cat" },
+    { value: "open", label: "Open smile" }, { value: "tongue", label: "Tongue out" }, { value: "wavy", label: "Wavy" }
   ], default: "smile", advanced: true, visibleWhen: when({ face: "custom" }, notVase), group: "face", section: "face" },
   cheeks: { type: "bool", label: "Cheeks (blush)", default: true, advanced: true, visibleWhen: o => hasCheeks(o) && o.face_style !== "cutout", group: "face", section: "face" },
-  face_size_pct: { type: "int", label: "Face size", min: 30, max: 90, step: 5, default: 60, unit: "%", advanced: true, visibleWhen: o => hasFace(o), group: "face", section: "face" },
+  face_size_pct: { type: "int", label: "Face size", min: 30, max: 90, step: 5, default: 60, unit: "%", visibleWhen: o => hasFace(o), group: "face", section: "face" },
   face_height_pct: { type: "int", label: "Face height", min: 25, max: 75, step: 1, default: 50, unit: "%", advanced: true, visibleWhen: o => hasFace(o), group: "face", section: "face" },
   face_depth_mm: { type: "number", label: "Inlay / engraving depth", min: 0.4, max: 2.4, step: 0.2, default: 1.2, unit: "mm", advanced: true, visibleWhen: o => hasFace(o) && o.face_style !== "cutout", group: "face", section: "face" },
 

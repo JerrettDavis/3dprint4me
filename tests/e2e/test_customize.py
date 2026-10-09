@@ -1715,18 +1715,21 @@ def test_the_pumpkin_starts_simple_and_advanced_shows_the_shape_controls(page: P
 def test_a_rule_error_on_a_hidden_advanced_setting_can_be_reached(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/pumpkin/")
     wait_ready(page)
-    # A 50 mm pumpkin with the default face leaves a face narrower than 24 mm: an advanced setting's rule.
-    box = page.locator("[name='diameter_mm']")
-    box.fill("50")
+    # A hollow ridged pumpkin with the deepest grooves has a wall too thin in the grooves: the fix
+    # is the (advanced) wall thickness.
+    page.locator("[name='style']").select_option("hollow")
+    page.locator("[name='decoration']").select_option("ridges")
+    box = page.locator("[name='rib_depth_pct']")
+    box.fill("25")
     box.press("Tab")
     summary = page.locator("#cz-form-errors")
-    expect(summary).to_contain_text("at least 24 mm")
+    expect(summary).to_contain_text("too thin")
     show = summary.get_by_role("button", name="Show advanced settings")
     expect(show).to_be_visible()
     show.click()
-    expect(page.locator("[data-field='face_size_pct']")).to_be_visible()
+    expect(page.locator("[data-field='wall_mm']")).to_be_visible()
     expect(page.locator("#cz-level").get_by_role("button", name="Advanced")).to_have_attribute("aria-pressed", "true")
-    expect(page.locator("#cz-face_size_pct-error")).to_contain_text("at least 24 mm")
+    expect(page.locator("#cz-wall_mm-error")).to_contain_text("too thin")
 
 
 def test_other_generators_have_no_simple_advanced_switch(page: Page, base_url: str) -> None:
