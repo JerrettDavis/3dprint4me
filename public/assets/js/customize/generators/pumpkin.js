@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=b02beb96949fe963";
-import { baseCut, faceBox, geometry, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=b02beb96949fe963";
+import { contrastRatio } from "../color.js?v=d34d74bea0b5707a";
+import { baseCut, bottomHoleRadius, faceBox, geometry, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=d34d74bea0b5707a";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -70,6 +70,16 @@ function rules(o) {
         : "A tealight does not fit inside with these settings. Make the wall thinner or the base wider.");
     }
   }
+  if (hollow && o.concavity_pct > 0) {
+    const max = maxHollowConcavity(o);
+    limits.concavity_pct = [0, max];
+    if (o.concavity_pct > max) add(["concavity_pct"], `A ${o.wall_mm} mm wall can't follow a pinch this deep. Use at most ${max}% concavity, or a thicker wall.`);
+  }
+  if (o.style === "hollow" && o.opening === "bottom" && Number.isFinite(o.bottom_hole_pct)) {
+    const hole = 2 * bottomHoleRadius(o);
+    if (o.tealight_fit && hole < TEALIGHT_OPENING_MM - EPS) add(["bottom_hole_pct"], `A tealight needs a ${TEALIGHT_OPENING_MM} mm hole in the base; this one is ${hole.toFixed(0)} mm. Make the bottom hole larger, or turn off "Fit a tealight".`);
+    else if (hole < 20 - EPS) add(["bottom_hole_pct"], `The hole in the base would be only ${hole.toFixed(0)} mm; at least 20 mm is needed to clear the supports. Make it larger.`);
+  }
   if (hasStem(o) && o.stem === "peg") {
     limits.peg_diameter_mm = [4, Math.max(4, round1(o.stem_width_mm * 0.8))];
     if (o.peg_diameter_mm > o.stem_width_mm * 0.8 + EPS) add(["peg_diameter_mm"], `The peg can be at most ${limits.peg_diameter_mm[1]} mm across for a ${o.stem_width_mm} mm stem.`);
@@ -118,6 +128,8 @@ const SCHEMA = {
   wall_mm: { type: "number", label: "Wall thickness", min: 1.2, max: 4, step: 0.2, default: 1.6, unit: "mm", advanced: true, visibleWhen: hollowStyle, group: "type", section: "type",
     help: "Hollow shells need at least 1.2 mm; a bowl needs 2 mm so its lid joint is strong enough." },
   opening_pct: { type: "int", label: "Opening width", min: 45, max: 90, step: 5, default: 60, unit: "%", advanced: true, visibleWhen: o => isVase(o) || (o.style === "hollow" && o.opening === "top"), group: "type", section: "type" },
+  bottom_hole_pct: { type: "int", label: "Bottom hole size", min: 30, max: 100, step: 5, default: 100, unit: "%", advanced: true, visibleWhen: when({ style: "hollow", opening: "bottom" }), group: "type", section: "type",
+    help: "The hole in the base, as a share of the flat base width. A tealight needs it at least 41 mm across." },
   split_pct: { type: "int", label: "Lid split height", min: 55, max: 90, step: 1, default: 78, unit: "%", advanced: true, visibleWhen: { style: "bowl" }, group: "type", section: "type" },
 
   diameter_mm: { type: "number", label: "Width", min: 50, max: 180, step: 1, default: 80, unit: "mm", randomize: false, group: "size", section: "shape" },
@@ -126,6 +138,8 @@ const SCHEMA = {
   taper_pct: { type: "int", label: "Pear shape (top to bottom heavy)", min: -30, max: 30, step: 1, default: 0, unit: "%", advanced: true, group: "size", section: "shape" },
   oblong_pct: { type: "int", label: "Oblong (stretched sideways)", min: 0, max: 25, step: 1, default: 0, unit: "%", advanced: true, group: "size", section: "shape" },
   twist_deg: { type: "int", label: "Lobe twist", min: -90, max: 90, step: 5, default: 0, unit: "°", advanced: true, group: "size", section: "shape" },
+  concavity_pct: { type: "int", label: "Concavity (pinched top and bottom)", min: 0, max: 100, step: 5, default: 0, unit: "%", advanced: true, group: "size", section: "shape",
+    help: "Pinches the top and the bottom inward: squat, nested-stem pumpkins. The bottom becomes a shallow dish; the flat rim still stands on the bed." },
   dimple_pct: { type: "int", label: "Stem dimple depth", min: 0, max: 20, step: 1, default: 8, unit: "%", advanced: true, group: "size", section: "shape" },
   flat_base_pct: { type: "int", label: "Flat base width", min: 30, max: 90, step: 5, default: 50, unit: "%", advanced: true, group: "size", section: "shape",
     help: "Never narrower than 30 mm across, so the pumpkin stands and sticks to the bed." },
@@ -248,6 +262,7 @@ const DESIGNS = [
   { id: "knitted", label: "Knitted pumpkin", blurb: "Cosy knit stitches with a cute face.", group: "Solid", params: PRESETS.knitted },
   { id: "ghost", label: "Ghost pumpkin", blurb: "A pale pumpkin with a spooky inlaid face.", group: "Solid", params: { body_color: "#efe8da", face: "spooky", segments: 12, rib_depth_pct: 10, face_color: "#2b2b3a" } },
   { id: "cinderella", label: "Squat and deep-ribbed", blurb: "A wide, flat pumpkin with deep grooves.", group: "Shapes", params: { height_pct: 62, boxiness_pct: 30, segments: 14, rib_depth_pct: 14, dimple_pct: 12, face: "happy" } },
+  { id: "nested", label: "Squat, nested stem", blurb: "A traditional squat pumpkin pinched in at the top and bottom, the stem sitting in a hollow.", group: "Shapes", params: { height_pct: 66, concavity_pct: 60, dimple_pct: 6, segments: 12, rib_depth_pct: 12, face: "happy" } },
   { id: "twisted", label: "Twisted gourd", blurb: "Tall, with lobes that spiral up.", group: "Shapes", params: { height_pct: 105, twist_deg: 45, segments: 12, rib_depth_pct: 13, taper_pct: -10, face: "none" } },
   { id: "mini", label: "Mini keepsake", blurb: "A small, happy pumpkin.", group: "Shapes", params: { diameter_mm: 55, height_pct: 78, face: "happy", segments: 8 } },
   { id: "classic", label: "Jack-o'-lantern", blurb: "A hollow tealight cover with a cut-through traditional face. Single color; the stem plugs in.", group: "Lanterns", params: PRESETS.classic },

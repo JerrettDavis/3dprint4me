@@ -22,6 +22,8 @@ export const MIN_BASE_RADIUS_MM = 15;       // flat base at least 30 mm across (
 export const TEALIGHT_OPENING_MM = 41;      // 38 mm tealight + clearance
 export const TEALIGHT_HEIGHT_MM = 17;
 const DIP_WIDTH = 0.42;                     // stem dimple width (radians from the top pole)
+const PINCH_WIDTH = 1.4;                    // concavity width at either pole (radians)
+const PINCH_MAX = 0.16;                      // deepest concavity, as a fraction of the height
 const FADE_FROM = 0.1;                      // texture fades out below this fraction of the radius
 
 /** Derived dimensions and sampling functions for a validated parameter set. */
@@ -32,7 +34,10 @@ export function geometry(p) {
   const e = 2 / (2 + 3 * p.boxiness_pct / 100);
   const taper = p.taper_pct / 100;
   const ob = p.oblong_pct / 100;
-  const dip = p.dimple_pct / 100 * H;
+  const dimple = p.dimple_pct / 100 * H;
+  // Concavity pinches both poles inward (a nested stem on top, a dished base underneath).
+  const pinch = (p.concavity_pct || 0) / 100 * PINCH_MAX * H;
+  const dip = dimple + pinch;
   const k = p.segments | 0;
   const depth = p.rib_depth_pct / 100;
   const pw = p.rib_sharpness;
@@ -54,7 +59,8 @@ export function geometry(p) {
     const s = Math.sin(phi), c = Math.cos(phi);
     const rho = a * Math.pow(Math.max(s, 0), e) * (1 + taper * c);
     const u = Math.PI - phi;
-    const z = -b * Math.sign(c) * Math.pow(Math.abs(c), e) - dip * Math.exp(-((u / DIP_WIDTH) ** 2));
+    const z = -b * Math.sign(c) * Math.pow(Math.abs(c), e) - dimple * Math.exp(-((u / DIP_WIDTH) ** 2))
+      - pinch * Math.exp(-((u / PINCH_WIDTH) ** 2)) + pinch * Math.exp(-((phi / PINCH_WIDTH) ** 2));
     return { rho, z };
   }
 
@@ -204,6 +210,17 @@ export function baseCut(p, g = geometry(p)) {
   const radius = clamp(Math.max(MIN_BASE_RADIUS_MM, p.flat_base_pct / 100 * g.a), 1, g.a * 0.94);
   const phi = lowerCrossing(g, radius);
   return { z: g.profile(phi).z, radius };
+}
+
+/** Deepest concavity (percent) a hollow shell can be offset around: the pinch may be at most 2.5 times the wall left in the grooves and texture. */
+export function maxHollowConcavity(p, g = geometry(p)) {
+  const wall = Math.max(p.wall_mm * (1 - g.depth * 1.15) - g.tex, 0.5);
+  return Math.min(100, Math.floor(2.5 * wall / (PINCH_MAX * g.H) * 100 / 5) * 5);
+}
+
+/** Radius of the hole in the base of an open-bottom hollow shell: a share of the flat base. */
+export function bottomHoleRadius(p, g = geometry(p)) {
+  return baseCut(p, g).radius * (p.bottom_hole_pct ?? 100) / 100;
 }
 
 /** The upper plane for an opening of the given width: first crossing from the equator up. */

@@ -440,3 +440,30 @@ test("a bigger face slider setting cuts more out of a cut-through face", async (
   const large = await make({ style: "hollow", face: "adorable", face_style: "cutout", face_size_pct: 70, stem: "none", multicolor: false });
   assert.ok(large.analysis.volumeMm3 < small.analysis.volumeMm3 - 50);
 });
+
+test("concavity pinches the top and bottom: less material, still printable, in every pumpkin type", async () => {
+  const flat = await make({ face: "none", stem: "none" });
+  const nested = await make({ face: "none", stem: "none", concavity_pct: 100 });
+  assert.deepEqual(clean(nested), [], "analyzer clean");
+  assert.ok(nested.analysis.volumeMm3 < flat.analysis.volumeMm3 * 0.99, `${nested.analysis.volumeMm3} vs ${flat.analysis.volumeMm3}`);
+  for (const over of [
+    { concavity_pct: 60, height_pct: 66, face: "happy" },
+    { concavity_pct: 100, style: "hollow", opening: "bottom", wall_mm: 2, stem: "peg", face: "none", multicolor: false },
+    { concavity_pct: 100, style: "bowl", wall_mm: 2.4, stem: "peg", face: "none", diameter_mm: 105 },
+    { concavity_pct: 100, style: "vase", segments: 12 }
+  ]) {
+    const m = await make(over);
+    assert.deepEqual(clean(m), [], JSON.stringify(over));
+  }
+});
+
+test("bottom hole size narrows the opening of an open-bottom shell; a tealight needs 41 mm", async () => {
+  const base = { style: "hollow", opening: "bottom", face: "none", stem: "none", wall_mm: 2, diameter_mm: 120, multicolor: false };
+  const wide = await make(base);
+  const small = await make({ ...base, bottom_hole_pct: 50 });
+  assert.deepEqual(clean(small), [], "analyzer clean");
+  assert.ok(small.analysis.volumeMm3 > wide.analysis.volumeMm3, "a smaller hole leaves more floor");
+  const def = (await import("../../public/assets/js/customize/generators/pumpkin.js")).default;
+  const tight = def.rules({ ...Object.fromEntries(Object.entries(def.schema).map(([k, v]) => [k, v.default])), ...base, tealight_fit: true, bottom_hole_pct: 30 });
+  assert.ok(tight.fieldErrors.bottom_hole_pct, "too small for a tealight");
+});
