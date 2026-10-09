@@ -61,7 +61,12 @@ about 27 g PLA, 4.8/5 from 121 ratings. Reviewers scaled it from smaller than th
 Takeaways used here: pumpkins this family are printed across a wide size range (the generator's
 50-180 mm width), 2 walls at 15 % infill is the reference profile (solid type keeps the slicer's infill
 defaults), and internal structure is the failure point (the hollow types print supports from the bed).
-Not found: usable Yeggi or Thingiverse listings through plain search. Everything numeric that no page stated (the 41 mm / 17 mm tealight cavity, wall
+Each named site was also tried through the signed-in Chrome session: Printables search worked (a
+"Pumpkin Whose Eyes Follow you - Vase Mode Version" by Lothar Creative Design, 4.6 stars, 219 likes:
+the vase-mode pumpkin is an established category); Thingiverse's search page renders nothing the
+browser tool can read; Yeggi and Cults3D stand behind bot-verification pages, which are not bypassed
+(a person can open them). So Yeggi, Cults3D and Thingiverse contributed nothing beyond the earlier
+search-result snippets. Everything numeric that no page stated (the 41 mm / 17 mm tealight cavity, wall
 defaults, 78 % lid split, peg size and clearance) is inferred from the above plus standard FDM practice
 and has not been print-tested.
 
