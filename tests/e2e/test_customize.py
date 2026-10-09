@@ -1726,7 +1726,7 @@ def test_a_rule_error_on_a_hidden_advanced_setting_can_be_reached(page: Page, ba
     show.click()
     expect(page.locator("[data-field='face_size_pct']")).to_be_visible()
     expect(page.locator("#cz-level").get_by_role("button", name="Advanced")).to_have_attribute("aria-pressed", "true")
-    expect(page.locator("[data-field='face_size_pct'] .cz-error, #cz-error-face_size_pct")).to_contain_text("at least 24 mm")
+    expect(page.locator("#cz-face_size_pct-error")).to_contain_text("at least 24 mm")
 
 
 def test_other_generators_have_no_simple_advanced_switch(page: Page, base_url: str) -> None:
