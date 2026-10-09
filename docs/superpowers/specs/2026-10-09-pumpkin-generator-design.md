@@ -20,8 +20,8 @@ few controls; advanced = every shape parameter. Same contract as the other four 
 Closed parametric surface (rings x azimuth samples -> Manifold mesh): superellipse meridian
 (roundness/boxiness), pear taper, plan-view oblongness, top stem dimple, twist, `segments` lobes with
 depth/sharpness, per-lobe irregularity from a seed, texture displacement along the meridian normal
-(fine ridges or knit V-stitches). Flat base from a base-width %. Hollow = outer minus a scaled copy
-(star-shaped about the centre, so always nested); openings by extruding a slice of the cavity.
+(fine ridges or knit V-stitches). Flat base from a base-width %. Hollow = outer minus an inset copy
+(rings moved in along the meridian normal by the wall: an even wall for any shape); openings by extruding a slice of the cavity.
 Bowl: split plane + tongue (bowl) / recess (lid) with 0.3 mm clearance. Face = 2D shapes extruded
 radially through the front: cut-out (hollow only), inlay (separate colored part filling a skin of
 `face_depth`), or engraved. Lattice = radial prisms (diamond/round/slot) through a hollow shell.
@@ -29,7 +29,7 @@ Stem = lofted ridged bent column + flange; `fused` (pocket in body, union if sin
 (D-keyed peg, socket tube inside hollow tops, loose stem laid out beside, printed top-down).
 
 ## Rules (fieldErrors, never raw errors)
-cut-out face needs hollow/bowl; lattice needs hollow; vase has no face/stem (hidden, forced none);
+cut-out face needs hollow/bowl; lattice needs hollow; vase has no face/stem (controls hidden, ignored by the builder, values kept);
 single-color inlay is built as engraved with a note; tealight fit check (>= 41 mm opening, >= 17 mm
 cavity); min wall after ribs/texture; bowl split must clear the face.
 
@@ -39,3 +39,21 @@ Body, Lid, Stem, Face (+ Cheeks). `multicolor: false` collapses every part to th
 ## Testing
 Unit: shape math, schema/rules, builds for every design and style x opening x stem x face matrix
 (manifold-valid, analyzer-clean, leak-guard), E2E matrix flow, pages/catalog/sitemap/screenshots.
+
+## Research provenance (what was verified and what was inferred)
+Verified by loading the pages (MakerWorld needed a real browser; plain fetches got 403):
+- Ridged tealight (MakerWorld 633969): 90 mm tall x 123 mm wide, scalable to about 75 %, fits electronic
+  tealights, stem and body as separate files (glued stem), tree supports inside.
+- Modern lattice tealight (1790758): three sizes, stem on its own plate, glued, interior bridges work
+  with 2 walls only. Bowl with lid (638844): body, lid and stem separate; stem glued; two-color version.
+- Knitted cute pumpkin (1858202): jack-o'-lantern face, no AMS needed, glued parts, 2 walls.
+From search results only (not opened): Printables vase-mode jack-o'-lantern (0.8 mm nozzle or 0.8 mm
+line width, body optimized for vase mode); Printables large low-poly pumpkin (vase-mode body variant,
+lid lip needs supports); a MakerWorld "Jack-O-Lantern Maker" with Classic / Cinderella / Tall /
+Heirloom shapes, width, rib count, rib style, wall, twist, face size and position, stem size and curl
+(the same parameter families as this generator); a MakerWorld "Evil Pumpkin" in solid, hollow and
+multicolor versions; Thangs/Cults3D tealight covers for 38 mm LED candles.
+Not found: usable Yeggi or Thingiverse listings through plain search; MakerWorld 1753706 (solid) shows
+only a disclaimer. Everything numeric that no page stated (the 41 mm / 17 mm tealight cavity, wall
+defaults, 78 % lid split, peg size and clearance) is inferred from the above plus standard FDM practice
+and has not been print-tested.
