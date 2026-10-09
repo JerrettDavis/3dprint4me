@@ -53,8 +53,15 @@ lid lip needs supports); a MakerWorld "Jack-O-Lantern Maker" with Classic / Cind
 Heirloom shapes, width, rib count, rib style, wall, twist, face size and position, stem size and curl
 (the same parameter families as this generator); a MakerWorld "Evil Pumpkin" in solid, hollow and
 multicolor versions; Thangs/Cults3D tealight covers for 38 mm LED candles.
-Not found: usable Yeggi or Thingiverse listings through plain search; MakerWorld 1753706 (solid) shows
-only a disclaimer. Everything numeric that no page stated (the 41 mm / 17 mm tealight cavity, wall
+Opened through the signed-in Chrome session (the headless browser saw only a disclaimer): MakerWorld
+1753706 is "Pumpkin Halloween" by Tim, tagged spool winder / cable management / yarn winder: a small
+solid-looking pumpkin with an internal winder tower. Profile 0.16 mm layers, 2 walls, 15 % infill,
+about 27 g PLA, 4.8/5 from 121 ratings. Reviewers scaled it from smaller than the original up to
+185 % (one 186 g print failed at the internal tower; slow print speeds weakened the internal supports).
+Takeaways used here: pumpkins this family are printed across a wide size range (the generator's
+50-180 mm width), 2 walls at 15 % infill is the reference profile (solid type keeps the slicer's infill
+defaults), and internal structure is the failure point (the hollow types print supports from the bed).
+Not found: usable Yeggi or Thingiverse listings through plain search. Everything numeric that no page stated (the 41 mm / 17 mm tealight cavity, wall
 defaults, 78 % lid split, peg size and clearance) is inferred from the above plus standard FDM practice
 and has not been print-tested.
 
