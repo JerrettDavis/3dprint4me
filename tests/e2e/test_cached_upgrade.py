@@ -63,19 +63,19 @@ def test_returning_browser_gets_matching_modules_and_working_theme_after_deploy(
             assert not errors, errors
             assert page.evaluate('getComputedStyle(document.body).pointerEvents') == 'auto'
             background = lambda: page.evaluate('getComputedStyle(document.body).backgroundColor')
-            assert background() == 'rgb(243, 246, 250)'
+            assert background() == 'rgb(246, 245, 241)'
             page.emulate_media(color_scheme='dark')
-            assert background() == 'rgb(16, 25, 35)'
+            assert background() == 'rgb(22, 22, 20)'
             page.locator('#theme-toggle').click()  # explicit light overrides a dark OS
-            assert background() == 'rgb(243, 246, 250)'
+            assert background() == 'rgb(246, 245, 241)'
             page.reload()
             page.locator('#theme-toggle').wait_for()
-            assert background() == 'rgb(243, 246, 250)'
+            assert background() == 'rgb(246, 245, 241)'
             page.locator('#theme-toggle').click()  # explicit dark overrides a light OS
             page.emulate_media(color_scheme='light')
-            assert background() == 'rgb(16, 25, 35)'
+            assert background() == 'rgb(22, 22, 20)'
             page.locator('#theme-toggle').click()  # system resumes live OS tracking
-            assert background() == 'rgb(243, 246, 250)'
+            assert background() == 'rgb(246, 245, 241)'
             page.locator('.hero-project').click()
             assert page.locator('#project-dialog').is_visible()
             page.keyboard.press('Escape')

@@ -131,16 +131,17 @@ def test_menu_toggle_shows_menu_and_close_icons_correctly() -> None:
         site.assert_no_page_errors()
 
 
-def test_index_service_cards_all_have_visible_icons() -> None:
+def test_index_category_tiles_are_visible_and_actionable() -> None:
     with SiteBrowser(viewport=(1366, 960)) as site:
         page = site.load("/")
-        card_icons = page.locator(".outcome-icon svg")
-        count = card_icons.count()
-        assert count == 4
-        for index in range(count):
-            svg = card_icons.nth(index)
-            assert svg.is_visible()
-            symbol = svg.locator("use").get_attribute("href")
-            assert symbol and symbol.startswith("#i-")
-            assert page.locator(f"{symbol} path, {symbol} circle, {symbol} rect").count() > 0
+        tiles = page.locator(".cat-tile")
+        assert tiles.count() == 8
+        for index in range(tiles.count()):
+            tile = tiles.nth(index)
+            assert tile.is_visible()
+            assert tile.locator(".cat-media img, .cat-media svg").first.is_visible()
+            assert tile.locator("h3").inner_text().strip()
+            assert tile.get_attribute("href") or tile.get_attribute("data-ask")
+            symbol = tile.locator(".cat-cta svg use").get_attribute("href")
+            assert symbol and page.locator(f"{symbol} path").count() > 0
         site.assert_no_page_errors()
