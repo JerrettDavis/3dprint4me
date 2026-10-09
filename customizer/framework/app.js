@@ -18,6 +18,7 @@ import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
 import { writeHandoff } from "./handoff.js";
 import { createDownloadDialog, safeFilename } from "./download-dialog.js";
+import { partsToStl, stlFilename } from "./stl.js";
 import { createFontArea } from "./font-area.js";
 import { applyDesign, designsOf } from "./designs.js";
 import { createDesignPanel, mountLocks } from "./explore-ui.js";
@@ -723,6 +724,7 @@ function boot() {
     els.downloadButton = button;
     const dialog = createDownloadDialog({
       onDownload: ({ result }) => downloadFile(new Blob([result.data], { type: "model/3mf" }), safeFilename(result.filename)),
+      onDownloadStl: ({ result }) => downloadFile(new Blob([partsToStl(result.parts)], { type: "model/stl" }), safeFilename(stlFilename(result.filename))),
       onPrint: ({ result }) => continueToRequest(result)
     });
     button.addEventListener("click", () => {
