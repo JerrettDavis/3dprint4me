@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-10-09T00:30:27.495116+00:00",
+  "generatedAt": "2026-10-09T03:37:10.993396+00:00",
   "status": "pass",
   "summary": {
     "checks": 241,
@@ -65,14 +65,14 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "6 images loaded and each has an alt attribute."
+      "details": "11 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "44 visible interactive elements have accessible names."
+      "details": "47 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "145 solid-background text samples meet WCAG AA contrast; 5 gradient/image samples were excluded from automation."
+      "details": "169 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -737,7 +737,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
+      "details": "4 images loaded and each has an alt attribute."
     },
     {
       "route": "/customize/",
@@ -905,14 +905,14 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "6 images loaded and each has an alt attribute."
+      "details": "11 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "41 visible interactive elements have accessible names."
+      "details": "44 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -947,7 +947,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "142 solid-background text samples meet WCAG AA contrast; 5 gradient/image samples were excluded from automation."
+      "details": "166 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -1577,7 +1577,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
+      "details": "4 images loaded and each has an alt attribute."
     },
     {
       "route": "/customize/",
@@ -1739,13 +1739,13 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 44,
-        "imageCount": 6,
-        "headingCount": 22
+        "interactiveCount": 47,
+        "imageCount": 11,
+        "headingCount": 28
       },
       "contrast": {
-        "checked": 145,
-        "complexSkipped": 5,
+        "checked": 169,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -2020,7 +2020,7 @@
         "contentWidth": 1440,
         "viewportWidth": 1440,
         "interactiveCount": 29,
-        "imageCount": 2,
+        "imageCount": 4,
         "headingCount": 9
       },
       "contrast": {
@@ -2089,13 +2089,13 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 41,
-        "imageCount": 6,
-        "headingCount": 22
+        "interactiveCount": 44,
+        "imageCount": 11,
+        "headingCount": 28
       },
       "contrast": {
-        "checked": 142,
-        "complexSkipped": 5,
+        "checked": 166,
+        "complexSkipped": 0,
         "failures": []
       }
     },
@@ -2370,7 +2370,7 @@
         "contentWidth": 390,
         "viewportWidth": 390,
         "interactiveCount": 25,
-        "imageCount": 2,
+        "imageCount": 4,
         "headingCount": 9
       },
       "contrast": {
