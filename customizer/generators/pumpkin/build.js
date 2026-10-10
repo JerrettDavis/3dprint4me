@@ -2,7 +2,7 @@
 // subtract an inset copy of the smooth shape; faces, a lattice, the stem pocket and a bowl's
 // tongue-and-recess joint are booleans on top of that. Every temporary goes through `t` and is
 // freed in `finally`; only the returned solids stay alive (buildModel frees those).
-import { baseCut, bottomHoleRadius, faceBox, geometry, openCut, resolution, splitCut, surfaceMesh, tealightFit, TEALIGHT_OPENING_MM } from "../../../public/assets/js/customize/pumpkin-shape.js";
+import { baseCut, bottomHoleRadius, faceBox, geometry, holeCeiling, openCut, resolution, splitCut, surfaceMesh, tealightFit, TEALIGHT_OPENING_MM } from "../../../public/assets/js/customize/pumpkin-shape.js";
 import { safeName } from "../../framework/model.js";
 import { buildFace, faceSpec } from "./faces.js";
 import { latticeCutter } from "./lattice.js";
@@ -83,7 +83,12 @@ export default async function build(p, ctx) {
         const holeR = bottomHoleRadius(p, g);
         if (!section.isEmpty() && (p.bottom_hole_pct ?? 100) < 100) section = t(section.intersect(t(CrossSection.circle(holeR, 64))));
         if (section.isEmpty()) throw new Error("The hole in the base is too small to open the cavity. Make the bottom hole larger.");
-        const column = t(t(section.extrude(floorLevel - zBase + 1.6)).translate([0, 0, zBase - 1]));
+        let column = t(t(section.extrude(floorLevel - zBase + 1.6)).translate([0, 0, zBase - 1]));
+        // A hole wider than the flat base is a straight bore up to just inside the cavity, 2.4 mm below the mouth.
+        if ((p.bottom_hole_pct ?? 100) > 100) {
+          const top = holeCeiling(p, g).z;
+          column = t(t(CrossSection.circle(holeR, 96).extrude(top - zBase + 1)).translate([0, 0, zBase - 1]));
+        }
         cavity = t(Manifold.union([c0, column]));
       } else {
         cavity = t(c0.trimByPlane([0, 0, 1], zBase + Math.max(FLOOR_MIN, wall)));
