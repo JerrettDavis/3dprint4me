@@ -2,7 +2,7 @@
 // subtract an inset copy of the smooth shape; faces, a lattice, the stem pocket and a bowl's
 // tongue-and-recess joint are booleans on top of that. Every temporary goes through `t` and is
 // freed in `finally`; only the returned solids stay alive (buildModel frees those).
-import { baseCut, faceBox, geometry, openCut, resolution, splitCut, surfaceMesh, tealightFit, TEALIGHT_OPENING_MM } from "../../../public/assets/js/customize/pumpkin-shape.js";
+import { baseCut, bottomHoleRadius, faceBox, geometry, openCut, resolution, splitCut, surfaceMesh, tealightFit, TEALIGHT_OPENING_MM } from "../../../public/assets/js/customize/pumpkin-shape.js";
 import { safeName } from "../../framework/model.js";
 import { buildFace, faceSpec } from "./faces.js";
 import { latticeCutter } from "./lattice.js";
@@ -69,16 +69,20 @@ export default async function build(p, ctx) {
       // The inset follows the smooth meridian, so a steep, deeply grooved shoulder can leave a
       // sliver outside the real surface. A slightly thicker inset (noted) fixes it; refuse if not.
       let thick = 1;
-      for (const step of [1, 1.15, 1.3, 1.5]) {
+      for (const step of [1, 1.15, 1.3, 1.5, 1.75, 2]) {
         c0 = shrunk(wall * step);
         thick = step;
         if (!(t(c0.subtract(rough)).volume() > 1e-3)) break;
-        if (step === 1.5) throw new Error("The wall doesn't fit inside this shape. Make the wall thinner or the shape milder.");
+        if (step === 2) throw new Error("The wall doesn't fit inside this shape. Make the wall thinner or the shape milder.");
       }
       if (thick > 1) warnings.push("This shape is steep and deeply grooved, so the wall is a little thicker than asked in places.");
       if (p.style === "hollow" && p.opening === "bottom") {
-        const floorLevel = Math.max(zBase, -g.b + wall) + 0.6;
-        const section = t(c0.slice(floorLevel));
+        const floorLevel = Math.max(zBase, -g.b + wall, c0.boundingBox().min[2]) + 0.6;
+        let section = t(c0.slice(floorLevel));
+        // The hole in the base is the cavity's width at the floor, narrowed to the chosen share of the flat base.
+        const holeR = bottomHoleRadius(p, g);
+        if (!section.isEmpty() && (p.bottom_hole_pct ?? 100) < 100) section = t(section.intersect(t(CrossSection.circle(holeR, 64))));
+        if (section.isEmpty()) throw new Error("The hole in the base is too small to open the cavity. Make the bottom hole larger.");
         const column = t(t(section.extrude(floorLevel - zBase + 1.6)).translate([0, 0, zBase - 1]));
         cavity = t(Manifold.union([c0, column]));
       } else {
