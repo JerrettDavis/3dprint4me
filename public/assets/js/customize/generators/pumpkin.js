@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=d34d74bea0b5707a";
-import { baseCut, bottomHoleRadius, faceBox, geometry, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=d34d74bea0b5707a";
+import { contrastRatio } from "../color.js?v=a246708eea72b65a";
+import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=a246708eea72b65a";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -76,6 +76,9 @@ function rules(o) {
     if (o.concavity_pct > max) add(["concavity_pct"], `A ${o.wall_mm} mm wall can't follow a pinch this deep. Use at most ${max}% concavity, or a thicker wall.`);
   }
   if (o.style === "hollow" && o.opening === "bottom" && Number.isFinite(o.bottom_hole_pct)) {
+    const maxPct = maxBottomHolePct(o);
+    limits.bottom_hole_pct = [30, maxPct];
+    if (o.bottom_hole_pct > maxPct) add(["bottom_hole_pct"], `The bottom hole can be at most ${maxPct}% here: it has to stay ${HOLE_MOUTH_GAP_MM} mm below where the mouth starts. Use a smaller hole, or move the face up.`);
     const hole = 2 * bottomHoleRadius(o);
     if (o.tealight_fit && hole < TEALIGHT_OPENING_MM - EPS) add(["bottom_hole_pct"], `A tealight needs a ${TEALIGHT_OPENING_MM} mm hole in the base; this one is ${hole.toFixed(0)} mm. Make the bottom hole larger, or turn off "Fit a tealight".`);
     else if (hole < 20 - EPS) add(["bottom_hole_pct"], `The hole in the base would be only ${hole.toFixed(0)} mm; at least 20 mm is needed to clear the supports. Make it larger.`);
@@ -128,8 +131,8 @@ const SCHEMA = {
   wall_mm: { type: "number", label: "Wall thickness", min: 1.2, max: 4, step: 0.2, default: 1.6, unit: "mm", advanced: true, visibleWhen: hollowStyle, group: "type", section: "type",
     help: "Hollow shells need at least 1.2 mm; a bowl needs 2 mm so its lid joint is strong enough." },
   opening_pct: { type: "int", label: "Opening width", min: 45, max: 90, step: 5, default: 60, unit: "%", advanced: true, visibleWhen: o => isVase(o) || (o.style === "hollow" && o.opening === "top"), group: "type", section: "type" },
-  bottom_hole_pct: { type: "int", label: "Bottom hole size", min: 30, max: 100, step: 5, default: 100, unit: "%", advanced: true, visibleWhen: when({ style: "hollow", opening: "bottom" }), group: "type", section: "type",
-    help: "The hole in the base, as a share of the flat base width. A tealight needs it at least 41 mm across." },
+  bottom_hole_pct: { type: "int", label: "Bottom hole size", min: 30, max: 400, step: 1, default: 100, unit: "%", advanced: true, visibleWhen: when({ style: "hollow", opening: "bottom" }), group: "type", section: "type",
+    help: "The hole in the base, as a share of the flat base width. Past 100% the base lifts so the hole keeps a full wall; the most it can open is the width 2.4 mm below where the mouth starts. A tealight needs it at least 41 mm across." },
   split_pct: { type: "int", label: "Lid split height", min: 55, max: 90, step: 1, default: 78, unit: "%", advanced: true, visibleWhen: { style: "bowl" }, group: "type", section: "type" },
 
   diameter_mm: { type: "number", label: "Width", min: 50, max: 180, step: 1, default: 80, unit: "mm", randomize: false, group: "size", section: "shape" },

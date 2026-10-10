@@ -467,3 +467,17 @@ test("bottom hole size narrows the opening of an open-bottom shell; a tealight n
   const tight = def.rules({ ...Object.fromEntries(Object.entries(def.schema).map(([k, v]) => [k, v.default])), ...base, tealight_fit: true, bottom_hole_pct: 30 });
   assert.ok(tight.fieldErrors.bottom_hole_pct, "too small for a tealight");
 });
+
+test("bottom hole can open past the base, up to 2.4 mm below the mouth, and stays printable", async () => {
+  const base = { style: "hollow", opening: "bottom", face: "traditional", face_style: "cutout", stem: "none", wall_mm: 2, diameter_mm: 120, multicolor: false };
+  const def = (await import("../../public/assets/js/customize/generators/pumpkin.js")).default;
+  const full = Object.fromEntries(Object.entries(def.schema).map(([k, v]) => [k, v.default]));
+  const max = def.rules({ ...full, ...base }).limits.bottom_hole_pct[1];
+  assert.ok(max > 100, `the hole can grow past the base (max ${max}%)`);
+  const std = await make(base);
+  const wide = await make({ ...base, bottom_hole_pct: max });
+  assert.deepEqual(clean(wide), [], "widest hole is clean");
+  assert.ok(wide.analysis.volumeMm3 < std.analysis.volumeMm3, "wider hole, less material");
+  assert.ok(def.rules({ ...full, ...base, bottom_hole_pct: max + 1 }).fieldErrors.bottom_hole_pct, "past the limit is refused");
+  assert.equal(def.rules({ ...full, ...base, bottom_hole_pct: max }).fieldErrors.bottom_hole_pct, undefined);
+});
