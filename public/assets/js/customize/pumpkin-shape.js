@@ -207,9 +207,53 @@ function lowerCrossing(g, radius) {
 
 /** The flat-base plane: the height where the body is as wide as the base should be. */
 export function baseCut(p, g = geometry(p)) {
-  const radius = clamp(Math.max(MIN_BASE_RADIUS_MM, p.flat_base_pct / 100 * g.a), 1, g.a * 0.94);
+  let radius = clamp(Math.max(MIN_BASE_RADIUS_MM, p.flat_base_pct / 100 * g.a), 1, g.a * 0.94);
+  // A bottom hole wider than the flat base lifts the base plane so a full wall still surrounds it.
+  const wide = wideHole(p, radius);
+  if (wide) radius = clamp((wide + p.wall_mm) / (1 - g.depth), radius, g.a * 0.99);
   const phi = lowerCrossing(g, radius);
   return { z: g.profile(phi).z, radius };
+}
+
+/** Radius (mm) of a bottom hole wider than the flat base (open-bottom hollow only), else 0. */
+function wideHole(p, baseRadius) {
+  if (p.style !== "hollow" || p.opening !== "bottom" || !((p.bottom_hole_pct ?? 100) > 100)) return 0;
+  return baseRadius * p.bottom_hole_pct / 100;
+}
+
+/** Gap kept between the top of a wide bottom hole and the lowest edge of the mouth (mm). */
+export const HOLE_MOUTH_GAP_MM = 2.4;
+
+/** Outer body radius at height z on the lower half (first crossing from the equator down). */
+function rhoAtZ(g, z) {
+  let prev = g.profile(Math.PI / 2);
+  if (prev.z <= z) return prev.rho;
+  for (let i = 1; i <= 400; i++) {
+    const cur = g.profile(Math.PI / 2 * (1 - i / 400));
+    if (cur.z <= z) return prev.rho + (cur.rho - prev.rho) * (prev.z - z) / (prev.z - cur.z || 1);
+    prev = cur;
+  }
+  return 0;
+}
+
+/** Height where the hole must stop, and the cavity radius (mm) there: the hole may not be wider. */
+export function holeCeiling(p, g = geometry(p)) {
+  const z = faceBox(p, g).bottom - HOLE_MOUTH_GAP_MM;
+  const radius = (rhoAtZ(g, z) - p.wall_mm * 1.15) * (1 - g.depth * 1.15) - g.tex;
+  return { z, radius };
+}
+
+/** Widest bottom hole, as a percentage of the flat base, with every other setting unchanged (at least 100). */
+export function maxBottomHolePct(p) {
+  let best = 100;
+  for (let pct = 105; pct <= 400; pct += 1) {
+    const q = { ...p, bottom_hole_pct: pct };
+    const g = geometry(q);
+    const need = baseCut(q, g).radius > g.a * 0.99 - 1e-6;
+    if (need || bottomHoleRadius(q, g) > holeCeiling(q, g).radius) break;
+    best = pct;
+  }
+  return best;
 }
 
 /** Deepest concavity (percent) a hollow shell can be offset around: the pinch may be at most 2.5 times the wall left in the grooves and texture. */
@@ -220,7 +264,8 @@ export function maxHollowConcavity(p, g = geometry(p)) {
 
 /** Radius of the hole in the base of an open-bottom hollow shell: a share of the flat base. */
 export function bottomHoleRadius(p, g = geometry(p)) {
-  return baseCut(p, g).radius * (p.bottom_hole_pct ?? 100) / 100;
+  const flat = clamp(Math.max(MIN_BASE_RADIUS_MM, p.flat_base_pct / 100 * g.a), 1, g.a * 0.94);
+  return flat * (p.bottom_hole_pct ?? 100) / 100;
 }
 
 /** The upper plane for an opening of the given width: first crossing from the equator up. */
