@@ -409,3 +409,61 @@ test("a generator can only set slicer options the template already has", () => {
   assert.throws(() => package3mf(parts, { title: "t", description: "d", parameters: {}, settings: { not_a_real_setting: "1" } }), /Unknown slicer setting/);
   assert.ok(package3mf(parts, { title: "t", description: "d", parameters: {}, settings: { enable_support: "1" } }).length > 100);
 });
+
+// ---- Faces ----------------------------------------------------------------------------------
+
+const PRESET_FACES = pumpkin.schema.face.options.map(o => o.value).filter(v => v !== "none" && v !== "custom");
+
+test("the face size is a Simple-mode control and the well-known faces are on offer", () => {
+  assert.ok(!pumpkin.schema.face_size_pct.advanced, "Face size shows without Advanced");
+  for (const f of ["adorable", "awesome", "cool", "wink", "love", "starstruck", "tongue", "cat", "angry", "scared"]) assert.ok(PRESET_FACES.includes(f), f);
+});
+
+test("every face preset prints clean as a cut-through, an inlay and glue-in pieces, at the smallest and the largest size", async () => {
+  const dim = { style: "hollow", opening: "bottom", stem: "none", diameter_mm: 110 };
+  for (const face of PRESET_FACES) {
+    for (const size of [30, 90]) {
+      const height = size === 90 ? { face_height_pct: 45 } : {};
+      for (const style of [{ face_style: "cutout", multicolor: false }, { face_style: "inlay", multicolor: true }, { face_style: "inlay", multicolor: false }]) {
+        const over = { ...dim, ...height, face, face_size_pct: size, ...style };
+        const r = check(over);
+        if (!r.ok) { assert.match(r.errors.join(), /at least \d+ mm|top of the pumpkin|base/, `${face}@${size}: ${r.errors}`); continue; }
+        const built = await make(over);
+        assert.deepEqual(clean(built), [], `${face} ${size}% ${JSON.stringify(style)}`);
+      }
+    }
+  }
+});
+
+test("a bigger face slider setting cuts more out of a cut-through face", async () => {
+  const small = await make({ style: "hollow", face: "adorable", face_style: "cutout", face_size_pct: 40, stem: "none", multicolor: false });
+  const large = await make({ style: "hollow", face: "adorable", face_style: "cutout", face_size_pct: 70, stem: "none", multicolor: false });
+  assert.ok(large.analysis.volumeMm3 < small.analysis.volumeMm3 - 50);
+});
+
+test("concavity pinches the top and bottom: less material, still printable, in every pumpkin type", async () => {
+  const flat = await make({ face: "none", stem: "none" });
+  const nested = await make({ face: "none", stem: "none", concavity_pct: 100 });
+  assert.deepEqual(clean(nested), [], "analyzer clean");
+  assert.ok(nested.analysis.volumeMm3 < flat.analysis.volumeMm3 * 0.99, `${nested.analysis.volumeMm3} vs ${flat.analysis.volumeMm3}`);
+  for (const over of [
+    { concavity_pct: 60, height_pct: 66, face: "happy" },
+    { concavity_pct: 100, style: "hollow", opening: "bottom", wall_mm: 2, stem: "peg", face: "none", multicolor: false },
+    { concavity_pct: 100, style: "bowl", wall_mm: 2.4, stem: "peg", face: "none", diameter_mm: 105 },
+    { concavity_pct: 100, style: "vase", segments: 12 }
+  ]) {
+    const m = await make(over);
+    assert.deepEqual(clean(m), [], JSON.stringify(over));
+  }
+});
+
+test("bottom hole size narrows the opening of an open-bottom shell; a tealight needs 41 mm", async () => {
+  const base = { style: "hollow", opening: "bottom", face: "none", stem: "none", wall_mm: 2, diameter_mm: 120, multicolor: false };
+  const wide = await make(base);
+  const small = await make({ ...base, bottom_hole_pct: 50 });
+  assert.deepEqual(clean(small), [], "analyzer clean");
+  assert.ok(small.analysis.volumeMm3 > wide.analysis.volumeMm3, "a smaller hole leaves more floor");
+  const def = (await import("../../public/assets/js/customize/generators/pumpkin.js")).default;
+  const tight = def.rules({ ...Object.fromEntries(Object.entries(def.schema).map(([k, v]) => [k, v.default])), ...base, tealight_fit: true, bottom_hole_pct: 30 });
+  assert.ok(tight.fieldErrors.bottom_hole_pct, "too small for a tealight");
+});
