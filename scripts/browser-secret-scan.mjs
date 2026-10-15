@@ -26,6 +26,9 @@ export const allowedUrlStrings = Object.freeze([
   "http://schemas.openxmlformats.org/package/2006/content-types",
   "http://www.w3.org/2000/svg",
   "http://www.w3.org/1999/xhtml",
+  // The bare scheme: the display sign prepends it to a QR code's content when that is a plain web address. It is
+  // data placed in a printed code, never a request.
+  "https://",
   "https://github.com/opentypejs/opentype.js/issues/675",
   "https://github.com/opentypejs/opentype.js/issues/183#issuecomment-1147228025"
 ]);

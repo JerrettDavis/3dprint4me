@@ -15,7 +15,7 @@ import { loadBuilder } from "../../customizer/generators/index.js";
 import { GENERATORS } from "../../public/assets/js/customize/registry.js";
 import { clampParams, sensitiveKeys, validateParams } from "../../public/assets/js/customize/schema.js";
 import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geometry.js";
-import { FONTS } from "../../public/assets/js/customize/fonts.js";
+import { FONTS, locationFontIds } from "../../public/assets/js/customize/fonts.js";
 import { traceImage, checkContours } from "../../customizer/framework/image-trace.js";
 import { readFile } from "node:fs/promises";
 import * as opentype from "opentype.js";
@@ -59,10 +59,10 @@ function textEntries(data) {
   return Object.entries(entries).map(([name, bytes]) => [name, strFromU8(bytes)]);
 }
 
-async function buildAndCheck(g, params, label, { font = null, imageContours = null } = {}) {
+async function buildAndCheck(g, params, label, { font = null, fonts = {}, imageContours = null } = {}) {
   const { default: build } = await loadBuilder[g.id]();
   const started = performance.now();
-  const out = await buildModel({ ...g, build }, params, { wasm, font, imageContours });
+  const out = await buildModel({ ...g, build }, params, { wasm, font, fonts, imageContours });
   const ms = performance.now() - started;
   assert.ok(ms < BUILD_BUDGET_MS, `${label}: built in ${Math.round(ms)} ms (budget ${BUILD_BUDGET_MS} ms)`);
   assert.ok(out.parts.length >= 1, `${label}: no parts`);
@@ -125,7 +125,7 @@ for (const g of generators) {
     const tryBuild = async params => {
       try {
         const font = FONTS.some(f => f.id === params.font) ? await curatedFont(params.font) : null;
-        const out = await buildModel({ ...g, build }, validated(g, params, `${g.id} random`), { wasm, font });
+        const out = await buildModel({ ...g, build }, validated(g, params, `${g.id} random`), { wasm, font, fonts: await locationFonts(g, params) });
         return out.parts.length >= 1;
       } catch { return false; }
     };
@@ -151,7 +151,7 @@ for (const g of generators) {
       const params = applyDesign(g, d, {});
       assert.ok(params, `${g.id} design ${d.id} does not validate`);
       const font = FONTS.some(f => f.id === params.font) ? await curatedFont(params.font) : null;
-      await buildAndCheck(g, validated(g, params, `${g.id} design ${d.id}`), `${g.id} design ${d.id}`, { font });
+      await buildAndCheck(g, validated(g, params, `${g.id} design ${d.id}`), `${g.id} design ${d.id}`, { font, fonts: await locationFonts(g, params) });
     }
   });
 }
@@ -159,6 +159,13 @@ for (const g of generators) {
 // The two inputs that never come from parameters: a curated font (parsed with opentype.js, as the
 // worker does) and a traced customer image (plain contours, as the page sends).
 const parseFont = opentype.parse ?? opentype.default.parse;
+// The per-location curated fonts a design asks for, loaded as the worker does.
+async function locationFonts(g, params) {
+  const out = {};
+  for (const id of locationFontIds(g, params)) out[id] = await curatedFont(id);
+  return out;
+}
+
 async function curatedFont(id) {
   const bytes = await readFile(new URL(`../../customizer/static/fonts/${FONTS.find(f => f.id === id).file}`, import.meta.url));
   return parseFont(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));

@@ -4,5 +4,6 @@ export const loadBuilder = {
   "wifi-tag": () => import("./wifi-tag/build.js"),
   "rating-card": () => import("./rating-card/build.js"),
   "name-plate": () => import("./name-plate/build.js"),
-  "pumpkin": () => import("./pumpkin/build.js")
+  "pumpkin": () => import("./pumpkin/build.js"),
+  "display-sign": () => import("./display-sign/build.js")
 };

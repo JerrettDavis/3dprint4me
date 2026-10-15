@@ -103,6 +103,25 @@ export function blockText(CrossSection, text) {
   return centered;
 }
 
+/** One line of block text, in cell units, left edge at x = 0, baseline at y = 0 (caps rise 7 cells). */
+export function blockLineAtBaseline(CrossSection, text) {
+  const polygons = [];
+  const gap = 0.16, advance = 6;
+  let x = 0;
+  for (const ch of String(text || '').toUpperCase()) {
+    const rows = GLYPHS[glyphKey(ch)] || GLYPHS['?'];
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 5; col++) {
+        if (rows[row][col] !== '1') continue;
+        const x0 = x + col, y0 = 6 - row;
+        polygons.push(rect(x0 - gap / 2, y0 - gap / 2, x0 + 1 + gap / 2, y0 + 1 + gap / 2));
+      }
+    }
+    x += advance;
+  }
+  return polygons.length ? CrossSection.ofPolygons(polygons) : null;
+}
+
 // ---- Block-text layout in a box (shared by generators) ----------------------------------
 // A block-font line is 6 cells per character minus the trailing gap; a cell is 1 unit before
 // scaling, so the printed cap height is 7 × the cell size.
@@ -239,13 +258,13 @@ export function fontDrawable(text, font) {
 export const FONT_CHARS_SKIPPED = "Some characters aren't in this font and were skipped.";
 
 // Cap height of the font as a fraction of the em; fonts without the OS/2 value get 0.7.
-const capRatio = font => {
+export const capRatio = font => {
   const cap = font.tables?.os2?.sCapHeight;
   return cap > 0 && font.unitsPerEm > 0 ? cap / font.unitsPerEm : 0.7;
 };
 
 // One line of font text with its baseline at y = 0 (descenders hang below), centered in x.
-function fontLineAtBaseline(CrossSection, font, line) {
+export function fontLineAtBaseline(CrossSection, font, line) {
   const path = fontTextPath(font, line);
   const contours = flattenOpenTypePath(path, 12);
   if (!contours.length) return null;
