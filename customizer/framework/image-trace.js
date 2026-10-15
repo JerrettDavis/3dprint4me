@@ -60,8 +60,16 @@ export function traceImage({ pixels, width, height, threshold = 128, invert = fa
     smooth[y * cw + x] = dark[y * cw + x] ? (nb > 0 ? 1 : 0) : (nb === 4 ? 1 : 0);
   }
 
-  // Run-length rectangles; a run repeated on consecutive rows grows one rectangle downwards.
-  // Y is flipped so the image is upright (+Y up).
+  const contours = maskToContours(smooth, cw, ch);
+  if (!contours.length) {
+    throw new Error("There is nothing to trace: no part of the image is darker than the threshold. Raise the threshold, turn on Invert, or choose an image with a dark subject.");
+  }
+  return contours;
+}
+
+// Run-length rectangles; a run repeated on consecutive rows grows one rectangle downwards.
+// Y is flipped so the image is upright (+Y up).
+function maskToContours(mask, cw, ch) {
   const contours = [];
   let open = new Map(); // "start,end" -> rectangle [x0, x1, yTop, yBottom]
   const close = r => contours.push([[r[0], r[3]], [r[1], r[3]], [r[1], r[2]], [r[0], r[2]]]);
@@ -69,9 +77,9 @@ export function traceImage({ pixels, width, height, threshold = 128, invert = fa
     const next = new Map();
     let x = 0;
     while (x < cw) {
-      if (!smooth[y * cw + x]) { x++; continue; }
+      if (!mask[y * cw + x]) { x++; continue; }
       const start = x;
-      while (x < cw && smooth[y * cw + x]) x++;
+      while (x < cw && mask[y * cw + x]) x++;
       const key = `${start},${x}`;
       const rect = open.get(key) ?? [start, x, ch - y, ch - y];
       open.delete(key);
@@ -82,10 +90,92 @@ export function traceImage({ pixels, width, height, threshold = 128, invert = fa
     open = next;
   }
   for (const r of open.values()) close(r);
-  if (!contours.length) {
-    throw new Error("There is nothing to trace: no part of the image is darker than the threshold. Raise the threshold, turn on Invert, or choose an image with a dark subject.");
-  }
   return contours;
+}
+
+// ---- Multi-color tracing ---------------------------------------------------------------
+// A logo with several inks: the background is the dominant color along the image's border (or
+// transparent); every other cell snaps to the nearest color of `palette` (hex strings), and each
+// palette color gets its own contours in one shared cell grid, so the layers register exactly.
+// Returns [{ index, contours }] for the palette entries that have ink, in palette order.
+const hexRgb = hex => { const m = /^#([0-9a-f]{6})$/i.exec(String(hex)); if (!m) throw new Error("The palette holds an invalid color."); const n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+// "Redmean" distance: close to perceived difference without a color-space conversion.
+const colorDistance = (a, b) => { const rm = (a[0] + b[0]) / 2, dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2]; return Math.sqrt((2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db); };
+const BACKGROUND_DISTANCE = 90;   // a cell this close to the background color is background
+
+export function traceLayers({ pixels, width, height, palette, maxCells = 200 } = {}) {
+  if (!(width > 0 && height > 0) || !pixels || pixels.length === 0) throw new Error("The image is empty.");
+  if (!isInt(width) || !isInt(height)) throw new Error("The image data is malformed.");
+  if (width > MAX_SOURCE_SIDE || height > MAX_SOURCE_SIDE || width * height > MAX_SOURCE_PIXELS) {
+    throw new Error(`The image is too large. Use an image at most ${MAX_SOURCE_SIDE} pixels on each side.`);
+  }
+  if (!(pixels instanceof Uint8ClampedArray || pixels instanceof Uint8Array)) throw new Error("The image data is malformed.");
+  if (pixels.length !== width * height * 4) throw new Error("The image data is malformed: its length doesn't match its size.");
+  if (!Array.isArray(palette) || palette.length < 1 || palette.length > 8) throw new Error("The logo palette must hold 1–8 colors.");
+  if (!isInt(maxCells) || maxCells < 8 || maxCells > 256) throw new Error("The trace resolution must be 8–256 cells.");
+  const inks = palette.map(hexRgb);
+
+  const scale = Math.min(1, maxCells / Math.max(width, height));
+  const cw = Math.max(1, Math.round(width * scale)), ch = Math.max(1, Math.round(height * scale));
+  const rgb = new Float32Array(cw * ch * 3), opaque = new Uint8Array(cw * ch);
+  for (let cy = 0; cy < ch; cy++) {
+    const y0 = Math.floor((cy * height) / ch), y1 = Math.max(y0 + 1, Math.floor(((cy + 1) * height) / ch));
+    for (let cx = 0; cx < cw; cx++) {
+      const x0 = Math.floor((cx * width) / cw), x1 = Math.max(x0 + 1, Math.floor(((cx + 1) * width) / cw));
+      let r = 0, g = 0, b = 0, a = 0, n = 0;
+      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+        const i = (y * width + x) * 4, al = pixels[i + 3] / 255;
+        r += pixels[i] * al; g += pixels[i + 1] * al; b += pixels[i + 2] * al; a += al; n++;
+      }
+      const k = cy * cw + cx;
+      if (a / n >= 0.5) { opaque[k] = 1; rgb[k * 3] = r / a; rgb[k * 3 + 1] = g / a; rgb[k * 3 + 2] = b / a; }
+    }
+  }
+  // Background: the most common (4 bits per channel) color on the border, unless the border is mostly transparent.
+  const votes = new Map();
+  let borderCells = 0, borderOpaque = 0;
+  const vote = (cx, cy) => {
+    const k = cy * cw + cx;
+    borderCells++;
+    if (!opaque[k]) return;
+    borderOpaque++;
+    const key = ((rgb[k * 3] >> 4) << 8) | ((rgb[k * 3 + 1] >> 4) << 4) | (rgb[k * 3 + 2] >> 4);
+    votes.set(key, (votes.get(key) ?? 0) + 1);
+  };
+  for (let x = 0; x < cw; x++) { vote(x, 0); if (ch > 1) vote(x, ch - 1); }
+  for (let y = 1; y < ch - 1; y++) { vote(0, y); if (cw > 1) vote(cw - 1, y); }
+  let background = null;
+  if (borderOpaque > 0.5 * borderCells) {
+    const [key] = [...votes.entries()].sort((a, b) => b[1] - a[1])[0];
+    background = [((key >> 8) & 15) * 16 + 8, ((key >> 4) & 15) * 16 + 8, (key & 15) * 16 + 8];
+  }
+  const masks = inks.map(() => new Uint8Array(cw * ch));
+  const counts = inks.map(() => 0);
+  for (let k = 0; k < cw * ch; k++) {
+    if (!opaque[k]) continue;
+    const c = [rgb[k * 3], rgb[k * 3 + 1], rgb[k * 3 + 2]];
+    if (background && colorDistance(c, background) < BACKGROUND_DISTANCE) continue;
+    let best = 0, bestD = Infinity;
+    inks.forEach((ink, i) => { const d = colorDistance(c, ink); if (d < bestD) { bestD = d; best = i; } });
+    masks[best][k] = 1; counts[best]++;
+  }
+  const total = counts.reduce((a, b) => a + b, 0);
+  if (!total) throw new Error("There is nothing to trace: every part of the image matches its background. Choose an image with a clearly different subject.");
+  if (total > MOSTLY_DARK * cw * ch) throw new Error("Almost the whole image counts as ink, so there is no background to leave out. Use an image with a plain or transparent background.");
+  const at = (m, x, y) => (x >= 0 && y >= 0 && x < cw && y < ch ? m[y * cw + x] : 0);
+  const layers = [];
+  masks.forEach((mask, index) => {
+    if (!counts[index]) return;
+    const smooth = new Uint8Array(cw * ch);
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      const nb = at(mask, x - 1, y) + at(mask, x + 1, y) + at(mask, x, y - 1) + at(mask, x, y + 1);
+      smooth[y * cw + x] = mask[y * cw + x] ? (nb > 0 ? 1 : 0) : (nb === 4 ? 1 : 0);
+    }
+    const contours = maskToContours(smooth, cw, ch);
+    if (contours.length) layers.push({ index, contours });
+  });
+  if (!layers.length) throw new Error("There is nothing to trace in this image.");
+  return layers;
 }
 
 /** Throws a readable error unless `contours` is bounded, well-formed traced data. */
