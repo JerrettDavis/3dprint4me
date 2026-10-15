@@ -1,7 +1,7 @@
 // Customer image input for generator pages. The file is decoded in the browser onto a small
 // canvas and traced on the main thread; only the traced contours (plain arrays) go to the build
 // worker. The image, its bytes and its file name are never stored, logged or sent anywhere.
-import { traceImage, checkContours, MAX_SOURCE_SIDE } from "./image-trace.js";
+import { traceImage, traceLayers, checkContours, MAX_SOURCE_SIDE } from "./image-trace.js";
 
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 export const MAX_DECLARED_PIXELS = 64_000_000;   // second guard on the declared size
@@ -160,6 +160,19 @@ export function createTracer() {
     const contours = checkContours(traceImage({ pixels: image.pixels, width: image.width, height: image.height, threshold, invert }));
     last = { image, key, contours };
     return contours;
+  };
+}
+
+/** Multi-color tracing with caching: the same image and palette reuse the last layers. */
+export function createLayerTracer() {
+  let last = { image: null, key: "", layers: null };
+  return (image, palette) => {
+    const key = palette.join(",");
+    if (last.image === image && last.key === key) return last.layers;
+    const layers = traceLayers({ pixels: image.pixels, width: image.width, height: image.height, palette });
+    for (const layer of layers) checkContours(layer.contours);
+    last = { image, key, layers };
+    return layers;
   };
 }
 
