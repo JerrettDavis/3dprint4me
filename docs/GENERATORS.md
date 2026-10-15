@@ -7,7 +7,7 @@ preview, local planning facts, and **Continue to request**, which hands the buil
 ordinary print request on `/order.html`. The server never builds geometry; it re-validates the
 parameters as provenance. The uploaded 3MF is the object that is estimated and printed.
 
-Launch set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`.
+Launch set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`.
 
 This document describes the contract **as implemented**. Where the design spec
 ([2026-10-02-parametric-generators-design.md](superpowers/specs/2026-10-02-parametric-generators-design.md))
@@ -534,6 +534,34 @@ a locked field keeps its value. A draw must pass `validateParams` (contrast rule
 then trial-builds it (same worker, curated fonts only) and tries up to 8 draws before saying it
 found nothing that builds, leaving the settings as they were. Opt a new field out with
 `randomize: false` when changing it can break fit or scanning.
+
+## Display sign and holder (`display-sign`)
+
+The freeform generator: a countertop sign that reproduces the commissioned Chef Curt and Bradley's
+Bakery displays, and any layout in their spirit. It is flat-schema like the others (so drafts,
+validation, designs, Randomize and the order hand-off work unchanged) but built from **slots**:
+
+| Part | Fields | Notes |
+|---|---|---|
+| Palette | `color_1`..`color_5` | Color 1 is the sign body. Every element picks a palette slot (`"1"`..`"5"`) rather than a hex, so a sign uses at most five colors. |
+| Text | `t1_*`..`t8_*` | `text` (multi-line), `x`/`y` (mm from the board's middle, +y up), `size` (capital-letter height), `align`, `color`, `rot`, `fit` (maximum width, 0 = none) and a per-text font (`locationFontField`). A slot shows when the one before it has text. |
+| Shapes | `d1_*`..`d10_*` | `kind`: rounded-rectangle outline or plate, ring, disc, arc, line, heart, star, diamond, and envelope/globe/pin/phone icons (`customizer/generators/display-sign/shapes.js`). |
+| Logo | `logo`, `logo_colors`, `logo_x/y/w/h`, … | The customer's image, traced in the browser. 1 color = threshold silhouette (as the rating card); 2–4 = each pixel snaps to the nearest of Colors 2.. and the border color is the left-out background (`traceLayers`). The page passes `ctx.imageLayers` (`[{ index, contours }]`) or `ctx.imageContours`; neither is ever a parameter. |
+| QR | `qr_*` | Dark modules plus an optional background tile; printability is checked by `qrModuleEstimate` in `rules()` and warned in the build. |
+| Holder | `holder_*`, `lean_deg`, `fit_gap_mm`, `holder_card`, `card_w_mm`, `pocket_*`, `h1_*`, `h2_*` | A sloped-front holder with a slot that leans the sign back, an optional card pocket with a front notch, optional accent stripes (a color assigned to slabs of the body, no extra volume) and raised lettering on the front. `holderLayout()` in `public/assets/js/customize/sign.js` is the one place slot, pocket and wall positions are computed (rules and builder share it). |
+
+`output` selects `both` (the holder sits below the sign in one file), `sign` or `holder`. The commissioned
+designs are offered as separate sign and holder designs because a 225 mm pair does not fit one bed
+(the site's analyzer flags `exceeds_build_volume`; the build also warns).
+
+Painter's order (`build.js`): shapes, then the logo, then the QR, then text; each region is clipped to
+the board and has later regions of any color subtracted, so colored parts never overlap. Color 1 art is
+unioned into the body part. Sign body thickness is `thickness_mm - relief_mm`; the tongue is body thickness
+and the holder's slot is that plus `fit_gap_mm`.
+
+Designs use only block or curated fonts and no `http(s)://` literals (invariant 11 scans the bundle): QR
+payloads in designs are bare domains. The commissioned designs approximate each customer's logo with
+lettering and shapes; the customer adds the real logo on the page.
 
 ## Adding a generator
 

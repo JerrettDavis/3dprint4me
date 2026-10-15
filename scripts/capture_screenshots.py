@@ -165,6 +165,10 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Pumpkin cute · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin()),
             ("Pumpkin lantern advanced · desktop · dark", "/customize/g/pumpkin/", "customize-pumpkin-lantern-advanced-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, pumpkin("Jack-o'-lantern", advanced=True)),
             ("Pumpkin bowl · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-bowl-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin("Pumpkin bowl")),
+            ("Display sign starter · desktop · light", "/customize/g/display-sign/", "customize-display-sign-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, display_sign()),
+            ("Display sign Chef Curt 3D · desktop · dark", "/customize/g/display-sign/", "customize-display-sign-chef-curt-3d-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, display_sign("Chef Curt: sign", view="3D")),
+            ("Display sign Bradley's holder 3D · desktop · light", "/customize/g/display-sign/", "customize-display-sign-bradleys-holder-3d-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, display_sign("Bradley's Bakery: holder", view="3D")),
+            ("Display sign Bradley's · mobile · light", "/customize/g/display-sign/", "customize-display-sign-bradleys-mobile-light.png", (390, 844), "light", GENERATOR_READY, display_sign("Bradley's Bakery: sign")),
             ("Pumpkin knitted · mobile · dark", "/customize/g/pumpkin/", "customize-pumpkin-knitted-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, pumpkin("Knitted pumpkin")),
         ]:
             path = OUTPUT / filename
@@ -278,6 +282,20 @@ def pumpkin(design: str | None = None, *, advanced: bool = False):
         if advanced:
             page.get_by_role("button", name="Advanced", exact=True).click()
         page.wait_for_timeout(700)
+    return prepare
+
+
+def display_sign(design: str | None = None, *, view: str | None = None):
+    """Optionally start from a named design and switch the preview view; wait for the model."""
+    def prepare(page) -> None:
+        page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        if design:
+            page.evaluate("""(label) => { const n = [...document.querySelectorAll('.cz-design-name')].find(e => e.textContent.trim() === label); n.closest('button').click(); }""", design)
+            page.wait_for_timeout(500)
+            page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        if view:
+            page.locator(f'button[data-view="{view.lower()}"]').click()
+        page.wait_for_timeout(900)
     return prepare
 
 

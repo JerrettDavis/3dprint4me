@@ -970,6 +970,40 @@ def test_picking_a_font_then_typing_a_name_keeps_both(page: Page, base_url: str)
 # One shared storefront + operator workspace for the matrix (the operator store accumulates, so
 # each test finds its own request by a value unique to that run).
 
+def test_a_display_sign_design_builds_reveals_its_slots_and_continues(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/display-sign/")
+    wait_ready(page)
+    pick_design(page, "Chef Curt: sign")
+    expect(page.locator("[name='board_w_mm']")).to_have_value("225")
+    expect(page.locator("[name='t3_text']")).to_have_value("assistant@fromme2ucatering.com")
+    # Empty text slots stay hidden until the one before them is used.
+    expect(page.locator("[data-field='t7_text']")).to_be_hidden()
+    expect(page.locator("#cz-color-badge")).to_have_text("3 colors")
+    page.get_by_role("button", name="Continue to request").click()
+    expect(page).to_have_url(re.compile(r"/order\.html\?service=print&from=customize$"))
+
+
+def test_a_display_sign_logo_is_traced_in_the_browser_and_stays_out_of_the_parameters(page: Page, base_url: str, tmp_path: Path) -> None:
+    from PIL import Image, ImageDraw
+    logo = tmp_path / "logo.png"
+    img = Image.new("RGB", (120, 80), "white")
+    draw = ImageDraw.Draw(img)
+    draw.ellipse((10, 10, 60, 60), fill=(220, 66, 126))
+    draw.rectangle((70, 20, 110, 60), fill=(41, 46, 48))
+    img.save(logo)
+    page.goto(f"{base_url}/customize/g/display-sign/")
+    wait_ready(page)
+    page.locator("[name='logo']").select_option("custom")
+    expect(page.locator("#cz-image-area")).to_be_visible()
+    page.locator("[name='logo_colors']").first.fill("2")
+    page.locator("[name='logo_colors']").first.press("Tab")
+    page.set_input_files("#cz-image-file", str(logo))
+    wait_ready(page)
+    expect(page.locator("#cz-image-status")).to_contain_text("Traced from your 120 × 80 pixel image")
+    draft = page.evaluate("() => Object.entries(localStorage).filter(([k]) => k.startsWith('3dp-customize:display-sign')).map(([, v]) => v).join('')")
+    assert "logo.png" not in draft
+
+
 GENERATOR_IDS = sorted(p.name for p in (ROOT / "customizer/g").iterdir() if (p / "index.html").is_file())
 # Generators that print text and so have the shared font control (the pumpkin has none).
 TEXT_GENERATOR_IDS = [g for g in GENERATOR_IDS if "fontSchema" in (ROOT / f"public/assets/js/customize/generators/{g}.js").read_text(encoding="utf-8")]
@@ -1011,6 +1045,8 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         key, label, value = "caption", "Caption", f"GREAT {token[:6].upper()}"
     elif generator_id == "name-plate":
         key, label, value = "name", "Name", f"Robin {token[:4].upper()}"
+    elif generator_id == "display-sign":
+        key, label, value = "t1_text", "Text 1", f"SIGN {token[:6].upper()}"
     elif generator_id == "pumpkin":
         # No text to type: the width is a whole number of millimetres, unique per run inside the store.
         key, label, value = "diameter_mm", None, str(60 + int(token[:4], 16) % 100)

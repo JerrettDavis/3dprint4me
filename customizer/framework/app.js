@@ -11,7 +11,7 @@ import { hasSections, partSection, sectionLabel } from "./sections.js";
 import { DUR, enter, play, reducedMotion, setOpen } from "./motion.js";
 import { loadUi, saveUi } from "./ui-state.js";
 import { initWindows } from "./windows.js";
-import { createImageLoader, createTracer, drawTracePreview } from "./image-input.js";
+import { createImageLoader, createLayerTracer, createTracer, drawTracePreview } from "./image-input.js";
 import { createWorkerClient } from "./worker-client.js";
 import { buildFailureStatus } from "./build-status.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
@@ -136,6 +136,7 @@ function boot() {
   const imageField = imageSpec ? Object.keys(imageSpec.when)[0] : null;
   const image = { data: null, error: "" };
   const trace = createTracer();
+  const traceInks = createLayerTracer();
   const loadImage = createImageLoader();
   const client = createWorkerClient();
   let viewer = null;
@@ -342,12 +343,20 @@ function boot() {
       setStatus("error", STATUS_TEXT.invalid, { retryable: false });
       return;
     }
-    let imageContours;
+    let imageContours, imageLayers;
     if (imageSpec && isFieldVisible({ visibleWhen: imageSpec.when }, checked.value)) {
       try {
         if (!image.data) throw new Error(image.error || "Choose an image below, or pick a built-in icon.");
-        imageContours = trace(image.data, checked.value[imageSpec.threshold], checked.value[imageSpec.invert]);
-        showTrace(imageContours);
+        // A multi-color definition (the display sign) snaps the image to the palette colors it
+        // names; otherwise the image is a one-color silhouette cut at the threshold.
+        const inks = imageSpec.layers?.(checked.value);
+        if (inks) {
+          imageLayers = traceInks(image.data, inks);
+          showTrace(imageLayers.flatMap(l => l.contours));
+        } else {
+          imageContours = trace(image.data, checked.value[imageSpec.threshold], checked.value[imageSpec.invert]);
+          showTrace(imageContours);
+        }
       } catch (error) {
         state.result = null;
         clearFacts();
@@ -372,6 +381,7 @@ function boot() {
       const locationIds = locationFontIds(generator, checked.value);
       if (locationIds.length) options.locationFontIds = locationIds;
       if (imageContours) options.imageContours = imageContours;
+      if (imageLayers) options.imageLayers = imageLayers;
       const result = await client.build(generator.id, checked.value, options);
       if (seq !== buildSeq) return;
       state.result = result;
