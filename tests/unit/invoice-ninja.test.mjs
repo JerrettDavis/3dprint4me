@@ -105,3 +105,43 @@ test('unconfigured credentials never make a request', async () => {
   const api = createInvoiceNinja({ token: '', groupId: '', fetchImpl: () => { calls++; } });
   await assert.rejects(api.getInvoice('invoice123'), { code: 'invoicing_unconfigured' }); assert.equal(calls, 0);
 });
+
+test('only the same adapter can reuse its opaque client validation before draft creation', async () => {
+  const responder = (url, init) => init.method === 'GET' ? json(client()) : json(remote());
+  const { api, calls } = setup(responder);
+  const validatedClient = await api.getClient('client123');
+  await api.createDraft({ billing: billing(), operationId: 'operation123', validatedClient });
+  assert.equal(calls.filter(call => call.method === 'GET').length, 1);
+  for (const proof of [{ ...validatedClient }, (await setup(responder).api.getClient('client123'))]) {
+    const guarded = setup(() => json(client({ group_settings_id: 'other123' })));
+    await assert.rejects(guarded.api.createDraft({ billing: billing(), operationId: 'operation123', validatedClient: proof }), { code: 'invoice_client_invalid' });
+    assert.equal(guarded.calls.some(call => call.method === 'POST'), false);
+  }
+  const other = setup(url => json(client({ id: url.endsWith('/other123') ? 'other123' : 'client123', group_settings_id: url.endsWith('/other123') ? 'group123' : 'other123' })));
+  const otherClientProof = await other.api.getClient('other123');
+  await assert.rejects(other.api.createDraft({ billing: billing(), operationId: 'operation123', validatedClient: otherClientProof }), { code: 'invoice_client_invalid' });
+  assert.equal(other.calls.some(call => call.method === 'POST'), false);
+});
+
+test('the whole provider budget stops cumulative slow lookups before any invoice POST', async () => {
+  let posts = 0;
+  const api = createInvoiceNinja({ token: 'private-token', groupId: 'group123', timeoutMs: 100, budgetMs: 25, fetchImpl: async (url, init) => {
+    if (init.method === 'POST') posts++;
+    await new Promise(resolve => setTimeout(resolve, 20));
+    return url.includes('/clients/') ? json(client({ settings: {} })) : json({ id: 'group123', settings: { currency_id: '1' } });
+  } });
+  await assert.rejects(api.createDraft({ billing: billing(), operationId: 'operation123' }), { code: 'invoice_provider_unavailable' });
+  assert.equal(posts, 0);
+});
+
+test('an expired provider budget cannot dispatch even with valid client preflight', async () => {
+  let posts = 0;
+  const api = createInvoiceNinja({ token: 'private-token', groupId: 'group123', budgetMs: 25, fetchImpl: async (url, init) => {
+    if (init.method === 'POST') posts++;
+    return json(client());
+  } });
+  const validatedClient = await api.getClient('client123');
+  await new Promise(resolve => setTimeout(resolve, 35));
+  await assert.rejects(api.createDraft({ billing: billing(), operationId: 'operation123', validatedClient }), { code: 'invoice_provider_unavailable' });
+  assert.equal(posts, 0);
+});
