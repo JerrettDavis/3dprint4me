@@ -161,11 +161,13 @@ class SiteBrowser:
         color_scheme: str = "light",
         reduced_motion: str = "no-preference",
         device_scale_factor: float = 1,
+        service_workers: str = "allow",
     ) -> None:
         self.viewport = viewport
         self.color_scheme = color_scheme
         self.reduced_motion = reduced_motion
         self.device_scale_factor = device_scale_factor
+        self.service_workers = service_workers
         self._playwright = None
         self.browser: Browser | None = None
         self.context: BrowserContext | None = None
@@ -187,6 +189,7 @@ class SiteBrowser:
             color_scheme=self.color_scheme,
             reduced_motion=self.reduced_motion,
             device_scale_factor=self.device_scale_factor,
+            service_workers=self.service_workers,
         )
         self.page = self.context.new_page()
         self._attach_page_listeners()

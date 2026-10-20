@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -316,11 +317,18 @@ def capture_operator_states() -> list[tuple[str, Path]]:
             ("Operator job sheet · mobile · light", "operator-detail-mobile-light.png", (390, 844), "light", True),
             ("Operator print estimate · desktop · light", "operator-print-estimate-desktop-light.png", (1440, 1000), "light", "print"),
             ("Operator print estimate · mobile · dark", "operator-print-estimate-mobile-dark.png", (390, 844), "dark", "print"),
+            ("Operator invoice draft · desktop · light", "operator-invoice-desktop-light.png", (1440, 1000), "light", "invoice"),
+            ("Operator invoice form · mobile · dark", "operator-invoice-mobile-dark.png", (390, 844), "dark", "invoice-form"),
         ]:
             path = OUTPUT / filename
-            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce", service_workers="block" if str(open_detail).startswith("invoice") else "allow") as site:
                 page = site.page
                 assert page is not None
+                if str(open_detail).startswith("invoice"):
+                    operation = None if open_detail == "invoice-form" else {"state": "draft", "totals": {"subtotalCents": 14000, "taxCents": 1192, "totalCents": 15192}, "provider": {"number": "3DP-2026-example", "status": "draft", "balanceCents": 15192, "editorUrl": "https://app.invoicing.co/#/invoices/invoice123/edit"}}
+                    def invoice_route(route):
+                        route.fulfill(status=200, content_type="application/json", body=json.dumps({"configured": True, "operation": operation}), headers={"Access-Control-Allow-Origin": operator, "Access-Control-Allow-Credentials": "true"})
+                    page.route("**/api/operator-work?resource=invoices*", invoice_route)
                 page.goto(operator, wait_until="networkidle")
                 page.locator("#workspace:not([hidden])").wait_for()
                 if open_detail == "print":
@@ -330,8 +338,15 @@ def capture_operator_states() -> list[tuple[str, Path]]:
                 elif open_detail:
                     page.locator("#work-list .work-row", has_text="Replacement alignment bracket").click()
                     page.locator("#detail-content:not([hidden])").wait_for()
+                    if str(open_detail).startswith("invoice"):
+                        panel = page.locator(".invoice-sheet")
+                        if open_detail == "invoice-form":
+                            panel.locator("summary").click()
+                        else:
+                            panel.get_by_text("Draft ready for review", exact=True).wait_for()
+                        panel.scroll_into_view_if_needed()
                 site.screenshot(path, full_page=False)
-                site.assert_no_page_errors()
+                site.assert_no_page_errors(allow_console_warnings=["Service Worker registration blocked by Playwright"] if str(open_detail).startswith("invoice") else [])
             captured.append((label, path))
     return captured
 
