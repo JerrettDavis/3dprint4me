@@ -3,7 +3,7 @@
 Status: approved draft-only workflow on 2026-10-20. The owner explicitly requires
 all invoices to remain drafts until manually dispatched. No send action is part
 of this integration. Account setup and a real ad hoc draft
-already exist; website automation is not implemented.
+already exist; implementation and activation status are recorded in the plan and runbook.
 
 ## Outcome
 
@@ -20,7 +20,7 @@ estimates are non-binding. The operator enters confirmed billable scope and
 prices before creating an invoice. Do not convert an estimate, change of work
 status, or customer upload into a charge automatically.
 
-My proposed default: a confirmed billing action creates a draft automatically;
+Approved default: a confirmed billing action creates a draft automatically;
 the operator reviews the PDF and sends from Invoice Ninja. The operator app
 links directly to that invoice. This delivers website-generated invoices without
 introducing automatic customer emails before the workflow has been validated.
