@@ -39,6 +39,14 @@ credentials. Validate it in memory and emit only structural results.
   origins, and `PLATFORM_JOBS_ENABLED`. Runtime credentials must not own tables.
 - `tunnel.token`: dedicated connector token, mounted read-only and passed by file,
   never a command-line token or a credential embedded in Compose/source.
+- `jobs.env` and `slicer.env`: worker-only database and provider configuration;
+  exclude API signing, OIDC, billing and email credentials. Both select native
+  PostgreSQL. Slicer polling remains 300000 milliseconds.
+- `database-target.private.json`: a versioned handover manifest, mounted read-only
+  as one file. Start in `prepared` phase; an in-progress `fencing` phase prevents
+  an ambiguous restart from accepting traffic. The final `fenced-and-restored`
+  manifest contains a generation UUID, private runtime database URL, source dump
+  SHA256, and counts for all 18 source application tables.
 - Separate owner/migrator credentials are retained privately for schema changes.
 
 Preserve the existing private Blob token, VAPID keypair, sender settings and any
@@ -46,6 +54,12 @@ configured capability/rate-limit secrets. Vercel Sensitive variables may be mask
 on export; an empty downloaded value is not a usable replacement credential.
 Resolve those credentials before activation. Do not copy Vercel OIDC runtime
 tokens, unrelated provider credentials or PostgreSQL-admin passwords into the API.
+
+`PLATFORM_CONTROL_DATABASE_URL` names the local replay/activation database and
+stays fixed during the business-data handover. The same private PostgreSQL
+container can hold the candidate/control database and the separately restored
+`platform_live_*` business database. The API's `OPERATOR_OWNER_SUBJECT` is the
+explicit approved subject used to validate activation, never an email lookup.
 
 The Vercel storefront needs only `SELF_HOSTED_API_ORIGIN=https://api.3dprint4.me`
 and the server-only forwarding secret when forwarding is enabled. Forwarding is
@@ -107,11 +121,38 @@ Before changing production routing:
    owner login, four intake paths, private files, estimates and draft-only billing.
    Candidate tests must not email existing customers or dispatch invoices.
 3. Verify bounded API transport and a handover that fences source writes and
-   captures a fresh consistent export. The initial recovery snapshot alone is
+captures a fresh consistent export. The initial recovery snapshot alone is
    insufficient: writes accepted since that snapshot must be preserved.
 4. Complete tests, screenshots, secret scans, fresh review, candidate image checks,
    private backups and their restore verification.
 5. Record the exact writer/routing switch and live checks. Keep Neon intact.
+
+The handover first forwards traffic through the local API while its business
+connection still targets Neon and authentication remains in legacy mode. Replay
+proofs already use local control storage. Local-only, credentialed handover
+controls pause and drain handlers before SQL and hold a bounded queue of requests.
+
+Neon's default owner inherits `pg_write_all_data`; revoking ordinary table ACLs
+does not reliably fence it. `lib/platform/source-fence.js` installs verified
+`ENABLE ALWAYS` statement triggers for INSERT, UPDATE, DELETE and TRUNCATE on
+all 18 tables in one transaction under exclusive table locks. A zero-row probe
+must be denied. Existing ACLs are unchanged. Unknown public SECURITY DEFINER
+functions and mismatched schema/ownership refuse fencing.
+
+The final fenced dump restores into a new `platform_live_*` database. Its copied
+temporary fence is removed only through the separately named target guard,
+before 007/008 or writes; the source retains its fence. Activation verifies every
+source table count, the runtime role, absence of the copied fence, and the exact
+owner binding. It persists an append-only database selection in local control
+storage before allowing target traffic. Startup restores that selection before
+listening, even when the old environment still names Neon; it never requires
+unchanged row counts after legitimate target writes. Unavailable or inconsistent
+selection fails closed, with no silent return to Neon.
+
+Source rollback is permitted only before a target selection exists and before
+target writes. It verifies and removes only its own fence triggers/function;
+no ACL grants are guessed or broadened. After selection is persisted, recovery
+continues against the target. A reverse database move needs a separate plan.
 
 ## Recovery and limits
 

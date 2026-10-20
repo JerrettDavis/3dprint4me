@@ -39,6 +39,13 @@ CREATE TABLE IF NOT EXISTS platform_job_leases (
   worker_id uuid NOT NULL,
   expires_at timestamptz NOT NULL
 );
+CREATE TABLE IF NOT EXISTS platform_deployment_state (
+  singleton boolean PRIMARY KEY DEFAULT true CHECK (singleton),
+  generation uuid NOT NULL,
+  database_name text NOT NULL CHECK (database_name ~ '^platform_live_[a-z0-9_]{1,48}$'),
+  source_dump_sha256 text NOT NULL CHECK (source_dump_sha256 ~ '^[a-f0-9]{64}$'),
+  activated_at timestamptz NOT NULL DEFAULT now()
+);
 
 -- Serialize capacity checks across API processes, and fail closed at the bound.
 CREATE OR REPLACE FUNCTION platform_capacity_guard() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -67,6 +74,7 @@ GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO platform_backend;
 REVOKE INSERT,UPDATE,DELETE ON operators FROM platform_backend;
 GRANT UPDATE(last_seen_at,updated_at) ON operators TO platform_backend;
 REVOKE INSERT,UPDATE,DELETE ON operator_identity_bindings FROM platform_backend;
+REVOKE UPDATE,DELETE ON platform_deployment_state FROM platform_backend;
 
 -- These are backend-role policies. Per-operator access remains enforced by the
 -- application; browsers never receive a database credential or database endpoint.

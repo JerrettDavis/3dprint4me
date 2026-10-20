@@ -17,3 +17,11 @@ test('push, auth expiry and model retention use independent bounded schedules',a
   time=60000;await jobs.tick();assert.deepEqual(calls,['push','expiry']);calls.length=0;
   time=6*3600000;await jobs.tick();assert.deepEqual(calls,['push','expiry','cleanup']);
 });
+
+test('a stalled push provider cannot delay auth and replay expiry',async()=>{
+  let time=0,expiries=0,release;
+  const blocked=new Promise(r=>{release=r;});
+  const jobs=createPlatformJobs({env:{PLATFORM_JOBS_ENABLED:'1'},now:()=>time,drain:()=>blocked,expire:async()=>{expiries++;},cleanup:async()=>{}});
+  const first=jobs.tick();await Promise.resolve();time=60000;
+  await jobs.tick();assert.equal(expiries,2);release();await first;
+});

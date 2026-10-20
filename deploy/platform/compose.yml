@@ -38,6 +38,7 @@ services:
     <<: *app
     build: {context: ../.., dockerfile: deploy/platform/Dockerfile}
     depends_on: {postgres: {condition: service_healthy}}
+    volumes: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/database-target.private.json:/run/platform/database-target.private.json:ro"]
     healthcheck:
       test: [CMD, node, -e, "fetch('http://127.0.0.1:8080/internal/ready',{headers:{authorization:'Bearer '+process.env.PLATFORM_PROXY_SECRET}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 15s
@@ -45,9 +46,29 @@ services:
       retries: 3
   jobs:
     <<: *app
+    env_file: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/jobs.env"]
     command: [node, scripts/platform-jobs.mjs]
     profiles: [writers]
     depends_on: {postgres: {condition: service_healthy}}
+  slicer:
+    image: 3dprint4me-slicer:${PLATFORM_RELEASE:?PLATFORM_RELEASE is required}
+    build: {context: ../.., dockerfile: deploy/slicer-worker/Dockerfile.bambu}
+    env_file: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/slicer.env"]
+    profiles: [writers]
+    depends_on: {postgres: {condition: service_healthy}}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:size=512m,mode=1777", "/home/worker:size=64m,uid=10001,gid=10001,mode=0700"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [database, egress]
+    init: true
+    mem_limit: 2g
+    memswap_limit: 2g
+    cpus: 2.0
+    pids_limit: 256
+    stop_grace_period: 30s
+    logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
   tunnel:
     image: cloudflare/cloudflared:2026.10.0@sha256:9b49eed8f62806d5d45ddf59ecefb5710429598ea6d3fcccd2af938f621b2b07
     user: "1000:1000"
