@@ -1,3 +1,4 @@
+import { withPlatformProxy } from "../lib/platform/proxy.js";
 import { authorizeHomeAssistant } from "../lib/home-assistant-auth.js";
 import { handleApiError, HttpError, requireMethod, sendJson } from "../lib/http.js";
 import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
@@ -27,6 +28,8 @@ export function createHomeAssistantWorkHandler({ runtime, token = process.env.HO
   };
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   return createHomeAssistantWorkHandler()(req, res);
 }
+
+export default withPlatformProxy(handler);
