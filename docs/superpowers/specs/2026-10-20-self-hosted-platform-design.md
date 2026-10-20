@@ -1,6 +1,14 @@
 # Remove the Neon production dependency
 
-Status: proposed; implementation and production cutover await owner review.
+Status: approved by owner on 2026-10-20; implementation in progress.
+
+Owner update: start a fresh application database now and recover historical Neon
+records later. The owner does not believe a backup exists and considers the old
+data low value. This supersedes the source-export prerequisite for initial
+cutover below. Preserve Neon and existing private objects; do not delete source
+records or later overwrite newly accepted target work during recovery. Bootstrap
+the approved owner against an exact Authentik subject. Historical import is a
+separate staged, conflict-checked operation, not a production database restore.
 
 ## Intent and observed state
 
