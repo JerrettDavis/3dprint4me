@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- Owner explicitly authorized a fresh target now; preserve Neon for later recovery.
+- Neon access was restored after the owner upgraded billing. Migrate the recovered records; preserve the source for rollback. The initial encrypted snapshot has passed an isolated PG18 restore. Final cutover still requires writer fencing and a fresh consistent export so writes since that snapshot are retained.
 - Only `public/` is storefront output. No secret in source, static assets or logs.
 - Database port stays private; runtime is not owner/superuser/BYPASSRLS.
 - Four service paths, private uploads, immutable estimates, operation idempotency and owner authorization remain enforced.
@@ -35,9 +35,9 @@
 
 **Interfaces:** `createNativeDatabase({pool})` returns tagged `query`, atomic `transaction(statements)`, `close`; `getDatabase()` selects `DATABASE_DRIVER=neon|postgres`; `databaseProvider()` reports current provider. Existing `queryNeon` remains a compatibility alias consumed by all SQL repositories.
 
-- [ ] Write/observe RED tests for parameter binding, undefined/null, transaction commit/rollback/release and sanitized errors.
-- [ ] Implement bounded pooled native SQL and preserve Neon default; normalize temporal values consistently.
-- [ ] Make migration/health select the same database boundary; native mode must not call Neon HTTP.
+- [x] Write/observe RED tests for parameter binding, undefined/null, transaction commit/rollback/release and sanitized errors.
+- [x] Implement bounded pooled native SQL and preserve Neon default; normalize temporal values consistently.
+- [x] Make migration/health select the same database boundary; native mode must not call Neon HTTP.
 - [ ] Run affected tests and real repository contracts; commit.
 
 ### Task 2: Signed API transport and production listener
