@@ -16,6 +16,8 @@ export default defineConfig({
     }
   },
   triggers: {
-    pushOutboxEveryMinute: { type: "schedule", function: "pushoutbox", cron: "* * * * *" }
+    // Backstop sweep only. New outbox rows are pushed immediately through PUSH_WORKER_URL (lib/push-trigger.js);
+    // a per-minute schedule kept Neon compute awake around the clock.
+    pushOutboxBackstop: { type: "schedule", function: "pushoutbox", cron: "*/15 * * * *" }
   }
 });

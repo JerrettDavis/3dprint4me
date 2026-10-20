@@ -2,7 +2,7 @@ name: Print Estimate Cleanup
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Every hour
+    - cron: '0 */6 * * *'  # Every 6 hours
   workflow_dispatch:
 
 permissions:
@@ -29,4 +29,12 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
           BLOB_READ_WRITE_TOKEN: ${{ secrets.VERCEL_BLOB_TOKEN }}
-        run: npm run estimate:cleanup
+        run: |
+          set +e
+          npm run estimate:cleanup 2>&1 | tee cleanup.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ] && grep -q "Project storage is temporarily unavailable" cleanup.log; then
+            echo "::warning::Neon reported 'Project storage is temporarily unavailable' (compute quota or suspension); cleanup skipped and will retry on the next run."
+            exit 0
+          fi
+          exit "$status"
