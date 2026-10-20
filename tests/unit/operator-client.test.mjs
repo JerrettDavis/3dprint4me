@@ -4,7 +4,16 @@ import test from "node:test";
 import { createApiClient, OperatorApiError } from "../../operator/assets/api-client.js";
 import { createPushClient, urlBase64ToUint8Array } from "../../operator/assets/push-client.js";
 import { allowedTransitions, filterWork, sortWork } from "../../operator/assets/work-state.js";
-import { createAuthClient } from "../../operator/assets/auth-client.js";
+import { createAuthClient, createCookieAuthClient } from "../../operator/assets/auth-client.js";
+
+test('cookie auth navigates only to the fixed API and never reads or returns a browser token',async()=>{
+  const navigations=[],calls=[];
+  const auth=createCookieAuthClient({apiBase:'https://api.3dprint4.me',navigate:url=>navigations.push(url),fetchImpl:async(url,options)=>{calls.push({url,options});return new Response('{}');}});
+  await auth.signIn();assert.deepEqual(navigations,['https://api.3dprint4.me/api/auth/login']);
+  assert.deepEqual(await auth.sessionHeaders(),{});await auth.signOut();
+  assert.equal(calls[0].url,'https://api.3dprint4.me/api/auth/logout');assert.equal(calls[0].options.credentials,'include');assert.equal(calls[0].options.method,'POST');
+  assert.throws(()=>createCookieAuthClient({apiBase:'https://evil.example'}));
+});
 
 test("operator API client uses credentialed requests and distinguishes recovery classes", async () => {
   const calls = [];

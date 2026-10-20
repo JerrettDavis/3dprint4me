@@ -2,13 +2,13 @@
 
 Status: approved by owner on 2026-10-20; implementation in progress.
 
-Owner update: start a fresh application database now and recover historical Neon
-records later. The owner does not believe a backup exists and considers the old
-data low value. This supersedes the source-export prerequisite for initial
-cutover below. Preserve Neon and existing private objects; do not delete source
-records or later overwrite newly accepted target work during recovery. Bootstrap
-the approved owner against an exact Authentik subject. Historical import is a
-separate staged, conflict-checked operation, not a production database restore.
+Owner update: Neon access was restored after a billing upgrade. A private public-schema
+export has now been stored in two encrypted off-host repositories, verified byte
+for byte, and restored successfully into an isolated PostgreSQL18 container.
+Migrate the recovered records rather than starting empty. Preserve Neon and private
+objects. Bootstrap the existing operator against an exact Authentik subject.
+A fresh, fenced export is still required at final cutover to retain any new writes.
+The earlier fresh-start approval remains fallback permission only.
 
 ## Intent and observed state
 
@@ -19,9 +19,8 @@ and continuity of service. Existing invoices remain drafts until manual dispatch
 The earlier completed phase is PR #43: fewer Neon scheduler/polling wake-ups.
 Main now includes draft invoicing in PR #44. Its activation is disabled pending
 database availability and a securely configured Invoice Ninja credential.
-Both Neon's HTTPS SQL service and native PostgreSQL connections currently reject
-reads with a quota-exceeded error (native SQLSTATE 53000). A source export cannot
-currently be obtained. No database export was found in the local backup locations
+Before the upgrade both Neon's HTTPS SQL service and native PostgreSQL rejected
+reads with a quota-exceeded error (native SQLSTATE 53000). Native reads now work. No database export was found in the local backup locations
 checked; schema migration files are not a data backup.
 
 Read-only inspection confirms the existing Docker host is reachable, has spare

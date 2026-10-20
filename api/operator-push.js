@@ -1,4 +1,5 @@
-import { authorizeOperator, createNeonIdentityProvider } from "../lib/operator-auth.js";
+import { withPlatformProxy } from "../lib/platform/proxy.js";
+import { authorizeOperator, createConfiguredIdentityProvider } from "../lib/operator-auth.js";
 import { configuredOperatorOrigins, createOperatorApiHandler } from "../lib/operator-api.js";
 import { parsePushSubscription } from "../lib/work-management/domain.js";
 import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
@@ -20,7 +21,7 @@ function endpoint(value) {
 export function createPushHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), vapidPublicKey = process.env.VAPID_PUBLIC_KEY ?? "", pushConfigured = Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.VAPID_SUBJECT) } = {}) {
   const work = resolveWorkManagementRuntime({ runtime, repository: store });
   let provider = identityProvider;
-  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
+  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createConfiguredIdentityProvider()));
   return createOperatorApiHandler({ methods: ["GET", "POST"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
     if (req.method === "GET") return { supported: pushConfigured, vapidPublicKey: pushConfigured ? vapidPublicKey : null, subscribed: pushConfigured ? await work.service.hasPushSubscription(operator) : false };
     if (!pushConfigured) throw new HttpError(503, "Push notifications are not configured.");
@@ -46,4 +47,6 @@ export function createPushHandler({ store, runtime, identityProvider, authorize,
   } });
 }
 
-export default async function handler(req, res) { return createPushHandler()(req, res); }
+async function handler(req, res) { return createPushHandler()(req, res); }
+
+export default withPlatformProxy(handler);
