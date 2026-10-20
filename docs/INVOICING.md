@@ -136,6 +136,15 @@ and [API reference](https://api-docs.invoicing.co/).
 
 ## Remaining release checks
 
+Local verification: the final full project run passed 949 unit/contract tests, 199 E2E
+tests and 241 UX audit checks. Review fixes also passed 27 focused billing
+unit/contract tests and five billing browser scenarios. A fresh full run against
+the latest main branch is recorded in the feature worktree's execution ledger.
+The screenshot run produced 66 images; the preview board and mobile billing
+form were visually inspected. A fresh reviewer verified the currency inheritance,
+preflight and session-expiry fixes. Production Invoice Ninja environment variables
+were absent in the read-only Vercel check on 2026-10-20; nothing is activated yet.
+
 Finish and visually inspect the brand template and a real draft; confirm the
 customer's actual delivery destination and current tax rate; finish full-suite
 verification and deployment; configure the server credential through a secure setup flow;
