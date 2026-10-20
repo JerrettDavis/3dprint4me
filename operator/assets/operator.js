@@ -4,6 +4,7 @@ import { createPushClient } from "./push-client.js";
 import { createAuthClient } from "./auth-client.js";
 import { renderPrintEstimation } from "./print-detail.js";
 import { renderCustomization } from "./customization-detail.js";
+import { renderInvoiceDetail } from "./invoice-detail.js";
 
 // A sign-in round trip (GitHub redirect, then the Neon session-verifier exchange) can briefly answer 401 before the
 // session exists. When `expectSession()` says we just came back from one, wait for it instead of reporting "signed out".
@@ -60,7 +61,7 @@ export function createOperatorController({ api, view, expectSession = () => fals
 
 const title = value => String(value ?? "").replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
 function el(name, className, text) { const node = document.createElement(name); if (className) node.className = className; if (text != null) node.textContent = text; return node; }
-function createDomView() {
+function createDomView(api) {
   const q = selector => document.querySelector(selector); const list = q("#work-list"), detail = q("#detail-content"), placeholder = q("#detail-placeholder"), filters = q("#filters"), status = q("#status-message"), toast = q("#toast"); let controller, toastTimer;
   const view = {
     attach(value) { controller = value; }, filters: () => Object.fromEntries(new FormData(filters)), noteDraft: () => q("#private-note")?.value ?? "",
@@ -91,7 +92,8 @@ function createDomView() {
       const activity = el("section", "history"); activity.append(el("h3", "", "Activity")); for (const event of events) activity.append(el("p", "", `${title(event.type)} · ${new Date(event.occurredAt).toLocaleString()}`)); for (const savedNote of notes) activity.append(el("blockquote", "", savedNote.body));
       const print = renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) });
       const customization = request?.customization ? renderCustomization(request) : null;
-      if (options.saved) heading.classList.add("saved-flash"); detail.append(back, heading, actions, facts, ...(customization ? [customization] : []), ...(print ? [print] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
+      const billing = controller.snapshot().operator?.role === "owner" ? renderInvoiceDetail({ item, api, onAuthError: () => { controller.clearPrivate(); controller.start(); } }) : null;
+      if (options.saved) heading.classList.add("saved-flash"); detail.append(back, heading, actions, facts, ...(customization ? [customization] : []), ...(print ? [print] : []), ...(billing ? [billing] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
     }, announce(message, kind = "info") { status.textContent = message; toast.textContent = message; toast.dataset.kind = kind; toast.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, kind === "error" ? 9000 : 3500); }, openDownload(url) { location.assign(url); }
   }; filters.onchange = () => controller.loadList(); return view;
 }
@@ -101,7 +103,7 @@ async function bootstrap() {
   let auth = null; if (config.authBase) { const { createNeonBrowserAuth } = await import("./neon-auth.js"); const neon = createNeonBrowserAuth(config.authBase); auth = createAuthClient({ client: neon.client, getToken: neon.getToken }); }
   const store = (() => { try { return sessionStorage; } catch { return null; } })();
   const returningFromSignIn = () => Boolean(store?.getItem(SIGN_IN_PENDING_KEY)) || new URLSearchParams(location.search).has("neon_auth_session_verifier");
-  const api = createApiClient({ apiBase: config.apiBase ?? "", getSessionHeaders: auth?.sessionHeaders ?? (async () => ({})) }); const view = createDomView(); const controller = createOperatorController({ api, view, expectSession: returningFromSignIn }); view.attach(controller);
+  const api = createApiClient({ apiBase: config.apiBase ?? "", getSessionHeaders: auth?.sessionHeaders ?? (async () => ({})) }); const view = createDomView(api); const controller = createOperatorController({ api, view, expectSession: returningFromSignIn }); view.attach(controller);
   document.querySelector("#sign-in").onclick = async event => {
     if (!auth) return controller.start();
     const button = event.currentTarget; button.disabled = true; button.textContent = "Redirecting to GitHub…"; try { store?.setItem(SIGN_IN_PENDING_KEY, "1"); } catch {}
