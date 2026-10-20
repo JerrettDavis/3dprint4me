@@ -15,6 +15,8 @@ export function createApiClient({ apiBase = "", getSessionHeaders = async () => 
     session: () => request("/api/operator-session"),
     listWork: filters => request(`/api/operator-work?${new URLSearchParams(filters ?? {})}`),
     getWork: id => request(`/api/operator-work?id=${encodeURIComponent(id)}`),
+    invoiceStatus: workId => request(`/api/operator-work?resource=invoices&workId=${encodeURIComponent(workId)}`),
+    invoiceAction: (action, value) => request("/api/operator-work?resource=invoices", { method: "POST", body: JSON.stringify({ action, ...value }) }),
     events: (after = "0") => request(`/api/operator-work?eventsAfter=${encodeURIComponent(after)}`),
     updateWork: (id, command, idempotencyKey = crypto.randomUUID()) => request("/api/operator-work-update", { method: "PATCH", body: JSON.stringify({ id, command, idempotencyKey }) }),
     printAssetDownload: (workId, assetId) => request(`/api/operator-print?resource=asset-download&workId=${encodeURIComponent(workId)}&assetId=${encodeURIComponent(assetId)}`),
