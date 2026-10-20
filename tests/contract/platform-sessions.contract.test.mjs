@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { createSessionStore } from '../../lib/operator-identity/store.js';
+import { createControlStore } from '../../lib/platform/control-store.js';
 
 test('private session storage consumes flows atomically and rechecks disabled and removed bindings',async()=>{
   const db=new PGlite();
@@ -19,10 +20,20 @@ test('private session storage consumes flows atomically and rechecks disabled an
     assert.deepEqual(await store.findSession(hash),{authUserId:'legacy-id'});
     await db.exec("UPDATE operators SET enabled=false");assert.equal(await store.findSession(hash),null);
     await db.exec("UPDATE operators SET enabled=true; DELETE FROM operator_identity_bindings");assert.equal(await store.findSession(hash),null);
+    const control=createControlStore({query});
+    assert.equal(await control.consumeNonce('n'.repeat(32),Date.now()+60000),true);
+    const selection={generation:'4a634eea-7a65-42dc-9b75-fce884ccdf1d',databaseName:'platform_live_contract',sourceDumpSha256:'f'.repeat(64)};
+    assert.equal(await control.getSelection(),null);await control.persistSelection(selection);
+    assert.deepEqual(await control.getSelection(),selection);
+    await assert.rejects(control.persistSelection({...selection,databaseName:'platform_live_other'}));
+    assert.equal(await control.consumeNonce('n'.repeat(32),Date.now()+60000),false);
+    await db.exec("UPDATE platform_proxy_nonces SET expires_at=now()-interval '1 minute'");
+    assert.equal(await control.consumeNonce('n'.repeat(32),Date.now()+60000),true);
     await db.exec('SET ROLE platform_backend');
     assert.equal((await db.query('SELECT * FROM operators')).rows.length,1);
     await assert.rejects(db.exec("UPDATE operators SET enabled=true"));
     await assert.rejects(db.exec("INSERT INTO operator_identity_bindings(issuer,subject,operator_id) VALUES('https://auth.example/','attacker','op_owner')"));
     await assert.rejects(db.exec('CREATE TABLE public.should_be_denied(id text)'));
+    await assert.rejects(db.exec("UPDATE platform_deployment_state SET database_name='platform_live_other'"));
   }finally{await db.close();}
 });
