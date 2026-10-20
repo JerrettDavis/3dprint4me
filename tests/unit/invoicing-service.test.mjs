@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createLocalInvoiceRepository } from '../../lib/invoicing/local-repository.js';
 import { createInvoicingService } from '../../lib/invoicing/service.js';
+import { createInvoiceNinja } from '../../lib/invoicing/invoice-ninja.js';
 import { billingFixture, ownerFixture, workFixture, invoiceFixture } from '../fixtures/billing.mjs';
 
 async function context(provider) {
@@ -14,6 +15,23 @@ async function context(provider) {
   return { service: createInvoicingService({ repository, workRepository: work, provider: { getClient: async () => ({ id: 'client123' }), ...provider }, makeId: () => 'operation123' }), cleanup: () => rm(dir, { recursive: true, force: true }) };
 }
 const command = () => ({ workId: 'work_example123', revision: 1, idempotencyKey: 'click12345', billing: billingFixture() });
+
+test('real service and provider perform inherited client validation once before reservation', async () => {
+  const calls = [];
+  const provider = createInvoiceNinja({ token: 'private-token', groupId: 'group123', fetchImpl: async (url, init) => {
+    calls.push(new URL(url).pathname);
+    const data = url.includes('/clients/') ? { id: 'client123', group_settings_id: 'group123', settings: {} }
+      : url.includes('/group_settings/') ? { id: 'group123', settings: {} }
+      : url.endsWith('/companies/current') ? { settings: { currency_id: '1' } }
+      : { id: 'invoice123', client_id: 'client123', number: '3DP-2026-operation123', status_id: '1', amount: 151.92, total_taxes: 11.92, balance: 151.92, paid_to_date: 0 };
+    return new Response(JSON.stringify({ data }), { headers: { 'content-type': 'application/json' } });
+  } });
+  const c = await context(provider);
+  try {
+    assert.equal((await c.service.create(command(), ownerFixture)).state, 'draft');
+    assert.deepEqual(calls, ['/api/v1/clients/client123', '/api/v1/group_settings/group123', '/api/v1/companies/current', '/api/v1/invoices']);
+  } finally { await c.cleanup(); }
+});
 
 test('concurrent owner clicks dispatch one draft and never send', async () => {
   let creates = 0;

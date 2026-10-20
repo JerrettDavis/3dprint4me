@@ -106,7 +106,11 @@ Invoice Ninja and refreshed. Refresh reads payment status and records when it
 was checked; it does not continuously sync or verify browser return URLs.
 
 The adapter pins HTTPS to `invoicing.co`, refuses redirects, bounds request and
-body-read time, limits JSON to 512 KB, and sanitizes errors. Its conditional
+body-read time, limits JSON to 512 KB, and sanitizes errors. All provider calls
+share a 30-second request-scoped budget within the 45-second function limit.
+An opaque adapter-issued client validation result avoids repeating preflight
+after the durable billing operation is reserved; caller-supplied objects cannot
+bypass validation. Its conditional
 `POST /companies/current` settings lookup is read-only in the official controller.
 Prior Stripe deposits must be reconciled before confirming a balance invoice.
 
