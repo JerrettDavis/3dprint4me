@@ -1,5 +1,15 @@
 # Deployment Guide
 
+## Optional Invoice Ninja drafts
+
+Billing reuses the operator API so no thirteenth function is added. Follow
+[INVOICING.md](INVOICING.md) for migration 007, the company-specific server token,
+group configuration, manual-dispatch policy and recovery checks. Keep
+`INVOICE_NINJA_ENABLED=0` until the migration, operator build and secure credential
+are ready for activation. Verify one non-sent draft after activation. Roll back
+by disabling billing first; retain the private additive table to preserve remote
+invoice identities and ambiguous operations. Intake remains independent.
+
 ## Recommended production shape
 
 - Vercel serves the `public/` directory and runs the Node functions in `api/`.

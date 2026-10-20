@@ -32,7 +32,7 @@ if (localOperatorEnabled()) {
   const identityProvider = getLocalIdentityProvider();
   const allowedOrigins = configuredOperatorOrigins();
   apiRoutes.set("/api/operator-session", createSessionHandler({ store, identityProvider, allowedOrigins }));
-  apiRoutes.set("/api/operator-work", createWorkHandler({ store, identityProvider, allowedOrigins }));
+  apiRoutes.set("/api/operator-work", createWorkHandler({ store, identityProvider, allowedOrigins, invoiceLocalPath: `${resolve(process.env.OPERATOR_DEV_STORE_PATH || "data/operator-dev.json")}.invoices.json` }));
   apiRoutes.set("/api/operator-work-update", createWorkUpdateHandler({ store, identityProvider, allowedOrigins }));
   apiRoutes.set("/api/operator-push", createPushHandler({ store, identityProvider, allowedOrigins }));
   apiRoutes.set("/api/operator-print", createOperatorPrintHandler({ store, identityProvider, allowedOrigins }));

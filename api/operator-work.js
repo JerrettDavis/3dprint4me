@@ -5,6 +5,7 @@ import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js"
 import { HttpError } from "../lib/http.js";
 import { createOperatorPrintView } from "../lib/print-estimation/application/operator-view.js";
 import { createPrintEstimationRuntime } from "../lib/print-estimation/runtime.js";
+import { createOperatorInvoiceHandler } from "../lib/invoicing/operator-api.js";
 
 function defaultPrintEstimates() {
   const print = createPrintEstimationRuntime();
@@ -27,17 +28,19 @@ function eventLimit(value) {
   return limit;
 }
 
-export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), printEstimates = runtime ? null : defaultPrintEstimates() } = {}) {
+export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), printEstimates = runtime ? null : defaultPrintEstimates(), invoicing, invoiceLocalPath } = {}) {
   const work = resolveWorkManagementRuntime({ runtime, repository: store, printEstimates });
   let provider = identityProvider;
   const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
-  return createOperatorApiHandler({ methods: ["GET"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
+  const billingHandler = createOperatorInvoiceHandler({ runtime: work, authorize: authorizeRequest, allowedOrigins, invoicing, localPath: invoiceLocalPath });
+  const workHandler = createOperatorApiHandler({ methods: ["GET"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
     const url = new URL(req.url ?? "/api/operator-work", "https://operator-api.invalid");
     if (url.searchParams.has("id")) return work.service.detail(workId(url.searchParams.get("id")), operator);
     if (url.searchParams.has("eventsAfter")) return work.service.events(eventCursor(url.searchParams.get("eventsAfter")), eventLimit(url.searchParams.get("limit")), operator);
     const input = Object.fromEntries(url.searchParams);
     return work.service.list(parseWorkQuery(input), operator);
   } });
+  return (req, res) => new URL(req.url ?? "/api/operator-work", "https://operator-api.invalid").searchParams.get("resource") === "invoices" ? billingHandler(req, res) : workHandler(req, res);
 }
 
 export default async function handler(req, res) { return createWorkHandler()(req, res); }
