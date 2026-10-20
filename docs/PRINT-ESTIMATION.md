@@ -76,7 +76,7 @@ See [PRICING-CALIBRATION.md](PRICING-CALIBRATION.md#dual-floor-print-pricing). E
 | `SLICER_BIN`, `SLICER_PROFILE`, `SLICER_PROFILE_ID`, `SLICER_ARGS`, `SLICER_ENGINE`, `SLICER_ENGINE_VERSION` | — | Local CLI provider (PrusaSlicer-compatible defaults; `SLICER_ARGS` is a JSON array with `{model}`, `{output}`, `{profile}`) |
 | `SLICER_MACHINE_PROFILE`, `SLICER_PROCESS_PROFILE`, `SLICER_FILAMENT_PROFILES`, `SLICER_BED_TYPE` | — | `bambu-cli` provider: flattened preset JSON paths; filaments as `pla=/a.json;petg=/b.json` (a bare path is the default for every material); bed type e.g. `Textured PEI Plate`. Also uses `SLICER_BIN`, `SLICER_ENGINE` (default `bambu-studio-cli`), `SLICER_PROFILE_ID` (`:<material>` appended when a material-specific filament is used). |
 | `SLICER_HTTP_URL`, `SLICER_HTTP_TOKEN` | — | HTTPS worker provider; the worker receives a 10-minute signed model URL |
-| `SLICER_TIMEOUT_MS`, `SLICER_POLL_MS` | 120000 (300000 for `bambu-cli`), 15000 | Provider timeout and worker idle poll |
+| `SLICER_TIMEOUT_MS`, `SLICER_POLL_MS` | 120000 (300000 for `bambu-cli`), 15000 (300000 in the worker compose file) | Provider timeout and worker idle poll |
 
 Browser analysis limits live in `SITE_CONFIG.printEstimation` and never replace server limits.
 

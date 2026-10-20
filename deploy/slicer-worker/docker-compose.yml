@@ -23,7 +23,7 @@ services:
       SLICER_ENGINE: ${SLICER_ENGINE:-bambu-studio-cli}
       SLICER_PROFILE_ID: ${SLICER_PROFILE_ID:-bambu-x2d-0.4-0.16hq-generic-v1}
       SLICER_TIMEOUT_MS: ${SLICER_TIMEOUT_MS:-300000}
-      SLICER_POLL_MS: ${SLICER_POLL_MS:-15000}
+      SLICER_POLL_MS: ${SLICER_POLL_MS:-300000}
       # SLICER_BIN, SLICER_BED_TYPE, SLICER_FILAMENT_PROFILES and the profile paths are NOT listed here
       # on purpose: they come from the image's baked ENV. A bare `KEY:` entry renders as an empty string
       # on some Compose versions and overrides the baked value (worker then fails "SLICER_BIN is required").
