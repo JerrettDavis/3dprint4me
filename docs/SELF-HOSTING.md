@@ -83,6 +83,14 @@ with `--no-owner --no-acl` as the owner, then apply migrations001–008 as appro
 to the restored schema. Do not import managed Neon roles, passwords or auth
 sessions. Migration 008 is for this dedicated native database, not hosted Neon.
 
+The single API process limits anonymous sign-in starts to five per client and
+100 total per minute before OIDC discovery. Only bounded, minute-lived address
+hashes are retained in memory. PostgreSQL independently caps active flow storage
+across processes. Each start prunes expired flows, so recovery does not depend
+on the jobs service. Refused storage returns503 before redirecting; rate limits
+return429 with Retry-After. Revisit shared rate accounting before scaling API
+replicas; the database capacity limit remains shared across replicas/restarts.
+
 Backend RLS policies permit the dedicated backend group; application authorization
 continues to enforce operator/owner access. Runtime cannot create tables, alter
 operator roles/enabled state or create identity bindings. Verify those denials
