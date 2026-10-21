@@ -50,7 +50,7 @@ def _bundle(order: bool, *, home: bool = False) -> str:
             "mesh.js", "stl.js", "three-mf.js", "geometry.js", "archive.js", "pack.js", "controller.js", "view.js", "client.js",
         ))
         paths.extend(SITE_ROOT / "assets/js/order" / name for name in (
-            "model.js", "draft-store.js", "customize-handoff.js", "client.js", "files.js",
+            "model.js", "draft-store.js", "customize-handoff.js", "inquiry-handoff.js", "client.js", "files.js",
             "validation.js", "view.js", "controller.js",
         ))
         paths.append(SITE_ROOT / "assets/js/order.js")
@@ -138,7 +138,10 @@ def render_page_html(route: str, *, storage: dict[str, str] | None = None, stora
     )
     html = _inline_static_images(html)
     preamble = _storage_preamble(f"/{filename}" if filename != "index.html" else "/", f"?{query}" if query else "", storage)
-    scripts = f"<script>\n{_bundle(order, home=filename == 'index.html')}\n</script>"
+    bundle = _bundle(order, home=filename == 'index.html')
+    if order:
+        bundle = "(async () => {\n" + bundle + "\nwindow.refreshIntegrationState = refreshIntegrationState;\n})();"
+    scripts = f"<script>\n{bundle}\n</script>"
     denied_script = "<script>Object.defineProperty(window, 'localStorage', { configurable: true, get() { throw new DOMException('Storage denied', 'SecurityError'); } });</script>" if storage_denied else ""
     html = html.replace("</head>", f"{preamble}{denied_script}</head>", 1)
     html = html.replace("</body>", f"{scripts}</body>", 1)

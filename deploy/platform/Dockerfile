@@ -11,7 +11,7 @@ COPY package.json ./
 COPY lib ./lib
 COPY api ./api
 COPY public/assets/js ./public/assets/js
-COPY scripts/platform-server.mjs scripts/platform-jobs.mjs scripts/platform-status.mjs scripts/print-estimate-maintenance.mjs ./scripts/
+COPY scripts/platform-server.mjs scripts/platform-jobs.mjs scripts/platform-status.mjs scripts/print-estimate-maintenance.mjs scripts/rehearse-inquiry.mjs ./scripts/
 USER node
 EXPOSE 8080
 CMD ["node","scripts/platform-server.mjs"]

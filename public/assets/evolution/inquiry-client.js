@@ -35,3 +35,16 @@ export async function submitInquiry(input, fetcher = globalThis.fetch.bind(globa
   if (completed.live !== true) throw failure('We could not confirm receipt. Please retry with this tab open.');
   return completed;
 }
+
+export async function issueInquiryHandoff(id, submissionKey, fetcher = globalThis.fetch.bind(globalThis)) {
+  try {
+    if (!id || !/^[a-f0-9]{64}$/.test(submissionKey)) throw new Error();
+    const response = await fetcher('/api/inquiry?kind=handoff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'issue', id, submissionKey }), signal: AbortSignal.timeout(30_000) });
+    if (!response.ok) throw new Error();
+    const result = await response.json();
+    const target = new URL(result.url, 'https://3dprint4.me');
+    const origins = ['https://3dprint4.me', globalThis.location?.origin];
+    if (!/^[a-f0-9]{64}$/.test(result.token) || !origins.includes(target.origin) || target.username || target.password || target.pathname !== '/order.html' || target.search || target.hash !== `#inquiry=${result.token}`) throw new Error();
+    return `/order.html#inquiry=${result.token}`;
+  } catch { throw new Error('We could not continue with your received inquiry. Retry, or start a separate project request.'); }
+}

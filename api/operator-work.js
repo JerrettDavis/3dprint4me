@@ -40,7 +40,11 @@ export function createWorkHandler({ store, runtime, identityProvider, authorize,
     getRuntime:()=>inquiryWorkflow??createInquiryWorkflowRuntime({workRepository:work.repository})});
   const workHandler = createOperatorApiHandler({ methods: ["GET"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
     const url = new URL(req.url ?? "/api/operator-work", "https://operator-api.invalid");
-    if (url.searchParams.has("id")) return work.service.detail(workId(url.searchParams.get("id")), operator);
+    if (url.searchParams.has("id")) {
+      const detail=await work.service.detail(workId(url.searchParams.get("id")), operator);
+      if(detail.item.inquiryId && url.searchParams.get('schema')!=='2')throw new HttpError(426,'Reopen the work inbox to load the updated inquiry view.');
+      return detail;
+    }
     if (url.searchParams.has("eventsAfter")) return work.service.events(eventCursor(url.searchParams.get("eventsAfter")), eventLimit(url.searchParams.get("limit")), operator);
     const input = Object.fromEntries(url.searchParams);
     return work.service.list(parseWorkQuery(input), operator);

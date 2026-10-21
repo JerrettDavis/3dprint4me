@@ -7,6 +7,14 @@ import { HttpError } from '../../lib/http.js';
 function response(){return {headers:{'content-type':'application/json'},setHeader(key,value){this.headers[key.toLowerCase()]=value;},end(value){this.body=value?JSON.parse(value):null;this.writableEnded=true;}};}
 const raw='a'.repeat(64),workId='work_example123',origin='https://work.3dprint4.me';
 
+test('guarded rollout disables new invitations while preserving the scope-aware runtime',async()=>{
+  let called=false;
+  const handler=createPublicInquiryWorkflowHandler({getRuntime:()=>({configured:true,actionsEnabled:false,service:{issueForCustomer:async()=>{called=true;return {};}}})});
+  const res=response();await handler({method:'POST',headers:{'content-type':'application/json'},body:{action:'issue',id:'INQ-example123',submissionKey:raw}},res);
+  assert.equal(res.statusCode,503);
+  assert.equal(called,false);
+});
+
 test('public handoff actions accept bounded POST JSON only and never authorize by inquiry ID alone',async()=>{
   const calls=[];
   const service={issueForCustomer:async input=>{calls.push(['issue',input]);return {token:raw};},

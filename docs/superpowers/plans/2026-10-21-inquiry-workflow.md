@@ -20,7 +20,7 @@
 - Operator conversion creates an explicitly incomplete project draft when required details are absent; no invented consent/estimate.
 - All replies/sharing and invoice dispatch remain manual. No customer email, payment or invoice side effects from conversion/backfill.
 - Native database only for deployment, no polling or schema changes on fenced Neon.
-- Existing linked worktree, inline implementation and one whole-branch review; standing roll-through authorization persists.
+- Existing linked worktree, inline backend integration with two independently owned UI workstreams and one whole-branch review; standing roll-through authorization persists.
 
 ## Review focus
 
@@ -66,39 +66,39 @@
 
 ### Task 4: Full-request continuation with strict attachment authority
 
-**Files:** lib/project-request/{create-project-request,complete-project-request,runtime}.js; lib/upload-authorization/* or existing upload handler; lib/work-management/adapters/neon-work-repository.js; public/assets/js/order/{inquiry-handoff,client,controller,model,validation,files}.js; public/assets/js/order.js; public/order/index.html; request/upload/browser tests.
+**Files:** lib/project-request/{create-project-request,complete-project-request,runtime}.js; lib/upload-authorization/* or existing upload handler; lib/work-management/adapters/neon-work-repository.js; public/assets/js/order/{inquiry-handoff,client,controller,model,validation,files}.js; public/assets/js/order.js; public/order.html; request/upload/browser tests.
 
-- [ ] Write red tests for all four services from an inquiry, missing service/terms/details, inherited attachment membership/head verification, arbitrary-path denial and omitted-token bypass.
-- [ ] Route handoff-bound create/complete/upload through the workflow service; reject bypass even when a known bound ID is used via ordinary endpoints. Ordinary unrelated full requests retain existing behavior.
-- [ ] Merge only trusted server-side inherited files, separately from newly normalized request uploads. Preserve estimate ownership rules and generator-sensitive-field constraints.
-- [ ] Add fragment capture/clearing and in-memory token transport, safe prefill/review, attachment display and expiry/recovery states. Never serialize the capability into local drafts or receipts.
-- [ ] Consume completion atomically, reuse an operator-prepared draft and retain the same work item. Replays recover the original receipt without creating a second project or replaying notifications.
-- [ ] Run request/upload/checkout/customizer regressions plus focused browser tests and commit.
+- [x] Write red tests for all four services from an inquiry, missing service/terms/details, inherited attachment membership/head verification, arbitrary-path denial and omitted-token bypass.
+- [x] Route handoff-bound create/complete/upload through the workflow service; reject bypass even when a known bound ID is used via ordinary endpoints. Ordinary unrelated full requests retain existing behavior.
+- [x] Merge only trusted server-side inherited files, separately from newly normalized request uploads. Preserve estimate ownership rules and generator-sensitive-field constraints.
+- [x] Add fragment capture/clearing and in-memory token transport, safe prefill/review, attachment display and expiry/recovery states. Never serialize the capability into local drafts or receipts.
+- [x] Consume completion atomically, reuse an operator-prepared draft and retain the same work item. Replays recover the original receipt without creating a second project or replaying notifications.
+- [x] Run request/upload/checkout/customizer regressions plus focused browser tests and commit.
 
 ### Task 5: Operator inquiry detail and conversion UI
 
 **Files:** operator/assets/{operator,api-client,work-state,inquiry-detail}.js; operator/index.html; operator/assets/operator.css; operator/service-worker.js; operator unit/E2E tests.
 
-- [ ] Write red UI tests for default inquiry visibility, kind filters, needs-response labels, message/contact/attachments, note preservation and follow-up controls.
-- [ ] Add inquiry-specific rendering and manual response affordances; suppress inappropriate print/invoice/project status controls while kind=inquiry.
-- [ ] Add copy-private-link and explicit service/title conversion form, stale-revision handling, incomplete-draft badges/missing-field explanations, and source inquiry history after conversion.
-- [ ] Bump shell cache and test installed-client upgrade, 390px, dark/light/system themes, keyboard/focus and reduced motion.
-- [ ] Run focused operator tests/screenshots and commit.
+- [x] Write red UI tests for default inquiry visibility, kind filters, needs-response labels, message/contact/attachments, note preservation and follow-up controls.
+- [x] Add inquiry-specific rendering and manual response affordances; suppress inappropriate print/invoice/project status controls while kind=inquiry.
+- [x] Add copy-private-link and explicit service/title conversion form, stale-revision handling, incomplete-draft badges/missing-field explanations, and source inquiry history after conversion.
+- [x] Bump shell cache and test installed-client upgrade, 390px, dark/light/system themes, keyboard/focus and reduced motion.
+- [x] Run focused operator tests/screenshots and commit.
 
 ### Task 6: Clear customer entry and inquiry continuation
 
-**Files:** public/index.html; public/assets/evolution/{app,inquiry-core,inquiry-client,evolution.css}; public/order/index.html; tests/e2e/test_inquiry.py; inquiry client/model tests.
+**Files:** public/index.html; public/assets/evolution/{app,inquiry-core,inquiry-client,evolution.css}; public/order.html; tests/e2e/test_inquiry.py; inquiry client/model tests.
 
-- [ ] Write red tests for visible Ask a question versus Start a project request explanations and received/unconfirmed continuation paths.
-- [ ] Update entry/success copy and CTAs in the existing visual system. Live continuation uses the original capability; offline/recovered copies may prefill text but cannot claim private receipt or forge a source association.
-- [ ] Preserve all inquiry upload/receipt/recovery behavior and no binding estimate/order/payment claims.
-- [ ] Run version-assets, validate and focused browser tests; inspect changed screens and commit.
+- [x] Write red tests for visible Ask a question versus Start a project request explanations and received/unconfirmed continuation paths.
+- [x] Update entry/success copy and CTAs in the existing visual system. Live continuation uses the original capability; offline/recovered copies may prefill text but cannot claim private receipt or forge a source association.
+- [x] Preserve all inquiry upload/receipt/recovery behavior and no binding estimate/order/payment claims.
+- [x] Run version-assets, validate and focused browser tests; inspect changed screens and commit.
 
 ### Task 7: Whole-change verification, documented rollout and production proof
 
 **Files:** docs/QUICK-INQUIRY.md; docs/ARCHITECTURE.md; deployment/recovery runbooks; deploy/platform inquiry backfill/rolling deployment helpers; private execution ledger.
 
-- [ ] Document models, manual communications, capability expiry/revocation/recovery, native migration/backfill and privacy deletion responsibilities.
+- [x] Document models, manual communications, capability expiry/revocation/recovery, native migration/backfill and privacy deletion responsibilities.
 - [ ] Run full npm test, screenshots and visual inspection; secret scans; independent whole-branch code review. Fix Important/Critical findings with regressions.
 - [ ] Rehearse migration/conversion/rollback and API overlap deployment against scratch PostgreSQL18 with no customer messages; preserve native least privileges.
 - [ ] Apply additive schema to selected live database only; deploy reviewed API with overlap and unchanged database writer; deploy static apps; rerun bounded backfill.

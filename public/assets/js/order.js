@@ -1,27 +1,49 @@
-import "./site.js?v=0bd2c28068858324";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=0bd2c28068858324";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=0bd2c28068858324";
-import { toast } from "./site.js?v=0bd2c28068858324";
-import { createProjectRequestClient } from "./order/client.js?v=0bd2c28068858324";
-import { createOrderController } from "./order/controller.js?v=0bd2c28068858324";
-import { createDraftStore } from "./order/draft-store.js?v=0bd2c28068858324";
-import { createFileManager } from "./order/files.js?v=0bd2c28068858324";
-import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=0bd2c28068858324";
-import { takeHandoff } from "./order/customize-handoff.js?v=0bd2c28068858324";
-import { createStepValidator } from "./order/validation.js?v=0bd2c28068858324";
-import { createOrderView } from "./order/view.js?v=0bd2c28068858324";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=0bd2c28068858324";
-import { modelFormat } from "./print-estimation/geometry.js?v=0bd2c28068858324";
-import { isArchiveName } from "./print-estimation/archive.js?v=0bd2c28068858324";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=0bd2c28068858324";
-import { createModelPanelView } from "./print-estimation/view.js?v=0bd2c28068858324";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=0bd2c28068858324";
-import { packRequestSpecifications } from "./print-estimation/pack.js?v=0bd2c28068858324";
+import "./site.js?v=d367ecc51c8342f1";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=d367ecc51c8342f1";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=d367ecc51c8342f1";
+import { toast } from "./site.js?v=d367ecc51c8342f1";
+import { createProjectRequestClient } from "./order/client.js?v=d367ecc51c8342f1";
+import { captureInquiryHandoff, takeInquiryText } from "./order/inquiry-handoff.js?v=d367ecc51c8342f1";
+import { createOrderController } from "./order/controller.js?v=d367ecc51c8342f1";
+import { createDraftStore } from "./order/draft-store.js?v=d367ecc51c8342f1";
+import { createFileManager } from "./order/files.js?v=d367ecc51c8342f1";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=d367ecc51c8342f1";
+import { takeHandoff } from "./order/customize-handoff.js?v=d367ecc51c8342f1";
+import { createStepValidator } from "./order/validation.js?v=d367ecc51c8342f1";
+import { createOrderView } from "./order/view.js?v=d367ecc51c8342f1";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=d367ecc51c8342f1";
+import { modelFormat } from "./print-estimation/geometry.js?v=d367ecc51c8342f1";
+import { isArchiveName } from "./print-estimation/archive.js?v=d367ecc51c8342f1";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=d367ecc51c8342f1";
+import { createModelPanelView } from "./print-estimation/view.js?v=d367ecc51c8342f1";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=d367ecc51c8342f1";
+import { packRequestSpecifications } from "./print-estimation/pack.js?v=d367ecc51c8342f1";
 
 const form = document.querySelector("#project-form");
+addEventListener('hashchange',()=>{if(location.hash.startsWith('#inquiry='))location.reload();});
+const inquiryHandoff=captureInquiryHandoff();
+const inquiryNotice=document.querySelector('#inquiry-notice');
+let inquiryContext=null;
+if(inquiryHandoff.present){
+  form.inert=true;inquiryNotice.hidden=false;inquiryNotice.textContent='Opening your private inquiry invitation…';
+  try {
+    inquiryContext=await inquiryHandoff.load();
+    inquiryNotice.textContent=inquiryContext.completed ? `Project ${inquiryContext.id} was already received. Contact us with this reference to make changes.` : 'Continue your inquiry as a full project request. Review the details, choose a service, and confirm the terms before submitting.';
+    if(!inquiryContext.completed)form.inert=false;
+  }catch{
+    inquiryNotice.textContent='This private invitation could not be opened. It may have expired or been replaced. Ask us for a fresh link, or ';
+    const link=document.createElement('a');link.href='/order.html';link.textContent='start a separate request';inquiryNotice.append(link);
+  }
+}
 const currentSearch = () => window.__THREEDP_TEST_SEARCH || location.search;
-const client = createProjectRequestClient();
-const draftStore = createDraftStore({ storage: () => localStorage, draftKey: "3dp-project-draft-v1", submittedKey: "3dp-submitted-requests" });
+let inquiryText=null;
+if(!inquiryHandoff.present&&new URLSearchParams(currentSearch()).get('from')==='inquiry'){
+  try{inquiryText=takeInquiryText(sessionStorage);}catch{}
+  inquiryNotice.hidden=false;inquiryNotice.textContent=inquiryText?'Copied your inquiry text into a separate project request. The inquiry was not confirmed received. Files need to be attached here, and nothing is submitted until you finish this form.':'Start a separate project request. Your inquiry text could not be copied; enter the details and attach any files here.';
+}
+const client = createProjectRequestClient({getInquiryToken:inquiryHandoff.token});
+const draftStore = createDraftStore({ storage: () => localStorage, draftKey: inquiryContext?.inquiryId ? `3dp-inquiry-project-draft-${inquiryContext.inquiryId}` : inquiryText?'3dp-inquiry-text-draft-v1':"3dp-project-draft-v1", submittedKey: "3dp-submitted-requests" });
+const inheritedFiles=inquiryContext?.files||[];
 const view = createOrderView({ document, window, form, formatEstimate });
 let currentStep = 0;
 let latestEstimate = calculateEstimate({ service: "print" });
@@ -65,6 +87,7 @@ function updateEstimate() {
 
 const files = createFileManager({
   config: SITE_CONFIG,
+  reservedFileCount:()=>inheritedFiles.length,
   client,
   notify: toast,
   render: selected => view.renderFiles(selected),
@@ -88,13 +111,14 @@ const validateStep = createStepValidator({
   document,
   form,
   getData,
-  getFiles: files.list,
+  getFiles: ()=>[...inheritedFiles,...files.list()],
   fieldError: view.fieldError,
   clearErrors: view.clearErrors,
   notify: toast
 });
 
 function mailtoFor(request) {
+  if(request.receiptOnly)return `mailto:${SITE_CONFIG.email}?subject=${encodeURIComponent(`Update project ${request.id}`)}`;
   const subject = encodeURIComponent(`[${request.id}] ${request.projectTitle} — ${request.serviceLabel}`);
   const body = encodeURIComponent([
     `Project: ${request.projectTitle}`,
@@ -147,16 +171,18 @@ function showStaleDesignProblem(error) {
   view.showFileProblem(index, error.message);
 }
 
-function renderReview() { view.renderReview(buildRequest(), getData(), files.list()); }
+function renderReview() { view.renderReview(buildRequest(), getData(), [...inheritedFiles,...files.list()]); }
 function showStep(index, focus = true) {
   currentStep = Math.max(0, Math.min(view.elements.steps.length - 1, index));
   view.showStep(currentStep, { focus, review: renderReview });
 }
 
 function restoreDraft() {
-  const data = draftStore.loadDraft();
+  if(inquiryHandoff.present&&!inquiryContext?.inquiryId)return;
+  const data = inquiryText ? {...inquiryText} : {...(inquiryContext?.prefill||{}),...draftStore.loadDraft()};
+  if(inquiryHandoff.present)data.terms=false;
   const requestedService = new URLSearchParams(currentSearch()).get("service");
-  if (requestedService && SERVICE_LABELS[requestedService]) data.service = requestedService;
+  if (!inquiryHandoff.present && requestedService && SERVICE_LABELS[requestedService]) data.service = requestedService;
   Object.entries(data).forEach(([name, value]) => {
     [...form.elements].filter(field => field.name === name).forEach(field => {
       if (field.type === "file") return; // browsers only allow clearing a file input; a saved draft holds `{}` here
@@ -243,6 +269,15 @@ async function refreshIntegrationState() {
 }
 
 restoreDraft();
+if(inheritedFiles.length){
+  const list=document.querySelector('#inquiry-files');list.hidden=false;
+  for(const file of inheritedFiles){
+    const row=document.createElement('p');row.textContent=`Already attached to your inquiry: ${file.name} `;
+    const button=document.createElement('button');button.type='button';button.className='btn btn-secondary';button.textContent='Download';
+    button.addEventListener('click',async()=>{button.disabled=true;try{const result=await inquiryHandoff.download(file.index);window.location.assign(result.url);}catch{toast('This attachment is unavailable. Ask us for a fresh invitation.');}finally{button.disabled=false;}});
+    row.append(button);list.append(row);
+  }
+}
 document.querySelector("#deadline").min = new Date().toISOString().slice(0, 10);
 view.updateConditionalFields(getData());
 updateEstimate();

@@ -11,6 +11,11 @@ export function createOrderController({
   warn = console.warn
 }) {
   let completedRequest = null;
+  function receive(record) {
+    completedRequest=record;
+    const stored=draftStore.saveSubmitted(record);
+    draftStore.clearDraft();view.showSubmission(record,stored);return record;
+  }
 
   async function submit(event) {
     event?.preventDefault?.();
@@ -29,6 +34,7 @@ export function createOrderController({
       }
 
       const live = !created.offlineFallback && created.mode !== "ignored";
+      if(created.completed) return receive({id:created.id,receiptOnly:true,uploadedFiles:[],backend:created});
       const uploadedFiles = await files.prepare(created.id, created.mode, (current, total) => view.uploadProgress(current, total), { isPreUploaded: file => live && Boolean(printEstimate?.isPreUploaded(file)) });
       let completed;
       if (created.mode === "ignored") completed = { id: created.id, mode: "ignored", live: true };
@@ -45,11 +51,9 @@ export function createOrderController({
         }
       }
 
-      completedRequest = { ...request, id: created.id, uploadedFiles, backend: completed };
-      const savedLocally = draftStore.saveSubmitted(completedRequest);
-      draftStore.clearDraft();
-      view.showSubmission(completedRequest, savedLocally);
-      return completedRequest;
+      return receive(completed.replayed
+        ? {id:created.id,receiptOnly:true,uploadedFiles:[],backend:completed}
+        : {...request,id:created.id,uploadedFiles,backend:completed});
     } catch (error) {
       view.submissionError(error);
       return null;
