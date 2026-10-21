@@ -88,6 +88,7 @@ def test_stream_snapshot_copy_records_destination_identity(monkeypatch):
     assert result['snapshots']==[source_id,destination_id]
     assert result['roundtrip_verified']
     assert any('copy' in args and '--from-password-file' in args for args in calls)
+    assert any('snapshots' in args and str(Path('/'+result['filename']).absolute()) in args for args in calls)
 
 
 def test_required_object_inventory_uses_same_snapshot_as_dump(monkeypatch):
@@ -108,3 +109,4 @@ def test_required_object_inventory_uses_same_snapshot_as_dump(monkeypatch):
         assert "FROM quick_inquiries" in keeper.stdin.getvalue()
         assert "status='submitted'" in keeper.stdin.getvalue()
         assert "f->>'mode'='signed'" not in keeper.stdin.getvalue()
+        assert "f->>'mode' IS DISTINCT FROM 'estimate'" in keeper.stdin.getvalue()
