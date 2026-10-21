@@ -63,6 +63,41 @@ try:
  result=run(['docker','run','--rm','-i','--network',database_network,'--read-only','--cap-drop=ALL','--security-opt=no-new-privileges:true','--memory=256m','--pids-limit=64',image,'node','--input-type=module','-e',code],input=json.dumps({'url':scratch_url}).encode())
  assert json.loads(result)['nativePostgresRehearsal']=='passed'
  print(result,flush=True)
+ # Rehearse healthy-origin overlap/drain on an isolated DNS network. Both API
+ # servers use the actual platform HTTP boundary and the disposable database.
+ rehearsal_network='3dprint4me-inquiry-'+uuid.uuid4().hex[:12]
+ rehearsal_env=root/(rehearsal_network+'.private.env');containers=[]
+ fd=os.open(rehearsal_env,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+ with os.fdopen(fd,'w') as f:f.write('DATABASE_URL='+scratch_url+'\n')
+ network_created=False;cleanup_errors=[]
+ try:
+  run(['docker','network','create','--internal',rehearsal_network]);network_created=True
+  server_code="import pg from 'pg';import {createPlatformServer} from './lib/platform/api-server.js';const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:1});const server=createPlatformServer({env:{PLATFORM_PROXY_SECRET:'synthetic-rehearsal'},routes:{},ready:()=>pool.query('SELECT 1')});server.listen(8080,'0.0.0.0');process.on('SIGTERM',()=>server.close(async()=>{await pool.end();process.exit(0)}));"
+  check_code="fetch('http://127.0.0.1:8080/internal/ready',{headers:{authorization:'Bearer synthetic-rehearsal'}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  def start_origin():
+   container=run(['docker','run','-d','--network',database_network,'--env-file',str(rehearsal_env),'--read-only','--cap-drop=ALL','--security-opt=no-new-privileges:true','--memory=128m','--pids-limit=64',image,'node','--input-type=module','-e',server_code]);containers.append(container)
+   for attempt in range(30):
+    try:run(['docker','exec',container,'node','-e',check_code]);break
+    except subprocess.CalledProcessError:time.sleep(.2)
+   else:raise RuntimeError('Rehearsal origin not ready')
+   run(['docker','network','connect','--alias','api',rehearsal_network,container]);return container
+  old=start_origin()
+  probe_code="let checked=0,failed=0;for(let i=0;i<48;i++){try{const r=await fetch('http://api:8080/internal/ready',{headers:{authorization:'Bearer synthetic-rehearsal'},signal:AbortSignal.timeout(2000)});if(!r.ok)failed++;}catch{failed++;}checked++;await new Promise(r=>setTimeout(r,250));}console.log(JSON.stringify({checked,failed}));"
+  probe=run(['docker','run','-d','--network',rehearsal_network,'--read-only','--cap-drop=ALL','--memory=128m','--pids-limit=64',image,'node','--input-type=module','-e',probe_code]);containers.append(probe)
+  time.sleep(1);start_origin();time.sleep(1);run(['docker','stop','-t','45',old])
+  run(['docker','wait',probe]);metrics=json.loads(run(['docker','logs',probe]))
+  assert metrics['checked']==48 and metrics['failed']==0
+  print(json.dumps({'isolatedApiOverlap':'passed','requests':metrics['checked'],'failures':metrics['failed'],'database':'disposable-native'}),flush=True)
+ finally:
+  try:
+   for container in containers:
+    try:run(['docker','rm','-f',container])
+    except Exception:cleanup_errors.append('container')
+   if network_created:
+    try:run(['docker','network','rm',rehearsal_network])
+    except Exception:cleanup_errors.append('network')
+  finally:rehearsal_env.unlink()
+ if cleanup_errors:raise RuntimeError('Disposable rehearsal cleanup needs attention')
 finally:
  sql('DROP DATABASE '+scratch+' WITH (FORCE)',db='postgres',user='platform_admin')
 if config['phase']=='rehearse':sys.exit(0)
@@ -76,10 +111,12 @@ pointer=root/'candidate-source'
 if not pointer.is_symlink():pointer.rename(root/'releases'/('source-before-inquiry-'+uuid.uuid4().hex[:8]))
 next_pointer=root/'candidate-source.next';next_pointer.symlink_to(source,target_is_directory=True);os.replace(next_pointer,pointer)
 write_env('compose.env',{'PLATFORM_RELEASE':sha[:12]})
-override=root/'inquiry-rollout.private.json'
+old_api=run(compose+['ps','-q','api'])
+egress_network=next(n for n in run(['docker','inspect',old_api,'--format','{{range $name, $value := .NetworkSettings.Networks}}{{$name}} {{end}}']).split() if n.endswith('_egress'))
+override=root/'inquiry-rollout.private.yml'
 assert not override.exists()
 fd=os.open(override,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
-with os.fdopen(fd,'w') as f:json.dump({'services':{'api_guard':{'extends':{'service':'api'},'environment':{'INQUIRY_WORKFLOW_ENABLED':'0'},'networks':{'database':{},'egress':{'aliases':['api']}}}}},f)
+with os.fdopen(fd,'w') as f:f.write('services:\n  api:\n    networks: !override [database]\n  api_guard:\n    extends: {file: '+json.dumps(str(pointer/'deploy/platform/compose.yml'))+', service: api}\n    environment: {INQUIRY_WORKFLOW_ENABLED: "0"}\n    networks: !override [database]\n')
 def healthy(name):
  deadline=time.monotonic()+75
  while time.monotonic()<deadline:
@@ -88,12 +125,17 @@ def healthy(name):
   time.sleep(1)
  raise RuntimeError('API readiness deadline exceeded')
 full=compose+['-f',str(override)]
+run(full+['config','--quiet'])
+def publish(name):
+ container=run(full+['ps','-q',name]);assert re.fullmatch('[a-f0-9]{64}',container)
+ run(['docker','network','connect','--alias','api',egress_network,container])
 run(full+['up','-d','--no-deps','api_guard']);healthy('api_guard')
+publish('api_guard')
 print(json.dumps({'stage':'guarded-api-ready'}),flush=True)
 # Existing requests drain on SIGTERM while the healthy guarded API shares api DNS.
 run(compose+['stop','-t','45','api']);run(compose+['rm','-f','api'])
 write_env('api.env',{'INQUIRY_WORKFLOW_ENABLED':'1'})
-run(compose+['up','-d','--no-deps','api']);healthy('api')
+run(full+['up','-d','--no-deps','api']);healthy('api');publish('api')
 print(json.dumps({'stage':'enabled-api-ready'}),flush=True)
 run(full+['stop','-t','45','api_guard']);run(full+['rm','-f','api_guard']);override.unlink()
 sql('BEGIN;'+migration+'COMMIT;',db=selected)
