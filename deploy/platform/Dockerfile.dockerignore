@@ -12,6 +12,7 @@
 !scripts/
 !scripts/platform-server.mjs
 !scripts/platform-jobs.mjs
+!scripts/platform-status.mjs
 !scripts/print-estimate-maintenance.mjs
 !deploy/
 !deploy/platform/
