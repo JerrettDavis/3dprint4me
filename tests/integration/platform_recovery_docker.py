@@ -54,7 +54,9 @@ def main():
         if not re.fullmatch('[a-f0-9]{64}',identity):raise ValueError('Unexpected fixture identity')
         containers.append(identity)
         for attempt in range(100):
-            try:command(['docker','exec',identity,'pg_isready','-U','platform_admin']);return identity
+            # The image's temporary initialization server is socket-only. TCP
+            # proves the final server is running, avoiding a fast-host race.
+            try:command(['docker','exec',identity,'pg_isready','-h','127.0.0.1','-U','platform_admin']);return identity
             except subprocess.CalledProcessError:time.sleep(.2)
         raise ValueError('Fixture readiness failed')
     def fixture_runner(identity):
@@ -105,4 +107,10 @@ def main():
 
 if __name__=='__main__':
     try:main()
-    except Exception:raise SystemExit('Isolated recovery rehearsal failed; synthetic fixture diagnostics suppressed.')
+    except Exception:
+        # This harness uses generated synthetic inputs only. A traceback is safe
+        # here and makes platform/CI differences diagnosable; production commands
+        # continue to suppress private diagnostics.
+        import traceback
+        traceback.print_exc()
+        raise SystemExit('Isolated recovery rehearsal failed; synthetic fixtures only.')
