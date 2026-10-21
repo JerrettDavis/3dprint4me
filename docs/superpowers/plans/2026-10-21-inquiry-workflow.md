@@ -34,22 +34,22 @@
 
 **Files:** neon/migrations/009_inquiry_workflow.sql; tests/contract/inquiry-workflow.contract.test.mjs; tests/contract/inquiry-database.contract.test.mjs; shared test migration setup as required.
 
-- [ ] Write failing PostgreSQL/PGlite tests: nullable request/event relationships with kind/source constraints, unique inquiry work, immutable association, submitted-only idempotent backfill, and scoped backend/RLS permissions.
-- [ ] Run targeted contracts and verify expected missing-migration/constraint failure.
-- [ ] Add additive kind/inquiry source columns and bounded private handoff table, indexes and explicit privileges. Keep existing request defaults/constraints compatible.
-- [ ] Provide a bounded, idempotent submitted-inquiry backfill that preserves timestamps/history and does not resend email/push. Rerunnable after deployment.
-- [ ] Run green contracts and commit.
+- [x] Write failing PostgreSQL/PGlite tests: nullable request/event relationships with kind/source constraints, unique inquiry work, immutable association, submitted-only idempotent backfill, and scoped backend/RLS permissions.
+- [x] Run targeted contracts and verify expected missing-migration/constraint failure.
+- [x] Add additive kind/inquiry source columns and bounded private handoff table, indexes and explicit privileges. Keep existing request defaults/constraints compatible.
+- [x] Provide a bounded, idempotent submitted-inquiry backfill that preserves timestamps/history and does not resend email/push. Rerunnable after deployment.
+- [x] Run green contracts and commit.
 
 ### Task 2: Atomic acceptance and inquiry-aware work repositories
 
 **Files:** lib/inquiry-store.js; lib/quick-inquiry/{runtime,complete-inquiry}.js; lib/work-management/{work-policy,service,home-assistant-snapshot}.js; adapters/{neon-work-repository,local-work-repository}.js; lib/operator-files.js; relevant work/inquiry/file/HA tests.
 
-- [ ] Write red tests for complete/replay/repair atomicity and submitted timestamps; inquiry list/default filters/kind filters/detail/notes/waiting/close; reject project-only states.
-- [ ] Add inquiry completion + work/event/outbox as one atomic database operation. Already-submitted replay repairs a missing item exactly once.
-- [ ] Adapt queries to typed sources and preserve existing full-request response contracts where possible. Use kind-aware transition policy in native/local adapters and UI helpers.
-- [ ] Extend generic event/push/HA handling with neutral inquiry presentation; keep customer details out of push and HA inquiry titles.
-- [ ] Authorize inquiry/inherited files only through the exact work source and stored file membership; retain path traversal and unrelated-file denial.
-- [ ] Run focused contracts/unit tests and commit.
+- [x] Write red tests for complete/replay/repair atomicity and submitted timestamps; inquiry list/default filters/kind filters/detail/notes/waiting/close; reject project-only states.
+- [x] Add inquiry completion + work/event/outbox as one atomic database operation. Already-submitted replay repairs a missing item exactly once.
+- [x] Adapt queries to typed sources and preserve existing full-request response contracts where possible. Use kind-aware transition policy in native/local adapters and UI helpers.
+- [x] Extend generic event/push/HA handling with neutral inquiry presentation; keep customer details out of push and HA inquiry titles.
+- [x] Authorize inquiry/inherited files only through the exact work source and stored file membership; retain path traversal and unrelated-file denial.
+- [x] Run focused contracts/unit tests and commit.
 
 ### Task 3: Scoped handoff and operator-prepared projects
 
