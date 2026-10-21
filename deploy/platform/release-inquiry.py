@@ -36,8 +36,10 @@ if not source.exists():
  archive=base64.b64decode(config['archive']);assert len(archive)<32*1024*1024
  with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
   for member in tar.getmembers():
-   assert not member.issym() and not member.islnk() and not member.name.startswith('/') and '..' not in pathlib.PurePosixPath(member.name).parts
-  tar.extractall(source,filter='data')
+   assert (member.isfile() or member.isdir()) and not member.name.startswith('/') and '..' not in pathlib.PurePosixPath(member.name).parts
+  # Host Python3.9 lacks tarfile's data filter. Only validated regular files and
+  # directories enter this newly created, owner-private destination.
+  tar.extractall(source)
 image='3dprint4me-platform:'+sha[:12]
 run(['docker','build','-t',image,'-f',str(source/'deploy/platform/Dockerfile'),str(source)],timeout=600)
 compose=['docker','compose','--env-file',str(root/'compose.env'),'-f',str(root/'candidate-source/deploy/platform/compose.yml')]
