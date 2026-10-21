@@ -12,7 +12,7 @@ export function publicSnapshot(state={},now=Date.now()) {
     return {id,name,status,checkedAt:probe?.checkedAt??state.platform?.observedAt??null};
   });
   // Provider reachability is never proof that a complete owner sign-in works.
-  components.find(x=>x.id==='auth').scope='GitHub identity API reachability';
+  components.find(x=>x.id==='auth').scope='GitHub-reported API service status; owner sign-in verified separately';
   const statuses=components.map(x=>x.status);
   return {version:1,generatedAt:now,checkedAt:state.checkedAt??null,
     overall:statuses.includes('unavailable')?'unavailable':statuses.includes('degraded')?'degraded':statuses.includes('unknown')?'unknown':'operational',
@@ -64,7 +64,7 @@ export async function validateHeartbeat({kind,body,signature,secret,now=Date.now
   return {observedAt:data.observedAt,details:data.details};
 }
 
-export const PROBES={storefront:'https://3dprint4.me/',operator:'https://work.3dprint4.me/',api:'https://3dprint4.me/api/health',auth:'https://api.github.com/'};
+export const PROBES={storefront:'https://3dprint4.me/',operator:'https://work.3dprint4.me/',api:'https://3dprint4.me/api/health',auth:'https://www.githubstatus.com/api/v2/components.json'};
 async function boundedText(response) {
   if(Number(response.headers.get('content-length'))>65536)throw new Error('Response bound.');
   const reader=response.body?.getReader();if(!reader)return '';
@@ -74,13 +74,17 @@ async function boundedText(response) {
   const bytes=new Uint8Array(total);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
   return new TextDecoder().decode(bytes);
 }
+function githubApiStatus(text) {
+  const data=JSON.parse(text);
+  return data?.page?.id==='kctbh9vrtdwd'&&Array.isArray(data.components)&&data.components.some(x=>x.id==='brv1bkgrwx7q'&&x.status==='operational');
+}
 export async function probeServices({now=Date.now(),fetchImpl=fetch}={}) {
   return Object.fromEntries(await Promise.all(Object.entries(PROBES).map(async([id,url])=>{
     let ok=false,provider,stage='request',httpStatus;
     try{
       const response=await fetchImpl(url,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(5000),headers:{'User-Agent':'3dprint4me-status/1'}});
       httpStatus=response.status;stage='http';
-      if(response.ok){stage='body';const text=await boundedText(response);stage='validation';if(id==='api'){const data=JSON.parse(text);ok=data.ok===true&&data.service==='3dprint4.me';if(ok&&['neon','postgres'].includes(data.databaseProvider))provider=data.databaseProvider;}else ok=id==='auth'?JSON.parse(text).current_user_url==='https://api.github.com/user':id==='operator'?text.includes('id="auth-view"'):text.includes('3dprint4.me');}
+      if(response.ok){stage='body';const text=await boundedText(response);stage='validation';if(id==='api'){const data=JSON.parse(text);ok=data.ok===true&&data.service==='3dprint4.me';if(ok&&['neon','postgres'].includes(data.databaseProvider))provider=data.databaseProvider;}else ok=id==='auth'?githubApiStatus(text):id==='operator'?text.includes('id="auth-view"'):text.includes('3dprint4.me');}
     }catch{/* Only the safe failure stage is retained, never raw provider errors. */}
     return [id,{ok,checkedAt:now,...(provider?{provider}:{}),...(!ok?{stage,...(httpStatus?{httpStatus}:{})}:{})}];
   })));

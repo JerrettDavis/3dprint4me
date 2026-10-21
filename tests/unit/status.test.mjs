@@ -31,7 +31,7 @@ test('probes use fixed bounded URLs, never query Neon, and visitors cannot trigg
   assert.equal(seen.length,4);
   assert.ok(seen.every(([url,opt])=>!url.includes('neon')&&opt.redirect==='manual'&&opt.signal));
   assert.equal(result.storefront.ok,true);
-  assert.equal(result.auth.ok,false,'HTML is not valid OIDC discovery');
+  assert.equal(result.auth.ok,false,'HTML is not valid GitHub status evidence');
   const state=updateProbeState({},result,now);
   assert.equal(state.probes.auth.status,'degraded');
   const twice=updateProbeState(state,result,now+300000);
@@ -59,4 +59,23 @@ test('status transport denies private and internal routes; actor persists replay
   records.get('state').platform.receivedAt-=61000;
   assert.equal((await new StatusState(ctx,{STATUS_PLATFORM_SECRET:secret}).fetch(request())).status,401);
   assert.equal((await actor.fetch(new Request('https://internal/api/public'))).status,200);
+});
+
+test('GitHub monitoring uses provider status without shared-IP REST credentials or unrelated incidents',async()=>{
+  const payload=(status='operational',id='brv1bkgrwx7q')=>({page:{id:'kctbh9vrtdwd'},components:[{id,status},{id:'br0l2tvcx85d',status:'major_outage'}]});
+  const run=async(data,status=200)=>probeServices({now,fetchImpl:async(url,opt)=>{
+    if(url.includes('github')){
+      assert.equal(url,'https://www.githubstatus.com/api/v2/components.json');
+      assert.equal(opt.method,'GET');assert.equal(opt.redirect,'manual');
+      assert.equal(opt.headers.Authorization,undefined);
+      return Response.json(data,{status});
+    }
+    return new Response('3dprint4.me');
+  }});
+  assert.equal((await run(payload())).auth.ok,true);
+  assert.equal((await run(payload('partial_outage'))).auth.ok,false);
+  assert.equal((await run(payload('operational','unknown'))).auth.ok,false);
+  assert.equal((await run({...payload(),page:{id:'wrong'}})).auth.ok,false);
+  assert.equal((await run(payload(),403)).auth.ok,false);
+  assert.equal(publicSnapshot({},now).components.find(x=>x.id==='auth').scope,'GitHub-reported API service status; owner sign-in verified separately');
 });
