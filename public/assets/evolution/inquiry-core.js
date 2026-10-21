@@ -38,3 +38,9 @@ export function projectShareUrl(base, slug) {
   if (!/^[a-z0-9-]{1,80}$/.test(slug)) throw new TypeError('Invalid public project slug.');
   const url = new URL(base); url.search = ''; url.hash = ''; url.searchParams.set('project', slug); return url.href;
 }
+
+/** One-use local text only: never copy file descriptors or submission authority. */
+export function inquiryTextPrefill(raw = {}) {
+  const value = normalizeInquiry(raw);
+  return { name: value.name.slice(0, 100), email: value.replyEmail.slice(0, 254), message: value.message.slice(0, 4000), referenceUrl: value.referenceUrl.slice(0, 2000), intent: value.intent };
+}

@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-10-21T03:34:33.129413+00:00",
+  "generatedAt": "2026-10-21T18:49:33.169752+00:00",
   "status": "pass",
   "summary": {
     "checks": 241,
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "169 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "170 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -947,7 +947,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "166 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "167 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -1744,7 +1744,7 @@
         "headingCount": 28
       },
       "contrast": {
-        "checked": 169,
+        "checked": 170,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2094,7 +2094,7 @@
         "headingCount": 28
       },
       "contrast": {
-        "checked": 166,
+        "checked": 167,
         "complexSkipped": 0,
         "failures": []
       }

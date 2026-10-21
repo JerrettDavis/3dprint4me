@@ -14,7 +14,8 @@ function kindFor(status, operation) {
   return operation === "complete" ? "uncertain-completion" : "unavailable";
 }
 
-export function createProjectRequestClient({ fetchImpl = (...args) => fetch(...args) } = {}) {
+export function createProjectRequestClient({ fetchImpl = (...args) => fetch(...args), getInquiryToken = () => null } = {}) {
+  const scoped = body => { const token = getInquiryToken(); return token ? {...body, handoffToken: token} : body; };
   async function requestJson(url, options = {}, operation = "request") {
     let response;
     try {
@@ -34,7 +35,7 @@ export function createProjectRequestClient({ fetchImpl = (...args) => fetch(...a
       onProgress(index + 1, files.length);
       const instruction = await requestJson("/api/upload-url", {
         method: "POST",
-        body: JSON.stringify({ requestId, filename: file.name, contentType: file.type, size: file.size })
+        body: JSON.stringify(scoped({ requestId, filename: file.name, contentType: file.type, size: file.size }))
       }, "upload-authorization");
       if (!instruction.uploadUrl) throw new ProjectRequestClientError(`No upload destination was created for ${file.name}.`);
       const form = new FormData();
@@ -61,8 +62,8 @@ export function createProjectRequestClient({ fetchImpl = (...args) => fetch(...a
   }
 
   return {
-    create: body => requestJson("/api/request", { method: "POST", body: JSON.stringify({ action: "create", ...body }) }, "create"),
-    complete: body => requestJson("/api/request", { method: "PATCH", body: JSON.stringify({ action: "complete", ...body }) }, "complete"),
+    create: body => requestJson("/api/request", { method: "POST", body: JSON.stringify(scoped({ action: "create", ...body })) }, "create"),
+    complete: body => requestJson("/api/request", { method: "PATCH", body: JSON.stringify(scoped({ action: "complete", ...body })) }, "complete"),
     health: () => requestJson("/api/health"),
     checkout: body => requestJson("/api/checkout", { method: "POST", body: JSON.stringify(body) }, "checkout"),
     upload,

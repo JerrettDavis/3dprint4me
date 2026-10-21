@@ -1,7 +1,7 @@
-import '../js/site.js?v=0bd2c28068858324';
-import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl } from './inquiry-core.js?v=0bd2c28068858324';
-import { PROJECTS, INTENT_LABELS } from './projects.js?v=0bd2c28068858324';
-import { submitInquiry } from './inquiry-client.js?v=0bd2c28068858324';
+import '../js/site.js?v=d367ecc51c8342f1';
+import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=d367ecc51c8342f1';
+import { PROJECTS, INTENT_LABELS } from './projects.js?v=d367ecc51c8342f1';
+import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=d367ecc51c8342f1';
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
@@ -169,7 +169,10 @@ function recoveryRecord(value, files) {
   return { ...value, context: state.context, attachments: files.map(file => ({ name: file.name, size: file.size, type: file.type })), status: 'not-received', note: 'Attachment contents are not included in this copy.' };
 }
 function showReceipt(record, live) {
-  state.record = record;
+  state.record = record; state.received = live;
+  $('#continue-error').hidden = true;
+  $('#continue-inquiry').textContent = live ? 'Continue to a project request' : 'Start a project request with this text';
+  $('#continue-note').textContent = live ? 'Review your copied details and private attachments, choose a service and accept terms before submitting.' : 'Your inquiry was not received. Copy text into a separate request; choose and attach files again.';
   $('#inquiry-editor').hidden = true; $('#success-pane').hidden = false;
   $('#ask-dialog').setAttribute('aria-labelledby', 'success-title');
   $('#success-title').textContent = live ? 'Inquiry received' : 'Your inquiry is ready to send';
@@ -205,6 +208,21 @@ form.addEventListener('submit', async event => {
     if (error.recoverable) showReceipt(record, false);
     else { state.record = record; $('#save-error').textContent = error.message; $('#save-error').hidden = false; $('#download-unsaved').hidden = false; }
   } finally { state.saving = false; form.inert = false; form.removeAttribute('aria-busy'); $('#save-inquiry').disabled = false; $('#save-inquiry').innerHTML = `Send inquiry ${ico('arrow')}`; }
+});
+$('#continue-inquiry').addEventListener('click', async () => {
+  const button = $('#continue-inquiry'); if (button.disabled || !state.record) return;
+  button.disabled = true; $('#continue-error').hidden = true;
+  try {
+    if (state.received) {
+      const url = await issueInquiryHandoff(state.record.id, state.submission?.key);
+      location.assign(url);
+    } else {
+      try { sessionStorage.setItem('3dp-inquiry-text-v1', JSON.stringify(inquiryTextPrefill(state.record))); }
+      catch { throw new Error('This browser could not copy the text. Download your inquiry, then start a separate project request.'); }
+      location.assign('/order.html?from=inquiry');
+    }
+  } catch (error) { $('#continue-error').textContent = error.message; $('#continue-error').hidden = false; }
+  finally { button.disabled = false; }
 });
 $('#download-inquiry').addEventListener('click', () => { if (state.record) downloadJSON(state.record, 'project-inquiry.json'); });
 $('#download-unsaved').addEventListener('click', () => { if (validateForm().valid) { const record = recoveryRecord(normalizeInquiry(rawInquiry()), inquiryFiles()); if (state.submission?.receiptUncertain) { record.status = 'receipt-unconfirmed'; record.note += ' The shop may have received the previous submission. Retry unchanged details in the original tab to confirm.'; } downloadJSON(record, 'project-inquiry.json'); } });

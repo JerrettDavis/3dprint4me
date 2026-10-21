@@ -53,3 +53,16 @@ test("provider-neutral auth adapter supplies the official client token only as a
   const auth = createAuthClient({ client: { signIn: { social() {} }, getSession() {}, signOut() {} }, getToken: async () => "verified-jwt" });
   assert.deepEqual(await auth.sessionHeaders(), { authorization: "Bearer verified-jwt" });
 });
+
+test('inquiry states never expose production transitions and filter by source kind', () => {
+  assert.deepEqual(allowedTransitions({kind:'inquiry',status:'triage'}), ['waiting_customer','completed']);
+  assert.deepEqual(allowedTransitions({kind:'inquiry',status:'waiting_customer',previousStatus:'triage'}), ['triage','completed']);
+  assert.deepEqual(filterWork([{kind:'inquiry'},{kind:'request'}],{kind:'inquiry'}),[{kind:'inquiry'}]);
+});
+test('inquiry client uses schema 2 detail and explicit private handoff commands', async () => {
+  const calls=[]; const api=createApiClient({fetchImpl:async(url,init)=>{calls.push({url,init});return new Response('{}');}});
+  await api.getWork('work_12345678'); await api.inviteInquiry('work_12345678'); await api.prepareInquiry({workId:'work_12345678',revision:2,service:'design',title:'Bracket'},'prepare_key');
+  assert.match(calls[0].url,/schema=2/);
+  assert.deepEqual(JSON.parse(calls[1].init.body),{action:'invite',workId:'work_12345678'});
+  assert.equal(calls[2].init.headers['Idempotency-Key'],'prepare_key');
+});
