@@ -1,5 +1,11 @@
 # Platform recovery and backup automation
 
+See [STACK-AUTOMATION.md](STACK-AUTOMATION.md) for the complete stack inventory,
+new-host bootstrap, replacement-host rebuild, streamed private-file checkpoints,
+hosted deployment commands and operational acceptance checklist. Evidence below
+describes the original database/configuration checkpoint verification; it does
+not establish activation of the newer file backup or cold rebuild tooling.
+
 The storefront and operator shell remain on Vercel. Independent status runs on
 Vercel and Cloudflare; its protected operations view requires Vercel Authentication
 on **all deployments**. Local runtime uses the private PostgreSQL18 database,

@@ -1,5 +1,18 @@
 # Deployment Guide
 
+## Current production setup
+
+Start with [STACK-AUTOMATION.md](STACK-AUTOMATION.md) for the complete component
+inventory, new-host setup, hosted deployments, schedules, complete encrypted
+checkpoints, replacement-host recovery and acceptance checks. Production uses
+private PostgreSQL/API/jobs/slicer, direct GitHub identity, private Vercel Blob,
+Vercel storefront/operator/status shells and independent Cloudflare monitoring.
+The storefront functions use `SELF_HOSTED_API_ORIGIN` and `PLATFORM_PROXY_SECRET`.
+Do not re-enable retired Neon bindings, authentication or cleanup schedules.
+
+The older Neon-specific installation sections below are retained for legacy
+deployments and historical recovery only; they do not describe current production.
+
 ## Optional Invoice Ninja drafts
 
 Billing reuses the operator API so no thirteenth function is added. Follow

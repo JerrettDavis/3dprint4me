@@ -13,11 +13,35 @@ import re
 import subprocess
 import sys
 import tarfile
+from contextlib import contextmanager
+import threading
 
 LIMIT = 128 * 1024 * 1024
 PRIVATE_NAMES = ['postgres.env', 'api.env', 'activation.env', 'database.private.json',
                  'github.private.json', 'tunnel.token', 'compose.env', 'jobs.env',
                  'slicer.env', 'database-target.private.json', 'status-collector.private.json']
+
+
+@contextmanager
+def database_snapshot(container, database):
+    keeper = subprocess.Popen(['docker','exec','-i',container,'psql','-X','-qAt','-U','platform_owner','-d',database,'-v','ON_ERROR_STOP=1'],
+                              stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True)
+    timer = threading.Timer(150, keeper.kill);timer.start()
+    try:
+        keeper.stdin.write('BEGIN ISOLATION LEVEL REPEATABLE READ; SELECT pg_export_snapshot();\n');keeper.stdin.flush()
+        snapshot = keeper.stdout.readline().strip()
+        if not re.fullmatch('[A-Fa-f0-9-]{1,128}',snapshot):raise ValueError('Snapshot failed')
+        # These references come from the SAME MVCC snapshot as pg_dump. Retention
+        # racing with file export cannot silently omit files from a valid backup.
+        keeper.stdin.write("SELECT COALESCE(json_agg(path),'[]'::json) FROM (SELECT DISTINCT f->>'path' AS path FROM service_requests CROSS JOIN LATERAL jsonb_array_elements(uploaded_files) f WHERE f->>'path' IS NOT NULL AND f->>'mode' IS DISTINCT FROM 'estimate' UNION SELECT f->>'path' AS path FROM quick_inquiries CROSS JOIN LATERAL jsonb_array_elements(files) f WHERE status='submitted' AND f->>'path' IS NOT NULL UNION SELECT blob_path AS path FROM print_assets WHERE state NOT IN ('pending_upload','deleted') AND deleted_at IS NULL) paths;\n")
+        keeper.stdin.flush()
+        required = json.loads(keeper.stdout.readline())
+        if not isinstance(required,list) or any(not isinstance(p,str) for p in required):raise ValueError('Invalid file references')
+        yield snapshot, required
+    finally:
+        timer.cancel()
+        if keeper.poll() is None:keeper.kill()
+        keeper.communicate(timeout=10)
 
 
 def selected_databases(manifest, selection):
@@ -62,11 +86,13 @@ def export(root):
         return json.loads(output) if output.strip() else None
     selected=selection()
     databases=selected_databases(manifest,selected)
+    required_paths = set()
     for database in databases:
+      with database_snapshot(container, database) as (snapshot, required):
+        required_paths.update(required)
         # pg_dump runs as the existing non-superuser schema owner; preserve ACLs.
         process = subprocess.Popen(['docker', 'exec', container, 'pg_dump', '-U', 'platform_owner', '-d', database,
-                                    '--format=custom', '--schema=public', '--no-owner'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        import threading
+                                    '--format=custom', '--schema=public', '--no-owner', '--snapshot=' + snapshot], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         timer = threading.Timer(120, process.kill)
         timer.start()
         try:
@@ -86,7 +112,9 @@ def export(root):
             process.wait()
     if selection()!=selected:
         raise ValueError('Selection changed during backup; retry after handover')
+    files['objects/required-paths.json'] = json.dumps(sorted(required_paths)).encode()
     metadata = {'version': 1, 'databases': databases, 'phase': 'active' if selected else manifest['phase'], 'deploymentSelection':selected,
+                'requiredObjectCount': len(required_paths),
                 'sha256': {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
     files['manifest.json'] = json.dumps(metadata, sort_keys=True).encode()
     archive = io.BytesIO()
