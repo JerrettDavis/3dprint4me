@@ -1,4 +1,4 @@
-import { formatBytes } from "./files.js?v=0bd2c28068858324";
+import { formatBytes } from "./files.js?v=d367ecc51c8342f1";
 
 export function createOrderView({ document, window, form, formatEstimate }) {
   const elements = {
@@ -133,9 +133,11 @@ export function createOrderView({ document, window, form, formatEstimate }) {
       elements.steps.forEach(step => { step.classList.remove("active"); step.setAttribute("aria-hidden", "true"); });
       elements.formActions.hidden = true;
       elements.submissionState.classList.add("visible");
-      document.querySelector("#confirmation-title").textContent = request.backend.live ? "Your project request is in." : "Your request is ready.";
+      document.querySelector("#confirmation-title").textContent = request.receiptOnly ? "This project request was already received." : request.backend.live ? "Your project request is in." : "Your request is ready.";
       document.querySelector("#request-id").textContent = request.id;
-      document.querySelector("#confirmation-copy").textContent = request.backend.live
+      document.querySelector("#confirmation-copy").textContent = request.receiptOnly
+        ? "This is your existing request reference. Any changes on this page were not submitted again. Contact us with this reference to update your project."
+        : request.backend.live
         ? request.uploadedFiles.some(file => !file.path && file.mode !== "estimate")
           ? "I’ll review the details and respond with a confirmed price, material choice, and schedule. Your selected files were not uploaded; use Email this request and attach them with your request ID."
           : "I’ll review the details and respond with a confirmed price, material choice, and schedule."

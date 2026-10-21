@@ -39,6 +39,8 @@ test('local handoff and operator conversion retain a single project and private 
     assert.equal((await f.service.completeDraft({token:invite.token,id:draft.id,request:request()})).replayed,true);
     const detail=await f.work.getWork(f.item.id),state=await f.work.snapshot();
     assert.equal(detail.item.kind,'request');assert.equal(detail.item.projectDraft,false);assert.equal(detail.notes.length,1);
+    assert.equal(detail.inquiry.message,'Please help with a part');
+    assert.equal((await f.work.listWork({view:'active',limit:30})).items[0].inquiryId,'INQ-example123');
     assert.equal(state.requests.length,1);assert.equal(state.workItems.length,1);assert.equal(state.outbox.length,2);
     assert.ok(!JSON.stringify(state).includes(invite.token));
     assert.deepEqual(await f.service.read({token:invite.token}),{completed:true,id:draft.id});
