@@ -99,8 +99,8 @@
 **Files:** docs/QUICK-INQUIRY.md; docs/ARCHITECTURE.md; deployment/recovery runbooks; deploy/platform inquiry backfill/rolling deployment helpers; private execution ledger.
 
 - [x] Document models, manual communications, capability expiry/revocation/recovery, native migration/backfill and privacy deletion responsibilities.
-- [ ] Run full npm test, screenshots and visual inspection; secret scans; independent whole-branch code review. Fix Important/Critical findings with regressions.
-- [ ] Rehearse migration/conversion/rollback and API overlap deployment against scratch PostgreSQL18 with no customer messages; preserve native least privileges.
+- [x] Run full npm test, screenshots and visual inspection; secret scans; independent whole-branch code review. Fix Important/Critical findings with regressions.
+- [x] Rehearse migration/conversion/rollback and API overlap deployment against scratch PostgreSQL18 with no customer messages; preserve native least privileges.
 - [ ] Apply additive schema to selected live database only; deploy reviewed API with overlap and unchanged database writer; deploy static apps; rerun bounded backfill.
 - [ ] Verify today's existing inquiry appears as Needs response, old full requests remain accessible, private files stay protected, and no customer email/invoice was sent by rollout. Verify fresh backup/isolated restore.
 - [ ] Merge/deploy main, record actual evidence and remaining limitations, and complete handover without enabling paid services.
