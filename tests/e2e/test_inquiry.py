@@ -117,3 +117,45 @@ def test_replacement_file_with_same_metadata_starts_new_submission():
         keys = page.evaluate('window.keys')
         assert len(keys)==2 and keys[0]!=keys[1]
         site.assert_no_page_errors()
+
+
+def test_entry_choices_and_explicit_private_continuation():
+    with SiteBrowser(viewport=(390, 844), color_scheme='dark') as site:
+        page = site.load('/')
+        expect(page.locator('.hero-actions').get_by_role('button', name='Ask a question', exact=True)).to_be_visible()
+        expect(page.locator('.hero-actions').get_by_role('link', name='Start a project request', exact=True)).to_have_attribute('href', '/order.html')
+        open_inquiry(page)
+        page.evaluate('''() => { window.handoffCalls=[]; window.fetch=async (url,options)=>{
+          window.handoffCalls.push({url,body:JSON.parse(options.body)});
+          if(String(url).includes('handoff')) return new Response(JSON.stringify({error:'private internal error'}),{status:503});
+          return new Response(JSON.stringify(options.method==='POST'?{id:'INQ-test',mode:'neon',uploads:[]}:{id:'INQ-test',live:true}),{status:200});
+        }; }''')
+        page.locator('#save-inquiry').click()
+        expect(page.locator('#success-pane')).to_be_visible()
+        assert len(page.evaluate('window.handoffCalls')) == 2
+        page.locator('#continue-inquiry').click()
+        expect(page.locator('#continue-error')).to_be_visible()
+        calls = page.evaluate('window.handoffCalls')
+        assert calls[2]['url'] == '/api/inquiry?kind=handoff'
+        assert calls[2]['body']['submissionKey'] == calls[0]['body']['submissionKey']
+        assert 'internal' not in page.locator('#continue-error').inner_text()
+        stored = page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
+        assert calls[0]['body']['submissionKey'] not in stored
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        site.assert_no_page_errors()
+
+
+def test_local_continuation_storage_failure_preserves_recovery():
+    with SiteBrowser(viewport=(390, 844)) as site:
+        page = site.load('/', storage_denied=True)
+        open_inquiry(page)
+        page.locator('#save-inquiry').click()
+        expect(page.locator('#success-pane')).to_be_visible()
+        assert 'not received' in page.locator('#continue-note').inner_text()
+        assert 'attach files again' in page.locator('#continue-note').inner_text()
+        page.evaluate('Object.defineProperty(window,"sessionStorage",{get(){throw new Error("denied")},configurable:true})')
+        page.locator('#continue-inquiry').click()
+        expect(page.locator('#continue-error')).to_contain_text('could not copy')
+        expect(page.locator('#download-inquiry')).to_be_visible()
+        expect(page.locator('#separate-project')).to_have_attribute('href', '/order.html')
+        site.assert_no_page_errors()

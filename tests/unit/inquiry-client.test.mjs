@@ -33,3 +33,29 @@ test('lost completion response requires retry instead of claiming not received',
 test('a failed retry after uncertain completion never claims not received',async()=>{
   await assert.rejects(submitInquiry({...input,receiptUncertain:true},async()=>{throw new TypeError('offline')}),e=>!e.recoverable);
 });
+
+test('explicit continuation issues a narrowly scoped fragment handoff', async()=>{
+  const client = await import('../../public/assets/evolution/inquiry-client.js');
+  assert.equal(typeof client.issueInquiryHandoff, 'function');
+  const calls=[];
+  const result=await client.issueInquiryHandoff('INQ-1',input.submissionKey,async(url,options)=>{
+    calls.push([url,options]);
+    return response({url:'/order.html#inquiry='+ 'b'.repeat(64),token:'b'.repeat(64),expiresAt:'2026-10-28'});
+  });
+  assert.equal(result,'/order.html#inquiry='+ 'b'.repeat(64));
+  assert.equal(calls[0][0],'/api/inquiry?kind=handoff');
+  assert.equal(calls[0][1].method,'POST');
+  assert.deepEqual(JSON.parse(calls[0][1].body),{action:'issue',id:'INQ-1',submissionKey:input.submissionKey});
+  await assert.rejects(client.issueInquiryHandoff('INQ-1',input.submissionKey,async()=>response({url:'https://evil.test/#inquiry='+ 'b'.repeat(64),token:'b'.repeat(64)})),/continue/i);
+});
+
+test('local continuation projects bounded text without files or capabilities',async()=>{
+  const core=await import('../../public/assets/evolution/inquiry-core.js');
+  assert.equal(typeof core.inquiryTextPrefill,'function');
+  assert.deepEqual(core.inquiryTextPrefill({name:' x ',replyEmail:'a@example.com',message:'m'.repeat(5000),referenceUrl:'https://example.com',intent:'repair',submissionKey:'secret',attachments:[{name:'private.stl'}]}),{name:'x',email:'a@example.com',message:'m'.repeat(4000),referenceUrl:'https://example.com',intent:'repair'});
+});
+
+test('handoff accepts the trusted absolute storefront URL and navigates relatively',async()=>{
+  const {issueInquiryHandoff}=await import('../../public/assets/evolution/inquiry-client.js');
+  assert.equal(await issueInquiryHandoff('INQ-1',input.submissionKey,async()=>response({url:'https://3dprint4.me/order.html#inquiry='+ 'b'.repeat(64),token:'b'.repeat(64)})),'/order.html#inquiry='+ 'b'.repeat(64));
+});

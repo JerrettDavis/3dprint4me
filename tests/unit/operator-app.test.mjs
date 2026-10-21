@@ -100,3 +100,16 @@ test("operator stylesheet gives controls pointer, hover, press and disabled stat
   const css = await readFile(new URL("../../operator/assets/operator.css", import.meta.url), "utf8");
   for (const needle of ["cursor:pointer", "button:not(:disabled):hover", "button:not(:disabled):active", "button:disabled{cursor:not-allowed", ".work-list li:hover", "prefers-reduced-motion:no-preference"]) assert.ok(css.includes(needle), needle);
 });
+
+test('operator preparation refreshes the same work detail and inbox without sending email', async () => {
+  const view=makeView(); let command,reads=0,lists=0;
+  const api={session:async()=>({operator:{}}),listWork:async()=>{lists++;return {items:[]};},getWork:async()=>{reads++;return {item:{id:'work_inquiry1',kind:reads>1?'request':'inquiry',revision:3}};},prepareInquiry:async value=>{command=value;return {workId:'work_inquiry1'};}};
+  const controller=createOperatorController({api,view});await controller.start();await controller.select('work_inquiry1');await controller.prepareInquiry({service:'design',title:'Bracket'});
+  assert.deepEqual(command,{workId:'work_inquiry1',revision:3,service:'design',title:'Bracket'}); assert.equal(reads,2);assert.equal(lists,2);
+});
+
+test('conversion preserves an unsaved private note when detail is refreshed',async()=>{
+ const view=makeView();const api={getWork:async()=>({item:{id:'work_inquiry1',revision:1}}),prepareInquiry:async()=>({}),listWork:async()=>({items:[]})};
+ const controller=createOperatorController({api,view});await controller.select('work_inquiry1');await controller.prepareInquiry({service:'design',title:'Knob'});
+ assert.equal(controller.snapshot().noteDraft,'unsent note');
+});

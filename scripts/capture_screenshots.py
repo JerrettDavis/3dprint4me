@@ -351,6 +351,32 @@ def capture_operator_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_inquiry_workflow_states():
+    captured = []
+    for scheme in ['light', 'dark']:
+        with running_operator_workspace() as (storefront, operator, _):
+            key = 'a' * 64
+            _, _, inquiry = json_request(storefront + '/api/inquiry', method='POST', payload={'submissionKey': key, 'inquiry': {'name': 'Example customer', 'replyEmail': 'customer@example.com', 'message': 'Can you help replace a broken desk knob?'}, 'files': []})
+            json_request(storefront + '/api/inquiry', method='PATCH', payload={'id': inquiry['id'], 'submissionKey': key})
+            with SiteBrowser(viewport=(390, 844), color_scheme=scheme, reduced_motion='reduce') as site:
+                page = site.goto(operator)
+                page.locator('#work-list button').first.click()
+                page.get_by_role('button', name='Create project draft').wait_for()
+                path = OUTPUT / f'operator-inquiry-detail-{scheme}.png'
+                site.screenshot(path, full_page=True)
+                captured.append((f'Inquiry needing response · mobile · {scheme}', path))
+                page.get_by_label('Project service').select_option('design')
+                page.get_by_label('Project title').fill('Replacement desk knob')
+                page.get_by_label('I reviewed the copied contact and inquiry context.').check()
+                page.get_by_role('button', name='Create project draft').click()
+                page.locator('.draft-badge').wait_for()
+                path = OUTPUT / f'operator-inquiry-{scheme}.png'
+                site.screenshot(path, full_page=True)
+                captured.append((f'Inquiry converted to incomplete project · mobile · {scheme}', path))
+                site.assert_no_page_errors()
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -379,6 +405,7 @@ def main() -> int:
     ]
     cases.extend(capture_customize_states())
     cases.extend(capture_operator_states())
+    cases.extend(capture_inquiry_workflow_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
     print(f"Captured {len(cases) + 1} screenshots and {board.relative_to(ROOT)}")

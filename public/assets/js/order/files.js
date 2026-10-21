@@ -6,7 +6,7 @@ export function formatBytes(bytes) {
   return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
 }
 
-export function createFileManager({ config, client, notify, render, onChange = () => {} }) {
+export function createFileManager({ config, client, notify, render, onChange = () => {}, reservedFileCount = () => 0 }) {
   const selected = [];
   function changed() { render(selected); onChange(selected); }
   return {
@@ -17,7 +17,7 @@ export function createFileManager({ config, client, notify, render, onChange = (
         if (!ALLOWED_EXTENSIONS.includes(extension)) { notify(`${file.name}: unsupported file type.`); continue; }
         if (file.size > config.maxUploadBytes) { notify(`${file.name}: larger than ${formatBytes(config.maxUploadBytes)}.`); continue; }
         if (selected.some(existing => existing.name === file.name && existing.size === file.size)) continue;
-        if (selected.length >= config.maxFiles) { notify(`Up to ${config.maxFiles} files can be attached.`); break; }
+        if (selected.length + reservedFileCount() >= config.maxFiles) { notify(`Up to ${config.maxFiles} files can be attached, including inquiry files.`); break; }
         selected.push(file);
       }
       changed();

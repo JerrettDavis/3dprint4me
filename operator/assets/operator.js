@@ -1,5 +1,5 @@
 import { createApiClient, OperatorApiError } from "./api-client.js";
-import { allowedTransitions, formatRelativeTime } from "./work-state.js";
+import { allowedTransitions, formatRelativeTime, workStatusLabel } from "./work-state.js";
 import { createPushClient } from "./push-client.js";
 import { createAuthClient, createCookieAuthClient } from "./auth-client.js";
 import { renderPrintEstimation } from "./print-detail.js";
@@ -56,7 +56,19 @@ export function createOperatorController({ api, view, expectSession = () => fals
     try { await api.recordPrintRun(model.selectedId, run); model.detail = await api.getWork(model.selectedId); view.detail(model.detail); view.announce("Production run recorded."); }
     catch (error) { if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } view.announce(error.message, "error"); }
   }
-  return { selectedId: () => model.selectedId, start, loadList, select, command, download, downloadFile, recordRun, clearPrivate, snapshot: () => structuredClone(model) };
+  async function prepareInquiry(value) {
+    if (!model.selectedId) return;
+    model.noteDraft = view.noteDraft?.() ?? model.noteDraft;
+    try {
+      await api.prepareInquiry({ workId: model.selectedId, revision: model.detail.item.revision, ...value });
+      model.detail = await api.getWork(model.selectedId); view.detail(model.detail, { noteDraft: model.noteDraft }); await loadList(); view.announce("Operator-prepared project draft created. Customer details and consent still need completion.", "success");
+    } catch (error) {
+      if (error.kind === "conflict") { model.noteDraft = view.noteDraft?.() ?? ""; model.detail = await api.getWork(model.selectedId); view.detail(model.detail, { noteDraft: model.noteDraft }); }
+      if (["signed-out", "forbidden"].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); }
+      view.announce(error.kind === "conflict" ? "This work changed. Review the current version before converting." : error.message, "error");
+    }
+  }
+  return { prepareInquiry, selectedId: () => model.selectedId, start, loadList, select, command, download, downloadFile, recordRun, clearPrivate, snapshot: () => structuredClone(model) };
 }
 
 const title = value => String(value ?? "").replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
@@ -75,24 +87,46 @@ function createDomView(api) {
       if (name === "forbidden") q("#auth-title").textContent = "This account is not approved.";
       if (["offline", "unavailable", "error"].includes(name)) view.announce(name === "offline" ? "The inbox is offline. Check the connection and retry." : "The inbox could not load. Try again.");
     },
-    list(items) { const selectedId = controller?.selectedId?.(); list.replaceChildren(); q("#work-count").textContent = String(items.length); q("#empty-state").hidden = items.length > 0; for (const item of items) { const li = el("li"); li.dataset.id = item.id; li.dataset.active = String(item.id === selectedId); const button = el("button", "work-row"); button.type = "button"; button.append(el("strong", "", item.projectTitle), el("span", "work-meta", `${title(item.service)} · ${title(item.status)}`), el("span", `priority priority-${item.priority}`, `${title(item.priority)} · ${formatRelativeTime(item.submittedAt)}`)); button.onclick = () => controller.select(item.id); li.append(button); list.append(li); } },
+    list(items) { const selectedId = controller?.selectedId?.(); list.replaceChildren(); q("#work-count").textContent = String(items.length); q("#empty-state").hidden = items.length > 0; for (const item of items) { const li = el("li"); li.dataset.id = item.id; li.dataset.active = String(item.id === selectedId); const button = el("button", "work-row"); button.type = "button"; button.append(el("strong", "", item.kind === "inquiry" ? "Inquiry" : item.projectTitle), el("span", "work-meta", `${item.kind === "inquiry" ? "Inquiry" : title(item.service)} · ${title(workStatusLabel(item))}${item.projectDraft ? " · Project draft" : ""}`), el("span", `priority priority-${item.priority}`, `${title(item.priority)} · ${formatRelativeTime(item.submittedAt)}`)); button.onclick = () => controller.select(item.id); li.append(button); list.append(li); } },
     detail(payload, options = {}) {
-      placeholder.hidden = true; detail.hidden = false; detail.replaceChildren(); const { item, request = {}, files = [], notes = [], events = [] } = payload;
+      placeholder.hidden = true; detail.hidden = false; detail.replaceChildren(); const { item, files = [], notes = [], events = [], inquiry = null } = payload; const request = payload.request ?? {}; const isInquiry = item.kind === "inquiry";
       const back = el("button", "back", "Back to inbox"); back.type = "button"; back.onclick = () => { document.body.dataset.detail = "closed"; history.pushState({}, "", "/"); };
-      const heading = el("header", "job-heading"); heading.append(el("p", "kicker", `${title(item.status)} · revision ${item.revision}`), el("h2", "", request.projectTitle ?? item.projectTitle ?? "Work request"), el("p", "job-id", item.requestId ?? item.id));
+      const heading = el("header", "job-heading"); heading.append(el("p", "kicker", `${title(workStatusLabel(item))} · revision ${item.revision}`), el("h2", "", isInquiry ? "Inquiry" : request.projectTitle ?? item.projectTitle ?? "Work request"), el("p", "job-id", item.requestId ?? item.id));
       const actions = el("section", "job-actions"); actions.setAttribute("aria-label", "Update work");
       const run = async command => { const controls = [...actions.querySelectorAll("button,select,input")]; actions.setAttribute("aria-busy", "true"); controls.forEach(control => { control.disabled = true; }); try { await controller.command({ ...command, revision: item.revision }); } finally { actions.removeAttribute("aria-busy"); controls.forEach(control => { control.disabled = false; }); } };
       const commandButton = (text, command) => { const button = el("button", "action", text); button.type = "button"; button.onclick = () => run(command); actions.append(button); };
       if (!item.acknowledged) commandButton("Acknowledge", { type: "acknowledge" });
       const priority = el("select"); priority.setAttribute("aria-label", "Priority"); for (const value of ["low", "normal", "high", "urgent"]) { const option = el("option", "", title(value)); option.value = value; option.selected = item.priority === value; priority.append(option); } priority.onchange = () => run({ type: "set-priority", priority: priority.value }); actions.append(priority);
       const date = el("input"); date.type = "date"; date.value = item.targetDate ?? ""; date.setAttribute("aria-label", "Target date"); date.onchange = () => run({ type: "set-target-date", targetDate: date.value || null }); actions.append(date);
-      for (const next of allowedTransitions(item)) commandButton(`Move to ${title(next)}`, { type: "set-status", status: next });
-      const facts = el("section", "job-sheet"); facts.append(el("h3", "", "Request details")); for (const [key, value] of Object.entries(request)) { if (value == null || value === "" || typeof value === "object") continue; const dl = el("dl"), row = el("div", "fact"); row.append(el("dt", "", title(key)), el("dd", "", String(value))); dl.append(row); facts.append(dl); } if (files.length) { facts.append(el("h4", "", `${files.length} private file${files.length === 1 ? "" : "s"} attached`)); const fileList = el("ul", "request-files"); files.forEach((file, index) => { const row = el("li", "request-file"); row.append(el("span", "request-file-name", file.name ?? `File ${index + 1}`)); if (file.path && file.mode !== "estimate") { const button = el("button", "print-download", "Download"); button.type = "button"; button.setAttribute("aria-label", `Download ${file.name ?? `file ${index + 1}`}`); button.onclick = () => controller.downloadFile(index); row.append(button); } else row.append(el("span", "work-meta", file.mode === "estimate" ? "Estimate model — see Print estimate below" : "Name only — file was not uploaded")); fileList.append(row); }); facts.append(fileList); }
+      for (const next of allowedTransitions(item)) commandButton(`Move to ${title(workStatusLabel({ ...item, status: next }))}`, { type: "set-status", status: next });
+      const facts = el("section", "job-sheet"); facts.append(el("h3", "", isInquiry ? "Inquiry details" : "Request details"));
+      if (item.projectDraft) facts.append(el("strong", "draft-badge", "Operator-prepared project draft"), el("p", "", "Incomplete: service-specific details, customer consent and a reviewed planning estimate still need completion. This is not a submitted customer project or an agreed quote."));
+      if (inquiry) {
+        const source = el("section", "inquiry-source"); source.append(el("h4", "", isInquiry ? "Customer message" : "Original inquiry"));
+        for (const [label, value] of [["Name", inquiry.name], ["Reply email", inquiry.replyEmail], ["Inquiry reference", item.inquiryId], ["Message", inquiry.message], ["Reference URL", inquiry.referenceUrl], ["Interest", inquiry.intent]]) if (value) { const row=el("p"); row.append(el("strong", "", `${label}: `), el("span", "", value)); source.append(row); }
+        if (inquiry.replyEmail) { const reply = el("a", "action", "Open email reply"); reply.href = `mailto:${encodeURIComponent(inquiry.replyEmail)}?subject=${encodeURIComponent(`Re: inquiry ${item.inquiryId ?? item.id}`)}`; source.append(reply, el("p", "work-meta", "Send replies manually. Acknowledgment and status changes do not verify email delivery.")); }
+        facts.append(source);
+      }
+      if (inquiry && (isInquiry || item.projectDraft)) {
+        const invite = el("button", "action", "Copy project-request link"); invite.type="button";
+        const fallback = el("input"); fallback.type="text"; fallback.readOnly=true; fallback.hidden=true; fallback.setAttribute("aria-label", "Private project-request link");
+        invite.onclick = async () => { invite.disabled=true; fallback.value=""; fallback.hidden=true; try { const result=await api.inviteInquiry(item.id); try { await navigator.clipboard.writeText(result.url); view.announce("Private link copied. Share it manually with the customer; it expires in seven days.", "success"); } catch { fallback.value=result.url; fallback.hidden=false; fallback.focus(); fallback.select(); view.announce("Clipboard unavailable. Copy the private link from the selected field and share it manually."); } } catch(error) { view.announce(error.message, "error"); } finally { invite.disabled=false; } }; facts.append(invite, fallback);
+      }
+      if (isInquiry) {
+        const convert=el("form", "note-form inquiry-convert"); convert.append(el("h4", "", "Convert to project"), el("p", "", "Copy this contact and inquiry context into an incomplete project draft. No customer consent, estimate, invoice or email is created."));
+        const service=el("select"); service.id="conversion-service"; service.required=true; for (const [value,label] of [["","Choose a service"],["print","3D printing"],["design","3D design"],["repair","Printer repair"],["consult","Project consult"]]) { const option=el("option","",label); option.value=value; service.append(option); }
+        const serviceLabel=el("label","","Project service"); serviceLabel.htmlFor=service.id;
+        const projectTitle=el("input"); projectTitle.id="conversion-title"; projectTitle.required=true; projectTitle.maxLength=160; const titleLabel=el("label","","Project title"); titleLabel.htmlFor=projectTitle.id;
+        const confirm=el("input"); confirm.type="checkbox"; confirm.id="conversion-confirm"; confirm.required=true; const confirmLabel=el("label","","I reviewed the copied contact and inquiry context."); confirmLabel.htmlFor=confirm.id;
+        const submit=el("button","primary","Create project draft"); submit.type="submit"; convert.append(serviceLabel,service,titleLabel,projectTitle,confirm,confirmLabel,submit);
+        convert.onsubmit=async event=>{event.preventDefault();if(!convert.reportValidity())return;submit.disabled=true;try{await controller.prepareInquiry({service:service.value,title:projectTitle.value.trim()});}finally{submit.disabled=false;}}; facts.append(convert);
+      }
+       for (const [key, value] of Object.entries(request)) { if (value == null || value === "" || typeof value === "object") continue; const dl = el("dl"), row = el("div", "fact"); row.append(el("dt", "", title(key)), el("dd", "", String(value))); dl.append(row); facts.append(dl); } if (files.length) { facts.append(el("h4", "", `${files.length} private file${files.length === 1 ? "" : "s"} attached`)); const fileList = el("ul", "request-files"); files.forEach((file, index) => { const row = el("li", "request-file"); row.append(el("span", "request-file-name", file.name ?? `File ${index + 1}`)); if (file.path && file.mode !== "estimate") { const button = el("button", "print-download", "Download"); button.type = "button"; button.setAttribute("aria-label", `Download ${file.name ?? `file ${index + 1}`}`); button.onclick = () => controller.downloadFile(index); row.append(button); } else row.append(el("span", "work-meta", file.mode === "estimate" ? "Estimate model — see Print estimate below" : "Name only — file was not uploaded")); fileList.append(row); }); facts.append(fileList); }
       const form = el("form", "note-form"), note = el("textarea"); note.id = "private-note"; note.maxLength = 4000; note.rows = 4; note.value = options.noteDraft ?? ""; const noteLabel = el("label", "", "Private note"); noteLabel.htmlFor = note.id; const save = el("button", "primary", "Add private note"); save.type = "submit"; form.append(noteLabel, note, save); form.onsubmit = event => { event.preventDefault(); controller.command({ type: "add-note", body: note.value, revision: item.revision }); };
       const activity = el("section", "history"); activity.append(el("h3", "", "Activity")); for (const event of events) activity.append(el("p", "", `${title(event.type)} · ${new Date(event.occurredAt).toLocaleString()}`)); for (const savedNote of notes) activity.append(el("blockquote", "", savedNote.body));
-      const print = renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) });
+      const print = !isInquiry && !item.projectDraft ? renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) }) : null;
       const customization = request?.customization ? renderCustomization(request) : null;
-      const billing = controller.snapshot().operator?.role === "owner" ? renderInvoiceDetail({ item, api, onAuthError: () => { controller.clearPrivate(); controller.start(); } }) : null;
+      const billing = !isInquiry && !item.projectDraft && controller.snapshot().operator?.role === "owner" ? renderInvoiceDetail({ item, api, onAuthError: () => { controller.clearPrivate(); controller.start(); } }) : null;
       if (options.saved) heading.classList.add("saved-flash"); detail.append(back, heading, actions, facts, ...(customization ? [customization] : []), ...(print ? [print] : []), ...(billing ? [billing] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
     }, announce(message, kind = "info") { status.textContent = message; toast.textContent = message; toast.dataset.kind = kind; toast.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, kind === "error" ? 9000 : 3500); }, openDownload(url) { location.assign(url); }
   }; filters.onchange = () => controller.loadList(); return view;

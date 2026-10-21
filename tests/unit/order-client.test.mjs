@@ -3,6 +3,15 @@ import test from "node:test";
 
 import { createProjectRequestClient, ProjectRequestClientError } from "../../public/assets/js/order/client.js";
 
+test('Inquiry capability travels only in authorized JSON requests, never checkout or uploaded bytes', async()=>{
+  const calls=[];
+  const client=createProjectRequestClient({getInquiryToken:()=> 'a'.repeat(64),fetchImpl:async(url,options)=>{calls.push([url,options]);return new Response(JSON.stringify({id:'test'}));}});
+  await client.create({request:{}});await client.complete({id:'test'});await client.checkout({requestId:'test'});
+  assert.equal(JSON.parse(calls[0][1].body).handoffToken,'a'.repeat(64));
+  assert.equal(JSON.parse(calls[1][1].body).handoffToken,'a'.repeat(64));
+  assert.equal(JSON.parse(calls[2][1].body).handoffToken,undefined);
+});
+
 test("Given a correctable server rejection, when create fails, then the client classifies it as editable", async () => {
   const client = createProjectRequestClient({
     fetchImpl: async () => new Response(JSON.stringify({ error: "Choose a service." }), { status: 400, headers: { "content-type": "application/json" } })

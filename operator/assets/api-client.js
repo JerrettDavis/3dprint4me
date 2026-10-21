@@ -14,7 +14,9 @@ export function createApiClient({ apiBase = "", getSessionHeaders = async () => 
   return {
     session: () => request("/api/operator-session"),
     listWork: filters => request(`/api/operator-work?${new URLSearchParams(filters ?? {})}`),
-    getWork: id => request(`/api/operator-work?id=${encodeURIComponent(id)}`),
+    getWork: id => request(`/api/operator-work?id=${encodeURIComponent(id)}&schema=2`),
+    inviteInquiry: workId => request("/api/operator-work?resource=inquiries", { method: "POST", body: JSON.stringify({ action: "invite", workId }) }),
+    prepareInquiry: (command, idempotencyKey = crypto.randomUUID()) => request("/api/operator-work?resource=inquiries", { method: "POST", headers: { "Idempotency-Key": idempotencyKey }, body: JSON.stringify({ action: "prepare", command }) }),
     invoiceStatus: workId => request(`/api/operator-work?resource=invoices&workId=${encodeURIComponent(workId)}`),
     invoiceAction: (action, value) => request("/api/operator-work?resource=invoices", { method: "POST", body: JSON.stringify({ action, ...value }) }),
     events: (after = "0") => request(`/api/operator-work?eventsAfter=${encodeURIComponent(after)}`),

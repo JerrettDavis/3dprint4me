@@ -8,9 +8,14 @@ const transitions = {
   waiting_customer: [], completed: [], declined: [], cancelled: []
 };
 
-export const filterWork = (items, filters = {}) => items.filter(item => (!filters.service || item.service === filters.service) && (!filters.priority || item.priority === filters.priority));
+export const filterWork = (items, filters = {}) => items.filter(item => (!filters.kind || item.kind === filters.kind) && (!filters.service || item.service === filters.service) && (!filters.priority || item.priority === filters.priority));
 export const sortWork = items => [...items].sort((a, b) => (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9) || String(a.submittedAt).localeCompare(String(b.submittedAt)) || a.id.localeCompare(b.id));
 export function allowedTransitions(item) {
+  if (item.kind === "inquiry") {
+    if (["completed", "declined", "cancelled"].includes(item.status)) return [];
+    if (item.status === "waiting_customer") return [...(["submitted", "triage"].includes(item.previousStatus) ? [item.previousStatus] : []), "completed"];
+    return [...(item.status === "submitted" ? ["triage"] : []), "waiting_customer", "completed"];
+  }
   let values = [...(transitions[item.status] ?? [])];
   if (item.status === "approved" && !item.targetDate) values = values.filter(value => value !== "scheduled");
   if (item.status === "waiting_customer" && item.previousStatus) values = [item.previousStatus];
@@ -24,3 +29,5 @@ export function formatRelativeTime(value, now = Date.now()) {
   if (Math.abs(hours) < 24) return formatter.format(hours, "hour");
   return formatter.format(Math.round(hours / 24), "day");
 }
+
+export const workStatusLabel = item => item.kind === "inquiry" ? ({submitted:"Needs response",triage:"Reviewing",waiting_customer:"Waiting",completed:"Closed",declined:"Closed",cancelled:"Closed"}[item.status] ?? item.status) : item.status.replaceAll("_", " ");

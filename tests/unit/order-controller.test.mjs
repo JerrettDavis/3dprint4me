@@ -28,6 +28,14 @@ function harness(overrides = {}) {
   return { controller, shown, saved, request };
 }
 
+test("A completed invitation recovers only its receipt without uploading current form data", async () => {
+  const {controller, saved} = harness({client: {async create() {return {id:'3DP-20260922-ABCDEFGH',mode:'neon',live:true,completed:true};}, async complete(){assert.fail('must not complete twice');}}, files:{async prepare(){assert.fail('must not upload again');}}});
+  const receipt=await controller.submit();
+  assert.equal(receipt.receiptOnly,true);
+  assert.equal(receipt.projectTitle,undefined);
+  assert.equal(saved[0].backend.checkoutToken,undefined);
+});
+
 test("Given an uncertain completion response, when submission finishes locally, then it never claims the remote request was lost", async () => {
   const client = {
     async create() { return { id: "3DP-20260922-ABCDEFGH", mode: "neon", live: true }; },
