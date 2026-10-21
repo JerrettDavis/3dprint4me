@@ -68,7 +68,8 @@ def destination(root):
 def empty_docker(command=run):
     queries = [ ['docker','ps','-a','-q','--filter','label=com.docker.compose.project=' + PROJECT],
                 ['docker','volume','ls','-q','--filter','label=com.docker.compose.project=' + PROJECT] ]
-    for name in ['3dprint4me-health-jobs','3dprint4me-health-slicer']:
+    # Compose can adopt an existing same-name volume even without its labels.
+    for name in [PROJECT + '_postgres18','3dprint4me-health-jobs','3dprint4me-health-slicer']:
         queries.append(['docker','volume','ls','-q','--filter','name=^' + name + '$'])
     for args in queries:
         if command(args).strip():
