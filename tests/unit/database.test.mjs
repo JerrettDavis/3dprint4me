@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createNativeDatabase, nativePoolOptions } from '../../lib/database.js';
+import { HttpError } from '../../lib/http.js';
 
 test('native SQL binds untrusted values separately and normalizes undefined to null', async () => {
   let received;
@@ -30,4 +31,28 @@ test('native pool is bounded and keeps dates and timestamptz compatible with rep
   assert.equal(options.statement_timeout, 10000); assert.equal(options.query_timeout, 12000);
   assert.equal(options.types.getTypeParser(1082)('2026-10-20'), '2026-10-20');
   assert.equal(options.types.getTypeParser(1184)('2026-10-20 10:00:00+00'), '2026-10-20T10:00:00.000Z');
+});
+
+test('native callback transaction locks and updates through one parameterized client',async()=>{
+  const calls=[];
+  const db=createNativeDatabase({pool:{connect:async()=>({query:async(text,values)=>{
+    calls.push([text,values]);return {rows:[{id:7}]};},release:()=>calls.push(['release'])})}});
+  const result=await db.withTransaction(async tx=>{
+    const [row]=await tx.query`SELECT id FROM inquiries WHERE id=${7} FOR UPDATE`;
+    await tx.query`UPDATE inquiries SET linked=${row.id}`;return row.id;
+  });
+  assert.equal(result,7);
+  assert.deepEqual(calls.map(x=>x[0]),['BEGIN','SELECT id FROM inquiries WHERE id=$1 FOR UPDATE','UPDATE inquiries SET linked=$1','COMMIT','release']);
+  assert.deepEqual(calls[1][1],[7]);
+});
+
+test('callback rollback preserves safe domain conflicts and suppresses raw SQL failures',async()=>{
+  for(const error of [new HttpError(409,'The invitation expired.'),new Error('private database password')]) {
+    const calls=[];
+    const db=createNativeDatabase({pool:{connect:async()=>({query:async text=>{calls.push(text);return {rows:[]};},release:()=>calls.push('release')})}});
+    await assert.rejects(db.withTransaction(async()=>{throw error;}),actual=>{
+      assert.equal(actual.status,error instanceof HttpError?409:502);assert.doesNotMatch(actual.message,/private|password/);return true;
+    });
+    assert.deepEqual(calls,['BEGIN','ROLLBACK','release']);
+  }
 });

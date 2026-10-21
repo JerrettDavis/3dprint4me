@@ -10,6 +10,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS work_items_inquiry_idx ON work_items(inquiry_i
 CREATE INDEX IF NOT EXISTS work_items_kind_active_idx ON work_items(kind,created_at,id)
   WHERE status NOT IN ('completed','declined','cancelled');
 ALTER TABLE work_events ALTER COLUMN request_id DROP NOT NULL;
+ALTER TABLE work_events DROP CONSTRAINT IF EXISTS work_events_actor_type_check;
+ALTER TABLE work_events ADD CONSTRAINT work_events_actor_type_check
+  CHECK (actor_type IN ('system','operator','customer'));
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='work_items'::regclass AND conname='work_items_source_check') THEN
