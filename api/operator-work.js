@@ -1,4 +1,5 @@
-import { authorizeOperator, createNeonIdentityProvider } from "../lib/operator-auth.js";
+import { withPlatformProxy } from "../lib/platform/proxy.js";
+import { authorizeOperator, createConfiguredIdentityProvider } from "../lib/operator-auth.js";
 import { configuredOperatorOrigins, createOperatorApiHandler } from "../lib/operator-api.js";
 import { parseWorkQuery } from "../lib/work-management/domain.js";
 import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
@@ -31,7 +32,7 @@ function eventLimit(value) {
 export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), printEstimates = runtime ? null : defaultPrintEstimates(), invoicing, invoiceLocalPath } = {}) {
   const work = resolveWorkManagementRuntime({ runtime, repository: store, printEstimates });
   let provider = identityProvider;
-  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
+  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createConfiguredIdentityProvider()));
   const billingHandler = createOperatorInvoiceHandler({ runtime: work, authorize: authorizeRequest, allowedOrigins, invoicing, localPath: invoiceLocalPath });
   const workHandler = createOperatorApiHandler({ methods: ["GET"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
     const url = new URL(req.url ?? "/api/operator-work", "https://operator-api.invalid");
@@ -43,4 +44,6 @@ export function createWorkHandler({ store, runtime, identityProvider, authorize,
   return (req, res) => new URL(req.url ?? "/api/operator-work", "https://operator-api.invalid").searchParams.get("resource") === "invoices" ? billingHandler(req, res) : workHandler(req, res);
 }
 
-export default async function handler(req, res) { return createWorkHandler()(req, res); }
+async function handler(req, res) { return createWorkHandler()(req, res); }
+
+export default withPlatformProxy(handler);

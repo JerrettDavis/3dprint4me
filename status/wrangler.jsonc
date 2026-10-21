@@ -1,0 +1,13 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "3dprint4me-status",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-20",
+  "workers_dev": true,
+  "preview_urls": false,
+  "routes": [{"pattern": "status-api.3dprint4.me", "custom_domain": true}],
+  "observability": {"enabled": false},
+  "triggers": {"crons": ["*/5 * * * *"]},
+  "durable_objects": {"bindings": [{"name": "STATUS_STATE", "class_name": "StatusState"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["StatusState"]}]
+}

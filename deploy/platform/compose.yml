@@ -1,0 +1,99 @@
+name: 3dprint4me-platform
+x-app: &app
+  image: 3dprint4me-platform:${PLATFORM_RELEASE:?PLATFORM_RELEASE is required}
+  env_file: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/api.env"]
+  restart: unless-stopped
+  read_only: true
+  tmpfs: ["/tmp:size=32m,mode=1777"]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  init: true
+  mem_limit: 512m
+  cpus: 1.0
+  pids_limit: 128
+  stop_grace_period: 40s
+  logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
+  networks: [database, egress]
+services:
+  postgres:
+    image: postgres:18-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c
+    env_file: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/postgres.env"]
+    restart: unless-stopped
+    user: "999:999"
+    read_only: true
+    tmpfs: ["/tmp:size=16m,mode=1777", "/var/run/postgresql:size=1m,uid=999,gid=999"]
+    cap_drop: [ALL]
+    command: [postgres, -c, max_connections=50, -c, shared_buffers=128MB, -c, password_encryption=scram-sha-256, -c, log_statement=none, -c, log_min_error_statement=panic]
+    volumes: [postgres18:/var/lib/postgresql]
+    networks: [database]
+    security_opt: [no-new-privileges:true]
+    shm_size: 128m
+    mem_limit: 768m
+    cpus: 1.0
+    pids_limit: 128
+    stop_grace_period: 60s
+    healthcheck: {test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'], interval: 10s, timeout: 5s, retries: 6}
+    logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
+  api:
+    <<: *app
+    build: {context: ../.., dockerfile: deploy/platform/Dockerfile}
+    depends_on: {postgres: {condition: service_healthy}}
+    volumes:
+      - "${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/database-target.private.json:/run/platform/database-target.private.json:ro"
+      - "job-health:/run/platform-health/jobs:ro"
+      - "slicer-health:/run/platform-health/slicer:ro"
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:8080/internal/ready',{headers:{authorization:'Bearer '+process.env.PLATFORM_PROXY_SECRET}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+  jobs:
+    <<: *app
+    env_file: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/jobs.env"]
+    command: [node, scripts/platform-jobs.mjs]
+    environment: {PLATFORM_JOB_HEALTH_DIR: /run/platform-health/jobs}
+    volumes: ["job-health:/run/platform-health/jobs"]
+    profiles: [writers]
+    depends_on: {postgres: {condition: service_healthy}}
+  slicer:
+    image: 3dprint4me-slicer:${PLATFORM_RELEASE:?PLATFORM_RELEASE is required}
+    build: {context: ../.., dockerfile: deploy/slicer-worker/Dockerfile.bambu}
+    env_file: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/slicer.env"]
+    environment: {PLATFORM_JOB_HEALTH_DIR: /run/platform-health/slicer}
+    volumes: ["slicer-health:/run/platform-health/slicer"]
+    profiles: [writers]
+    depends_on: {postgres: {condition: service_healthy}}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:size=512m,mode=1777", "/home/worker:size=64m,uid=10001,gid=10001,mode=0700"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [database, egress]
+    init: true
+    mem_limit: 2g
+    memswap_limit: 2g
+    cpus: 2.0
+    pids_limit: 256
+    stop_grace_period: 30s
+    logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
+  tunnel:
+    image: cloudflare/cloudflared:2026.10.0@sha256:9b49eed8f62806d5d45ddf59ecefb5710429598ea6d3fcccd2af938f621b2b07
+    user: "1000:1000"
+    command: [tunnel, --no-autoupdate, --metrics, 0.0.0.0:2000, run, --token-file, /run/secrets/tunnel.token]
+    volumes: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/tunnel.token:/run/secrets/tunnel.token:ro"]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [egress]
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
+networks:
+  database: {internal: true}
+  egress: {}
+volumes:
+  postgres18: {}
+  job-health: {external: true, name: 3dprint4me-health-jobs}
+  slicer-health: {external: true, name: 3dprint4me-health-slicer}
