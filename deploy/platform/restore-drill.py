@@ -43,7 +43,7 @@ created=False
 try:
  run(['docker','run','--detach','--name',name,'--label','app=3dprint4me-restore-drill','--network','none','--memory','512m','--cpus','1','--tmpfs','/var/lib/postgresql:rw,nosuid,size=384m','--env','POSTGRES_USER','--env','POSTGRES_PASSWORD','postgres:18-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c'],env=env);created=True
  for attempt in range(60):
-  if subprocess.run(['docker','exec',name,'pg_isready','-U','platform_admin'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=5).returncode==0:break
+  if subprocess.run(['docker','exec',name,'pg_isready','-h','127.0.0.1','-U','platform_admin'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=5).returncode==0:break
   time.sleep(1)
  else:raise ValueError('Readiness failed')
  sql("CREATE ROLE platform_backend NOLOGIN NOSUPERUSER NOBYPASSRLS; CREATE ROLE platform_owner LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '"+credentials['owner']+"'; CREATE ROLE platform_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '"+credentials['runtime']+"'; GRANT platform_backend TO platform_app;")
