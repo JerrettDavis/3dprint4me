@@ -1,0 +1,11 @@
+[Unit]
+Description=Check the 3dprint4.me platform every five minutes
+
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+RandomizedDelaySec=15
+Unit=3dprint4me-status.service
+
+[Install]
+WantedBy=timers.target

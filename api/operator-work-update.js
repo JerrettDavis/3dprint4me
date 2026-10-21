@@ -1,4 +1,5 @@
-import { authorizeOperator, createNeonIdentityProvider } from "../lib/operator-auth.js";
+import { withPlatformProxy } from "../lib/platform/proxy.js";
+import { authorizeOperator, createConfiguredIdentityProvider } from "../lib/operator-auth.js";
 import { configuredOperatorOrigins, createOperatorApiHandler } from "../lib/operator-api.js";
 import { parseWorkCommand } from "../lib/work-management/domain.js";
 import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
@@ -19,11 +20,13 @@ function parseEnvelope(input) {
 export function createWorkUpdateHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
   const work = resolveWorkManagementRuntime({ runtime, repository: store });
   let provider = identityProvider;
-  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
+  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createConfiguredIdentityProvider()));
   return createOperatorApiHandler({ methods: ["PATCH"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
     const { id, command, idempotencyKey } = parseEnvelope(await readJson(req, 16 * 1024));
     return work.service.command(id, command, operator, idempotencyKey);
   } });
 }
 
-export default async function handler(req, res) { return createWorkUpdateHandler()(req, res); }
+async function handler(req, res) { return createWorkUpdateHandler()(req, res); }
+
+export default withPlatformProxy(handler);

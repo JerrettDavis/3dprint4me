@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 
 import { createSliceJobRunner } from "../lib/print-estimation/application/slice-jobs.js";
 import { createPrintEstimationRuntime, createSlicerFromEnv } from "../lib/print-estimation/runtime.js";
+import { observeJob } from '../lib/platform/job-health.js';
 
 export function createWorker(runtime = createPrintEstimationRuntime(), env = process.env) {
   if (!runtime.repository || !runtime.fileStore) throw new Error("Print estimation storage is not configured.");
@@ -25,7 +26,7 @@ async function main() {
   let stopping = false;
   for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => { stopping = true; });
   do {
-    const summary = await worker.runOnce({ batchSize: 2 });
+    const summary = await observeJob('slicer',()=>worker.runOnce({ batchSize: 2 }));
     if (summary.claimed) console.log(JSON.stringify({ worker: worker.workerId, ...summary }));
     if (once) break;
     if (!summary.claimed) await sleep(interval);

@@ -1,7 +1,7 @@
 import { createApiClient, OperatorApiError } from "./api-client.js";
 import { allowedTransitions, formatRelativeTime } from "./work-state.js";
 import { createPushClient } from "./push-client.js";
-import { createAuthClient } from "./auth-client.js";
+import { createAuthClient, createCookieAuthClient } from "./auth-client.js";
 import { renderPrintEstimation } from "./print-detail.js";
 import { renderCustomization } from "./customization-detail.js";
 import { renderInvoiceDetail } from "./invoice-detail.js";
@@ -100,14 +100,18 @@ function createDomView(api) {
 
 async function bootstrap() {
   const config = await fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : ({})).catch(() => ({}));
-  let auth = null; if (config.authBase) { const { createNeonBrowserAuth } = await import("./neon-auth.js"); const neon = createNeonBrowserAuth(config.authBase); auth = createAuthClient({ client: neon.client, getToken: neon.getToken }); }
+  let auth = null;
+  if(['authentik','github'].includes(config.authProvider))auth=createCookieAuthClient({apiBase:config.apiBase});
+  else if (config.authBase) { const { createNeonBrowserAuth } = await import("./neon-auth.js"); const neon = createNeonBrowserAuth(config.authBase); auth = createAuthClient({ client: neon.client, getToken: neon.getToken }); }
+  const signInLabel=config.authProvider==='authentik'?'Sign in':'Continue with GitHub';
+  document.querySelector('#sign-in').textContent=signInLabel;
   const store = (() => { try { return sessionStorage; } catch { return null; } })();
   const returningFromSignIn = () => Boolean(store?.getItem(SIGN_IN_PENDING_KEY)) || new URLSearchParams(location.search).has("neon_auth_session_verifier");
   const api = createApiClient({ apiBase: config.apiBase ?? "", getSessionHeaders: auth?.sessionHeaders ?? (async () => ({})) }); const view = createDomView(api); const controller = createOperatorController({ api, view, expectSession: returningFromSignIn }); view.attach(controller);
   document.querySelector("#sign-in").onclick = async event => {
     if (!auth) return controller.start();
-    const button = event.currentTarget; button.disabled = true; button.textContent = "Redirecting to GitHub…"; try { store?.setItem(SIGN_IN_PENDING_KEY, "1"); } catch {}
-    try { await auth.signIn("github"); } catch { try { store?.removeItem(SIGN_IN_PENDING_KEY); } catch {} button.disabled = false; button.textContent = "Continue with GitHub"; view.announce("Sign-in could not start. Try again."); }
+    const button = event.currentTarget; button.disabled = true; button.textContent = "Opening sign-in…"; try { store?.setItem(SIGN_IN_PENDING_KEY, "1"); } catch {}
+    try { await auth.signIn("github"); } catch { try { store?.removeItem(SIGN_IN_PENDING_KEY); } catch {} button.disabled = false; button.textContent = signInLabel; view.announce("Sign-in could not start. Try again."); }
   }; document.querySelector("#sign-out").onclick = async () => { controller.clearPrivate(); if (auth) await auth.signOut(); location.assign("/"); };
   const connection = document.querySelector("#connection-status"); const online = () => { connection.textContent = navigator.onLine ? "Online" : "Offline"; connection.dataset.state = navigator.onLine ? "online" : "offline"; }; addEventListener("online", online); addEventListener("offline", online); online();
   if ("serviceWorker" in navigator) { await navigator.serviceWorker.register("/sw.js"); navigator.serviceWorker.addEventListener("message", () => controller.loadList()); }

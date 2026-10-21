@@ -60,7 +60,8 @@ def test_local_server_pages_security_and_request_lifecycle() -> None:
         status, _, health = json_request(base_url + "/api/health")
         assert status == 200
         assert health["ok"] is True
-        assert health["integrations"] == {"supabase": False, "neon": False, "privateFiles": False, "email": False, "webhook": False, "stripe": False, "printEstimation": False}
+        assert health["databaseProvider"] == "neon"
+        assert health["integrations"] == {"database": False, "postgres": False, "supabase": False, "neon": False, "privateFiles": False, "email": False, "webhook": False, "stripe": False, "printEstimation": False}
 
         status, _, created = json_request(
             base_url + "/api/request",

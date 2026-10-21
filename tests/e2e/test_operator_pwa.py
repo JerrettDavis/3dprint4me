@@ -6,6 +6,35 @@ from tests.support.operator_harness import running_operator_workspace
 from tests.support.server import json_request
 
 
+def test_installed_operator_upgrade_removes_legacy_cached_assets() -> None:
+    with running_operator_workspace() as (_, operator, _):
+        with SiteBrowser(viewport=(390, 844), color_scheme="dark", reduced_motion="reduce") as site:
+            page = site.page
+            assert page is not None
+            # Seed the previous installed shell before the current worker can activate.
+            page.route(operator + "/", lambda route: route.fulfill(content_type="text/html", body="<!doctype html><title>Previous installation</title>"))
+            page.goto(operator, wait_until="networkidle")
+            page.evaluate("""async () => {
+                const cache = await caches.open('operator-shell-v8');
+                await cache.put('/assets/operator.js', new Response('window.legacyShell = true'));
+                await cache.put('/obsolete-v8.js', new Response('legacy'));
+            }""")
+            page.unroute(operator + "/")
+            page.evaluate("""async () => {
+                await navigator.serviceWorker.register('/sw.js');
+                await navigator.serviceWorker.ready;
+            }""")
+            page.wait_for_function("() => Boolean(navigator.serviceWorker.controller)")
+            page.wait_for_function("async () => !(await caches.keys()).includes('operator-shell-v8') && !(await caches.match('/obsolete-v8.js'))")
+            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v9')")
+            assert page.evaluate("async () => !(await caches.match('/obsolete-v8.js'))")
+            # An ordinary reopen uses the new shell without clearing application storage.
+            page.reload(wait_until="networkidle")
+            page.locator("#workspace:not([hidden])").wait_for()
+            assert page.evaluate("typeof window.legacyShell === 'undefined'")
+            assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+
+
 def test_intake_to_interactive_work_inbox() -> None:
     with running_operator_workspace() as (storefront, operator, _):
         request = project_request()

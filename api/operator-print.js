@@ -1,4 +1,5 @@
-import { authorizeOperator, createNeonIdentityProvider } from "../lib/operator-auth.js";
+import { withPlatformProxy } from "../lib/platform/proxy.js";
+import { authorizeOperator, createConfiguredIdentityProvider } from "../lib/operator-auth.js";
 import { configuredOperatorOrigins, createOperatorApiHandler } from "../lib/operator-api.js";
 import { createFilamentUseCases } from "../lib/print-estimation/application/filament.js";
 import { createOperatorPrintView, normalizePrintRun } from "../lib/print-estimation/application/operator-view.js";
@@ -22,7 +23,7 @@ function workId(value) {
 export function createOperatorPrintHandler({ store, runtime, printRuntime, signFile, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins() } = {}) {
   const work = resolveWorkManagementRuntime({ runtime, repository: store });
   let provider = identityProvider;
-  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createNeonIdentityProvider()));
+  const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createConfiguredIdentityProvider()));
   const print = () => {
     const resolved = printRuntime ?? createPrintEstimationRuntime();
     if (!resolved.repository) throw new HttpError(503, "Print estimation storage is not configured.");
@@ -58,4 +59,6 @@ export function createOperatorPrintHandler({ store, runtime, printRuntime, signF
   } });
 }
 
-export default async function handler(req, res) { return createOperatorPrintHandler()(req, res); }
+async function handler(req, res) { return createOperatorPrintHandler()(req, res); }
+
+export default withPlatformProxy(handler);
