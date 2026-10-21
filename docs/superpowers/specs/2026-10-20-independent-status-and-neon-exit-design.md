@@ -2,6 +2,11 @@
 
 Status: proposed extension to the approved local-platform migration; not deployed.
 
+Owner decision2026-10-20: downgrade Neon to Free once fully offloaded. This
+authorizes the downgrade after the migration/backup/dependency gates pass;
+it does not authorize cancelling access while production still depends on Neon.
+The dashboard proposal and recovery-point requirements remain separately pending.
+
 ## Intent
 
 The owner wants a dashboard hosted separately from the main stack that exposes
