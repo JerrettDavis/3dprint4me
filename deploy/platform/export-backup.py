@@ -33,7 +33,7 @@ def database_snapshot(container, database):
         if not re.fullmatch('[A-Fa-f0-9-]{1,128}',snapshot):raise ValueError('Snapshot failed')
         # These references come from the SAME MVCC snapshot as pg_dump. Retention
         # racing with file export cannot silently omit files from a valid backup.
-        keeper.stdin.write("SELECT COALESCE(json_agg(path),'[]'::json) FROM (SELECT DISTINCT f->>'path' AS path FROM service_requests CROSS JOIN LATERAL jsonb_array_elements(uploaded_files) f WHERE f->>'path' IS NOT NULL UNION SELECT f->>'path' AS path FROM quick_inquiries CROSS JOIN LATERAL jsonb_array_elements(files) f WHERE status='submitted' AND f->>'path' IS NOT NULL UNION SELECT blob_path AS path FROM print_assets WHERE state NOT IN ('pending_upload','deleted') AND deleted_at IS NULL) paths;\n")
+        keeper.stdin.write("SELECT COALESCE(json_agg(path),'[]'::json) FROM (SELECT DISTINCT f->>'path' AS path FROM service_requests CROSS JOIN LATERAL jsonb_array_elements(uploaded_files) f WHERE f->>'path' IS NOT NULL AND f->>'mode' IS DISTINCT FROM 'estimate' UNION SELECT f->>'path' AS path FROM quick_inquiries CROSS JOIN LATERAL jsonb_array_elements(files) f WHERE status='submitted' AND f->>'path' IS NOT NULL UNION SELECT blob_path AS path FROM print_assets WHERE state NOT IN ('pending_upload','deleted') AND deleted_at IS NULL) paths;\n")
         keeper.stdin.flush()
         required = json.loads(keeper.stdout.readline())
         if not isinstance(required,list) or any(not isinstance(p,str) for p in required):raise ValueError('Invalid file references')

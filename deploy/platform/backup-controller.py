@@ -210,6 +210,16 @@ def summary_snapshot(output):
     return summaries[0]['snapshot_id']
 
 
+def copied_snapshot(destination, env, source_snapshot, filename):
+    # Restic records an absolute native path in snapshot metadata: Windows uses
+    # C:\\3dprint4me\\..., while dump/ls accept the virtual /3dprint4me/... path.
+    path_filter=str(Path('/'+filename).absolute())
+    candidates=json.loads(command(destination+['snapshots','--json','--path',path_filter],env=env,limit=1024*1024))
+    copied=[entry['id'] for entry in candidates if entry.get('original')==source_snapshot or entry.get('id')==source_snapshot]
+    if len(copied)!=1 or not re.fullmatch('[a-f0-9]{64}',copied[0]):raise ValueError('Copied snapshot identity unknown')
+    return copied[0]
+
+
 def backup_objects(config, required, repositories, database_filename):
     root=config.get('platform_root','/home/jd/3dprint4me-platform')
     remote_code="import subprocess,sys; root="+repr(root)+"; sys.exit(subprocess.run(['docker','compose','--env-file',root+'/compose.env','-f',root+'/candidate-source/deploy/platform/compose.yml','exec','-T','api','node','scripts/blob-recovery.mjs','export-stream'],input=sys.stdin.buffer.read(8*1024*1024+1),stderr=subprocess.DEVNULL).returncode)"
@@ -238,10 +248,7 @@ def backup_objects(config, required, repositories, database_filename):
             # Copy encrypted snapshot identities without re-exporting a changing
             # store; both destinations must contain the exact same checkpoint.
             command(destination+['copy','--from-repo',config['stores'][0]['repository'],'--from-password-file',config['password_file'],snapshot],env=store_env,timeout=900,limit=1024*1024)
-            candidates=json.loads(command(destination+['snapshots','--json','--path','/'+filename],env=store_env,limit=1024*1024))
-            copied=[entry['id'] for entry in candidates if entry.get('original')==snapshot or entry.get('id')==snapshot]
-            if len(copied)!=1 or not re.fullmatch('[a-f0-9]{64}',copied[0]):raise ValueError('Copied snapshot identity unknown')
-            destination_snapshot=copied[0]
+            destination_snapshot=copied_snapshot(destination,store_env,snapshot,filename)
         if stream_hash(destination+['dump',destination_snapshot,'/'+filename],store_env)!=expected:raise ValueError('Private object roundtrip mismatch')
         snapshots.append(destination_snapshot)
     return {'snapshots':snapshots,'filename':filename,'sha256':expected,'roundtrip_verified':True}

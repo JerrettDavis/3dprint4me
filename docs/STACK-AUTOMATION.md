@@ -180,7 +180,9 @@ adding a separate prune policy. API reads/provider egress may consume provider
 quotas; full-store readback is intentional and is not claimed cost-free.
 
 The database snapshot determines required retained files, including assets in
-`analyzing` state. Blob export may include newer/unreferenced objects as a safe
+`analyzing` state, submitted inquiry attachments and inherited inquiry files.
+Estimate attachments follow their asset retention state, so deliberately deleted
+assets are not incorrectly required forever. Blob export may include newer/unreferenced objects as a safe
 superset. An already missing required file fails recovery coverage. Historical
 checkpoints created before this feature contain database/config only; the tool
 does not retroactively recover their missing model bytes.
@@ -265,6 +267,11 @@ including runtime privilege denials, using synthetic credentials in disposable
 network-isolated containers with memory-only database storage. The rehearsal
 intercepts host Compose/build/health-volume operations; CI repeats it, and it
 does not establish a complete replacement-host or external-provider rebuild.
+`python tests/integration/restic_stream_recovery.py --restic <pinned-executable>`
+tests actual encrypted stream backup, native snapshot-path lookup, copy identity
+and both-store readback with synthetic repositories. It passed on Windows with
+the hash-pinned 0.19.1 binary; CI repeats it on Linux and checks the binary hash
+before executing it.
 A complete external-account rebuild, independent offsite/key custody and host
 build/routing activation still require a separately recorded operational drill.
 This document distinguishes committed automation from live deployment:
