@@ -16,6 +16,18 @@ test('activation verifies source-fenced manifest, native role, all source row co
   const f=fixture();await f.activate();assert.equal(f.env.DATABASE_URL,f.config.databaseUrl);assert.equal(f.env.OPERATOR_AUTH_PROVIDER,'authentik');assert.equal(f.closed(),1);assert.equal(f.ended(),1);
 });
 
+test('GitHub activation checks fixed issuer and account ID, independently of source auth',async()=>{
+  const f=fixture();Object.assign(f.env,{PLATFORM_TARGET_AUTH_PROVIDER:'github',GITHUB_CLIENT_ID:'client',GITHUB_CLIENT_SECRET:'private',OPERATOR_OWNER_SUBJECT:'2610199'});
+  delete f.env.OIDC_ISSUER;
+  const original=f.pool.query;
+  f.pool.query=async(text,params)=>{
+    if(text.includes('operator_identity_bindings'))assert.deepEqual(params,['https://github.com/','2610199']);
+    return original(text);
+  };
+  await f.activate();assert.equal(f.env.OPERATOR_AUTH_PROVIDER,'github');
+  f.env.OPERATOR_AUTH_PROVIDER='neon';await createDatabaseActivation(f.options).bootstrap();assert.equal(f.env.OPERATOR_AUTH_PROVIDER,'github');
+});
+
 test('restart selects the persisted target after new writes changed row counts, without falling back to source',async()=>{
   const f=fixture();await f.activate();assert.equal(f.selection().databaseName,'platform_live_test');
   f.env.DATABASE_URL='source-private';f.env.OPERATOR_AUTH_PROVIDER='neon';

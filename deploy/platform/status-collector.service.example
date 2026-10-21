@@ -1,0 +1,17 @@
+[Unit]
+Description=3dprint4.me aggregate status evidence
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+User=REPLACE_PLATFORM_USER
+WorkingDirectory=REPLACE_PLATFORM_ROOT
+ExecStart=/usr/bin/python3 REPLACE_PLATFORM_ROOT/candidate-source/deploy/platform/status-collector.py --config REPLACE_PLATFORM_ROOT/status.private.json
+TimeoutStartSec=50
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+MemoryMax=128M
+CPUQuota=25%

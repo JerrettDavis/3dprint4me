@@ -16,7 +16,7 @@ async function main() {
   await activate.bootstrap();
   const server=createPlatformServer({routes,consumeNonce:control.consumeNonce,gate,activate,
     ready:()=>queryDatabase`SELECT id FROM operators LIMIT 1`,
-    authHandler:process.env.OIDC_ISSUER?createAuthHttpHandler():undefined});
+    authHandler:process.env.GITHUB_CLIENT_ID||process.env.OIDC_ISSUER?createAuthHttpHandler():undefined});
   const port=Number(process.env.PORT??8080);
   if(!Number.isInteger(port)||port<1024||port>65535)throw new Error('Invalid API port.');
   server.listen(port,'0.0.0.0',()=>console.log('API service ready.'));
