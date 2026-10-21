@@ -6,7 +6,7 @@ Quick inquiries are initial questions, distinct from the four-service detailed p
 
 The production database is native PostgreSQL. Historical migration filenames remain under `neon/migrations/`; this does not authorize queries against the fenced Neon source. Apply `002_quick_inquiries.sql` and `009_inquiry_workflow.sql` using the private migration owner. Runtime `platform_app` inherits scoped `platform_backend` grants/RLS policies and neither owns tables nor bypasses RLS. No public role has access. Only `public/` is static output.
 
-Use the existing private Blob store (`BLOB_READ_WRITE_TOKEN`, or `BLOB_STORE_ID` with Vercel-managed OIDC). Email uses the existing `RESEND_API_KEY`, `REQUEST_FROM_EMAIL`, and `REQUEST_TO_EMAIL`; no additional secrets are introduced. No Neon means `{mode:"local",live:false,uploads:[]}`. Configured storage failure returns a safe 502, never fallback success. Missing Blob with selected attachments returns 503 before creating a draft.
+Use the existing private Blob store (`BLOB_READ_WRITE_TOKEN`, or `BLOB_STORE_ID` with Vercel-managed OIDC). Email uses the existing `RESEND_API_KEY`, `REQUEST_FROM_EMAIL`, and `REQUEST_TO_EMAIL`; no additional secrets are introduced. No database means `{mode:"local",live:false,uploads:[]}`. Configured storage failure returns a safe 502, never fallback success. Missing Blob with selected attachments returns 503 before creating a draft.
 
 ## Browser contract
 
