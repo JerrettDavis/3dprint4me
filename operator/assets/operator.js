@@ -101,7 +101,7 @@ function createDomView(api) {
 async function bootstrap() {
   const config = await fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : ({})).catch(() => ({}));
   let auth = null;
-  if(config.authProvider==='authentik')auth=createCookieAuthClient({apiBase:config.apiBase});
+  if(['authentik','github'].includes(config.authProvider))auth=createCookieAuthClient({apiBase:config.apiBase});
   else if (config.authBase) { const { createNeonBrowserAuth } = await import("./neon-auth.js"); const neon = createNeonBrowserAuth(config.authBase); auth = createAuthClient({ client: neon.client, getToken: neon.getToken }); }
   const signInLabel=config.authProvider==='authentik'?'Sign in':'Continue with GitHub';
   document.querySelector('#sign-in').textContent=signInLabel;

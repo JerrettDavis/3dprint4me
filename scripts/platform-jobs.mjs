@@ -5,6 +5,7 @@ import { createPlatformJobs } from '../lib/platform/jobs.js';
 import { createNeonWorkStore } from '../lib/work-store.js';
 import { createWebPushTransport, drainPushOutbox } from '../lib/push-delivery.js';
 import { runMaintenance } from './print-estimate-maintenance.mjs';
+import { observeJob } from '../lib/platform/job-health.js';
 
 async function main() {
   if(process.env.DATABASE_DRIVER!=='postgres'||process.env.PLATFORM_JOBS_ENABLED!=='1')throw new Error('Local jobs require an explicit native database writer handover.');
@@ -17,13 +18,13 @@ async function main() {
     try{await operation();}finally{await sql`DELETE FROM platform_job_leases WHERE name=${name} AND worker_id=${workerId}`;}
   }
   const jobs=createPlatformJobs({
-    drain:()=>drainPushOutbox({store,transport,workerId,batchSize:20}),
-    cleanup:()=>leased('model-retention',()=>runMaintenance([])),
-    expire:()=>leased('auth-expiry',async()=>{
+    drain:()=>observeJob('push',()=>drainPushOutbox({store,transport,workerId,batchSize:20})),
+    cleanup:()=>leased('model-retention',()=>observeJob('cleanup',()=>runMaintenance([]))),
+    expire:()=>leased('auth-expiry',()=>observeJob('expiry',async()=>{
       await sql`DELETE FROM platform_proxy_nonces WHERE expires_at<now()`;
       await sql`DELETE FROM operator_login_flows WHERE expires_at<now()`;
       await sql`DELETE FROM operator_sessions WHERE expires_at<now()`;
-    }),
+    })),
     onError:name=>console.error(`Scheduled ${name} operation unavailable.`)
   });
   const controller=new AbortController();

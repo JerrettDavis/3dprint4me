@@ -2,6 +2,12 @@
 
 Status: approved by owner on 2026-10-20; implementation in progress.
 
+Owner amendment, 2026-10-20: use direct hosted GitHub OAuth for operator identity
+instead of adding an Authentik dependency. This supersedes Authentik-specific
+requirements below. See [the current authentication contract](../../GITHUB-OPERATOR-AUTH.md).
+Keep only the API, private database, and necessary workers local; hosted shells
+and monitoring remain independent. Existing unrelated Authentik is unchanged.
+
 Owner update: Neon access was restored after a billing upgrade. A private public-schema
 export has now been stored in two encrypted off-host repositories, verified byte
 for byte, and restored successfully into an isolated PostgreSQL18 container.

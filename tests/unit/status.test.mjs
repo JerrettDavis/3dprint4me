@@ -1,0 +1,62 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
+import { publicSnapshot, privateSnapshot, validateHeartbeat, probeServices, updateProbeState } from '../../status/lib/model.js';
+import worker, { StatusState } from '../../status/worker.js';
+
+const now=1800000000000;
+test('status expires evidence and public output projects only safe capability fields',()=>{
+  const state={checkedAt:now,probes:{storefront:{ok:true,checkedAt:now},operator:{ok:true,checkedAt:now},api:{ok:true,provider:'postgres',checkedAt:now},auth:{ok:true,checkedAt:now}},platform:{observedAt:now,details:{database:true,provider:'postgres',email:true,files:true,estimates:true,jobs:true,diskFreePercent:50}},control:{observedAt:now,details:{neonPlan:'paid',neonOffloaded:false}},secret:'do-not-publish',blockers:[{title:'private-secret'}]};
+  const snapshot=publicSnapshot(state,now);
+  assert.equal(snapshot.components.find(x=>x.id==='requests').status,'operational');
+  assert.ok(!JSON.stringify(snapshot).includes('private-secret'));
+  assert.ok(!JSON.stringify(snapshot).includes('do-not-publish'));
+  assert.ok(!JSON.stringify(snapshot).includes('neonPlan'));
+  assert.equal(publicSnapshot(state,now+13*60000).components.find(x=>x.id==='requests').status,'unknown');
+  assert.ok(privateSnapshot(state,now).blockers.some(x=>x.id==='neon-exit'));
+  assert.ok(privateSnapshot(state,now).blockers.some(x=>x.id==='backup-missing'));
+});
+test('signed heartbeat binds path, rejects stale/future/replayed and unknown data',async()=>{
+  const secret='a'.repeat(64),data={observedAt:now,nonce:'b'.repeat(32),details:{database:true,provider:'postgres',email:false,files:true,estimates:true,jobs:false,diskFreePercent:50}};
+  const sign=(path,body)=>createHmac('sha256',secret).update(path+'\n'+body).digest('hex');
+  const body=JSON.stringify(data),signature=sign('/heartbeat/platform',body);
+  assert.equal((await validateHeartbeat({kind:'platform',body,signature,secret,now})).observedAt,now);
+  for(const args of [{body:body+' '},{kind:'backup'},{lastObservedAt:now},{now:now+91000},{now:now-31000},{secret:''},{body:'x'.repeat(16385)}])await assert.rejects(()=>validateHeartbeat({kind:'platform',body,signature,secret,now,...args}));
+  const bad=JSON.stringify({...data,details:{...data.details,databaseUrl:'private'}});
+  await assert.rejects(()=>validateHeartbeat({kind:'platform',body:bad,signature:sign('/heartbeat/platform',bad),secret,now}));
+});
+test('probes use fixed bounded URLs, never query Neon, and visitors cannot trigger probes',async()=>{
+  const seen=[];
+  const result=await probeServices({now,fetchImpl:async(url,options)=>{seen.push([url,options]);return new Response('<!doctype html><title>3dprint4.me</title>',{status:200});}});
+  assert.equal(seen.length,4);
+  assert.ok(seen.every(([url,opt])=>!url.includes('neon')&&opt.redirect==='manual'&&opt.signal));
+  assert.equal(result.storefront.ok,true);
+  assert.equal(result.auth.ok,false,'HTML is not valid OIDC discovery');
+  const state=updateProbeState({},result,now);
+  assert.equal(state.probes.auth.status,'degraded');
+  const twice=updateProbeState(state,result,now+300000);
+  assert.equal(twice.probes.auth.status,'unavailable');
+});
+test('status transport denies private and internal routes; actor persists replay ordering',async()=>{
+  let calls=0;
+  const env={STATUS_STATE:{idFromName:x=>x,get:()=>({fetch:async()=>{calls++;return Response.json({ok:true});}})}};
+  assert.equal((await worker.fetch(new Request('https://status.example/operations'),env)).status,403);
+  assert.equal((await worker.fetch(new Request('https://status.example/internal/probe',{method:'POST'}),env)).status,404);
+  assert.equal(calls,0);
+  assert.equal((await worker.fetch(new Request('https://status.example/operations-reader'),env)).status,403);
+  const readerSecret='e'.repeat(64),readerTime=String(Date.now());
+  const signedRead=new Request('https://status.example/operations-reader',{headers:{'x-status-read-time':readerTime,'x-status-read-signature':createHmac('sha256',readerSecret).update('/operations-reader\n'+readerTime).digest('hex')}});
+  assert.equal((await worker.fetch(signedRead,{...env,STATUS_READER_SECRET:readerSecret})).status,200);
+  assert.equal(calls,1);calls=0;
+  const publicResponse=await worker.fetch(new Request('https://status.example/api/public',{headers:{origin:'https://evil.example'}}),env);
+  assert.equal(publicResponse.headers.get('access-control-allow-origin'),null);assert.equal(calls,1);
+  const records=new Map();const ctx={storage:{get:async k=>records.get(k),put:async(k,v)=>records.set(k,v)},blockConcurrencyWhile:fn=>fn()};
+  const secret='c'.repeat(64),time=Date.now();
+  const actor=new StatusState(ctx,{STATUS_PLATFORM_SECRET:secret});
+  const body=JSON.stringify({observedAt:time,nonce:'a'.repeat(32),details:{database:true,provider:'postgres'}});
+  const request=()=>new Request('https://status.example/heartbeat/platform',{method:'POST',headers:{'x-status-signature':createHmac('sha256',secret).update('/heartbeat/platform\n'+body).digest('hex')},body});
+  assert.equal((await actor.fetch(request())).status,200);
+  records.get('state').platform.receivedAt-=61000;
+  assert.equal((await new StatusState(ctx,{STATUS_PLATFORM_SECRET:secret}).fetch(request())).status,401);
+  assert.equal((await actor.fetch(new Request('https://internal/api/public'))).status,200);
+});

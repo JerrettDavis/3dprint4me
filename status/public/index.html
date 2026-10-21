@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Independent service status for the 3dprint4.me workshop.">
+  <title>Service status · 3dprint4.me</title>
+  <link rel="stylesheet" href="/assets/status.css">
+  <script type="module" src="/assets/status.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to status</a>
+  <header><a class="brand" href="https://3dprint4.me"><span class="mark" aria-hidden="true">3D</span>3dprint4.me</a><label class="appearance">Appearance <select aria-label="Appearance"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></header>
+  <main id="main">
+    <div class="intro"><div><p class="context">The workshop · service status</p><h1>A clear view<br>of what’s working.</h1><p>Availability across the storefront, project requests,<br class="wide"> and the tools that keep the workshop moving.</p></div><div class="independent"><span aria-hidden="true">↗</span><p>Hosted independently<br>of the workshop’s local servers.</p></div></div>
+    <section class="summary" data-state="unknown" aria-labelledby="summary-title"><span class="signal" aria-hidden="true"></span><div><h2 id="summary-title">Checking service evidence</h2><p id="summary" role="status" aria-live="polite">Waiting for the latest independent checks.</p></div><button type="button" id="refresh">Refresh status <span aria-hidden="true">↻</span></button></section>
+    <p id="refresh-error" class="notice" role="status" hidden></p>
+    <section class="services" aria-labelledby="services-title"><div class="section-heading"><h2 id="services-title">Service availability</h2><p id="checked">No check recorded yet</p></div><ul id="components"><li>Loading dated service evidence…</li></ul><noscript><p>JavaScript is needed to load live status. The storefront remains available at <a href="https://3dprint4.me">3dprint4.me</a>.</p></noscript></section>
+    <div class="lower"><section aria-labelledby="history-title"><h2 id="history-title">Recent checks</h2><div id="history" aria-label="Daily scheduled check results"></div><p class="muted">Scheduled observations, not a guarantee of continuous availability. Gaps remain unknown.</p></section><section aria-labelledby="invoice-title"><h2 id="invoice-title">A note about invoices</h2><p>Invoices stay draft-only.<br>Dispatch is always manual.</p><a href="https://3dprint4me-operations.vercel.app">Operator health &amp; recovery <span aria-hidden="true">↗</span></a></section></div>
+    <section id="incidents-section" hidden aria-labelledby="incidents-title"><h2 id="incidents-title">Recent incidents</h2><ul id="incidents"></ul></section>
+  </main>
+  <footer><p>Made with care. Kept in view.</p><p>Checks every 5 minutes · Evidence expires after 12 minutes</p><a href="https://3dprint4.me">Back to the workshop ↗</a></footer>
+</body>
+</html>

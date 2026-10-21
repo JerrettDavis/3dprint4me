@@ -38,7 +38,10 @@ services:
     <<: *app
     build: {context: ../.., dockerfile: deploy/platform/Dockerfile}
     depends_on: {postgres: {condition: service_healthy}}
-    volumes: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/database-target.private.json:/run/platform/database-target.private.json:ro"]
+    volumes:
+      - "${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/database-target.private.json:/run/platform/database-target.private.json:ro"
+      - "job-health:/run/platform-health/jobs:ro"
+      - "slicer-health:/run/platform-health/slicer:ro"
     healthcheck:
       test: [CMD, node, -e, "fetch('http://127.0.0.1:8080/internal/ready',{headers:{authorization:'Bearer '+process.env.PLATFORM_PROXY_SECRET}}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 15s
@@ -48,12 +51,16 @@ services:
     <<: *app
     env_file: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/jobs.env"]
     command: [node, scripts/platform-jobs.mjs]
+    environment: {PLATFORM_JOB_HEALTH_DIR: /run/platform-health/jobs}
+    volumes: ["job-health:/run/platform-health/jobs"]
     profiles: [writers]
     depends_on: {postgres: {condition: service_healthy}}
   slicer:
     image: 3dprint4me-slicer:${PLATFORM_RELEASE:?PLATFORM_RELEASE is required}
     build: {context: ../.., dockerfile: deploy/slicer-worker/Dockerfile.bambu}
     env_file: ["${PLATFORM_CONFIG_DIR:?PLATFORM_CONFIG_DIR is required}/slicer.env"]
+    environment: {PLATFORM_JOB_HEALTH_DIR: /run/platform-health/slicer}
+    volumes: ["slicer-health:/run/platform-health/slicer"]
     profiles: [writers]
     depends_on: {postgres: {condition: service_healthy}}
     restart: unless-stopped
@@ -88,3 +95,5 @@ networks:
   egress: {}
 volumes:
   postgres18: {}
+  job-health: {external: true, name: 3dprint4me-health-jobs}
+  slicer-health: {external: true, name: 3dprint4me-health-slicer}

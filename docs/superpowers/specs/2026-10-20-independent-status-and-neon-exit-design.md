@@ -1,11 +1,19 @@
 # Independent status and Neon exit
 
-Status: proposed extension to the approved local-platform migration; not deployed.
+Status: owner authorized execution (“roll through to completion”); implementation and deployment in progress.
 
 Owner decision2026-10-20: downgrade Neon to Free once fully offloaded. This
 authorizes the downgrade after the migration/backup/dependency gates pass;
 it does not authorize cancelling access while production still depends on Neon.
-The dashboard proposal and recovery-point requirements remain separately pending.
+The subsequent execution instruction approves the dashboard recommendation.
+Recovery-point requirements remain unspecified: manual recovery and no automatic
+promotion are the safe default, without a promised data-loss tolerance.
+
+Owner steering2026-10-20: land secure, detailed, secret-free operational information
+in GitHub and automate repeatable scaffolding/recovery wherever practical.
+Source must include declarative deployment, monitoring, backup and restore
+procedures, private configuration templates, pinned artifacts and acceptance
+checks. State remaining external credentials/key-custody prerequisites explicitly.
 
 ## Intent
 
