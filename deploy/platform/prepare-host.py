@@ -32,7 +32,15 @@ def prepare(root, user_id, apply=False):
         # Ownership initialization is confined to a new named health volume,
         # never a host filesystem mount or an existing application database.
         image = "node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392"
-        run(["docker", "run", "--rm", "--network", "none", "--read-only", "--user", "0", "--cap-drop", "ALL", "--cap-add", "CHOWN", "--cap-add", "FOWNER", "--mount", "type=volume,source=" + volume + ",target=/health", image, "node", "-e", "const f=require('node:fs');f.chownSync('/health'," + str(uid) + ",1000);f.chmodSync('/health',parseInt('" + mode + "',8));"])
+        allowed = ["slicer"] if name == "slicer" else ["push", "expiry", "cleanup"]
+        mount = "type=volume,source=" + volume + ",target=/health"
+        initial = "const f=require('node:fs');f.chownSync('/health'," + str(uid) + ",1000);f.chmodSync('/health',0o750);"
+        run(["docker", "run", "--rm", "--network", "none", "--read-only", "--user", "0", "--cap-drop", "ALL", "--cap-add", "CHOWN", "--cap-add", "FOWNER", "--mount", mount, image, "node", "-e", initial])
+        # Set SGID as the actual volume owner with the intended primary group.
+        # Root without FSETID can silently lose SGID; root without DAC_OVERRIDE
+        # cannot enumerate a directory after transferring its ownership.
+        script = "const f=require('node:fs'),allowed=" + json.dumps(allowed) + ";for(const name of f.readdirSync('/health')){if(!allowed.some(x=>name===x+'.json'||name==='.'+x+'.tmp'))throw Error('Unexpected health file');const p='/health/'+name;if(!f.lstatSync(p).isFile())throw Error('Regular health file required');f.chownSync(p," + str(uid) + ",1000);f.chmodSync(p,0o640);}f.chmodSync('/health',parseInt('" + mode + "',8));if((f.statSync('/health').mode&0o7777)!==parseInt('" + mode + "',8))throw Error('Health directory mode differs');"
+        run(["docker", "run", "--rm", "--network", "none", "--read-only", "--user", str(uid) + ":1000", "--cap-drop", "ALL", "--mount", mount, image, "node", "-e", script])
     return plan
 
 

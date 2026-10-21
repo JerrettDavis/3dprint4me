@@ -1,8 +1,8 @@
 # Direct GitHub operator authentication
 
-The 2026-10-20 user decision supersedes Authentik as the planned platform identity dependency. GitHub hosts identity; Vercel hosts the storefront, operator shell, and independent status UI; Cloudflare hosts independent monitoring and the outbound API tunnel. Local services are the private PostgreSQL database, API, and necessary background workers. Existing unrelated Authentik remains untouched.
+Direct GitHub sign-in is live in production as of 2026-10-20. The owner decision superseded Authentik as the platform identity dependency. GitHub hosts identity; Vercel hosts the storefront, operator shell, and independent status UI; Cloudflare hosts independent monitoring and the outbound API tunnel. Local services are the private PostgreSQL database, API, and necessary background workers. Existing unrelated Authentik remains untouched.
 
-Create a separate GitHub OAuth app with homepage `https://work.3dprint4.me` and the single exact redirect `https://api.3dprint4.me/api/auth/callback`. Disable wildcard matching and device flow. The migration app ID is `3950573`. Do not change the legacy Neon OAuth app before cutover.
+Create a separate GitHub OAuth app with homepage `https://work.3dprint4.me` and the single exact redirect `https://api.3dprint4.me/api/auth/callback`. Disable wildcard matching and device flow. The migration app ID is `3950573`. The legacy Neon OAuth app is retained for historical recovery; production no longer uses it.
 
 Keep `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in private server configuration or a secret store. Never place them in `public/`, the operator bundle, screenshots, or GitHub source. Set `PLATFORM_TARGET_AUTH_PROVIDER=github`, `OPERATOR_API_ORIGIN=https://api.3dprint4.me`, `OPERATOR_WEB_ORIGIN=https://work.3dprint4.me`, and `OPERATOR_OWNER_SUBJECT` to the independently confirmed numeric GitHub account ID. The owner account ID is `2610199`. The migration gate checks the exact `https://github.com/` issuer and subject binding against the existing enabled owner operator before switching. Username and email never grant access.
 

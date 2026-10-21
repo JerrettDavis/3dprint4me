@@ -1,5 +1,11 @@
 # Local production platform implementation plan
 
+> Historical implementation plan. Direct GitHub identity superseded the planned
+> Authentik dependency by owner request. Execution continued under the
+> [independent status and Neon exit plan](2026-10-20-independent-status-and-neon-exit.md).
+> See [production evidence and remaining limitations](../../PLATFORM-CUTOVER-2026-10-20.md).
+
+
 > **For agentic workers:** Use superpowers:executing-plans task-by-task. Continue the established native execution workflow; a fresh whole-change reviewer checks the result.
 
 **Goal:** Restore usable production intake/operator paths on existing local infrastructure without Neon compute dependence, retaining manual-dispatch invoice drafts.

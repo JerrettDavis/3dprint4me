@@ -21,8 +21,11 @@ and reject non-success statuses; Workers does not implement `redirect: error`.
 No raw response bodies/provider errors enter evidence or public output.
 
 Four fixed external probes check the storefront shell, operator shell, production
-health contract and GitHub identity API reachability. Reachability is not proof
-of full sign-in. Application capabilities require fresh local evidence whose
+health contract and GitHub-reported API service status. The fixed published
+[GitHub status feed](https://www.githubstatus.com/api) checks only API Requests,
+not unrelated Actions/Pages incidents. The feed needs no credentials and avoids
+[shared-IP anonymous REST quotas](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
+This is provider-reported status, not proof of full owner sign-in. Application capabilities require fresh local evidence whose
 database provider matches production's health response; candidate health alone
 cannot turn production green. Two failures open incidents; two successes clear
 them. Twelve-minute staleness is calculated both server-side and in an open tab.

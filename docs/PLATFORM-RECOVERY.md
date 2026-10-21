@@ -8,21 +8,41 @@ See [the sign-in contract](GITHUB-OPERATOR-AUTH.md) and [status deployment](../s
 
 ## Current verification and limits
 
-On 2026-10-20 the repository-owned recovery tools exported the native candidate,
-encrypted it independently to two existing Restic stores, read both back byte for
-byte, and restored it into a disposable PostgreSQL18 container. The restore held
-25 tables, one operator, two requests, two work items, and one identity binding.
-Runtime attempts to create tables, change operator roles, and delete identity
-bindings were denied. Scratch PostgreSQL had no network, no ports, and tmpfs data;
-the container was removed afterward. This is a candidate recovery test, not proof
-that production has migrated or that every external account can be recreated.
+Production switched to private PostgreSQL on 2026-10-20. The fenced handover
+completed in 7.4 seconds with all 18 source table counts matching. The source stays
+read-only; the durable target selection prevents returning to stale Neon data.
+The storefront proxy, direct GitHub owner sign-in, recovered work inbox and a new
+anonymous private-upload/slicing request were verified against production.
+Invoices remain draft-only and require manual dispatch.
 
-The hourly Windows task `3dprint4me-encrypted-backup` completed with result0.
-Unattended S4U registration was denied by Windows; the installed task uses the
-owner's interactive logon. It depends on that account remaining signed in.
-Independent status explicitly flags this limitation. A missed backup becomes
-aging after two hours and critical after six. Both stores are off the Docker host;
-physical offsite storage and independent decryption-key custody are unverified.
+Neon billing was downgraded to Free after offload. Approximately $0.24 had already
+accrued in the paid period; downgrading does not erase earlier charges. The shared
+installation also contains an unrelated personal-site database: never delete the
+installation or its resources to clean up this migration.
+
+The repository-owned tools encrypted the selected live database and independent
+control database to two existing Restic stores, read both back byte for byte, and
+restored both into disposable PostgreSQL18 with no network, no published ports,
+and temporary memory storage. Each restored database contained 25 tables; the
+live database preserved one operator, two requests and two work items. Runtime
+DDL, operator-role changes and identity-binding deletion were denied. The final
+fenced Neon archive separately restored all 18 source tables and matching records.
+These checks prove data recovery, not a complete external-account rebuild.
+
+The hourly Windows task `3dprint4me-encrypted-backup` now uses Password logon with
+a Windows-managed credential entered locally by the owner. A fresh execution
+completed with result0 and a fresh independent heartbeat. Windows rejected S4U
+logon on this host. A full signed-out reboot drill has not been performed.
+Missed backups become aging after two hours and critical after six. Both stores
+are off the Docker host; physical offsite storage and independent decryption-key
+custody remain unverified. Two inherited failed notification-outbox entries remain
+visible as a jobs blocker and require operator review; they were not discarded.
+
+Neon is a fenced historical recovery source, not an automatic failover. A cold
+recovery must restore a current checkpoint and verify identity, files, jobs and
+routing before accepting writes. No automatic failover, continuous replication,
+or agreed RPO/RTO is claimed. Local host outages can interrupt API work while the
+static storefront and independently hosted status page remain reachable.
 
 ## Secure configuration
 
@@ -84,8 +104,11 @@ automatically to stale Neon data or reopen the old source after target writes.
 ```
 
 The first command previews. The applied command copies the three reviewed recovery
-scripts under the private root, registers an hourly S4U task, and starts it. Windows
-may require an administrator to register S4U. `-Interactive` is an explicit fallback
+scripts under the private root, registers an hourly task, and starts it. The
+default is S4U; Windows may require an administrator and may reject that logon
+mode. Use `-PasswordLogon -Apply` on this host: a local credential prompt supplies
+the current owner account password directly to Windows Task Scheduler. No password
+is written into source, command arguments, or configuration. `-Interactive` is an explicit fallback
 that only runs while the owner is signed in. Inspect `Get-ScheduledTaskInfo` and
 confirm result0 plus a fresh independent heartbeat; task registration alone proves
 nothing. Reapply after reviewing script updates. Execution is bounded to20minutes
@@ -103,3 +126,24 @@ The GitHub repository is the source for automation; it contains no secret values
 Recovery still requires account access, the separately held decryption key, DNS
 control, and private credentials. The dashboard keeps these unproven conditions
 visible until an end-to-end rebuild drill and offsite recovery are completed.
+
+## Controlled handover source and repeatability
+
+`deploy/platform/controlled-cutover.py` preserves the reviewed production handover.
+It previews by default; only `--apply` mutates infrastructure. The SSH identity and
+private host root are deliberately project-specific and must be reviewed for a
+replacement host. Never run it against the selected production target again.
+Preflight requires prepared private roles/schema, reviewed API and slicer images,
+a verified encrypted source archive, stopped legacy writers and an approved routing
+window. Prepare secrets using the private host tooling, never GitHub source files.
+The handover verifies all source table counts, fences source statements, restores a
+unique target, and persists target selection before resuming traffic. Failure can
+reopen the source only before durable selection and independently verified fence
+ownership; uncertainty leaves writes paused. After selection, recovery always uses
+the target checkpoint. External routing changes remain explicit operator actions.
+
+Health volume setup in `prepare-host.py` uses isolated ownership initialization
+followed by the real writer UID to set the shared group and directory setgid bit.
+This preserves readable aggregate job health without broadening runtime privileges.
+After restoring/recreating workers, verify both health files through the API's
+status collector; do not infer health from a running container alone.
