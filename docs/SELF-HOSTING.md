@@ -2,7 +2,7 @@
 
 The storefront and operator application remain static Vercel deployments. The
 local platform runs the existing API handlers, private PostgreSQL 18, and bounded
-background work. Invoicing remains draft-only; this migration does not enable
+background work. Production handover is complete; see the [verified cutover record](PLATFORM-CUTOVER-2026-10-20.md) and [recovery automation](PLATFORM-RECOVERY.md). Invoicing remains draft-only; this migration does not enable
 Invoice Ninja or authorize invoice dispatch.
 
 ## Deployment boundary
@@ -35,13 +35,13 @@ credentials. Validate it in memory and emit only structural results.
 - `postgres.env`: `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD`. These are
   bootstrap administrator credentials, unavailable to the API.
 - `api.env`: native `DATABASE_URL`, `DATABASE_DRIVER=postgres`, application
-  integrations, OIDC configuration, `PLATFORM_PROXY_SECRET`, exact operator
+  integrations, direct GitHub configuration, `PLATFORM_PROXY_SECRET`, exact operator
   origins, and `PLATFORM_JOBS_ENABLED`. Runtime credentials must not own tables.
 - `tunnel.token`: dedicated connector token, mounted read-only and passed by file,
   never a command-line token or a credential embedded in Compose/source.
 - `jobs.env` and `slicer.env`: worker-only database and provider configuration;
-  exclude API signing, OIDC, billing and email credentials. Both select native
-  PostgreSQL. Slicer polling remains 300000 milliseconds.
+  exclude API signing, identity, billing and email credentials. Both select native
+  PostgreSQL. Native-only slicer polling is 5000 milliseconds; legacy Neon polling is stopped.
 - `database-target.private.json`: a versioned handover manifest, mounted read-only
   as one file. Start in `prepared` phase; an in-progress `fencing` phase prevents
   an ambiguous restart from accepting traffic. The final `fenced-and-restored`
@@ -69,10 +69,9 @@ caller IP to a timestamped HMAC and one-time database nonce. Writes have no
 automatic retry. Private response bodies and credentials must never be logged.
 
 The operator Vercel project uses `OPERATOR_API_BASE=https://api.3dprint4.me` and
-`OPERATOR_AUTH_PROVIDER=authentik`. The API allows only
+`OPERATOR_AUTH_PROVIDER=github`. The API allows only
 `OPERATOR_ALLOWED_ORIGINS=https://work.3dprint4.me`. Preview aliases cannot use
-production cookie authentication. Legacy Neon auth remains an explicit rollback
-mode; it is not an automatic fallback on authentication failure.
+production cookie authentication. Legacy Neon auth remains compatibility code only; it is not an automatic fallback or an approved rollback to the fenced source.
 
 ## Database and authentication
 
@@ -84,7 +83,7 @@ to the restored schema. Do not import managed Neon roles, passwords or auth
 sessions. Migration 008 is for this dedicated native database, not hosted Neon.
 
 The single API process limits anonymous sign-in starts to five per client and
-100 total per minute before OIDC discovery. Only bounded, minute-lived address
+100 total per minute before provider work. Only bounded, minute-lived address
 hashes are retained in memory. PostgreSQL independently caps active flow storage
 across processes. Each start prunes expired flows, so recovery does not depend
 on the jobs service. Refused storage returns503 before redirecting; rate limits
@@ -96,18 +95,20 @@ continues to enforce operator/owner access. Runtime cannot create tables, alter
 operator roles/enabled state or create identity bindings. Verify those denials
 using the actual runtime login after every schema/security change.
 
-Use a dedicated confidential Authentik application with authorization-code flow,
-PKCE, RS256, `openid profile`, and strict redirect
-`https://api.3dprint4.me/api/auth/callback`. Bind the approved owner's exact issuer
-and stable subject to the existing operator ID. Never infer access from an email,
+Use the dedicated confidential GitHub OAuth application with authorization-code
+flow, PKCE S256, empty scope and exact callback
+`https://api.3dprint4.me/api/auth/callback`. Follow the
+[direct GitHub contract](GITHUB-OPERATOR-AUTH.md). Bind the exact GitHub issuer and
+approved numeric owner ID to the existing operator. Never infer access from email,
 display name or an incoming role claim. Existing operator/work relationships are
-preserved. Missing, disabled or removed bindings cannot authenticate.
+preserved. Missing, disabled or removed bindings cannot authenticate. The optional
+OIDC implementation remains compatibility code and does not require local Authentik.
 
 Login state, nonce and PKCE verifier remain in a one-time private flow. Sessions
 store token hashes with an eight-hour expiry; only Secure, HttpOnly, host-only
 SameSite=Lax cookies reach the browser. Logout requires POST from the exact work
 origin. Browser storage never receives provider or new application tokens. The
-operator shell advances to v8 so installed clients can load the new sign-in flow.
+operator shell advances to v9 so installed clients can load the new sign-in flow.
 
 ## Workers and cutover gates
 
@@ -116,7 +117,7 @@ The `writers` profile starts local jobs only after an explicit handover;
 leases; retention and auth cleanup use private database leases. Push drains every
 15 seconds, expired auth/replay rows every minute, and model retention every six
 hours. The local push drain needs no publicly callable worker endpoint. Preserve
-the VAPID keys and subscription records. Slicer polling should remain five minutes.
+the VAPID keys and subscription records. Native PostgreSQL slicer polling is five seconds; never point that polling loop at Neon.
 
 Inventory and pause the old Neon scheduled push function, GitHub retention
 workflow, and old slicer before enabling replacement writers. A lease in one
