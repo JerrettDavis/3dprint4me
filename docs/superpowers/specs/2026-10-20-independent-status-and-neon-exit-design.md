@@ -23,8 +23,9 @@ These prove migration mechanics, not production cutover or failover readiness.
 Known blockers: sending credentials are unresolved, periodic backup scheduling
 and independent freshness checks are unfinished, public routing/owner sign-in
 are not verified, and final writer handover has not run. A fresh code review
-also identified anonymous sign-in flow exhaustion; fix and retest before making
-the candidate public. The existing local backup copies are off the Docker host,
+identified anonymous sign-in flow exhaustion; the fix passed regression tests
+and independent review and must be included in the deployed candidate. The
+existing local backup copies are off the Docker host,
 but physical site independence and key custody remain unverified.
 
 ## Proposed architecture (builder recommendations)

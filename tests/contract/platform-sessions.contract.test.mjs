@@ -13,6 +13,14 @@ test('private session storage consumes flows atomically and rechecks disabled an
     await db.exec("INSERT INTO operator_identity_bindings(issuer,subject,operator_id) VALUES('https://auth.example/','owner-sub','op_owner')");
     const query=async(parts,...values)=>(await db.query(parts.reduce((s,p,i)=>s+(i?`$${i}`:'')+p,''),values)).rows;
     const store=createSessionStore({query}),hash='a'.repeat(64),stateHash='b'.repeat(64);
+    const flow={cookieHash:hash,stateHash,state:'s'.repeat(32),nonce:'n'.repeat(32),verifier:'v'.repeat(43),expiresAt:Date.now()+600000};
+    await db.exec(`INSERT INTO operator_login_flows SELECT lpad(i::text,64,'0'),repeat('b',64),repeat('s',32),repeat('n',32),repeat('v',43),now()-interval '1 minute' FROM generate_series(1,1000) i`);
+    assert.equal(await store.saveFlow(flow),true,'expired capacity recovers without background jobs');
+    assert.equal(Number((await db.query('SELECT count(*) AS n FROM operator_login_flows')).rows[0].n),1);
+    await db.exec('DELETE FROM operator_login_flows');
+    await db.exec(`INSERT INTO operator_login_flows SELECT lpad(i::text,64,'0'),repeat('b',64),repeat('s',32),repeat('n',32),repeat('v',43),now()+interval '10 minutes' FROM generate_series(1,1000) i`);
+    assert.equal(await store.saveFlow(flow),false,'capacity refusal is explicit');
+    await db.exec('DELETE FROM operator_login_flows');
     await store.saveFlow({cookieHash:hash,stateHash,state:'s'.repeat(32),nonce:'n'.repeat(32),verifier:'v'.repeat(43),expiresAt:Date.now()+600000});
     assert.equal(await store.consumeFlow(hash,'c'.repeat(64)),null);
     assert.equal((await store.consumeFlow(hash,stateHash)).verifier,'v'.repeat(43));assert.equal(await store.consumeFlow(hash,stateHash),null);

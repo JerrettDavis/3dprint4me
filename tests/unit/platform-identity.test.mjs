@@ -48,3 +48,22 @@ test('session identity rejects bearer tokens and duplicate cookies; config rejec
   assert.equal(await identity.getIdentity({headers:{cookie:'__Host-3dp-session='+'a'.repeat(43)+'; __Host-3dp-session='+'b'.repeat(43)}}),null);
   for(const values of [{OPERATOR_API_ORIGIN:'http://api.3dprint4.me'},{OPERATOR_WEB_ORIGIN:'https://example.vercel.app'},{OIDC_ISSUER:'http://auth.example/'}])assert.throws(()=>createOidcService({env:{...env,...values},store:f.store,protocol:{}}));
 });
+
+test('login capacity failure does not redirect and requests are rate limited before discovery',async()=>{
+  const f=fixture();let starts=0;
+  const protocol={start:async()=>{starts++;return {state:'state',nonce:'nonce',verifier:'verifier',url:'https://auth.example/authorize'};}};
+  const unavailable=createOidcService({env,protocol,store:{...f.store,saveFlow:async()=>false}});
+  await assert.rejects(()=>unavailable.login(),error=>error.status===503);
+  let clock=60000;
+  const service=createOidcService({env,protocol,store:{...f.store,saveFlow:async()=>true},now:()=>clock});
+  const req={headers:{'x-forwarded-for':'192.0.2.1'}};
+  for(let i=0;i<5;i++)await service.login(req);
+  const before=starts;
+  await assert.rejects(()=>service.login(req),error=>error.status===429&&error.headers['Retry-After']==='60');
+  assert.equal(starts,before);
+  await service.login({headers:{'x-forwarded-for':'192.0.2.2'}});
+  clock+=60000;await service.login(req);
+  const global=createOidcService({env,protocol,store:{...f.store,saveFlow:async()=>true},now:()=>clock});
+  for(let i=0;i<100;i++)await global.login({headers:{'x-forwarded-for':`192.0.2.${i}`}});
+  await assert.rejects(()=>global.login({headers:{'x-forwarded-for':'198.51.100.1'}}),error=>error.status===429);
+});
