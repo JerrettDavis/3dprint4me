@@ -9,7 +9,8 @@ import { createInquiryHandler } from '../../lib/quick-inquiry/handler.js';
 test('quick inquiries use parameterized native SQL and separate authenticated client rate buckets',async()=>{
   const db=new PGlite();
   try {
-    await db.exec(await readFile(new URL('../../neon/migrations/002_quick_inquiries.sql',import.meta.url),'utf8'));
+    for(const migration of ['001_service_requests.sql','002_quick_inquiries.sql','003_work_queue.sql','009_inquiry_workflow.sql'])
+      await db.exec(await readFile(new URL('../../neon/migrations/'+migration,import.meta.url),'utf8'));
     const native=createNativeDatabase({pool:{query:(text,values)=>db.query(text,values)}});
     const store=createInquiryStore({query:native.query});
     const handler=createInquiryHandler({store,configured:()=>true,blobConfigured:()=>false,hasDelivery:()=>false});

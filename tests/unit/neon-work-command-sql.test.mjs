@@ -9,7 +9,7 @@ import { createNeonWorkRepository } from "../../lib/work-management/adapters/neo
 // parameter-typing failures (e.g. untyped parameters inside jsonb_build_object).
 async function seededRepository() {
   const db = new PGlite();
-  for (const file of ["001_service_requests.sql", "003_work_queue.sql"]) await db.exec(readFileSync(new URL(`../../neon/migrations/${file}`, import.meta.url), "utf8"));
+  for (const file of ["001_service_requests.sql", "002_quick_inquiries.sql", "003_work_queue.sql", "009_inquiry_workflow.sql"]) await db.exec(readFileSync(new URL(`../../neon/migrations/${file}`, import.meta.url), "utf8"));
   await db.query("INSERT INTO service_requests (id, status, service, project_title, contact_name, contact_email, payload) VALUES ('r1','submitted','print','Fixture','N','e@example.com','{}')");
   await db.query("INSERT INTO operators (id, auth_user_id, display_name) VALUES ('op_1','u1','Owner')");
   await db.query("INSERT INTO work_items (id, request_id) VALUES ('work_12345678','r1')");
