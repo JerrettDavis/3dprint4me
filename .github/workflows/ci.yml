@@ -42,6 +42,9 @@ jobs:
       - name: Run validation, unit, E2E, and UX audit
         run: npm test
 
+      - name: Rehearse native PostgreSQL setup, backup and rebuild in isolation
+        run: python tests/integration/platform_recovery_docker.py
+
       - name: Generate screenshots
         run: npm run screenshots
 

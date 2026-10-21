@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "components": [
+    {"id":"storefront","source":"vercel.json","url":"https://3dprint4.me","recovery":"Redeploy tracked source; restore private Vercel proxy environment."},
+    {"id":"operator","source":"operator/vercel.json","url":"https://work.3dprint4.me","recovery":"Redeploy operator shell; restore API origin and GitHub configuration."},
+    {"id":"api","source":"deploy/platform/Dockerfile","url":"https://api.3dprint4.me","recovery":"bootstrap-host.py or rebuild-host.py; verify before tunnel activation."},
+    {"id":"database","source":"deploy/platform/compose.yml","recovery":"Encrypted control plus live dumps; restore ACLs and durable selection."},
+    {"id":"private-files","source":"scripts/blob-recovery.mjs","recovery":"Encrypted streamed object snapshot; verify then resume private non-overwriting restore."},
+    {"id":"jobs","source":"scripts/platform-jobs.mjs","recovery":"Compose writers profile; leases, retention and outboxes survive in PostgreSQL."},
+    {"id":"slicer","source":"deploy/slicer-worker/Dockerfile.bambu","recovery":"Rebuild pinned image and profiles; jobs remain in PostgreSQL."},
+    {"id":"tunnel","source":"deploy/platform/compose.yml","recovery":"Restore private connector token; recreate fixed Cloudflare hostname route before activation."},
+    {"id":"public-status","source":"status/vercel.json","url":"https://status.3dprint4.me","recovery":"Redeploy independent static output."},
+    {"id":"operations","source":"status/operations/vercel.json","url":"https://3dprint4me-operations.vercel.app","recovery":"Enable Vercel Authentication for all deployments, restore reader secret, redeploy and verify anonymous denial."},
+    {"id":"status-monitor","source":"status/wrangler.jsonc","recovery":"Deploy Worker and Durable Object migrations; restore four independent secrets; fresh evidence replaces disposable history."},
+    {"id":"status-collector","source":"deploy/platform/status-collector.timer","recovery":"Install generated systemd service and timer; restore private reporting config."},
+    {"id":"encrypted-backups","source":"deploy/platform/install-backup-task.ps1","recovery":"Restore separately held Restic key and repositories; reinstall hourly Windows task; run readback and restore drills."},
+    {"id":"github-identity","source":"docs/GITHUB-OPERATOR-AUTH.md","recovery":"Restore OAuth app credential and exact callback; restore numeric operator binding from database."},
+    {"id":"email-webhooks-payments","source":".env.example","recovery":"Re-enter provider credentials from private custody; verify domains and webhook signatures. Invoice dispatch remains manual."},
+    {"id":"home-assistant","source":"integrations/home-assistant/README.md","recovery":"Reinstall integration examples and matching private bearer secret; preserve unrelated Home Assistant setup."}
+  ]
+}

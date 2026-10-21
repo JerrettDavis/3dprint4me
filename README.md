@@ -2,6 +2,9 @@
 
 A production-oriented storefront and guided project intake for custom 3D modeling, printing, printer repair, tuning, consulting, and printer design.
 
+Full production setup, deployment, backup and disaster recovery:
+[Stack automation runbook](docs/STACK-AUTOMATION.md).
+
 ![3dprint4.me light, dark, desktop, and mobile preview board](screenshots/preview-board.png)
 
 The project is deliberately static-first. The public site is plain HTML, CSS, SVG, and browser JavaScript, while thin Node endpoints expose feature-oriented request, inquiry, work-management, health, and optional deposit capabilities. It deploys cleanly to Vercel and remains demonstrable even before external services are connected.
@@ -16,12 +19,12 @@ The project is deliberately static-first. The public site is plain HTML, CSS, SV
 - Model-aware print estimates: bounded in-browser STL/3MF geometry, private model upload with server verification, immutable estimate snapshots, an asynchronous slicer contract, and a private dual-floor (market vs. economic floor) pricing policy with operator cost/margin views ([PRINT-ESTIMATION.md](docs/PRINT-ESTIMATION.md))
 - A Customize section with four parametric generators (route shield, Wi-Fi QR tag, rating card, name plate): a schema-driven form, live 2D/3D preview and local facts, multi-color 3MF built in the browser with Manifold WASM, self-hosted OFL fonts, local image tracing, and a hand-off into the normal print request with server-revalidated provenance ([GENERATORS.md](docs/GENERATORS.md))
 - File selection for STL, 3MF, STEP, OBJ, Fusion, ZIP, image, PDF, and text references
-- Private, direct-to-Vercel Blob uploads with Neon persistence, plus a supported legacy Supabase mode
+- Private, direct-to-Vercel Blob uploads with private PostgreSQL persistence, plus legacy provider adapters
 - Feature-oriented server slices with automated dependency-boundary checks
 - Owner and customer email delivery through Resend
 - Signed generic webhook delivery for CRM, automation, Home Assistant, n8n, Make, Zapier, or custom systems
 - Optional Stripe-hosted project deposit checkout
-- Durable Neon-backed work queue with revision-safe operational updates
+- Durable PostgreSQL-backed work queue with revision-safe operational updates
 - Separate installable operator PWA with GitHub sign-in, private notes, and generic Web Push alerts
 - No-account fallback with local draft persistence, email handoff, and downloadable JSON
 - Original SVG artwork, portfolio illustrations, favicon, PWA manifest, sitemap, robots file, Open Graph metadata, and JSON-LD
