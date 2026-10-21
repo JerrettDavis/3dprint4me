@@ -50,5 +50,6 @@ def test_rebuild_docker_preflight_checks_containers_and_all_persistent_volumes()
     calls=[]
     rebuild.empty_docker(lambda args: calls.append(args) or b'')
     assert any('ps' in c and '-a' in c for c in calls)
-    assert sum('volume' in c for c in calls)==3
+    assert sum('volume' in c for c in calls)==4
+    assert any('name=^3dprint4me-platform_postgres18$' in c for c in calls)
     assert all('rm' not in c and 'down' not in c for c in calls)
