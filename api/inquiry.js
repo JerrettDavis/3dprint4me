@@ -1,6 +1,7 @@
 import { withPlatformProxy } from "../lib/platform/proxy.js";
 import inquiryHandler from "../lib/quick-inquiry/handler.js";
 import downloadEventHandler from "../lib/customization/download-event.js";
+import handoffHandler from '../lib/inquiry-workflow/public-api.js';
 
 export { createInquiryHandler } from "../lib/quick-inquiry/handler.js";
 
@@ -8,7 +9,7 @@ export { createInquiryHandler } from "../lib/quick-inquiry/handler.js";
 // tiny sibling of the quick inquiry (`/api/inquiry?kind=customize-download`).
 function handler(req, res) {
   const kind = new URL(req.url ?? "/", "http://local").searchParams.get("kind");
-  return (kind === "customize-download" ? downloadEventHandler : inquiryHandler)(req, res);
+  return (kind === "customize-download" ? downloadEventHandler : kind==='handoff'?handoffHandler:inquiryHandler)(req, res);
 }
 
 export default withPlatformProxy(handler);

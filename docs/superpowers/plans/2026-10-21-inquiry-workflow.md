@@ -57,12 +57,12 @@
 
 **Interfaces:** issueHandoff(owner inquiry key or authorized operator), readHandoff(rawToken), prepareProject(operator, workId, revision, service, title), createBoundDraft(rawToken, normalizedRequest), completeBoundDraft(rawToken, draftId, normalizedRequest, newFiles, attachment).
 
-- [ ] Write red tests for fixed actions/methods, exact owner scope, hash-only storage, expiry/revocation, no read access by ID/email, output projection and safe errors.
-- [ ] Add native callback transactions on a checked-out client with rollback/release and preserved safe domain errors; legacy HTTP provider fails closed for unsupported new transactional actions. Test transaction shape/failures.
-- [ ] Implement canonical draft binding and conversion under row locks/unique constraints; preserve work ID/history and reject stale revisions/terminal source states.
-- [ ] Implement seven-day scoped invites, regeneration, submission-key issuance and native/local ports with bounded records. Never log raw capability values.
-- [ ] Expose operator actions behind existing session/origin/owner authorization and public actions through the existing inquiry function; no additional Vercel functions.
-- [ ] Prove concurrent conversion/draft creation, expiry, rollback and response-loss replay with native SQL contracts; commit.
+- [x] Write red tests for fixed actions/methods, exact owner scope, hash-only storage, expiry/revocation, no read access by ID/email, output projection and safe errors.
+- [x] Add native callback transactions on a checked-out client with rollback/release and preserved safe domain errors; legacy HTTP provider fails closed for unsupported new transactional actions. Test transaction shape/failures.
+- [x] Implement canonical draft binding and conversion under row locks/unique constraints; preserve work ID/history and reject stale revisions/terminal source states.
+- [x] Implement seven-day scoped invites, regeneration, submission-key issuance and native/local ports with bounded records. Never log raw capability values.
+- [x] Expose operator actions behind existing session/origin/owner authorization and public actions through the existing inquiry function; no additional Vercel functions.
+- [x] Prove concurrent conversion/draft creation, expiry, rollback and response-loss replay with native SQL contracts; commit.
 
 ### Task 4: Full-request continuation with strict attachment authority
 
