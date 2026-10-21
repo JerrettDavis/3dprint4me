@@ -32,12 +32,17 @@ def command(args, *, data=None, env=None, timeout=180, limit=LIMIT):
                          stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=env)
     timer = threading.Timer(timeout, p.kill)
     timer.start()
+    write_errors = []
     def write():
         try:
-            p.stdin.write(data)
-            p.stdin.close()
-        except (BrokenPipeError, OSError):
-            pass
+            if hasattr(data, 'read'):
+                while chunk := data.read(65536):p.stdin.write(chunk)
+            else:p.stdin.write(data)
+        except Exception:
+            write_errors.append(True)
+        finally:
+            try:p.stdin.close()
+            except OSError:pass
     writer = threading.Thread(target=write, daemon=True) if data is not None else None
     if writer:
         writer.start()
@@ -49,6 +54,8 @@ def command(args, *, data=None, env=None, timeout=180, limit=LIMIT):
                 raise ValueError('Output bound')
         if p.wait(timeout=5):
             raise ValueError('Command failed')
+        if writer:writer.join(timeout=2)
+        if write_errors or writer and writer.is_alive():raise ValueError('Input stream failed')
         return bytes(output)
     finally:
         timer.cancel()
@@ -131,11 +138,14 @@ def backup(config_path):
     # Execute this exact repository-owned exporter over the existing pinned SSH
     # trust boundary. Source contains no credentials and never touches disk.
     source = Path(__file__).with_name('export-backup.py').read_text()
-    remote = 'python3 -c ' + shlex.quote(source) + ' --root /home/jd/3dprint4me-platform'
+    platform_root = config.get('platform_root', '/home/jd/3dprint4me-platform')
+    if not platform_root.startswith('/') or '\n' in platform_root:raise ValueError('Explicit platform root required')
+    remote = 'python3 -c ' + shlex.quote(source) + ' --root ' + shlex.quote(platform_root)
     data = command(['ssh', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes', '-o', 'ConnectTimeout=8', host, remote], timeout=300)
     manifest = verify_archive(data)
     name = '3dprint4me/platform-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '.tar'
     snapshots = []
+    repositories = []
     # Write and round-trip independently to each existing encrypted repository.
     for store in config['stores']:
         repo, cache = Path(store['repository']), Path(store['cache'])
@@ -149,6 +159,7 @@ def backup(config_path):
         env = {k: v for k, v in os.environ.items() if not k.upper().startswith('RESTIC_')}
         env.update(TEMP=str(cache), TMP=str(cache), TMPDIR=str(cache))
         args = [str(exe), '--repo', str(repo), '--password-file', str(password), '--cache-dir', str(cache)]
+        repositories.append((args, env))
         output = command(args + ['backup', '--stdin', '--stdin-filename', name, '--tag', 'platform:3dprint4me-native', '--json'], data=data, env=env, limit=1024*1024)
         summaries = [json.loads(line) for line in output.splitlines() if json.loads(line).get('message_type') == 'summary']
         if len(summaries) != 1 or not re.fullmatch('[a-f0-9]{64}', summaries[0].get('snapshot_id', '')):
@@ -160,9 +171,87 @@ def backup(config_path):
         snapshots.append(snapshot)
     if len(snapshots) < 2:
         raise ValueError('Two independent repositories required')
-    return {'version': 1, 'snapshots': snapshots, 'filename': name, 'sha256': hashlib.sha256(data).hexdigest(),
+    # Files have a separate streamed snapshot, so growing customer data cannot
+    # exhaust the bounded in-memory database/configuration recovery archive.
+    with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+        required = tar.extractfile('objects/required-paths.json').read()
+    object_result = backup_objects(config, required, repositories, name)
+    result = {'version': 1, 'snapshots': snapshots, 'filename': name, 'sha256': hashlib.sha256(data).hexdigest(),
             'bytes': len(data), 'databases': manifest['databases'], 'roundtrip_verified': True,
+            'private_objects': object_result,
             'operational_restore': 'not-established-by-backup', 'offsite': 'unverified'}
+    receipt_name=name.removesuffix('.tar')+'-checkpoint.json'
+    receipt=json.dumps(result,sort_keys=True).encode();receipts=[]
+    for args,env in repositories:
+        snapshot=summary_snapshot(command(args+['backup','--stdin','--stdin-filename',receipt_name,'--tag','platform:3dprint4me-complete-checkpoint','--json'],data=receipt,env=env,limit=1024*1024))
+        if command(args+['dump',snapshot,'/'+receipt_name],env=env)!=receipt:raise ValueError('Checkpoint receipt mismatch')
+        receipts.append(snapshot)
+    return {**result,'checkpoint_receipts':receipts,'checkpoint_filename':receipt_name}
+
+
+def stream_hash(args, env):
+    """Hash a decrypted Restic readback without storing it or bounding store size."""
+    process=subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,env=env)
+    timer=threading.Timer(900,process.kill);timer.start();digest=hashlib.sha256()
+    try:
+        while chunk:=process.stdout.read(65536):digest.update(chunk)
+        if process.wait(timeout=5):raise ValueError('Encrypted stream readback failed')
+        return digest.hexdigest()
+    finally:
+        timer.cancel()
+        if process.poll() is None:process.kill()
+        process.wait()
+
+
+def summary_snapshot(output):
+    summaries=[json.loads(line) for line in output.splitlines() if json.loads(line).get('message_type')=='summary']
+    if len(summaries)!=1 or not re.fullmatch('[a-f0-9]{64}',summaries[0].get('snapshot_id','')):
+        raise ValueError('Exact stream snapshot required')
+    return summaries[0]['snapshot_id']
+
+
+def copied_snapshot(destination, env, source_snapshot, filename):
+    # Restic records an absolute native path in snapshot metadata: Windows uses
+    # C:\\3dprint4me\\..., while dump/ls accept the virtual /3dprint4me/... path.
+    path_filter=str(Path('/'+filename).absolute())
+    candidates=json.loads(command(destination+['snapshots','--json','--path',path_filter],env=env,limit=1024*1024))
+    copied=[entry['id'] for entry in candidates if entry.get('original')==source_snapshot or entry.get('id')==source_snapshot]
+    if len(copied)!=1 or not re.fullmatch('[a-f0-9]{64}',copied[0]):raise ValueError('Copied snapshot identity unknown')
+    return copied[0]
+
+
+def backup_objects(config, required, repositories, database_filename):
+    root=config.get('platform_root','/home/jd/3dprint4me-platform')
+    remote_code="import subprocess,sys; root="+repr(root)+"; sys.exit(subprocess.run(['docker','compose','--env-file',root+'/compose.env','-f',root+'/candidate-source/deploy/platform/compose.yml','exec','-T','api','node','scripts/blob-recovery.mjs','export-stream'],input=sys.stdin.buffer.read(8*1024*1024+1),stderr=subprocess.DEVNULL).returncode)"
+    producer=subprocess.Popen(['ssh','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','ConnectTimeout=8',config['ssh_host'],'python3 -c '+shlex.quote(remote_code)],
+                              stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
+    timer=threading.Timer(900,producer.kill);timer.start()
+    digest=hashlib.sha256()
+    class HashReader:
+        def read(self,size):
+            chunk=producer.stdout.read(size);digest.update(chunk);return chunk
+    filename=database_filename.removesuffix('.tar')+'-objects.ndjson'
+    args,env=repositories[0]
+    try:
+        producer.stdin.write(required);producer.stdin.close()
+        output=command(args+['backup','--stdin','--stdin-filename',filename,'--tag','platform:3dprint4me-private-objects','--json'],data=HashReader(),env=env,timeout=900,limit=1024*1024)
+        if producer.wait(timeout=10):raise ValueError('Private object export incomplete')
+        snapshot=summary_snapshot(output)
+    finally:
+        timer.cancel()
+        if producer.poll() is None:producer.kill()
+        producer.wait()
+    expected=digest.hexdigest();snapshots=[]
+    for index,(destination,store_env) in enumerate(repositories):
+        destination_snapshot=snapshot
+        if index:
+            # Copy encrypted snapshot identities without re-exporting a changing
+            # store; both destinations must contain the exact same checkpoint.
+            command(destination+['copy','--from-repo',config['stores'][0]['repository'],'--from-password-file',config['password_file'],snapshot],env=store_env,timeout=900,limit=1024*1024)
+            destination_snapshot=copied_snapshot(destination,store_env,snapshot,filename)
+        if stream_hash(destination+['dump',destination_snapshot,'/'+filename],store_env)!=expected:raise ValueError('Private object roundtrip mismatch')
+        snapshots.append(destination_snapshot)
+    return {'snapshots':snapshots,'filename':filename,'sha256':expected,'roundtrip_verified':True}
 
 
 def report(config_path,success):
