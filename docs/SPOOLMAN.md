@@ -74,8 +74,8 @@ grams, appearance warnings, cost source, timestamp, and a link to the human UI.
    `spoolman-network.py` supports the deployed list-style source. Validate the
    candidate Compose before atomically retaining it in the private deployment
    source; preserve a private backup. Connect the running Spoolman application to
-   that network without restarting it, with alias `spoolman-inventory`. The
-   persisted source fragment provides the same alias on future recreation.
+   that network without restarting it, with alias `spoolman`. Compose provides
+   that service-name alias again on future recreation.
 3. Add the jobs-only variables in `jobs.spoolman.env.example` to private
    `jobs.env`; keep `SPOOLMAN_INSTANCE_ID` stable. Add the optional
    `SPOOLMAN_UI_ORIGIN=https://spoolman.jerrettdavis.com` to private `api.env` for
