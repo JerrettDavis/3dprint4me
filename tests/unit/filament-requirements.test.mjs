@@ -13,9 +13,10 @@ test('color count is unresolved, not a color, and total demand stays unsplit', (
   assert.equal(requirementsForWork({ request: { service: 'repair' } }).applicable, false);
 });
 test('explicit colors, override validation, single-color demand', () => {
-  const result = requirementsForWork(detail({ material: 'PLA', color: '#00f', grams: '20', quantity: '3' }));
+  const result = requirementsForWork(detail({ material: 'PLA', brandLine: 'Requested PLA', color: '#00f', grams: '20', quantity: '3' }));
   assert.equal(result.requirements[0].colorHex, '#0000ff');
   assert.equal(result.requirements[0].grams, 60);
+  assert.equal(result.requirements[0].brandLine, 'Requested PLA');
   assert.throws(() => normalizeRequirements([{ id: 'a', material: 'pla', colorHex: 'bad' }]));
   assert.throws(() => normalizeRequirements([{ id: 'a', grams: -1 }]));
   assert.throws(() => normalizeRequirements([{ id: 'a' }, { id: 'a' }]));

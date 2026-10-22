@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { createSubstitutionEmailDelivery, substitutionMessage } from '../../lib/filament-matching/adapters/substitution-email.js';
 test('email provider URL, headers, safe payload, idempotency and failure behavior', async () => {
   const env = { RESEND_API_KEY: 'private-test', REQUEST_FROM_EMAIL: 'hello@example.com', REQUEST_TO_EMAIL: 'owner@example.com' };
-  const message = substitutionMessage({ requestId: '3DP-TEST', recipient: 'customer@example.com', proposal: { id: 'sub_test', requested: { material: 'pla', color: '<blue>', colorHex: '#0000ff' }, offered: { material: 'pla', color: 'Purple', colorHex: '#1000ff' } } });
+  const message = substitutionMessage({ requestId: '3DP-TEST', recipient: 'customer@example.com', proposal: { id: 'sub_test', requested: { material: 'pla', brandLine: 'Requested brand', color: '<blue>', colorHex: '#0000ff' }, offered: { material: 'pla', brandLine: 'Offered brand', color: 'Purple', colorHex: '#1000ff' } } });
+  assert.match(message.text, /Requested brand/); assert.match(message.text, /Offered brand/);
   let call;
   const send = createSubstitutionEmailDelivery({ env, fetchImpl: async (url, options) => { call = { url, options }; return { ok: true }; } });
   assert.equal((await send(message, 'substitution/sub_test')).state, 'sent');
