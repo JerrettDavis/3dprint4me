@@ -377,6 +377,37 @@ def capture_inquiry_workflow_states():
     return captured
 
 
+def capture_filament_states() -> list[tuple[str, Path]]:
+    from tests.e2e.test_operator_filament import seed_filament_work
+    captured = []
+    with running_operator_workspace({"RESEND_API_KEY": "", "REQUEST_FROM_EMAIL": "", "REQUEST_TO_EMAIL": ""}) as (storefront, operator, _):
+        work_id = seed_filament_work(storefront, operator)
+        for name, color in [("Violet blue", "#1000ff"), ("Deep blue", "#1500ff"), ("Further purple", "#5000ff")]:
+            status, _, _ = json_request(storefront + "/api/operator-print", method="POST", headers={"Origin": operator}, payload={"action": "save-filament", "filament": {"material": "pla", "brandLine": "Workshop PLA", "color": name, "colorHex": color, "spoolNominalGrams": 1000, "onHandGrams": 500, "purchaseCostCents": 2200}})
+            assert status == 200
+        for state, viewport, scheme in [("inventory", (1440, 1000), "light"), ("inventory", (390, 844), "dark"), ("matching", (1440, 1000), "dark"), ("matching", (390, 844), "light"), ("proposal", (1440, 1000), "light")]:
+            filename = f"operator-filament-{state}-{'mobile' if viewport[0] == 390 else 'desktop'}-{scheme}.png"
+            path = OUTPUT / filename
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
+                page = site.page
+                page.goto(operator + f"/work/{work_id}", wait_until="networkidle")
+                page.locator(".filament-sheet").wait_for()
+                if state == "inventory":
+                    page.get_by_role("button", name="Filament inventory", exact=True).click()
+                    page.locator(".filament-inventory").wait_for()
+                elif state == "proposal":
+                    page.get_by_role("button", name="Create substitution proposal").click()
+                    page.get_by_role("button", name="Preview customer approval email").click()
+                    page.get_by_label("Customer approval message").wait_for()
+                    page.evaluate("document.querySelector('.filament-proposal').scrollIntoView({block:'start'})")
+                else:
+                    page.evaluate("document.querySelector('.filament-sheet').scrollIntoView({block:'start'})")
+                site.screenshot(path, full_page=False)
+                site.assert_no_page_errors()
+            captured.append((f"Filament {state} · {'mobile' if viewport[0] == 390 else 'desktop'} · {scheme}", path))
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -406,6 +437,7 @@ def main() -> int:
     cases.extend(capture_customize_states())
     cases.extend(capture_operator_states())
     cases.extend(capture_inquiry_workflow_states())
+    cases.extend(capture_filament_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
     print(f"Captured {len(cases) + 1} screenshots and {board.relative_to(ROOT)}")

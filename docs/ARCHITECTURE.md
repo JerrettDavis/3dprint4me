@@ -8,6 +8,8 @@ The implementation optimizes for a fast public site, low operating cost, few dep
 
 ## Feature-oriented boundaries
 
+`lib/filament-matching/` owns private stock readiness: bounded HSL/RGB matching, explicit request/generator requirements, per-work stock allocation, and audited substitution proposals. It reuses the print inventory repository but composes into work detail independently of the optional print-estimation view. Its local/PostgreSQL ports persist shared settings and revisioned work documents. The email adapter uses the existing provider with durable send claims and stable idempotency keys. Operator UI lives in `operator/assets/filament-*.js`; no matching state enters public assets, minimized work lists, HA snapshots, or Push.
+
 The application is organized around bounded contexts rather than technical-layer folders:
 
 - `lib/project-request/` owns detailed customer intake, upload authorization, completion, and its server composition root. The browser half lives in `public/assets/js/order/` and separates the model, validation, persistence, API client, view, and controller.

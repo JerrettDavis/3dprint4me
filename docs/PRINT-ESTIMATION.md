@@ -1,5 +1,7 @@
 # Print estimation, private models, and retention
 
+Private filament inventory also supports work readiness; see [OPERATOR-INBOX.md](OPERATOR-INBOX.md#filament-inventory-and-readiness). Migration 010 adds optional color hex and inventory revision fields, private matching settings and work proposal records. Editing an inventory row through `save-filament` now requires its current `revision`; creating a row does not. Existing color-name-only rows remain usable and unchanged in cost calculations. The matching view uses total estimate grams where defensible, and never fabricates per-color quantities. Matching failure does not change pricing or the submitted request.
+
 This runbook covers the `print-estimation` vertical slice: model-aware print estimates, private STL/3MF retention, the asynchronous slicer contract, operator economics, and cleanup.
 
 ## Flow

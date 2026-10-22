@@ -44,3 +44,17 @@ test('unknown demand and stock shared between requirements are never sufficient 
   assert.equal(result.requirements[1].status, 'purchase');
   assert.equal(matchRequirement({ material: 'pla', colorHex: '#0000ff' }, [row('s', '#0000ff')], normalizeMatchingSettings({ mode: 'rgb' })).status, 'review');
 });
+
+test('selected alternatives, rather than recommendations, share stock within a request', () => {
+  const requirements = [{ id: 'a', material: 'pla', colorHex: '#0000ff', grams: 60 }, { id: 'b', material: 'pla', colorHex: '#1000ff', grams: 60 }];
+  const result = matchWorkRequirements(requirements, [row('blue', '#0000ff', 'pla', 100), row('purple', '#1000ff', 'pla', 80)], normalizeMatchingSettings({ mode: 'rgb', stockBufferGrams: 0 }), { a: 'purple' });
+  assert.equal(result.requirements[0].selectedId, 'purple');
+  assert.equal(result.requirements[1].status, 'purchase');
+});
+
+test('CIELAB conversion uses standard D65 reference colors', () => {
+  const red = parseColor('#ff0000').lab;
+  [53.2408, 80.0925, 67.2032].forEach((value, i) => assert.ok(Math.abs(value - red[i]) < 0.001));
+  assert.ok(Math.abs(parseColor('#ffffff').lab[0] - 100) < 0.001);
+  assert.deepEqual(parseColor('#000000').lab, [0, 0, 0]);
+});

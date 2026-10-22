@@ -37,7 +37,7 @@
 - `lib/filament-matching/application.js`: private read model, owner settings and inventory coordination, revisioned work operations, delivery lifecycle.
 - `lib/filament-matching/adapters/substitution-email.js`: safe plain/HTML message and existing provider delivery.
 - Extend `lib/print-estimation/inventory.js`, `application/filament.js`, both `adapters/*-print-repository.js`: color hex, inventory revision, matching persistence.
-- `neon/migrations/007_filament_matching.sql`: additive inventory columns and private singleton settings/per-work matching records.
+- `neon/migrations/010_filament_matching.sql`: additive inventory columns and private singleton settings/per-work matching records.
 - Extend `api/operator-print.js`, `api/operator-work.js`, `lib/work-management/service.js`, `runtime.js`, and `scripts/dev-server.mjs`: API and composition seams.
 - `operator/assets/filament-inventory.js`, `filament-detail.js`: inventory/settings and request matching/proposal DOM.
 - Extend operator `api-client.js`, `operator.js`, `operator.css`, `index.html`, build/service-worker manifests as required.

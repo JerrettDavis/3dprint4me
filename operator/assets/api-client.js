@@ -24,6 +24,14 @@ export function createApiClient({ apiBase = "", getSessionHeaders = async () => 
     printAssetDownload: (workId, assetId) => request(`/api/operator-print?resource=asset-download&workId=${encodeURIComponent(workId)}&assetId=${encodeURIComponent(assetId)}`),
     requestFileDownload: (workId, index) => request(`/api/operator-print?resource=request-file&workId=${encodeURIComponent(workId)}&index=${encodeURIComponent(index)}`),
     recordPrintRun: (workId, run) => request("/api/operator-print", { method: "POST", body: JSON.stringify({ action: "record-run", workId, run }) }),
+    listFilament: () => request('/api/operator-print?resource=filament'),
+    filamentSettings: () => request('/api/operator-print?resource=filament-settings'),
+    saveFilament: filament => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'save-filament', filament }) }),
+    saveFilamentSettings: input => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'save-filament-settings', ...input }) }),
+    previewFilamentMatching: (workId, settings) => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'preview-filament-matching', workId, settings }) }),
+    filamentCommand: (workId, command) => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'filament-command', workId, command }) }),
+    previewSubstitutionEmail: (workId, input) => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'preview-substitution-email', workId, ...input }) }),
+    sendSubstitutionEmail: (workId, input) => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'send-substitution-email', workId, ...input }) }),
     pushConfig: () => request("/api/operator-push"),
     pushAction: (action, value) => request("/api/operator-push", { method: "POST", body: JSON.stringify(action === "subscribe" ? { action, subscription: value } : action === "unsubscribe" ? { action, endpoint: value.endpoint } : { action }) })
   };
