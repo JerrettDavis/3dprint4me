@@ -72,6 +72,9 @@ def test_inventory_and_matching_fit_390_pixels_and_adjust_thresholds() -> None:
             page.get_by_role("button", name="Save matching settings").click()
             page.get_by_text("Matching settings saved.", exact=True).wait_for()
             assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+            for _ in range(3):
+                page.locator("#theme").click()
+                assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
             page.get_by_role("button", name="Back to inbox", exact=True).click()
             page.locator("#work-list .work-row").click()
             page.locator(".filament-sheet").wait_for()
@@ -95,6 +98,10 @@ def test_multiple_candidates_further_bands_requirement_edit_and_deactivation() -
             sheet = page.locator(".filament-sheet")
             assert sheet.locator(".filament-candidate:visible").count() == 2
             assert sheet.get_by_role("radio").first.is_checked()
+            sheet.get_by_role("radio").first.focus()
+            page.keyboard.press("ArrowDown")
+            assert sheet.get_by_role("radio").nth(1).is_checked()
+            assert page.evaluate("getComputedStyle(document.activeElement).outlineStyle !== 'none'")
             sheet.get_by_text("1 further matches inside limits", exact=True).click()
             sheet.get_by_role("radio").last.check()
             sheet.get_by_role("button", name="Create substitution proposal").click()

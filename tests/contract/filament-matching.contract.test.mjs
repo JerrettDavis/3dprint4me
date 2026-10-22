@@ -7,6 +7,8 @@ import { createMigratedDatabase } from '../support/pglite-neon.mjs';
 import { createLocalPrintRepository } from '../../lib/print-estimation/adapters/local-print-repository.js';
 import { createNeonPrintRepository } from '../../lib/print-estimation/adapters/neon-print-repository.js';
 import { normalizeFilamentInput } from '../../lib/print-estimation/inventory.js';
+import { readFile } from 'node:fs/promises';
+import { splitStatements } from '../../scripts/migrate-neon.mjs';
 
 for (const mode of ['local', 'postgres']) test(`${mode}: filament hex, inventory/settings/work revisions and legacy cost basis`, async () => {
   const dir = await mkdtemp(join(tmpdir(), 'filament-contract-'));
@@ -36,4 +38,26 @@ for (const mode of ['local', 'postgres']) test(`${mode}: filament hex, inventory
     await assert.rejects(repo.saveWorkMatching({ workId, revision: 0, document: {} }), { status: 409 });
     assert.equal((await repo.getWorkMatching('work_bbbbbbbb')).revision, 0);
   } finally { await db?.close(); await rm(dir, { recursive: true, force: true }); }
+});
+
+test('native backend role can use new tables while an unprivileged role cannot', async () => {
+  const database = await createMigratedDatabase();
+  try {
+    await database.db.query('CREATE ROLE platform_backend NOLOGIN');
+    const source = await readFile(new URL('../../neon/migrations/010_filament_matching.sql', import.meta.url), 'utf8');
+    for (const statement of splitStatements(source)) await database.db.query(statement);
+    await database.query`INSERT INTO service_requests (id, status, service, project_title, contact_name, contact_email, payload) VALUES ('3DP-ROLE-12345678', 'draft', 'print', 'Test', 'Taylor', 't@example.com', '{}'::jsonb)`;
+    await database.query`INSERT INTO work_items (id, request_id) VALUES ('work_aaaaaaaa', '3DP-ROLE-12345678')`;
+    await database.db.query('SET ROLE platform_backend');
+    const repository = createNeonPrintRepository({ query: database.query });
+    await repository.saveMatchingSettings({ revision: 0, settings: { mode: 'rgb' } });
+    assert.equal((await repository.getMatchingSettings()).settings.mode, 'rgb');
+    assert.equal((await repository.getWorkMatching('work_aaaaaaaa')).revision, 0);
+    await repository.saveWorkMatching({ workId: 'work_aaaaaaaa', revision: 0, document: { requirementsOverride: null, proposals: [], history: [] } });
+    assert.equal((await repository.getWorkMatching('work_aaaaaaaa')).revision, 1);
+    await database.db.query('RESET ROLE');
+    await database.db.query('CREATE ROLE filament_visitor NOLOGIN');
+    await database.db.query('SET ROLE filament_visitor');
+    await assert.rejects(database.db.query('SELECT * FROM filament_matching_settings'), error => error.code === '42501');
+  } finally { await database.close(); }
 });

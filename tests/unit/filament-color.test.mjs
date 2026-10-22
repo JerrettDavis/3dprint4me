@@ -61,3 +61,10 @@ test('CIELAB conversion uses standard D65 reference colors', () => {
   assert.ok(Math.abs(parseColor('#ffffff').lab[0] - 100) < 0.001);
   assert.deepEqual(parseColor('#000000').lab, [0, 0, 0]);
 });
+
+test('material substitution rules are explicit and directional', () => {
+  const settings = normalizeMatchingSettings({ mode: 'rgb', materialRules: [{ from: 'pla', to: 'petg' }] });
+  assert.equal(matchRequirement({ material: 'pla', color: 'blue', grams: 20 }, [row('petg', '#0000ff', 'petg')], settings).status, 'substitution');
+  assert.equal(matchRequirement({ material: 'petg', color: 'blue', grams: 20 }, [row('pla', '#0000ff', 'pla')], settings).recommendedId, null);
+  assert.throws(() => normalizeMatchingSettings({ materialRules: [{ from: 'pla', to: 'pla' }] }));
+});
