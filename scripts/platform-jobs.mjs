@@ -6,10 +6,13 @@ import { createNeonWorkStore } from '../lib/work-store.js';
 import { createWebPushTransport, drainPushOutbox } from '../lib/push-delivery.js';
 import { runMaintenance } from './print-estimate-maintenance.mjs';
 import { observeJob } from '../lib/platform/job-health.js';
+import { createSpoolmanScheduledTask } from '../lib/spoolman/runtime.js';
+import { createNeonPrintRepository } from '../lib/print-estimation/adapters/neon-print-repository.js';
 
 async function main() {
   if(process.env.DATABASE_DRIVER!=='postgres'||process.env.PLATFORM_JOBS_ENABLED!=='1')throw new Error('Local jobs require an explicit native database writer handover.');
   const workerId=randomUUID(),store=createNeonWorkStore(),transport=createWebPushTransport();
+  const syncSpools=createSpoolmanScheduledTask({repository:createNeonPrintRepository()});
   async function leased(name,operation) {
     const claim=await sql`INSERT INTO platform_job_leases(name,worker_id,expires_at) VALUES(${name},${workerId},now()+interval '30 minutes')
       ON CONFLICT(name) DO UPDATE SET worker_id=EXCLUDED.worker_id,expires_at=EXCLUDED.expires_at
@@ -18,6 +21,7 @@ async function main() {
     try{await operation();}finally{await sql`DELETE FROM platform_job_leases WHERE name=${name} AND worker_id=${workerId}`;}
   }
   const jobs=createPlatformJobs({
+    spoolman:()=>observeJob('spoolman',syncSpools),
     drain:()=>observeJob('push',()=>drainPushOutbox({store,transport,workerId,batchSize:20})),
     cleanup:()=>leased('model-retention',()=>observeJob('cleanup',()=>runMaintenance([]))),
     expire:()=>leased('auth-expiry',()=>observeJob('expiry',async()=>{
