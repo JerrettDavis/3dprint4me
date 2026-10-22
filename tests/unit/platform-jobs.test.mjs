@@ -25,3 +25,10 @@ test('a stalled push provider cannot delay auth and replay expiry',async()=>{
   const first=jobs.tick();await Promise.resolve();time=60000;
   await jobs.tick();assert.equal(expiries,2);release();await first;
 });
+
+test('Spoolman polling is independent and does not overlap',async()=>{
+  let time=0,calls=0,release;const blocked=new Promise(r=>release=r);
+  const jobs=createPlatformJobs({env:{PLATFORM_JOBS_ENABLED:'1'},now:()=>time,drain:async()=>{},expire:async()=>{},cleanup:async()=>{},spoolman:async()=>{calls++;await blocked;}});
+  const first=jobs.tick();await Promise.resolve();time=5000;await jobs.tick();assert.equal(calls,1);release();await first;
+  time=10000;await jobs.tick();assert.equal(calls,2);
+});

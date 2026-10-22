@@ -349,3 +349,7 @@ For a release candidate with Production provider settings but no domain promotio
 The quick-inquiry notification and retention runbook is in [QUICK-INQUIRY.md](QUICK-INQUIRY.md). Database receipt is independent of owner-email delivery.
 
 For the September 15 release, CLI file uploads were blocked by commit-author matching, while the existing GitHub integration recognized the author and deployed successfully. The reviewed branch was pushed, checked in PR #8, then merged to main for production deployment. No author impersonation, access-policy changes, or disabled deployment protections were needed. Live health now reports email configured; historical unconfigured-email notes above describe the earlier launch state. Always read the target health response before synthetic submission tests.
+
+## Spoolman inventory integration
+
+See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.

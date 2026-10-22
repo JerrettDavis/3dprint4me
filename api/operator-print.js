@@ -55,6 +55,14 @@ export function createOperatorPrintHandler({ store, runtime, printRuntime, signF
       throw new HttpError(400, "A supported print resource is required.");
     }
     const body = await readJson(req, 16 * 1024);
+    if (body.action === 'refresh-spoolman') {
+      exact(body,['action']);
+      return createFilamentUseCases({repository:print().repository}).refresh(operator);
+    }
+    if (body.action === 'save-imported-filament') {
+      exact(body,['action','id','revision','local']);
+      return {filament:await createFilamentUseCases({repository:print().repository}).saveImported({id:body.id,revision:body.revision,local:body.local},operator)};
+    }
     if (body.action === 'save-filament-settings') {
       exact(body, ['action', 'revision', 'settings']);
       return matching().saveSettings({ revision: body.revision, settings: body.settings }, operator);

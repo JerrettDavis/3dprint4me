@@ -92,3 +92,7 @@ Run `npm test` and `npm run screenshots` before release. Inspect `screenshots/pr
 - Rotate `PUSH_WORKER_SECRET` on both callers in one maintenance window. Rotate VAPID keys only when necessary: existing browser subscriptions will need to be enabled again.
 - To replace GitHub or Managed Neon Auth later, implement the existing identity-provider and browser-auth adapter contracts. Keep `operators.auth_user_id` mapped to the new provider's stable subject and migrate mappings deliberately; never auto-match by email.
 - Roll back application code before reversing schema. Migration 003 is additive and can remain during a rollback. Do not drop work/event/outbox tables until every deployed API and Function no longer references them.
+
+## Spoolman inventory integration
+
+See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.

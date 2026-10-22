@@ -25,6 +25,8 @@ export function createApiClient({ apiBase = "", getSessionHeaders = async () => 
     requestFileDownload: (workId, index) => request(`/api/operator-print?resource=request-file&workId=${encodeURIComponent(workId)}&index=${encodeURIComponent(index)}`),
     recordPrintRun: (workId, run) => request("/api/operator-print", { method: "POST", body: JSON.stringify({ action: "record-run", workId, run }) }),
     listFilament: () => request('/api/operator-print?resource=filament'),
+    refreshSpoolman: () => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'refresh-spoolman' }) }),
+    saveImportedFilament: input => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'save-imported-filament', ...input }) }),
     filamentSettings: () => request('/api/operator-print?resource=filament-settings'),
     saveFilament: filament => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'save-filament', filament }) }),
     saveFilamentSettings: input => request('/api/operator-print', { method: 'POST', body: JSON.stringify({ action: 'save-filament-settings', ...input }) }),
