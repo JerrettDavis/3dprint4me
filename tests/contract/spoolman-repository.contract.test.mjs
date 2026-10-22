@@ -34,6 +34,11 @@ test('PostgreSQL atomic import enforces leases, stable IDs, nullable data, revis
     await repo.applySpoolmanSnapshot({instanceId:'home',token:'empty',snapshot:{...snapshot,items:[]},completedAt:start});
     assert.equal((await repo.listFilament())[0].active,false);
     assert.equal((await repo.getSpoolmanStatus()).count,0);
+    await repo.claimSpoolmanSync({instanceId:'home',token:'expired',attemptedAt:start,leaseUntil});
+    assert.equal(await repo.claimSpoolmanSync({instanceId:'home',token:'successor',attemptedAt:leaseUntil,leaseUntil:'2026-10-22T12:04:00Z'}),true);
+    await assert.rejects(repo.applySpoolmanSnapshot({instanceId:'home',token:'expired',snapshot,completedAt:'2026-10-22T12:02:01Z'}),{status:409});
+    await repo.applySpoolmanSnapshot({instanceId:'home',token:'successor',snapshot,completedAt:'2026-10-22T12:02:01Z'});
+    assert.equal((await repo.listFilament())[0].id,first.id);
     for (const statement of splitStatements(migration)) await db.db.query(statement);
   } finally { await db.close(); }
 });
