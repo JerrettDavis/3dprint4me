@@ -13,6 +13,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS filament_spoolman_identity ON filament_invento
 CREATE TABLE IF NOT EXISTS spoolman_sync_state (
   id integer PRIMARY KEY CHECK (id=1),
   instance_id text NOT NULL CHECK (instance_id ~ '^[a-zA-Z0-9_-]{1,64}$'),
+  enabled boolean NOT NULL DEFAULT true,
   token text,
   lease_until timestamptz,
   last_attempt_at timestamptz,
