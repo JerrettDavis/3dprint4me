@@ -116,8 +116,8 @@
 
 ### Task 7: Full verification, documentation, and review
 
-- [ ] Update `docs/ARCHITECTURE.md`, `OPERATOR-INBOX.md`, `PRINT-ESTIMATION.md`, `DEPLOYMENT.md`, and `VERIFICATION.md` with migration order, default settings/units, proposal/email semantics, permissions, stock limitations, and provider recovery. Do not imply an unrun production migration or live email verification.
-- [ ] Regenerate required bundles and asset versions; do not modify generator network policy or sensitive-field behavior.
-- [ ] Run `npm test` and fix regressions. Run `npm run screenshots`; add inventory/matching/proposal captures to screenshot coverage and inspect `screenshots/preview-board.png` plus new focused captures at desktop/390px and themes.
-- [ ] Inspect diff for public/private boundaries and secret exposure; run `git diff --check`. Request a whole-change review and resolve findings with targeted tests.
-- [ ] Audit every approved spec requirement against actual source, passing tests, and rendered screens. Keep goal active if anything is incomplete. Commit final feature changes without unrelated untracked files; report deployment/migration needs accurately.
+- [x] Update `docs/ARCHITECTURE.md`, `OPERATOR-INBOX.md`, `PRINT-ESTIMATION.md`, `DEPLOYMENT.md`, and `VERIFICATION.md` with migration order, default settings/units, proposal/email semantics, permissions, stock limitations, and provider recovery. Do not imply an unrun production migration or live email verification.
+- [x] Regenerate required bundles and asset versions; do not modify generator network policy or sensitive-field behavior.
+- [x] Run `npm test` and fix regressions. Run `npm run screenshots`; add inventory/matching/proposal captures to screenshot coverage and inspect `screenshots/preview-board.png` plus new focused captures at desktop/390px and themes.
+- [x] Inspect diff for public/private boundaries and secret exposure; run `git diff --check`. Request a whole-change review and resolve findings with targeted tests.
+- [x] Audit every approved spec requirement against actual source, passing tests, and rendered screens. Keep goal active if anything is incomplete. Commit final feature changes without unrelated untracked files; report deployment/migration needs accurately.
