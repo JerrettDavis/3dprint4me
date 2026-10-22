@@ -15,9 +15,9 @@ def test_installed_operator_upgrade_removes_legacy_cached_assets() -> None:
             page.route(operator + "/", lambda route: route.fulfill(content_type="text/html", body="<!doctype html><title>Previous installation</title>"))
             page.goto(operator, wait_until="networkidle")
             page.evaluate("""async () => {
-                const cache = await caches.open('operator-shell-v9');
+                const cache = await caches.open('operator-shell-v10');
                 await cache.put('/assets/operator.js', new Response('window.legacyShell = true'));
-                await cache.put('/obsolete-v9.js', new Response('legacy'));
+                await cache.put('/obsolete-v10.js', new Response('legacy'));
             }""")
             page.unroute(operator + "/")
             page.evaluate("""async () => {
@@ -25,9 +25,9 @@ def test_installed_operator_upgrade_removes_legacy_cached_assets() -> None:
                 await navigator.serviceWorker.ready;
             }""")
             page.wait_for_function("() => Boolean(navigator.serviceWorker.controller)")
-            page.wait_for_function("async () => !(await caches.keys()).includes('operator-shell-v9') && !(await caches.match('/obsolete-v9.js'))")
-            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v10')")
-            assert page.evaluate("async () => !(await caches.match('/obsolete-v9.js'))")
+            page.wait_for_function("async () => !(await caches.keys()).includes('operator-shell-v10') && !(await caches.match('/obsolete-v10.js'))")
+            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v11')")
+            assert page.evaluate("async () => !(await caches.match('/obsolete-v10.js'))")
             # An ordinary reopen uses the new shell without clearing application storage.
             page.reload(wait_until="networkidle")
             page.locator("#workspace:not([hidden])").wait_for()
