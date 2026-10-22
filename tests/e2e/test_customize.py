@@ -1054,6 +1054,8 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         pytest.fail(f"No matrix flow for generator {generator_id}")
     if label is None:
         box = page.locator(f"[name='{key}']")
+        if float(box.input_value()) == float(value):
+            value = str(int(value) + 1)
         box.fill(value)
         box.press("Tab")
         values[key] = int(value)
@@ -1217,7 +1219,10 @@ def test_indexeddb_open_throwing_falls_back_to_a_download(browser: Browser, work
     page = new_matrix_page(browser, accept_downloads=True)
     page.context.add_init_script("IDBFactory.prototype.open = function () { throw new DOMException('Storage is blocked.', 'SecurityError'); };")
     try:
-        edit_and_wait(page, storefront, generator_id, uuid.uuid4().hex)
+        # Force the pumpkin's generated width to equal its initial 80 mm value;
+        # the matrix helper must still make a real edit before checking recovery.
+        token = "0014" + uuid.uuid4().hex[4:] if generator_id == "pumpkin" else uuid.uuid4().hex
+        edit_and_wait(page, storefront, generator_id, token)
         with page.expect_download() as download_info:
             page.get_by_role("button", name="Continue to request").click()
         download = download_info.value
