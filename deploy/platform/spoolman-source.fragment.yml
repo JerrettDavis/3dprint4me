@@ -1,9 +1,7 @@
 # Merge into the Spoolman application stack, preserving its existing networks.
 services:
   spoolman:
-    networks:
-      print4me-spoolman:
-        aliases: [spoolman-inventory]
+    networks: [print4me-spoolman]
 networks:
   print4me-spoolman:
     external: true
