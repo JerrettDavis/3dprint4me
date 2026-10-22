@@ -310,3 +310,7 @@ The delivered 25 MB limit suits common model and reference files. For significan
 ## Inquiry work
 
 Received quick inquiries are typed inbox work alongside detailed requests. Conversion preserves the work ID and private source history. Scoped seven-day customer invitations and operator preparation share one canonical project under native PostgreSQL transactions. Ordinary upload/completion routes enforce the binding even without a token field. See [Quick inquiry contract](QUICK-INQUIRY.md) for endpoints, privacy, recovery and guarded rollout requirements. No additional hosted service or paid dependency is introduced.
+
+## Spoolman inventory integration
+
+See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.

@@ -408,6 +408,28 @@ def capture_filament_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_spoolman_states() -> list[tuple[str, Path]]:
+    from datetime import datetime, timezone
+    captured = []
+    with running_operator_workspace({"SPOOLMAN_UI_ORIGIN": "https://spoolman.example.test"}) as (_, operator, store_path):
+        stamp = datetime.now(timezone.utc).isoformat()
+        source = {"instanceId": "example", "spoolId": 7, "rawMaterial": "PLA", "materialKnown": True, "remainingGrams": 800.9, "initialGrams": 1000, "nominalGrams": 1000, "priceBasisGrams": 1000, "currency": "USD", "appearanceReview": False, "colors": []}
+        row = {"id": "fil_example0007", "revision": 1, "material": "pla", "brandLine": "Example filament", "color": "Blue", "colorHex": "#0044ff", "spoolNominalGrams": 1000, "purchaseCostCents": None, "freightFeeCents": 0, "costOverrideCents": None, "onHandGrams": 800, "active": True, "estimateDefault": False, "notes": None, "createdAt": stamp, "updatedAt": stamp, "source": source}
+        state = {"version": 1, "filament": [row], "spoolman": {"configured": True, "instanceId": "example", "lastSuccessAt": stamp, "lastAttemptAt": stamp, "count": 1, "currency": "USD"}}
+        (store_path.parent / "print-estimation-dev.json").write_text(json.dumps(state), encoding="utf-8")
+        for viewport, scheme in [((1440, 1000), "light"), ((390, 844), "dark")]:
+            path = OUTPUT / f"operator-spoolman-{'mobile' if viewport[0] == 390 else 'desktop'}-{scheme}.png"
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
+                page = site.page
+                page.goto(operator, wait_until="networkidle")
+                page.get_by_role("button", name="Filament inventory", exact=True).click()
+                page.get_by_text("Spoolman sync", exact=True).wait_for()
+                site.screenshot(path, full_page=False)
+                site.assert_no_page_errors()
+            captured.append((f"Spoolman inventory · {'mobile' if viewport[0] == 390 else 'desktop'} · {scheme}", path))
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -438,6 +460,7 @@ def main() -> int:
     cases.extend(capture_operator_states())
     cases.extend(capture_inquiry_workflow_states())
     cases.extend(capture_filament_states())
+    cases.extend(capture_spoolman_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
     print(f"Captured {len(cases) + 1} screenshots and {board.relative_to(ROOT)}")

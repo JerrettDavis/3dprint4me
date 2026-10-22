@@ -234,3 +234,7 @@ Choose and publish an actual policy. A practical starting point to review legall
 - Security and delivery logs: shortest period that supports troubleshooting and abuse control
 
 Automate deletion only after testing it against backups, active jobs, disputes, and recordkeeping requirements.
+
+## Spoolman inventory integration
+
+See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
