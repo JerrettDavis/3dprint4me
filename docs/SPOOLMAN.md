@@ -1,6 +1,6 @@
 # Spoolman inventory sync
 
-Implementation and full local verification passed; live activation is in progress.
+Live and verified on 2026-10-22. Spoolman owns imported stock; 3dprint4me automatically refreshes it every minute.
 
 The provider uses Spoolman 0.27.0's read-only API. It requests currency at
 `/api/v1/setting/currency` (the `value` is a JSON-encoded string) and all spools
@@ -129,4 +129,46 @@ view against the imported records; no production timestamps need alteration.
 
 Full `npm test`: 1,101 unit/contract tests, 224 browser tests, 241 UX checks passed; one optional browser test skipped. The source-network transformation has two additional passing Python recovery tests. Captured 77 screenshots and inspected the preview board plus imported inventory at 390 pixels. Independent review has no remaining Critical or Important findings. Real HTTP tests cover redirect rejection, 16 MiB overflow, streaming timeout, and caller cancellation.
 
-The private release image built successfully and all migrations rehearsed on a disposable 29-table native database. Two encrypted backup copies passed readback; an isolated restore verified both databases, 14 configuration hashes, and runtime privilege denials. No physical spool records were edited. Production activation, subsequent automatic sync, and production failure-recovery evidence are pending below.
+The private release image built successfully and all migrations rehearsed on a disposable 29-table native database. Two encrypted backup copies passed readback; an isolated restore verified both databases, 14 configuration hashes, and runtime privilege denials. No physical spool records were edited. Production activation, subsequent automatic sync, and production failure-recovery checks passed as recorded below.
+
+## Live release evidence
+
+[PR 51](https://github.com/JerrettDavis/3dprint4me/pull/51) merged as
+`daaa01d682dab921f0b55c401a3d27e125c17435`. The private API/jobs image uses the
+reviewed release source `e2974c96810837e6737ecdc6369832cbd573ce62`; the operator
+and storefront production deployments succeeded through the normal GitHub path.
+The direct CLI operator attempt was rejected by Vercel's author policy and did
+not replace production; no account permissions were changed.
+
+- Applied migration 011 to the selected native database after a verified encrypted
+  backup/isolated restore. The API replacement overlapped a healthy guard.
+- First complete import at 23:24:57 UTC imported 80 active spools. A fresh complete
+  Spoolman response matched all 80 IDs and every normalized source-owned field.
+  Seventy-four prices remain unknown; 11 appearances require review, leaving 69
+  eligible for solid-color comparison. No material label was unmapped.
+- Subsequent automatic imports retained all 80 IDs and revision 1 for unchanged
+  source data. No source spool writes or stock deductions occurred, and the
+  Spoolman application container was not restarted.
+- At 23:26:49 UTC a synthetic provider failure recorded only the safe failure code,
+  retaining all 80 rows and the previous successful timestamp. The actual worker
+  automatically recovered at 23:27:53 UTC with no duplicate rows or revision churn.
+- Read-only matching with a clock five minutes beyond the successful snapshot
+  confirmed that stale imported stock cannot report ready. Every material cost
+  result was finite and unknown costs remained labeled with fallback/coverage.
+- The signed-in production owner saw all 80 rows, queued **Refresh from Spoolman**,
+  and reloaded the completed result at 23:32:14 UTC. Source weight and purchase
+  cost fields were disabled while the local override remained editable. The real
+  existing print request correctly required review for its unspecified color;
+  no customer requirements or substitution decisions were changed.
+- Inspected the dedicated internal Docker network: its only members are the jobs
+  worker and the Spoolman application. API, source database, application database,
+  slicer, tunnel, and existing Home Assistant routes were not added to it.
+- After activation, two encrypted database/file backup copies passed readback.
+  An isolated networkless restore recovered the 29-table selected database,
+  all 80 inventory rows, and the singleton sync state. Runtime privilege denials
+  and 14 private-configuration hashes passed; no restore volume was retained.
+
+Source-data limitations remain explicit: physical remaining-weight accuracy
+requires correct Spoolman onboarding and printer-to-spool assignment. The missing
+74 prices are not fabricated purchase costs. Nothing in this release verifies
+physical stock on a scale or silently approves a material/color substitution.

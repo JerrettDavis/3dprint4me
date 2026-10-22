@@ -1,6 +1,6 @@
 # Spoolman inventory integration
 
-Status: approved by owner on 2026-10-22 at 12:36 CDT. Implementation and activation are not complete.
+Status: approved by owner on 2026-10-22 at 12:36 CDT. Implemented and activated on 2026-10-22; see `docs/SPOOLMAN.md` for release evidence.
 
 ## Intent and observed state
 
