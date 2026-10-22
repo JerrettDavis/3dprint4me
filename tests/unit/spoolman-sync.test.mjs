@@ -31,3 +31,16 @@ test('unconfigured sync never fetches or changes inventory', async () => {
   const sync=createSpoolmanSync({instanceId:'home',repository:{},provider:{configured:false,snapshot:async()=>{touched=true;}}});
   assert.equal((await sync.run()).configured,false); assert.equal(touched,false);
 });
+
+test('an expired local lease can be reclaimed and its old publisher cannot overwrite the successor',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'spool-lease-'));
+ try {
+  const repo=createLocalPrintRepository({path:join(dir,'print.json')});
+  const first={instanceId:'home',token:'old',attemptedAt:'2026-10-22T12:00:00Z',leaseUntil:'2026-10-22T12:02:00Z'};
+  await repo.claimSpoolmanSync(first);
+  assert.equal(await repo.claimSpoolmanSync({...first,token:'new',attemptedAt:'2026-10-22T12:02:00Z',leaseUntil:'2026-10-22T12:04:00Z'}),true);
+  await assert.rejects(repo.applySpoolmanSnapshot({instanceId:'home',token:'old',snapshot:{items:[],currency:'USD'},completedAt:'2026-10-22T12:02:01Z'}),{status:409});
+  await repo.applySpoolmanSnapshot({instanceId:'home',token:'new',snapshot:{items:[],currency:'USD'},completedAt:'2026-10-22T12:02:01Z'});
+  assert.equal((await repo.getSpoolmanStatus()).lastSuccessAt,'2026-10-22T12:02:01Z');
+ } finally {await rm(dir,{recursive:true,force:true});}
+});
