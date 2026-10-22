@@ -1,6 +1,6 @@
 # Spoolman inventory sync
 
-Implementation verified by focused tests; final release verification and live activation are in progress.
+Implementation and full local verification passed; live activation is in progress.
 
 The provider uses Spoolman 0.27.0's read-only API. It requests currency at
 `/api/v1/setting/currency` (the `value` is a JSON-encoded string) and all spools
@@ -124,3 +124,9 @@ spools or interrupt unrelated scheduled jobs. Confirm rows/last-success remain
 unchanged, errors are sanitized, and the next real scheduled import recovers.
 Verify stale matching by injecting a future clock into a read-only application
 view against the imported records; no production timestamps need alteration.
+
+## Release verification (2026-10-22)
+
+Full `npm test`: 1,101 unit/contract tests, 224 browser tests, 241 UX checks passed; one optional browser test skipped. The source-network transformation has two additional passing Python recovery tests. Captured 77 screenshots and inspected the preview board plus imported inventory at 390 pixels. Independent review has no remaining Critical or Important findings. Real HTTP tests cover redirect rejection, 16 MiB overflow, streaming timeout, and caller cancellation.
+
+The private release image built successfully and all migrations rehearsed on a disposable 29-table native database. Two encrypted backup copies passed readback; an isolated restore verified both databases, 14 configuration hashes, and runtime privilege denials. No physical spool records were edited. Production activation, subsequent automatic sync, and production failure-recovery evidence are pending below.
