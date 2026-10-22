@@ -25,4 +25,6 @@ test('freshness is explicit in pricing metadata and stale imported candidates re
   const multi=imported();multi.source.appearanceReview=true;multi.colorHex=null;multi.color='blue';
   assert.equal(matchRequirement(requirement,[multi],DEFAULT_MATCHING_SETTINGS,{now}).candidates.length,0);
   assert.equal(matchRequirement(requirement,[imported({remaining_weight:undefined})],DEFAULT_MATCHING_SETTINGS,{now}).status,'review');
+  const manual={id:'fil_manual01',material:'pla',colorHex:'#0000ff',onHandGrams:500,active:true};
+  assert.equal(matchRequirement(requirement,[stale,manual],DEFAULT_MATCHING_SETTINGS,{now}).status,'ready');
 });
