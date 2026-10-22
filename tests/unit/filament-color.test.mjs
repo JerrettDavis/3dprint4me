@@ -12,6 +12,7 @@ test('color conversion and circular asymmetric bounds', () => {
   assert.equal(colorDifference('#0000ff', '#b0eeee', limits).eligible, true);
   for (const color of ['#ff0000', '#ff69b4', '#00ff00']) assert.equal(colorDifference('#0000ff', color, limits).eligible, false);
   assert.equal(colorDifference('#ff0011', '#ff1100', normalizeMatchingSettings({ hueClockwise: 10, hueCounterclockwise: 0 })).eligible, true);
+  assert.equal(colorDifference('#0000ff', '#ffff00', normalizeMatchingSettings({ hueClockwise: 180, hueCounterclockwise: 0, saturation: 100, lightness: 100 })).eligible, true);
 });
 
 test('RGB intersection, zero tolerance, neutral review and invalid settings', () => {
@@ -21,6 +22,8 @@ test('RGB intersection, zero tolerance, neutral review and invalid settings', ()
   assert.equal(colorDifference('#ffffff', '#eeeeee', normalizeMatchingSettings()).review, true);
   assert.equal(colorDifference('#ffffff', '#eeeeee', normalizeMatchingSettings({ mode: 'both' })).eligible, true);
   assert.equal(colorDifference('#0000ff', '#1000ff', normalizeMatchingSettings({ mode: 'both', red: 0 })).eligible, false);
+  assert.equal(colorDifference('#808080', '#ff0000', normalizeMatchingSettings({ mode: 'both', red: 255, green: 255, blue: 255, saturation: 0, lightness: 0 })).eligible, false);
+  assert.equal(colorDifference('#808080', '#818181', normalizeMatchingSettings({ mode: 'both', lightness: 0 })).eligible, false);
   for (const input of [{ red: -1 }, { hueClockwise: 181 }, { mode: 'unknown' }, { stockBufferGrams: Infinity }, { injected: true }]) assert.throws(() => normalizeMatchingSettings(input));
 });
 

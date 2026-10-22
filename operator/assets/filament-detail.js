@@ -21,6 +21,13 @@ export function renderFilamentMatching(data, { onCommand, onPreviewEmail, onSend
       const label = el('label', 'filament-candidate'), radio = el('input'); radio.type = 'radio'; radio.name = `candidate-${row.requirement.id}`; radio.value = candidate.id; radio.checked = selectedId === candidate.id;
       radio.onchange = () => { selectedId = candidate.id; };
       const text = el('span'); text.append(swatch(candidate.colorHex, `${candidate.color || candidate.colorHex} · ${candidate.material.toUpperCase()}`), el('span', 'print-meta', `${candidate.brandLine || 'No brand'} · ${candidate.onHandGrams}g · color distance ${candidate.differences.distance.toFixed(1)}${candidate.id === row.recommendedId ? ' · Recommended' : ''}`));
+      const d = candidate.differences, policy = data.previewSettings;
+      let band = policy.closePercent;
+      while (band < 100 && d.fraction > band / 100 + 1e-8) band = Math.min(100, band + policy.stepPercent);
+      const changes = [];
+      if (policy.mode !== 'rgb') changes.push(`Hue ${d.hue.toFixed(1)}°`, `saturation ${d.saturation.toFixed(1)} points`, `lightness ${d.lightness.toFixed(1)} points`);
+      if (policy.mode !== 'hsl') changes.push(`RGB differences ${d.rgb.join(' / ')}`);
+      text.append(el('span', 'print-meta', `${changes.join(' · ')} · search band ${band}%`));
       label.append(radio, text); parent.append(label);
     };
     row.candidates.forEach(candidate => appendCandidate(candidates, candidate));

@@ -73,6 +73,7 @@ test('stock changes preserve offers and copyable mail, permit declines, and bloc
     state = await app.command(detail, { type: 'record-customer-response', revision: state.revision, proposalId, decision: 'declined', reason: 'Email' }, operator);
     assert.equal(state.proposals[0].status, 'declined');
     assert.equal(state.proposals[0].offered.colorHex, '#1000ff');
+    assert.equal((await app.forWork(detail)).requirements[0].status, 'purchase');
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
