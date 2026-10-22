@@ -1,5 +1,11 @@
 # Release Verification
 
+## Filament matching coverage (2026-10-21)
+
+`tests/unit/filament-color.test.mjs` covers HSL/RGB bounds, circular/asymmetric hue, neutral review, reference Lab values, progressive widening/hard stops, deterministic ties, and selected-stock sharing. `filament-requirements.test.mjs` covers color-count ambiguity, total-only demand, overrides, and sensitive/hidden generator-field exclusion. `filament-proposals.test.mjs` covers audited decisions, stale revisions/stock, copyable failure state, concurrent sends and the idempotent retry horizon. `operator-filament-api.test.mjs` checks owner writes, origin protection, work lookup, preview, and read-model failure isolation.
+
+`tests/contract/filament-matching.contract.test.mjs` executes inventory/settings/work compare-and-swap on local JSON and real PostgreSQL SQL through PGlite. `substitution-email.contract.test.mjs` checks Resend endpoint/method/headers, recipient, escaping, idempotency and sanitized failures. `tests/e2e/test_operator_filament.py` drives inventory editing/deactivation, thresholds/preview, multiple candidates/further bands, requirement corrections, operator acceptance/reopening, pending email fallback, and 390px dark/reduced-motion layout. Screenshot capture includes filament inventory, matching, and pending approval states in the preview board.
+
 ## ZIP model packs — local verification (2026-10-05; production gate pending)
 
 Branch `feat/zip-model-packs`, Windows 11 host, Playwright Chromium. In this checkout the customizer bundle is not built (`vite` is not installed), which accounts for every failure listed below. The same failures occur on a clean checkout and are not caused by this change.

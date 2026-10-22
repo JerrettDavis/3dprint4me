@@ -5,6 +5,8 @@ import { createAuthClient, createCookieAuthClient } from "./auth-client.js";
 import { renderPrintEstimation } from "./print-detail.js";
 import { renderCustomization } from "./customization-detail.js";
 import { renderInvoiceDetail } from "./invoice-detail.js";
+import { renderFilamentInventory } from './filament-inventory.js';
+import { renderFilamentMatching } from './filament-detail.js';
 
 // A sign-in round trip (GitHub redirect, then the Neon session-verifier exchange) can briefly answer 401 before the
 // session exists. When `expectSession()` says we just came back from one, wait for it instead of reporting "signed out".
@@ -68,7 +70,37 @@ export function createOperatorController({ api, view, expectSession = () => fals
       view.announce(error.kind === "conflict" ? "This work changed. Review the current version before converting." : error.message, "error");
     }
   }
-  return { prepareInquiry, selectedId: () => model.selectedId, start, loadList, select, command, download, downloadFile, recordRun, clearPrivate, snapshot: () => structuredClone(model) };
+  async function privateOperation(operation) {
+    try { return await operation(); }
+    catch (error) { if (['signed-out', 'forbidden'].includes(error.kind)) { clearPrivate(); view.state(error.kind, model); } throw error; }
+  }
+  async function showInventory() {
+    try {
+      const [stock, policy] = await privateOperation(() => Promise.all([api.listFilament(), api.filamentSettings()]));
+      view.inventory({ items: stock.items, policy }, {
+        role: model.operator?.role,
+        onSave: filament => privateOperation(() => api.saveFilament(filament)),
+        onSettingsSave: input => privateOperation(() => api.saveFilamentSettings(input)),
+        onSettingsPreview: settings => {
+          if (!model.selectedId) throw Error('Select a work request first, then open inventory to preview its matching.');
+          return privateOperation(() => api.previewFilamentMatching(model.selectedId, settings));
+        },
+        onBack: () => view.closeInventory()
+      });
+    } catch (error) { view.announce(error.message, 'error'); }
+  }
+  async function filamentAction(action, input) {
+    const workId = model.selectedId;
+    if (!workId) throw Error('Select a work request first.');
+    return privateOperation(async () => {
+      const result = await api[action](workId, input);
+      if (action !== 'previewSubstitutionEmail' && model.selectedId === workId) {
+        model.detail = await api.getWork(workId); view.detail(model.detail);
+      }
+      return result;
+    });
+  }
+  return { prepareInquiry, selectedId: () => model.selectedId, start, loadList, select, command, download, downloadFile, recordRun, showInventory, filamentAction, clearPrivate, snapshot: () => structuredClone(model) };
 }
 
 const title = value => String(value ?? "").replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
@@ -83,6 +115,7 @@ function createDomView(api) {
       const signedIn = !checking && !["signed-out", "forbidden"].includes(name);
       q("#session-view").hidden = !checking; q("#auth-view").hidden = checking || signedIn; q("#workspace").hidden = !signedIn; q("#sign-out").hidden = !signedIn;
       q("#operator-name").textContent = signedIn ? model.operator?.displayName ?? "Operator" : "";
+      q('#filament-inventory').hidden = !signedIn;
       if (["signed-out", "forbidden"].includes(name)) { const button = q("#sign-in"); button.disabled = false; button.textContent = "Continue with GitHub"; }
       if (name === "forbidden") q("#auth-title").textContent = "This account is not approved.";
       if (["offline", "unavailable", "error"].includes(name)) view.announce(name === "offline" ? "The inbox is offline. Check the connection and retry." : "The inbox could not load. Try again.");
@@ -126,8 +159,20 @@ function createDomView(api) {
       const activity = el("section", "history"); activity.append(el("h3", "", "Activity")); for (const event of events) activity.append(el("p", "", `${title(event.type)} · ${new Date(event.occurredAt).toLocaleString()}`)); for (const savedNote of notes) activity.append(el("blockquote", "", savedNote.body));
       const print = !isInquiry && !item.projectDraft ? renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) }) : null;
       const customization = request?.customization ? renderCustomization(request) : null;
+      const filament = renderFilamentMatching(payload.filamentMatching, {
+        onCommand: input => controller.filamentAction('filamentCommand', input),
+        onPreviewEmail: input => controller.filamentAction('previewSubstitutionEmail', input),
+        onSendEmail: input => controller.filamentAction('sendSubstitutionEmail', input),
+        onInventory: () => controller.showInventory()
+      });
       const billing = !isInquiry && !item.projectDraft && controller.snapshot().operator?.role === "owner" ? renderInvoiceDetail({ item, api, onAuthError: () => { controller.clearPrivate(); controller.start(); } }) : null;
-      if (options.saved) heading.classList.add("saved-flash"); detail.append(back, heading, actions, facts, ...(customization ? [customization] : []), ...(print ? [print] : []), ...(billing ? [billing] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
+      if (options.saved) heading.classList.add("saved-flash"); detail.append(back, heading, actions, facts, ...(filament ? [filament] : []), ...(customization ? [customization] : []), ...(print ? [print] : []), ...(billing ? [billing] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
+    },
+    inventory(data, callbacks) {
+      placeholder.hidden = true; detail.hidden = false; detail.replaceChildren(renderFilamentInventory(data, callbacks)); document.body.dataset.detail = 'open'; q('#work-detail').focus();
+    },
+    closeInventory() {
+      detail.replaceChildren(); detail.hidden = true; placeholder.hidden = false; document.body.dataset.detail = 'closed'; history.pushState({}, '', '/'); q('#filament-inventory').focus();
     }, announce(message, kind = "info") { status.textContent = message; toast.textContent = message; toast.dataset.kind = kind; toast.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, kind === "error" ? 9000 : 3500); }, openDownload(url) { location.assign(url); }
   }; filters.onchange = () => controller.loadList(); return view;
 }
@@ -142,6 +187,7 @@ async function bootstrap() {
   const store = (() => { try { return sessionStorage; } catch { return null; } })();
   const returningFromSignIn = () => Boolean(store?.getItem(SIGN_IN_PENDING_KEY)) || new URLSearchParams(location.search).has("neon_auth_session_verifier");
   const api = createApiClient({ apiBase: config.apiBase ?? "", getSessionHeaders: auth?.sessionHeaders ?? (async () => ({})) }); const view = createDomView(api); const controller = createOperatorController({ api, view, expectSession: returningFromSignIn }); view.attach(controller);
+  document.querySelector('#filament-inventory').onclick = () => controller.showInventory();
   document.querySelector("#sign-in").onclick = async event => {
     if (!auth) return controller.start();
     const button = event.currentTarget; button.disabled = true; button.textContent = "Opening sign-in…"; try { store?.setItem(SIGN_IN_PENDING_KEY, "1"); } catch {}

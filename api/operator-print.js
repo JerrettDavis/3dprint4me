@@ -7,6 +7,7 @@ import { createPrintEstimationRuntime } from "../lib/print-estimation/runtime.js
 import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js";
 import { HttpError, readJson } from "../lib/http.js";
 import { signRequestFile } from "../lib/operator-files.js";
+import { createFilamentMatchingUseCases } from '../lib/filament-matching/application.js';
 
 function exact(value, fields) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new HttpError(400, "An operator print action object is required.");
@@ -30,11 +31,19 @@ export function createOperatorPrintHandler({ store, runtime, printRuntime, signF
     return resolved;
   };
   const view = () => { const resolved = print(); return createOperatorPrintView({ repository: resolved.repository, fileStore: resolved.fileStore }); };
+  const matching = () => createFilamentMatchingUseCases({ repository: print().repository });
+  const detailForMatching = async (id, operator) => {
+    const detail = await work.repository.getWork(workId(id), operator);
+    try { return { ...detail, printEstimation: await view().forWork(detail) }; }
+    catch { return detail; }
+  };
   return createOperatorApiHandler({ methods: ["GET", "POST"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
     const url = new URL(req.url ?? "/api/operator-print", "https://operator-api.invalid");
     if (req.method === "GET") {
       const resource = url.searchParams.get("resource");
       if (resource === "filament") return createFilamentUseCases({ repository: print().repository }).list();
+      if (resource === 'filament-settings') return matching().settings();
+      if (resource === 'filament-matching') return matching().forWork(await detailForMatching(url.searchParams.get('workId'), operator));
       if (resource === "request-file") {
         const detail = await work.repository.getWork(workId(url.searchParams.get("workId")), operator);
         return signRequestFile({ work: detail, index: url.searchParams.get("index"), ...(signFile ? { sign: signFile } : {}) });
@@ -46,6 +55,24 @@ export function createOperatorPrintHandler({ store, runtime, printRuntime, signF
       throw new HttpError(400, "A supported print resource is required.");
     }
     const body = await readJson(req, 16 * 1024);
+    if (body.action === 'save-filament-settings') {
+      exact(body, ['action', 'revision', 'settings']);
+      return matching().saveSettings({ revision: body.revision, settings: body.settings }, operator);
+    }
+    if (body.action === 'preview-filament-matching') {
+      exact(body, ['action', 'workId', 'settings']);
+      return matching().preview(await detailForMatching(body.workId, operator), body.settings);
+    }
+    if (body.action === 'filament-command') {
+      exact(body, ['action', 'workId', 'command']);
+      return matching().command(await detailForMatching(body.workId, operator), body.command, operator);
+    }
+    if (body.action === 'preview-substitution-email' || body.action === 'send-substitution-email') {
+      exact(body, ['action', 'workId', 'proposalId', 'revision', ...(body.action === 'send-substitution-email' ? ['previewToken'] : [])]);
+      const detail = await detailForMatching(body.workId, operator);
+      const input = { proposalId: body.proposalId, revision: body.revision };
+      return body.action === 'preview-substitution-email' ? matching().previewEmail(detail, input) : matching().sendEmail(detail, { ...input, previewToken: body.previewToken }, operator);
+    }
     if (body.action === "save-filament") {
       exact(body, ["action", "filament"]);
       return { filament: await createFilamentUseCases({ repository: print().repository }).save(body.filament, operator) };
