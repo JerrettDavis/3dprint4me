@@ -77,7 +77,7 @@ test("local repository persists inventory and only the owner may change it", asy
     assert.equal(listed.effective.pla.source, "inventory_weighted");
     assert.equal(listed.effective.petg.source, "fallback");
     assert.equal((await useCases.materialCost("pla")).landedUsdPerKg, 22);
-    const updated = await useCases.save({ id: saved.id, material: "pla", spoolNominalGrams: 1000, purchaseCostCents: 2400, onHandGrams: 0, active: false }, { role: "owner" });
+    const updated = await useCases.save({ id: saved.id, revision: saved.revision, material: "pla", spoolNominalGrams: 1000, purchaseCostCents: 2400, onHandGrams: 0, active: false }, { role: "owner" });
     assert.equal(updated.active, false);
     assert.equal((await useCases.materialCost("pla")).source, "fallback");
     assert.equal(JSON.parse(await readFile(repository.path, "utf8")).filament.length, 1);

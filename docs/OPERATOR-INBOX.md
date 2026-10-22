@@ -10,6 +10,8 @@ Server behavior belongs to `lib/work-management/`: `domain.js` owns workflow pol
 
 ## Print estimate section
 
+See [Filament inventory and readiness](#filament-inventory-and-readiness) for stock matching and substitutions, which also work without print-estimate assets.
+
 Print requests whose model was uploaded through the estimate flow show a **Print estimate** section in the private job sheet (never in the list, Push payloads, or Home Assistant):
 
 - **Source files** — name, format, size, dimensions, triangle count, volume, warnings, analysis failures with their private diagnostic code, and retention state. **Download** requests a signed link valid for 60 seconds, only after the server verifies the asset belongs to this work item; it is never stored in the page.
@@ -19,6 +21,22 @@ Print requests whose model was uploaded through the estimate flow show a **Print
 - **Actual production** — record actual grams, machine hours, labor minutes, failed attempts, and quantity; variance against the linked estimate is shown.
 
 If the print tables are unavailable, the section says so and the rest of the job sheet works. Filament cost basis is managed through `GET|POST /api/operator-print` (owner-only writes); see [PRINT-ESTIMATION.md](PRINT-ESTIMATION.md).
+
+## Filament inventory and readiness
+
+Open **Filament inventory** in the utility dock to record stock lots, including material keys, brand/line, color name, optional `#RRGGBB` swatch, nominal spool grams, current grams, costs in cents, and notes. Edit a lot to deactivate it. Only owners can save stock and shared matching settings; approved operators can inspect stock and preview matching. Stale writes fail with a conflict; reopen inventory to review current data before resubmitting. Drafts remain in memory on a failed save and are not stored in the browser.
+
+Print job sheets show **Filament readiness**, independently of uploaded model/slicer availability. A numerical color count does not identify colors: enter names/hex values under **Review or correct filament requirements**. Generator matching reads only visible, non-sensitive color fields. Corrections retain the original request and supersede earlier proposals. Per-color grams can be entered when known; total slicer grams are never divided into fictional per-color amounts.
+
+HSL thresholds have separate clockwise/counterclockwise hue limits (degrees) and saturation/lightness limits (percentage points). RGB thresholds use per-channel 0–255 differences. Both mode requires both, with RGB used for hue-undefined neutrals. Defaults: HSL; 45° each hue direction, 35 percentage points saturation/lightness; RGB 80 per channel; close band 25%, widening step 25%; stock buffer 10g. Limits can be previewed against selected work and saved explicitly. Material is exact unless the owner configures a directional `requested > offered` pair. Digital swatches approximate physical colors; review finish, translucency and functional material suitability separately.
+
+Matching widens only until it finds a populated search band. Its closest option is preselected; every option in that band is shown, with further eligible matches expandable. Color limits always use the original request as their center. CIE76 distance ranks eligible colors; it never overrides channel/material limits. Unknown colors/demand require review. Purchase alerts remain visible when stock is insufficient. Available grams are unreserved across work; within one work item, selected alternatives share the same stock pool.
+
+Create a proposal for the selected stock. **Accept on customer's behalf** requires a reason/source such as a verbal call. Alternatively preview the server-addressed customer email and explicitly send the request. The customer replies to the business; record acceptance or decline and its source in the work pane. There is no inbound email automation or customer approval portal. Sending never marks a proposal accepted. Reopen a recorded decision with a reason before changing it; history and offered-color snapshots remain available.
+
+Email uses existing `RESEND_API_KEY`, `REQUEST_FROM_EMAIL`, and `REQUEST_TO_EMAIL`. Unconfigured/failed delivery leaves a pending, copyable message. **Uncertain** means verify delivery before retrying; **sending** holds a 30-second claim. Retries reuse the proposal's message and provider idempotency key for at most 23 hours, within [Resend's 24-hour guarantee](https://resend.com/docs/dashboard/emails/idempotency-keys). After that, verify manually and create a new proposal only if another email is needed. Replacing a proposal invalidates old approval actions. No stock is reserved, consumed, or purchased automatically.
+
+Matching tables require migration `010_filament_matching.sql` after 009. Without that migration, filament readiness reports unavailable while the rest of a job sheet remains usable. Inventory costs, approval history, customer addresses, and matching details stay out of work-list summaries, Home Assistant and Push.
 
 ## Local use
 

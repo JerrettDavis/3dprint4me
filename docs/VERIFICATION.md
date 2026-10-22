@@ -1,5 +1,15 @@
 # Release Verification
 
+## Filament matching coverage (2026-10-21)
+
+Final local evidence on `feat/filament-inventory-matching`, rebased onto `origin/main` at `418f1fd`: 1,081 unit/contract tests passed; the full browser rerun passed 223 tests with one optional test skipped; UX audit passed 241/241. The changed brand/extraction/email paths also passed their nine focused tests. `npm run screenshots` produced 75 captures; the preview-board filament section and focused mobile light/dark, candidate, inventory, and approval-message captures were inspected. The operator static build and asset validation passed without changing the storefront release key.
+
+The first integrated run exposed an outdated service-worker cache assertion, now updated and verified from v10 to v11. A subsequent parallel test/capture run hit Chromium `ERR_NO_BUFFER_SPACE` before a display-sign page loaded; the isolated test and a complete standalone browser rerun both passed. No customizer test was disabled or narrowed. Migration 010 includes restricted `platform_backend` grants/RLS policies, tested with that role and a denied visitor role. Production migration and real customer email delivery have not been performed.
+
+`tests/unit/filament-color.test.mjs` covers HSL/RGB bounds, circular/asymmetric hue, neutral review, reference Lab values, progressive widening/hard stops, deterministic ties, and selected-stock sharing. `filament-requirements.test.mjs` covers color-count ambiguity, total-only demand, overrides, and sensitive/hidden generator-field exclusion. `filament-proposals.test.mjs` covers audited decisions, stale revisions/stock, copyable failure state, concurrent sends and the idempotent retry horizon. `operator-filament-api.test.mjs` checks owner writes, origin protection, work lookup, preview, and read-model failure isolation.
+
+`tests/contract/filament-matching.contract.test.mjs` executes inventory/settings/work compare-and-swap on local JSON and real PostgreSQL SQL through PGlite. `substitution-email.contract.test.mjs` checks Resend endpoint/method/headers, recipient, escaping, idempotency and sanitized failures. `tests/e2e/test_operator_filament.py` drives inventory editing/deactivation, thresholds/preview, multiple candidates/further bands, requirement corrections, operator acceptance/reopening, pending email fallback, and 390px dark/reduced-motion layout. Screenshot capture includes filament inventory, matching, and pending approval states in the preview board.
+
 ## ZIP model packs — local verification (2026-10-05; production gate pending)
 
 Branch `feat/zip-model-packs`, Windows 11 host, Playwright Chromium. In this checkout the customizer bundle is not built (`vite` is not installed), which accounts for every failure listed below. The same failures occur on a clean checkout and are not caused by this change.

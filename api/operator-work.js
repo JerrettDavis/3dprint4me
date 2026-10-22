@@ -9,10 +9,15 @@ import { createPrintEstimationRuntime } from "../lib/print-estimation/runtime.js
 import { createOperatorInvoiceHandler } from "../lib/invoicing/operator-api.js";
 import { createOperatorInquiryWorkflowHandler } from '../lib/inquiry-workflow/operator-api.js';
 import { createInquiryWorkflowRuntime } from '../lib/inquiry-workflow/runtime.js';
+import { createFilamentMatchingUseCases } from '../lib/filament-matching/application.js';
 
 function defaultPrintEstimates() {
   const print = createPrintEstimationRuntime();
   return print.repository ? createOperatorPrintView({ repository: print.repository, fileStore: print.fileStore }) : null;
+}
+function defaultFilamentMatching() {
+  const print = createPrintEstimationRuntime();
+  return print.repository ? createFilamentMatchingUseCases({ repository: print.repository }) : null;
 }
 
 function workId(value) {
@@ -31,8 +36,8 @@ function eventLimit(value) {
   return limit;
 }
 
-export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), printEstimates = runtime ? null : defaultPrintEstimates(), invoicing, invoiceLocalPath, inquiryWorkflow } = {}) {
-  const work = resolveWorkManagementRuntime({ runtime, repository: store, printEstimates });
+export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), printEstimates = runtime ? null : defaultPrintEstimates(), filamentMatching = runtime ? null : defaultFilamentMatching(), invoicing, invoiceLocalPath, inquiryWorkflow } = {}) {
+  const work = resolveWorkManagementRuntime({ runtime, repository: store, printEstimates, filamentMatching });
   let provider = identityProvider;
   const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createConfiguredIdentityProvider()));
   const billingHandler = createOperatorInvoiceHandler({ runtime: work, authorize: authorizeRequest, allowedOrigins, invoicing, localPath: invoiceLocalPath });
