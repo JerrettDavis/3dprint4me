@@ -24,6 +24,13 @@ test('source price precedence and non-USD costs, missing denominators, weights a
   assert.equal(normalize([spool({ remaining_weight: undefined })])[0].onHandGrams, null);
   for (const value of [-1, NaN, Infinity, '800', 10000001]) assert.throws(() => normalize([spool({ remaining_weight: value })]));
   assert.throws(() => normalize([spool(), spool()]));
+  const f={material:'PLA',price:18,weight:1000,color_hex:'0000ff'};
+  const [spoolPrice]=normalize([spool({price:12,initial_weight:500,filament:f})]);
+  assert.equal(spoolPrice.purchaseCostCents,1200);assert.equal(spoolPrice.source.priceBasisGrams,500);
+  const [filamentPrice]=normalize([spool({initial_weight:500,filament:f})]);
+  assert.equal(filamentPrice.purchaseCostCents,1800);assert.equal(filamentPrice.source.priceBasisGrams,1000);
+  assert.equal(normalize([spool({price:12,initial_weight:undefined,filament:{material:'PLA'}})])[0].purchaseCostCents,null);
+  assert.equal(normalize([spool({archived:true})])[0].active,false);
 });
 test('multicolor, alpha, transparent, missing color, unknown weights and stale source cannot match', () => {
   const now = new Date('2026-10-22T12:00:00Z'), fresh = '2026-10-22T11:59:59Z';
