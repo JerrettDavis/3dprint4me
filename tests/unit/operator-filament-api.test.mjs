@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { createLocalPrintRepository } from '../../lib/print-estimation/adapters/local-print-repository.js';
 import { createOperatorPrintHandler } from '../../api/operator-print.js';
 import { createWorkManagementService } from '../../lib/work-management/service.js';
+import { normalizeSpoolmanSnapshot } from '../../lib/spoolman/domain.js';
 const origin = 'https://work.example';
 const detail = { item: { id: 'work_aaaaaaaa', requestId: '3DP-TEST-12345678' }, request: { service: 'print', specifications: { material: 'pla', color: 'blue', grams: '20' }, contact: { email: 'customer@example.com' } } };
 async function call(handler, body, resource = 'filament-settings', suppliedOrigin = origin) {
@@ -43,11 +44,16 @@ test('Spoolman refresh and local overrides require owner and reject source-field
   try {
     const repo=createLocalPrintRepository({path:join(dir,'print.json')});
     await repo.claimSpoolmanSync({instanceId:'home',token:'t',attemptedAt:new Date().toISOString(),leaseUntil:new Date(Date.now()+120000).toISOString()});
+    const completedAt=new Date().toISOString();
+    await repo.applySpoolmanSnapshot({instanceId:'home',token:'t',completedAt,snapshot:normalizeSpoolmanSnapshot({instanceId:'home',currency:'USD',spools:[{id:1,archived:false,initial_weight:1000,remaining_weight:800,filament:{material:'PLA',color_hex:'0000ff'}}]})});
+    const [imported]=await repo.listFilament();
     const handler=role=>createOperatorPrintHandler({store:{},printRuntime:{repository:repo},allowedOrigins:[origin],authorize:async()=>({id:'op_test',role})});
     assert.equal((await call(handler('operator'),{action:'refresh-spoolman'})).statusCode,403);
     assert.equal((await call(handler('owner'),{action:'refresh-spoolman'})).body.queued,true);
     assert.equal((await call(handler('owner'),{action:'refresh-spoolman'},'filament','https://evil.example')).statusCode,403);
     assert.equal((await call(handler('owner'),{action:'save-imported-filament',id:'fil_aaaaaaaa',revision:1,local:{onHandGrams:50}})).statusCode,400);
     const listing=await call(handler('operator'),null,'filament');assert.equal(listing.body.sync.configured,true);assert.equal(JSON.stringify(listing.body).includes('"token"'),false);
+    const saved=await call(handler('owner'),{action:'save-imported-filament',id:imported.id,revision:imported.revision,local:{notes:'Local',freightFeeCents:0,estimateDefault:true,costOverrideCents:2300}});
+    assert.equal(saved.statusCode,200);assert.equal(saved.body.filament.source.lastSuccessAt,completedAt);assert.equal(saved.body.filament.landedUsdPerKg,23);
   } finally {await rm(dir,{recursive:true,force:true});}
 });

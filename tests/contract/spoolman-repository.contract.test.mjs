@@ -17,6 +17,7 @@ test('PostgreSQL atomic import enforces leases, stable IDs, nullable data, revis
     const snapshot = normalizeSpoolmanSnapshot({instanceId:'home',currency:'USD',spools:[{id:1,archived:false,remaining_weight:850.2,filament:{material:'PLA',color_hex:'0000ff'}}]});
     assert.equal(await repo.claimSpoolmanSync({instanceId:'home',token:'first',attemptedAt:start,leaseUntil}),true);
     assert.equal(await repo.claimSpoolmanSync({instanceId:'home',token:'second',attemptedAt:start,leaseUntil}),false);
+    await assert.rejects(repo.claimSpoolmanSync({instanceId:'other',token:'mismatch',attemptedAt:start,leaseUntil}),{status:409});
     await assert.rejects(repo.applySpoolmanSnapshot({instanceId:'home',token:'wrong',snapshot,completedAt:start}),{status:409});
     await repo.applySpoolmanSnapshot({instanceId:'home',token:'first',snapshot,completedAt:start});
     const [first] = await repo.listFilament(); assert.equal(first.purchaseCostCents,null); assert.equal(first.spoolNominalGrams,null); assert.equal(first.onHandGrams,850);

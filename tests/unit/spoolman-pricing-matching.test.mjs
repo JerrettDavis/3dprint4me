@@ -15,6 +15,8 @@ test('unknown costs never become zero or lower a known weighted average; fallbac
   assert.equal(mixed.landedUsdPerKg,20);assert.equal(mixed.uncoveredGrams,900);assert.equal(mixed.costCoverage,'partial');
   assert.equal(selectEffectiveMaterialCost([unknown],'pla',{now}).source,'fallback');
   assert.equal(selectEffectiveMaterialCost([{...unknown,costOverrideCents:2400}],'pla',{now}).landedUsdPerKg,24);
+  const emptyKnown=imported({id:3,remaining_weight:0,price:1});
+  assert.equal(selectEffectiveMaterialCost([unknown,emptyKnown],'pla',{now}).source,'fallback');
 });
 test('freshness is explicit in pricing metadata and stale imported candidates require review',()=>{
   const stale=imported({price:20});stale.source.lastSuccessAt='2026-10-22T11:55:00Z';

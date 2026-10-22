@@ -41,11 +41,12 @@ export function renderFilamentInventory({ items, policy, sync, effective, spoolm
     if (!items.length) list.append(el('p', '', 'No filament recorded. Add your first stock lot below.'));
     for (const row of items) {
       const item = el('article', 'inventory-row');
-      item.append(swatch(row.colorHex, row.color || row.colorHex || 'Color unspecified'), el('p', '', `${row.material.toUpperCase()} · ${row.brandLine || 'No brand recorded'} · ${row.onHandGrams == null ? 'Weight unknown' : `${row.onHandGrams}g available`}${row.active ? '' : ' · Inactive'}`));
+      item.append(swatch(row.colorHex, row.color || row.colorHex || 'Color unspecified'), el('p', '', `${row.material.toUpperCase()} · ${row.brandLine || 'No brand recorded'} · ${row.onHandGrams == null ? 'Weight unknown' : `${row.onHandGrams}g ${row.source?'last recorded; unreserved':'available'}`}${row.active ? '' : ' · Inactive'}`));
       if(row.source) {
-        item.append(el('p','print-meta',`Spoolman spool ${row.source.spoolId} · ${row.source.rawMaterial || 'Material unknown'} · ${row.source.remainingGrams == null?'Weight unknown':`${row.source.remainingGrams}g measured in source`} · ${row.landedUsdPerKg == null?'Cost unknown — pricing fallback applies':`$${row.landedUsdPerKg}/kg${row.costOverrideCents!=null?' local override':''}`}`));
+        item.append(el('p','print-meta',`Stock and source cost last synced: ${row.source.lastSuccessAt ? new Date(row.source.lastSuccessAt).toLocaleString() : 'Never'}. ${!row.source.lastSuccessAt || Date.now()-Date.parse(row.source.lastSuccessAt)>=300000 ? 'Current availability is unverified.' : 'Review suitability and required grams before production.'}`));
+        item.append(el('p','print-meta',`Spoolman spool ${row.source.spoolId} · ${row.source.rawMaterial || 'Material unknown'} · ${row.source.remainingGrams == null?'Weight unknown':`${row.source.remainingGrams}g recorded in source`} · ${row.landedUsdPerKg == null?'Cost unknown — pricing fallback applies':`$${row.landedUsdPerKg}/kg${row.costOverrideCents!=null?' local override':''}`}`));
         if(row.source.appearanceReview)item.append(el('p','print-meta',`Appearance requires review${row.source.colors?.length?` · ${row.source.colors.join(', ')}`:''}. Not an automatic solid-color match.`));
-        if(spoolmanUiOrigin) { const link=el('a','',`Open spool ${row.source.spoolId} in Spoolman`);link.href=`${spoolmanUiOrigin}/spool/show/${row.source.spoolId}`;link.target='_blank';link.rel='noopener noreferrer';item.append(link); }
+        if(spoolmanUiOrigin) { const link=el('a','inventory-source-link',`Open spool ${row.source.spoolId} in Spoolman`);link.href=`${spoolmanUiOrigin}/spool/show/${row.source.spoolId}`;link.target='_blank';link.rel='noopener noreferrer';item.append(link); }
       }
       if (role === 'owner') button(item, `Edit ${row.color || row.material}`, () => {
         editing = row;
