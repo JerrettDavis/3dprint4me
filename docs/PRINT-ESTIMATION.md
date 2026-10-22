@@ -315,3 +315,7 @@ After slicing, the operator's **Latest estimate** for a pack remains the submiss
 ## Rollback
 
 Roll back application code first. Migrations 004-006 are additive and may remain. Do not drop print tables while any deployed code or worker references them; purge Blob objects with the maintenance script before dropping tables.
+
+## Spoolman inventory integration
+
+See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.

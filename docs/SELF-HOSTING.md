@@ -185,3 +185,7 @@ source or replace newer target records with older history.
 This single local host is not high availability. Encrypted off-host backups allow
 recovery; host, power and ISP outages still require intervention. Treat restore
 time and key custody as verified operational facts only after drills prove them.
+
+## Spoolman inventory integration
+
+See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.

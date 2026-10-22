@@ -1,0 +1,9 @@
+# Optional application-only connection. Spoolman's database network is never joined.
+# Create this internal external network before enabling the jobs override.
+services:
+  jobs:
+    networks: [database, egress, spoolman]
+networks:
+  spoolman:
+    external: true
+    name: 3dprint4me-spoolman
