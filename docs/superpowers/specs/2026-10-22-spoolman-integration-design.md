@@ -1,6 +1,6 @@
 # Spoolman inventory integration
 
-Status: proposed; owner approval pending. Implementation and activation are not complete.
+Status: approved by owner on 2026-10-22 at 12:36 CDT. Implementation and activation are not complete.
 
 ## Intent and observed state
 
@@ -42,7 +42,7 @@ For partial coverage, compute the weighted average using only stocked rows with 
 
 ## Builder review
 
-A fresh builder review found no blocking design ambiguity. It identified the proposal-readiness guard and nullable-import/partial-cost contracts above. Owner approval of the ownership/sync policy remains pending. Read-only checks resolved current currency and duplicate-inventory questions as described above; recheck at activation and request owner input only if a material conflict appears. Implementation mechanics remain builder decisions.
+A fresh builder review found no blocking design ambiguity. It identified the proposal-readiness guard and nullable-import/partial-cost contracts above. The owner approved the design on 2026-10-22. Read-only checks resolved current currency and duplicate-inventory questions as described above; recheck at activation and request owner input only if a material conflict appears. Implementation mechanics remain builder decisions.
 
 ## Private architecture and failures
 
