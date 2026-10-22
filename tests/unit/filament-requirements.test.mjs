@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { requirementsForWork, normalizeRequirements } from '../../lib/filament-matching/requirements.js';
+import { getGenerator } from '../../public/assets/js/customize/registry.js';
 
 const detail = specifications => ({ request: { service: 'print', specifications } });
 test('color count is unresolved, not a color, and total demand stays unsplit', () => {
@@ -27,4 +28,15 @@ test('only visible non-sensitive generator color fields enter requirements', () 
   assert.equal(result.requirements.length, 1);
   assert.equal(result.requirements[0].colorHex, '#00ff00');
   assert.equal(JSON.stringify(result).includes('SECRET'), false);
+});
+
+test('actual name-plate schema extracts active colors and excludes unused outline and image', () => {
+  const generator = getGenerator('name-plate');
+  const params = Object.fromEntries(Object.entries(generator.schema).map(([key, field]) => [key, field.default]));
+  const d = detail({ material: 'pla' });
+  d.request.customization = { generatorId: generator.id, params };
+  const result = requirementsForWork(d);
+  assert.ok(result.requirements.some(row => row.id === 'generator_text_color' && row.colorHex === '#ffffff'));
+  assert.ok(result.requirements.some(row => row.id === 'generator_plate_color'));
+  assert.equal(result.requirements.some(row => ['generator_outline_color', 'generator_image_color'].includes(row.id)), false);
 });

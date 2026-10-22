@@ -15,8 +15,9 @@ const savedLabels = { acknowledge: "Acknowledged", "set-priority": "Priority upd
 export const savedMessage = (command, item) => `${savedLabels[command.type] ?? "Update saved"} · revision ${item?.revision ?? "?"} saved.`;
 
 export function createOperatorController({ api, view, expectSession = () => false, retry = { attempts: 8, delayMs: 400 }, wait = ms => new Promise(resolve => setTimeout(resolve, ms)) }) {
-  const model = { state: "checking-session", operator: null, items: [], detail: null, selectedId: null, noteDraft: "" };
-  const clearPrivate = () => { model.items = []; model.detail = null; model.selectedId = null; };
+  const model = { state: "checking-session", operator: null, items: [], detail: null, selectedId: null, detailLoading: false, noteDraft: "" };
+  let selectionGeneration = 0;
+  const clearPrivate = () => { selectionGeneration++; model.items = []; model.detail = null; model.selectedId = null; model.detailLoading = false; };
   async function loadList() { view.state("loading", model); const result = await api.listWork(view.filters?.() ?? { view: "active" }); model.items = result.items ?? []; view.list(model.items); view.state(model.items.length ? "ready" : "empty", model); }
   async function readSession() {
     for (let attempt = 0; ; attempt++) {
@@ -36,7 +37,21 @@ export function createOperatorController({ api, view, expectSession = () => fals
       catch (error) { clearPrivate(); const state = error instanceof OperatorApiError ? error.kind : "error"; view.state(state === "network" ? "offline" : state, model); }
     })().finally(() => { starting = null; });
   }
-  async function select(id) { model.selectedId = id; view.state("loading-detail", model); try { model.detail = await api.getWork(id); view.detail(model.detail); view.state("ready", model); } catch (error) { if (["signed-out", "forbidden"].includes(error.kind)) clearPrivate(); view.state(error.kind ?? "error", model); } }
+  async function select(id) {
+    const generation = ++selectionGeneration;
+    model.selectedId = id; model.detailLoading = true; view.state('loading-detail', model);
+    try {
+      const detail = await api.getWork(id);
+      if (generation !== selectionGeneration || model.selectedId !== id) return;
+      model.detail = detail; model.detailLoading = false; view.detail(detail); view.state('ready', model);
+    } catch (error) {
+      if (generation !== selectionGeneration) return;
+      // A failed selection must not reactivate controls for the previous request.
+      model.detail = null;
+      if (['signed-out', 'forbidden'].includes(error.kind)) clearPrivate();
+      view.state(error.kind ?? 'error', model);
+    }
+  }
   async function command(command) {
     if (!model.selectedId) return;
     if (command.type === "add-note") model.noteDraft = command.body ?? view.noteDraft?.() ?? "";
@@ -89,13 +104,14 @@ export function createOperatorController({ api, view, expectSession = () => fals
       });
     } catch (error) { view.announce(error.message, 'error'); }
   }
-  async function filamentAction(action, input) {
-    const workId = model.selectedId;
-    if (!workId) throw Error('Select a work request first.');
+  async function filamentAction(action, input, workId = model.detail?.item?.id) {
+    if (!workId || model.detailLoading || model.selectedId !== workId || model.detail?.item?.id !== workId) throw Error('The selected work changed or is still loading. Review its current details first.');
+    const generation = selectionGeneration;
     return privateOperation(async () => {
       const result = await api[action](workId, input);
-      if (action !== 'previewSubstitutionEmail' && model.selectedId === workId) {
-        model.detail = await api.getWork(workId); view.detail(model.detail);
+      if (action !== 'previewSubstitutionEmail' && model.selectedId === workId && generation === selectionGeneration) {
+        const detail = await api.getWork(workId);
+        if (model.selectedId === workId && generation === selectionGeneration) { model.detail = detail; view.detail(detail); }
       }
       return result;
     });
@@ -111,6 +127,7 @@ function createDomView(api) {
     attach(value) { controller = value; }, filters: () => Object.fromEntries(new FormData(filters)), noteDraft: () => q("#private-note")?.value ?? "",
     state(name, model) {
       document.body.dataset.state = name;
+      detail.inert = Boolean(model.detailLoading);
       const checking = name === "checking-session";
       const signedIn = !checking && !["signed-out", "forbidden"].includes(name);
       q("#session-view").hidden = !checking; q("#auth-view").hidden = checking || signedIn; q("#workspace").hidden = !signedIn; q("#sign-out").hidden = !signedIn;
@@ -160,9 +177,9 @@ function createDomView(api) {
       const print = !isInquiry && !item.projectDraft ? renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) }) : null;
       const customization = request?.customization ? renderCustomization(request) : null;
       const filament = renderFilamentMatching(payload.filamentMatching, {
-        onCommand: input => controller.filamentAction('filamentCommand', input),
-        onPreviewEmail: input => controller.filamentAction('previewSubstitutionEmail', input),
-        onSendEmail: input => controller.filamentAction('sendSubstitutionEmail', input),
+        onCommand: input => controller.filamentAction('filamentCommand', input, item.id),
+        onPreviewEmail: input => controller.filamentAction('previewSubstitutionEmail', input, item.id),
+        onSendEmail: input => controller.filamentAction('sendSubstitutionEmail', input, item.id),
         onInventory: () => controller.showInventory()
       });
       const billing = !isInquiry && !item.projectDraft && controller.snapshot().operator?.role === "owner" ? renderInvoiceDetail({ item, api, onAuthError: () => { controller.clearPrivate(); controller.start(); } }) : null;
