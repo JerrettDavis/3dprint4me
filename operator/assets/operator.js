@@ -92,9 +92,12 @@ export function createOperatorController({ api, view, expectSession = () => fals
   async function showInventory() {
     try {
       const [stock, policy] = await privateOperation(() => Promise.all([api.listFilament(), api.filamentSettings()]));
-      view.inventory({ items: stock.items, policy }, {
+      view.inventory({ ...stock, policy }, {
         role: model.operator?.role,
         onSave: filament => privateOperation(() => api.saveFilament(filament)),
+        onSaveImported: input => privateOperation(() => api.saveImportedFilament(input)),
+        onRefresh: () => privateOperation(() => api.refreshSpoolman()),
+        onReload: showInventory,
         onSettingsSave: input => privateOperation(() => api.saveFilamentSettings(input)),
         onSettingsPreview: settings => {
           if (!model.selectedId) throw Error('Select a work request first, then open inventory to preview its matching.');

@@ -37,3 +37,17 @@ test('matching composes without print assets and fails without losing the work d
   const result = await failed.detail('work', {}); assert.equal(result.request.service, 'print'); assert.deepEqual(result.filamentMatching, { available: false });
   assert.equal(JSON.stringify(result).includes('PRIVATE'), false);
 });
+
+test('Spoolman refresh and local overrides require owner and reject source-field tampering', async () => {
+  const dir=await mkdtemp(join(tmpdir(),'spool-api-'));
+  try {
+    const repo=createLocalPrintRepository({path:join(dir,'print.json')});
+    await repo.claimSpoolmanSync({instanceId:'home',token:'t',attemptedAt:new Date().toISOString(),leaseUntil:new Date(Date.now()+120000).toISOString()});
+    const handler=role=>createOperatorPrintHandler({store:{},printRuntime:{repository:repo},allowedOrigins:[origin],authorize:async()=>({id:'op_test',role})});
+    assert.equal((await call(handler('operator'),{action:'refresh-spoolman'})).statusCode,403);
+    assert.equal((await call(handler('owner'),{action:'refresh-spoolman'})).body.queued,true);
+    assert.equal((await call(handler('owner'),{action:'refresh-spoolman'},'filament','https://evil.example')).statusCode,403);
+    assert.equal((await call(handler('owner'),{action:'save-imported-filament',id:'fil_aaaaaaaa',revision:1,local:{onHandGrams:50}})).statusCode,400);
+    const listing=await call(handler('operator'),null,'filament');assert.equal(listing.body.sync.configured,true);assert.equal(JSON.stringify(listing.body).includes('"token"'),false);
+  } finally {await rm(dir,{recursive:true,force:true});}
+});
