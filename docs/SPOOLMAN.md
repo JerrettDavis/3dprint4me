@@ -172,3 +172,5 @@ Source-data limitations remain explicit: physical remaining-weight accuracy
 requires correct Spoolman onboarding and printer-to-spool assignment. The missing
 74 prices are not fabricated purchase costs. Nothing in this release verifies
 physical stock on a scale or silently approves a material/color substitution.
+
+Completion audit: the added lease-expiry/takeover, stale-publisher, archive, and price-denominator regressions passed; the final unit/contract rerun passed 1,102 tests. Feature CI run 39871473706 completed successfully, including native PostgreSQL/Restic rehearsals, the full test/audit pipeline, and screenshot generation. `npm run assets:version` confirmed the existing public asset release without changes; the operator uses shell cache version 12.
