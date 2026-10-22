@@ -12,6 +12,8 @@ The current 3dprint4me inventory has no Spoolman connector. Costs and stock are 
 
 The deployed `/api/v1/openapi.json` identifies Spoolman 0.27.0. Its spool endpoint supports `allow_archived` (default false), `limit` (default unlimited), and `offset` (default zero). Both spool and filament prices are nullable and use the system-configured currency; initial and remaining weights are nullable net filament grams. Request archived rows explicitly. These facts were checked against the running service; currency and detailed fallback semantics still need verification before activation.
 
+Further read-only checks on 2026-10-22 confirmed `/api/v1/setting/currency` is explicitly set to USD. A `BEGIN READ ONLY` query through the running platform API's configured database returned zero inventory rows (total, active, and stocked all zero), so no existing manual inventory currently needs physical duplicate reconciliation. Recheck both facts immediately before activation; subsequent operator edits or source settings changes can invalidate this observation. Source price fallback semantics still require verification.
+
 ## Proposed ownership and behavior
 
 These are builder recommendations for owner review, not previously approved requirements:
@@ -40,7 +42,7 @@ For partial coverage, compute the weighted average using only stocked rows with 
 
 ## Builder review
 
-A fresh builder review found no blocking design ambiguity. It identified the proposal-readiness guard and nullable-import/partial-cost contracts above. Owner decisions remain approval of the ownership/sync policy, physical duplicate resolution before activation, and confirmation of source currency. Implementation mechanics remain builder decisions.
+A fresh builder review found no blocking design ambiguity. It identified the proposal-readiness guard and nullable-import/partial-cost contracts above. Owner approval of the ownership/sync policy remains pending. Read-only checks resolved current currency and duplicate-inventory questions as described above; recheck at activation and request owner input only if a material conflict appears. Implementation mechanics remain builder decisions.
 
 ## Private architecture and failures
 
