@@ -6,6 +6,30 @@ from tests.support.server import json_request
 from tests.e2e.test_api import project_request
 
 
+def test_spoolman_imported_stock_locks_source_fields_and_labels_unknown_cost() -> None:
+    with running_operator_workspace() as (_, operator, _):
+        with SiteBrowser(viewport=(390, 844), color_scheme="dark", service_workers="block") as site:
+            page = site.page
+            page.route("**/api/operator-print?resource=filament", lambda route: route.fulfill(json={
+                "items": [{"id": "fil_imported01", "revision": 1, "material": "pla", "brandLine": "Maker Blue", "color": "Blue", "colorHex": "#0000ff", "spoolNominalGrams": 1000, "purchaseCostCents": None, "freightFeeCents": 0, "onHandGrams": 800, "active": True, "estimateDefault": False, "notes": None, "costOverrideCents": None, "landedUsdPerKg": None, "source": {"spoolId": 7, "rawMaterial": "PLA", "remainingGrams": 800.9, "appearanceReview": False, "colors": []}}],
+                "sync": {"configured": True, "lastSuccessAt": "2020-01-01T00:00:00Z", "count": 1, "failureCode": "spoolman_unavailable"},
+                "effective": {"pla": {"source": "fallback", "landedUsdPerKg": 20, "costCoverage": "none", "uncoveredGrams": 800}},
+                "spoolmanUiOrigin": "https://spoolman.example.test"
+            }))
+            page.goto(operator, wait_until="networkidle")
+            page.get_by_role("button", name="Filament inventory", exact=True).click()
+            page.get_by_text("Spoolman sync", exact=True).wait_for()
+            assert page.get_by_text("Sync failed", exact=False).count() >= 1, page.locator(".filament-inventory").inner_text()
+            assert page.get_by_text("Cost unknown", exact=False).count() >= 1
+            assert page.get_by_role("link", name="Open spool 7 in Spoolman").get_attribute("href") == "https://spoolman.example.test/spool/show/7"
+            page.get_by_role("button", name="Edit Blue", exact=True).click()
+            assert page.get_by_label("On-hand grams", exact=True).is_disabled()
+            assert page.get_by_label("Purchase cost (cents)", exact=True).is_disabled()
+            assert page.get_by_label("Local cost override (cents)", exact=True).is_enabled()
+            assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+            site.assert_no_page_errors(allow_console_warnings=("Service Worker registration blocked by Playwright",))
+
+
 def seed_filament_work(storefront: str, operator: str) -> str:
     payload = project_request()
     payload.update({"service": "print", "projectTitle": "Blue replacement bracket", "modelUrl": "https://example.com/part.stl", "specifications": {"material": "pla", "color": "blue", "grams": "20", "quantity": "1"}})
@@ -118,3 +142,4 @@ def test_multiple_candidates_further_bands_requirement_edit_and_deactivation() -
             page.get_by_text("Filament saved.", exact=True).wait_for()
             assert "Inactive" in page.locator(".inventory-list").inner_text()
             site.assert_no_page_errors()
+

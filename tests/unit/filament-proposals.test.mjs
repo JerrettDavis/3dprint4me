@@ -6,9 +6,33 @@ import { join } from 'node:path';
 import { createLocalPrintRepository } from '../../lib/print-estimation/adapters/local-print-repository.js';
 import { normalizeFilamentInput } from '../../lib/print-estimation/inventory.js';
 import { createFilamentMatchingUseCases } from '../../lib/filament-matching/application.js';
+import { createSpoolmanSync } from '../../lib/spoolman/application.js';
 
 const detail = { item: { id: 'work_aaaaaaaa', requestId: '3DP-TEST-12345678' }, request: { service: 'print', specifications: { material: 'pla', color: 'blue', grams: '20' }, contact: { email: 'customer@example.com' } } };
 const operator = { id: 'op_a', role: 'operator' };
+
+test('accepted imported proposals retain history but cannot bypass stale or changed appearance guards',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'source-proposal-'));
+  try {
+    let time=new Date('2026-10-22T12:00:00Z');
+    const repository=createLocalPrintRepository({path:join(dir,'print.json'),now:()=>time});
+    let filament={material:'PLA',name:'Blue',color_hex:'1000ff'};
+    const sync=createSpoolmanSync({repository,instanceId:'home',now:()=>time,provider:{configured:true,snapshot:async()=>({currency:'USD',spools:[{id:1,archived:false,initial_weight:1000,remaining_weight:500,filament}]})}});
+    await sync.run();const [stock]=await repository.listFilament();
+    const app=createFilamentMatchingUseCases({repository,now:()=>time});
+    let state=await app.command(detail,{type:'propose',revision:0,requirementId:'color_1',inventoryId:stock.id},operator);
+    const proposalId=state.proposals[0].id;
+    time=new Date('2026-10-22T12:05:00Z');
+    await assert.rejects(app.command(detail,{type:'accept-on-behalf',revision:state.revision,proposalId,reason:'Call'},operator),{status:409});
+    await sync.run();
+    state=await app.command(detail,{type:'accept-on-behalf',revision:state.revision,proposalId,reason:'Call'},operator);
+    assert.equal((await app.forWork(detail)).requirements[0].status,'ready');
+    time=new Date('2026-10-22T12:10:00Z');
+    assert.equal((await app.forWork(detail)).requirements[0].status,'review');
+    filament={...filament,multi_color_hexes:'0000ff,ff0000'};await sync.run();
+    const view=await app.forWork(detail);assert.equal(view.requirements[0].status,'review');assert.equal(view.requirements[0].proposal.status,'accepted');assert.ok(view.history.length>=2);
+  } finally {await rm(dir,{recursive:true,force:true});}
+});
 test('proposal decisions are explicit, revisioned, preserve snapshots and history', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'filament-proposal-'));
   try {
