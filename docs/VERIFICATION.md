@@ -1193,3 +1193,31 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   board are retained; unrelated time-dependent screenshot/audit output is restored.
   No production backend change was made in this increment; the prior reviewed API
   image remains built and undeployed.
+
+
+## Native voluntary gig acceptance (2026-10-24, based on 5eaddab)
+
+All four named gig-choice scenarios now have direct cases in
+`tests/integration/test_partner_gig_browser.py`. Initial test runs exposed harness
+synchronization/date-format and raw-field/event-name assumptions; no product change
+was needed. Three focused cases passed in 24.16 seconds; the complete four passed
+in 29.99 seconds. A subsequent explicit unchanged-policy assertion strengthens decline.
+Read-only review found no material false positive/privacy issue and identified the
+native command's explicit file list; the new module is now included there.
+
+The lost-response case forwards each first request to the actual native server,
+asserts successful commit, then drops its response. Both visit and work submission
+retry identical payloads/keys and leave precisely one visit and submission event.
+Other cases verify actual future acceptance after decline/safety escalation rather
+than inferring eligibility from labels. Synthetic professional reviews and owner
+sessions are not real provider/professional approvals.
+
+Only tests, their command and evidence changed in this increment. The complete frozen
+production-source `npm test` (1,195 unit/contract, 310 browser plus one Windows skip,
+241 UX) and 137-image visual evidence immediately above remain applicable. No UI/API
+artifact changed; the v3 protected preview and built-but-undeployed API identity remain.
+
+Final combined native command: **36 passed in 224.52 seconds**. This includes the
+unchanged-policy assertion and all prior native authorization/authentication cases.
+No application code/assets changed, so the prior complete regression and inspected
+visual/deployment evidence are retained without duplicating those runs.

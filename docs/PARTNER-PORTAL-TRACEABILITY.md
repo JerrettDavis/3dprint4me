@@ -4,8 +4,8 @@ This is a coverage map, not a release certificate. The later scenario-level
 [acceptance gap audit](PARTNER-ACCEPTANCE-GAPS.md) supersedes historical pending-flow
 notes below when newer native journeys already cover part of them. The private packet names nine
 Gherkin features. The implementations below have unit, contract or isolated native
-PostgreSQL evidence. Optional activity, budget-week and partner-auth scenarios now have direct native
-mappings; the remaining features still need their complete partner/owner flows.
+PostgreSQL evidence. Optional activity, budget-week, partner-auth and gig-choice scenarios now have direct
+native mappings; the remaining features still need their complete partner/owner flows.
 Existing storefront/operator browser regression is a separate compatibility check.
 `test_partner_shell.py` adds synthetic API presentation/client checks for sign-in,
 maintenance, responsive navigation, inert issued text/exact acknowledgment, skip-link
@@ -258,3 +258,15 @@ flag after complete reviews/activation: enrollment stays invited, and the same c
 works after reenabling. No production control endpoint or actual review is introduced.
 Login/redemption 401s now give generic access help; form reset no longer hides the error.
 Native auth evidence is separate from real provider OAuth and production TLS/cookies.
+
+
+Gig-choice increment: four direct native cases in `test_partner_gig_browser.py` create
+fresh offers under a fully reviewed synthetic program. They cover $50 authorization,
+ten unique allowed visits through the UI and actual owner review with submitted/unpaid
+assertions; decline without obligation/account penalty followed by future acceptance
+under unchanged program settings; owner-visible unsafe-work escalation without GPS or
+route fields and preserved future acceptance; and offline business-only save followed
+by identical visit/work retries after actual committed responses are lost. Exactly one
+visit and one submission event remain. No accepted gig/reservation is seeded for these
+programs. Existing cold-reopen/100-draft tests supplement this exact scenario mapping.
+The native command explicitly includes the new module, so the CI boundary maintains it.
