@@ -18,21 +18,26 @@ from tests.support.browser_harness import SiteBrowser
 
 
 @contextmanager
-def native_partner_workspace(*,enable_reviewed_launch=False,clock=None):
+def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed=False,program_flag_control=False):
     port, owner_port = free_port(), free_port()
     owner_origin = f'http://127.0.0.1:{owner_port}'
     shell_origin = f'http://127.0.0.1:{port}'
     container = '3dprint4me-partner-browser-' + uuid.uuid4().hex[:8]
-    clock_root=tempfile.TemporaryDirectory(prefix='3dprint4me-partner-clock-') if clock else None
+    clock_root=tempfile.TemporaryDirectory(prefix='3dprint4me-partner-clock-') if clock or program_flag_control else None
     clock_path=Path(clock_root.name)/'clock.json' if clock_root else None
     def set_clock(value):
         from datetime import datetime
         instant=datetime.fromisoformat(value.replace('Z','+00:00'))
         assert instant.tzinfo is not None and 2026<=instant.year<=2027
         temporary=clock_path.with_suffix('.next');temporary.write_text(json.dumps(value),encoding='utf-8');temporary.replace(clock_path)
+    flag_path=Path(clock_root.name)/'program-flag.json' if program_flag_control else None
+    def set_program_enabled(value):
+        assert type(value) is bool
+        temporary=flag_path.with_suffix('.next');temporary.write_text(json.dumps(value),encoding='utf-8');temporary.replace(flag_path)
     if clock:set_clock(clock)
+    if program_flag_control:set_program_enabled(enable_reviewed_launch)
     native = subprocess.Popen(['node', 'tests/support/partner-native-server.mjs'], cwd=ROOT,
-                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_CLOCK_FILE':str(clock_path) if clock_path else '', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
+                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_CLOCK_FILE':str(clock_path) if clock else '', 'PARTNER_TEST_PROGRAM_FLAG_FILE':str(flag_path) if flag_path else '', 'PARTNER_TEST_WORK_SEED':'1' if work_seed else '0', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=os.name != 'nt')
     lines = queue.Queue()
     threading.Thread(target=lambda: lines.put(native.stdout.readline()), daemon=True).start()
@@ -61,6 +66,7 @@ def native_partner_workspace(*,enable_reviewed_launch=False,clock=None):
             except OSError:time.sleep(.08)
         else:raise TimeoutError('Owner shell unavailable')
         fixture['setClock']=set_clock if clock else None
+        fixture['setProgramEnabled']=set_program_enabled if program_flag_control else None
         fixture['ownerOrigin']=owner_origin
         fixture['_process'] = native
         fixture['_container'] = container
@@ -1061,7 +1067,7 @@ def test_native_prepared_visit_survives_offline_cold_reopen_and_manual_replay():
         assert page.get_by_role('button',name='Remove device draft',exact=True).count()==0
         rows=page.evaluate("async api=>(await(await fetch(api+'/api/partner/v1/visits',{credentials:'include'})).json()).items",fixture['apiOrigin'])
         assert len(rows)==1 and rows[0]['business_name']=='Native cold offline business'
-        assert page.evaluate("async()=>{const c=await caches.open('partner-shell-v2');return(await c.keys()).every(r=>!r.url.includes('/api/'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('partner-shell-v3');return(await c.keys()).every(r=>!r.url.includes('/api/'));}")
 
 
 def test_native_late_login_cookie_after_other_tab_logout_is_revoked():

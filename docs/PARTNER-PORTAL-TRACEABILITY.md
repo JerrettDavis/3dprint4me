@@ -4,8 +4,8 @@ This is a coverage map, not a release certificate. The later scenario-level
 [acceptance gap audit](PARTNER-ACCEPTANCE-GAPS.md) supersedes historical pending-flow
 notes below when newer native journeys already cover part of them. The private packet names nine
 Gherkin features. The implementations below have unit, contract or isolated native
-PostgreSQL evidence. The three optional-activity scenarios now have native browser
-evidence; the remaining features still need their complete partner/owner flows.
+PostgreSQL evidence. Optional activity, budget-week and partner-auth scenarios now have direct native
+mappings; the remaining features still need their complete partner/owner flows.
 Existing storefront/operator browser regression is a separate compatibility check.
 `test_partner_shell.py` adds synthetic API presentation/client checks for sign-in,
 maintenance, responsive navigation, inert issued text/exact acknowledgment, skip-link
@@ -243,3 +243,18 @@ Dec 30 acceptance survives Jan 1 review/payment while new work is denied. Four n
 Monday/DST examples also verify the actual detail-page week. A missing detail-read
 week was reproduced and fixed after authorization, without changing command locks.
 This closes these budget scenarios, not production cookie/TLS or all financial rules.
+
+
+Authentication increment: all five partner-auth scenarios now map directly to
+`test_partner_auth_browser.py`. Genuine owner-issued codes are redeemed in independent
+mobile browser contexts without GitHub; secure host cookies, same-code replay denial,
+live revocation and private-view removal are verified. Another partner has an actual
+$60 payable; own reads exclude it and ID reads are denied. The actual existing owner-work
+handler and cookie/session-store authorizer expose a synthetic private work record to
+the owner, deny partner/renamed partner cookies with 401, and still serve the owner.
+This prevents a missing route or CORS-only failure from masquerading as authentication.
+An isolated file control disables only the disposable fixture's program environment
+flag after complete reviews/activation: enrollment stays invited, and the same code
+works after reenabling. No production control endpoint or actual review is introduced.
+Login/redemption 401s now give generic access help; form reset no longer hides the error.
+Native auth evidence is separate from real provider OAuth and production TLS/cookies.

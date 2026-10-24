@@ -5,7 +5,7 @@ import queue
 import threading
 from contextlib import contextmanager
 import pytest
-from tests.support.partner_budget import reviewed_budget_workspace
+from tests.support.partner_budget import reviewed_budget_workspace,finish_gig
 
 
 def reservations(workspace):
@@ -31,18 +31,6 @@ def held_program(workspace):
             process.stdin.write('ROLLBACK;\n');process.stdin.close()
             try:process.wait(timeout=10)
             except subprocess.TimeoutExpired:process.kill();process.wait(timeout=5)
-
-
-def finish_gig(workspace,gig,partner=0):
-    page=workspace['pages'][partner];page.goto(workspace['origin']+'/gigs/'+gig['id'])
-    page.get_by_role('combobox',name='Action',exact=True).select_option('submit')
-    page.get_by_label('Reason or submission details',exact=True).fill('Synthetic objective work completed.')
-    page.get_by_role('button',name='Save decision',exact=True).click();page.get_by_text('Decision recorded.',exact=True).wait_for()
-    for action in ['approve','make_payable']:
-        row=workspace['read']('gig',gig['id'])['item']
-        workspace['post']('gig.'+action,{'gigId':gig['id'],'expectedRevision':row['revision'],'reason':'Synthetic deliverables independently reviewed.'})
-    rows=workspace['read']('ledger')['items']
-    return next(row for row in rows if row['gigId']==gig['id'])
 
 
 def test_native_budget_commit_within_cap():

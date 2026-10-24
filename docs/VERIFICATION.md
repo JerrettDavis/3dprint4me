@@ -1132,3 +1132,64 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   241/241 UX checks. No application/test source changed during the final sequential
   PostgreSQL/native-browser/full-suite pipeline. Generated audit/status-image noise
   is restored; the two new accepted-gig images and updated board are retained.
+
+
+## Native enrollment and realm acceptance (2026-10-24, based on 60584f3)
+
+- All five named partner-auth scenarios map directly to `test_partner_auth_browser.py`.
+  Initial enrollment uses genuine issued codes and independent browser sessions;
+  secure host cookies, no GitHub requests, fresh-browser replay, live revocation and
+  profile/private-view removal are checked. Counts prove no new replay session/account.
+- Other-partner isolation uses a real $60 payable and verifies both its legitimate
+  owner read and absence from the other account's earnings/ID read. The actual existing
+  owner-work handler, repository and GitHub cookie/session-store authorizer are mounted
+  in the loopback fixture. A synthetic private work record has owner 200 controls;
+  partner cookies and renamed partner tokens get 401 even with a trusted Origin.
+- An optional boolean file control exists only in admitted disposable test code.
+  With all scoped synthetic reviews and owner activation complete, disabling only
+  the program environment flag prevents enrollment without activating the account.
+  Reenabling makes the same genuine invitation succeed. Production routes/configuration
+  gain no clock, flag or test-control interface.
+- Initial native evidence has three passes and two message assertions failing. A
+  client unit RED reproduces misleading expired-session text for failed login/redemption;
+  fixed constant access help passes all 12 focused client/static tests. A second native
+  run has four passes and one failure because generic form reset hides its 401 notice.
+  A dedicated browser RED reproduces the hidden message; reordering reset/announcement
+  with a generation guard passes in 1.30 seconds. Read-only review confirms no material
+  auth/privacy/stale-response issue. Final focused native authentication: five passes
+  in 33.83 seconds. The initial screenshot attempt reproduces the hidden-notice defect
+  and is diagnostic only; final captures and complete regression follow below.
+- At the start of this increment the static source was v3 and the prior cloud
+  preview was v2; the completed refresh is recorded below. Native deployment remains pending.
+
+- Follow-up mobile visual inspection found the sticky error notice covering the retry
+  control at 320/390 pixels. Both viewport regressions failed before the fix. The
+  notice now occupies normal document flow before the layout; errors focus it and
+  scroll it into view, while success notices leave focus alone. Keyboard Tab reaches
+  the retry form. Two delayed-export regressions also reproduced a stale error
+  interrupting Help after navigation; generation guards now suppress those notices.
+  All 24 focused shell/PWA cases pass in 30.62 seconds, including notice bounds,
+  keyboard order, cleared credentials and both delayed export failures.
+
+- Review identified two current-view export 401 paths retaining the private page.
+  Both parameterized browser cases reproduced that defect before the fix; export
+  handlers now render signed-out content before announcing expiry and retain their
+  navigation-generation checks. Follow-up read-only review found no new material issue.
+  Final focused shell/PWA: 26 passes in 35.42 seconds. Complete native browser suite:
+  32 passes in 256.24 seconds. Final capture: 137 screenshots including the board;
+  full light/dark enrollment-error images and their actual board crop were inspected.
+- Hosted Verify run `40107612771` on budget head `60584f3` completed successfully,
+  including native PostgreSQL/recovery, 27 browser acceptance cases, full regression,
+  screenshots and uploaded artifacts. It does not attest to the subsequent auth changes.
+
+- Authentication preview v3 was uploaded to the dedicated partner project and remotely
+  verified: 14 exact static files/SHA-256, every configured hosting header, eight
+  route checks and anonymous 302 protection. No API/domain/DNS or launch flag changed.
+  See [deployment evidence](PARTNER-DEPLOYMENT.md) for the current protected URL.
+
+- Final frozen-source `npm test` passed: validation, 1,195 unit/contract tests,
+  310 browser tests and one existing Windows skip (498.78 seconds), and all 241 UX
+  checks. Only the new two mobile enrollment-error baselines and updated preview
+  board are retained; unrelated time-dependent screenshot/audit output is restored.
+  No production backend change was made in this increment; the prior reviewed API
+  image remains built and undeployed.

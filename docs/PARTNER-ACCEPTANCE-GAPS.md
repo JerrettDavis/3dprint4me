@@ -1,8 +1,8 @@
 # Remaining partner acceptance work
 
-This 2026-10-24 audit, updated after the budget increment, compares the private
-packet's nine feature files with 27 native cases across `test_partner_native_browser.py`
-and `test_partner_budget_browser.py` and their actual fixtures. It identifies missing evidence, not automatic product defects.
+This 2026-10-24 audit, updated after the budget and authentication increments, compares the private
+packet's nine feature files with native cases across `test_partner_native_browser.py`,
+`test_partner_budget_browser.py` and `test_partner_auth_browser.py` and their fixtures. It identifies missing evidence, not automatic product defects.
 Synthetic owner sessions are bound to real numeric-identity rules but do not exercise
 GitHub OAuth. Synthetic review decisions never establish actual professional clearance.
 Production flags remain off. This list supplements, rather than replaces, the full
@@ -16,10 +16,14 @@ numbered packet requirements and operational release gates.
   cap reduction preserving earned debt, post-sunset review/payment and four Central
   Monday/DST examples. This does not establish production readiness or every other
   numbered financial requirement.
-- **Authentication:** initial invitation replay
-  from another browser, disabled-program enrollment denial, and exact earnings-ID/
-  unrelated owner-work API denials. The budget helper now exercises genuine initial enrollment without GitHub; recovery
-  redemption alone remains insufficient for enrollment evidence.
+- **Authentication:** all five named scenarios now map directly to
+  `test_partner_auth_browser.py`: real initial invitation UI enrollment without GitHub,
+  Secure/HttpOnly/Strict host cookie, fresh-browser replay denial, live revocation,
+  an existing other-partner payable denied by ID, and the real owner-work handler
+  rejecting partner credentials (including a renamed cookie). A synthetic private
+  work record has positive owner access before/after denial. Environment-off enrollment
+  isolates the sole missing program flag, preserves invited state and proves the same
+  code succeeds after reenabling. This does not prove actual OAuth or production TLS.
 - **Gig choice:** one complete offered-to-accepted-to-ten-unique-visits-to-submission/
   owner-review journey with reservation and unpaid assertions; decline without penalty;
   unsafe-work refusal with preserved future-offer eligibility. Existing offline replay
@@ -45,15 +49,15 @@ numbered packet requirements and operational release gates.
   and duplicate settlement checks remain valid.
 - **Owner control:** actual campaign creation/publication/offer and partner publication
   denial; paused acceptance denial with unchanged reservations; full existing owner-work
-  API compatibility. The partner fixture does not mount the existing owner-work API;
-  ordinary storefront/operator regression cannot stand in for that exact journey.
+  API compatibility. Authentication tests now mount the real owner-work handler with
+  a positive private-record control; this does not prove the full existing operations
+  journey. Ordinary storefront/operator regression cannot stand in for that journey.
 
 ## Next implementation spine
 
 The budget spine is now implemented in `tests/support/partner_budget.py`, including
-fresh two-partner enrollment and exact acknowledgment. Reuse it for invitation replay/
-disabled enrollment/owner-work isolation and complete gig acceptance/decline/unsafe-work
-journeys. Add accepted-policy referral and qualified-lead duplicate-award scenarios.
+fresh two-partner enrollment and exact acknowledgment. Authentication now adds positive owner-work controls and explicit environment-off
+enrollment. Reuse these helpers for complete gig acceptance/decline/unsafe-work journeys. Add accepted-policy referral and qualified-lead duplicate-award scenarios.
 Do not rebuild synthetic approval plumbing or substitute seeded accepted work for
 an actual authorization transition. The remaining numbered operations/product work
 above and below still needs its own evidence.

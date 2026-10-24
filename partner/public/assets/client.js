@@ -17,7 +17,7 @@ export function createPartnerClient({apiOrigin='https://api.3dprint4.me',fetch=g
   try{response=await fetch(apiOrigin+'/api/partner/v1/'+path,{method:body!==undefined||write?'POST':'GET',credentials:'include',cache:'no-store',redirect:'error',headers,...(body!==undefined?{body:JSON.stringify(body)}:{})});}
   catch{if(authentication&&expected<forgottenAt)onUncertainSignOut();throw new PartnerError(0,'Unable to reach the partner service. Check your connection and try again.');}
   let data;try{data=await response.json();}catch{if(authentication&&expected<forgottenAt)onUncertainSignOut();throw new PartnerError(503,'The partner service is temporarily unavailable. Try again later.');}
-  if(!response.ok){if(response.status===401&&expected===epoch){csrf=null;partner=null;}throw new PartnerError(response.status,response.status>=500?'The partner service is temporarily unavailable. Try again later.':response.status===401?'Your session has ended. Sign in again.':typeof data.error==='string'?data.error.slice(0,1000):'The request could not be completed.');}
+  if(!response.ok){if(response.status===401&&expected===epoch){csrf=null;partner=null;}throw new PartnerError(response.status,response.status>=500?'The partner service is temporarily unavailable. Try again later.':response.status===401?(['login','invite/redeem'].includes(path)?'Sign-in could not be completed. Check your details or contact the owner.':'Your session has ended. Sign in again.'):typeof data.error==='string'?data.error.slice(0,1000):'The request could not be completed.');}
   if(authentication){
    if(expected<forgottenAt){
     // Set-Cookie is applied before JavaScript receives this superseded response.
