@@ -711,3 +711,44 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   states (320-light and 390-dark, including expanded correction and suppression),
   final referral sections and owner preview-board section. Existing owner baselines
   reflect the new navigation. Unrelated screenshot/audit rewrites were restored.
+
+
+### Owner finance and durable accounting exports (2026-10-24)
+
+- Full `npm test` passed: 1,178 unit/contract tests, 272 browser cases with one
+  Windows skip, and 241/241 UX checks. Six new finance UI cases cover exact cents,
+  deliberate verified settlement, stable uncertain retry keys, separate reversal/
+  adjustment/reconciliation inputs, zero agreed obligation, durable downloads,
+  hash rejection, stale async hashing and access-denial cleanup.
+- Eleven native browser cases passed together with production runtime composition
+  and restricted disposable PostgreSQL. The new finance journey commits a partial
+  payment but drops its response, retries the identical command without duplicating,
+  settles/reverses/corrects and records another payment. A separate safety-reported
+  accepted gig is reconciled while new work remains disabled. Immutable accepted
+  fees/reservations survive: paid 1,200 cents, outstanding 500 cents; four payment
+  events, two adjustments, three accounting batches and no fabricated transfer.
+- Native CSV proof commits a batch then drops its response; retry returns the same
+  durable batch. Cash records net 1,200 cents, accrual records net 1,700 cents;
+  reloading returns identical bytes and another incremental cash batch is empty.
+  Each row still requires classification review. Synthetic evidence is not an
+  actual bank transfer, external resolution or Invoice Ninja import.
+- Contract RED/GREEN observed missing private adjustment/batch history and URL
+  settlement proof rejection. Existing formula-neutralization coverage now uses
+  `=SUM(1,2)` because URL-containing references are rejected. Owner-only history
+  stays absent from partner responses. Final focused ledger/client/static checks
+  passed (11 tests), plus native PostgreSQL permissions/concurrency/replay/restore.
+- Read-only review found one operational improvement: listing batches initially
+  loaded complete manifests. History now projects metadata and row counts in SQL.
+  Review confirmed the fix; focused contracts and the native finance journey were
+  rerun successfully afterward. Full exports still reopen only by authorized ID.
+- Operator build passed and final output matches source, including the finance
+  module and v16 static-only shell cache. No API response enters the cache. Captured
+  105 screenshots; inspected full new 320-light/390-dark finance and export views,
+  expanded resolution forms and the owner preview-board section. Kept owner baselines
+  reflecting navigation; restored unrelated screenshot/audit noise.
+- Backend image `3dprint4me-partner-api:20261024-owner-finance` built with manifest
+  `sha256:b7a67425581ed4f9250137b28dddc3f842fc5a6cea4d180e82b950785b9bfcfc`.
+  Ledger/accounting/runtime imports pass offline, read-only and with capabilities
+  dropped. No production migration/deployment, actual approval, real invitation,
+  payment or external message occurred. Legal editorial/review/encrypted sharing,
+  full offline lifecycle, complete packet BDD and release operations remain open.

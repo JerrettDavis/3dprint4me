@@ -128,3 +128,12 @@ Production-composition native journeys prove public opt-in through one earned bo
 return-URL rejection, duplicate-award/payment-proof protection, suppressed contacts and
 unchanged partner response privacy. This expands referral and visits-leads evidence;
 it does not stand in for all nine full packet feature scenarios or actual settlement.
+
+
+Owner Finance increment: the existing owner realm now exposes manual partial/full
+settlement, nonsettlement reversals, acknowledged adjustments, safety/dispute/cancellation
+reconciliation, funding exceptions and durable cash/accrual CSV batch history/download.
+Native evidence follows real accepted work through payable, lost-response payment retry,
+reversal/correction, paused safety resolution, lost-response export retry, identical reload
+download and empty incremental re-export. This expands ledger-payments coverage; synthetic
+settlement attestations do not prove an actual bank transfer or provider import.

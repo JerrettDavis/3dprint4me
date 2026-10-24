@@ -334,3 +334,23 @@ locking and route-generation guards. Check malformed/unconsented records, stale 
 responses, live withdrawal, duplicate award and settlement evidence through contracts,
 fixture browser and production-composition disposable native journeys. Preserve existing
 inbox and perform the full suite, static build and inspected screenshots before commit.
+
+
+### Owner finance and durable accounting exports
+
+Add Finance to the same owner area. Show due/paid/outstanding and immutable event
+history; record verified partial/full manual payments, confirmed nonsettlement reversals,
+and separately evidenced acknowledged adjustments. Provide reconciliation of accepted
+unsafe/cancelled/disputed work without rewriting agreed terms or denying debt after a
+pause/cap change. Do not infer settlement from a URL, quote or return page. Keep gifts
+outside compensation and disclose any unfunded obligation.
+
+Generate incremental cash/accrual CSV batches by program and Central-date period using
+existing durable receipts. List and reopen prior batches after reload, validate returned
+CSV hash before enabling a deliberate download, clear/revoke private Blob URLs on route
+and access loss, and show the manual provider fallback honestly. No automatic external
+import, contractor payout or actual accountant approval. Reuse stable command keys,
+current owner/CSRF/route guards and all form locking. Verify unknown-response retries,
+partial payment/reversal, acknowledged correction, durable/replayed exports and private
+boundaries with contracts, fixture browser and native PostgreSQL journeys; run full
+suite/build/screenshots and inspect before commit.

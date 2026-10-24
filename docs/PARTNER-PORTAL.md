@@ -544,8 +544,7 @@ Native browser evidence uses an actual bound synthetic GitHub owner session and 
 restricted PostgreSQL runtime: saved cap survives reload, an operator is denied, and
 existing accepted work can be submitted, owner-approved and made payable while new
 work is disabled. This proves that slice, not the full packet owner scenario or live
-GitHub login. Finance/settlement,
-and legal editorial/review/feedback/encrypted sharing screens are still required.
+GitHub login. Legal editorial/review/feedback/encrypted sharing screens are still required.
 
 
 ### Owner private access lifecycle
@@ -603,5 +602,39 @@ award, rejected checkout-return proof, independent manual settlement recording, 
 award yielding one $5 payable, duplicate settlement denial and private partner display.
 Another native flow verifies qualification, renewed correction, withdrawal and deletion
 against live permission state. These tests use synthetic data and attestations, not real
-bank verification, live professional approval or complete packet BDD. Finance/settlement,
-legal editorial/review/encrypted sharing and deployment work remain open.
+bank verification, live professional approval or complete packet BDD. Legal editorial/review/encrypted sharing and deployment work remain open.
+
+
+### Owner finance and accounting batches
+
+Finance distinguishes recorded obligations, verified paid value net of reversals and
+outstanding amounts. Accepted fees and contingent bonus maxima are separate from earned
+payables. Funding exceptions do not erase lawful debt. Payment forms require deliberate
+confirmation of actual settlement and accept partial amounts; payment recording rejects
+URL references. Reversals require confirmed nonsettlement evidence and add compensating
+events instead of editing history. Adjustments require an externally verified resolution
+and partner acknowledgment and cannot erase already settled value. Safety, cancellation
+and disputed work can be reconciled while new work is paused without rewriting accepted
+fees. A resolved obligation is not a bank payment. Gifts remain outside compensation.
+
+The owner ledger response adds private `adjustments`; partner earnings responses retain
+their prior shape. Payment and adjustment history refuse more than 10,000 entries instead
+of silently treating a partial history as complete. Owner accounting `exports` lists
+immutable batch metadata; `export?id=...` reopens the original CSV. Both require current
+owner authorization, including transaction-time checks. The owner page retains stable
+command keys across unknown responses and freezes form controls while sending.
+
+Cash batches contain verified payment/reversal events; accrual batches contain obligations
+and acknowledged corrections. Optional date periods use complete Central-time days.
+Every basis has separate source claims, so a new batch excludes previously exported
+records; retrying the unchanged command reopens its original batch. Classification stays
+pending accountant review. Download is deliberate and enabled only after SHA-256 checks;
+private Blob URLs are revoked on route change, logout or loss of access. Late hash work
+cannot recreate a download in another view. Nothing is saved in browser storage.
+
+CSV is the manual fallback without Invoice Ninja and does not create a customer invoice,
+contractor payout or verified provider import. Import into an actual accountant/Invoice
+Ninja configuration remains unverified. Native tests use synthetic owner attestations;
+real settlement and external resolution still require the owner's independent checking.
+Legal editorial/review/encrypted sharing, full offline lifecycle and release work remain
+open, along with the remaining complete packet scenarios and operations deliverables.
