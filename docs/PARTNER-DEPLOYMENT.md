@@ -139,3 +139,138 @@ anonymous 302 protection passed again. This updates only the dedicated static
 Preview. Owner v25 (35 exact static files) and the materials API candidate (210
 exact runtime files; restricted offline imports) remain built locally. No production
 migration, API/owner rollout, DNS or launch activation is implied by that evidence.
+
+## Native rehearsal and disabled release implementation
+
+`deploy/platform/release-partner.py` provides separate partner-aware rehearsal and
+explicit disabled-rollout phases.
+The inquiry release helper omits `contracts/partner` from its committed archive
+and applies migration009 only; do not use it to release this portal. The original
+controlled cutover is also not a release update: it performs the initial source
+fence/native selection.
+
+After committing and reviewing the complete release source, the rehearsal command is:
+
+```sh
+python deploy/platform/release-partner.py --release <full-reviewed-40-character-commit> --phase rehearse
+```
+
+The default phase is rehearsal. Explicit deploy requires `--backup-config`; a
+missing, stale, incomplete or mismatched checkpoint stops before selected-schema
+or service changes. No invocation of this new helper has occurred on the native
+host yet. The current local implementation still needs final full verification,
+fresh release review and a committed-source host rehearsal before any rollout.
+
+The local builder includes the partner contracts and both Docker build inputs
+from the specified commit, excludes uncommitted files, validates the SHA/phase/SSH
+host, and sends the payload only through pinned SSH stdin. The host verifies the
+archive digest and regular contained members, rejects incomplete/changed source
+reuse, serializes its protocol with an owner-private lock, and records bounded
+operation labels without child output, SQL, credentials or provider responses.
+
+Rehearsal builds both API/jobs and slicer companion tags because the existing
+Compose configuration selects them with the shared `PLATFORM_RELEASE`. It does
+not recreate either running service. The native control connection and durable
+selection remain authoritative even when bootstrap overrides a retired business
+`DATABASE_URL`. Only a randomly named `platform_partner_rehearsal_*` database is
+created, migrated, seeded with an unapproved synthetic program, and dropped.
+All three partner switches are explicitly zero in disposable containers. Their
+network blocks external egress; no external service credential is supplied.
+
+The candidate runs real native schema/grant checks, activation/enrollment denials,
+private route session denials and origin checks. Two isolated candidate HTTP
+origins then rehearse overlap and drain while a probe requests the actual partner
+status route. Private env files, live source selection, service identities and the
+selected database are checked for unchanged state before reporting rehearsal success.
+Cleanup failures fail the rehearsal rather than reporting a partial pass.
+
+Local candidate-image evidence proves 48 actual requests with zero failures,
+private native grants, disabled engagement, no invitations/approval/outbox/payable
+rows, and removal of the disposable containers, networks and env file. It does
+not prove an SSH-host rehearsal, same-site production TLS/authentication, an
+actual cutover, professional clearance or provider recovery.
+
+
+### Explicit rollout and owner acceptance
+
+After the packet's source/branch/auth trust review and staging acceptance, use the
+same exact reviewed commit and pinned SSH host. The owner-private backup controller
+configuration must name that same host/root and the existing two encrypted stores:
+
+```sh
+python deploy/platform/release-partner.py --release FULL_REVIEWED_40_CHARACTER_SHA --phase deploy --host OWNER_AT_PINNED_HOST --backup-config /absolute/owner-private/backup-controller.json
+```
+
+Replace the placeholders before invoking the command. The CLI loads the reviewed
+commit's backup controller/exporter, not modified local copies. It creates and
+reads back the complete database/configuration, object and linking-receipt snapshots
+in both stores and reports the existing signed backup heartbeat. Only verified
+checkpoint identities cross SSH stdin. The host requires the exact selected native
+database and a checkpoint no older than 30 minutes (at most 30 seconds ahead for
+clock skew). It rechecks freshness after candidate builds/rehearsal, before migration.
+A backup/readback failure aborts and reports failure using validated custody;
+mismatched custody does not report against another host.
+
+Only 012 and 013 run in one selected-database transaction with a five-second lock timeout.
+All three partner flags remain zero. A database-only candidate guard must be
+healthy and pass real feature-off/private-route/origin checks before it joins the
+existing API network. Prior jobs drain before any replacement writer; disabled
+writers remain disabled. The old API drains only after the guard is admitted.
+Unrelated env bytes/values, native selection, existing owner/provider settings,
+slicer and tunnel identities are preserved. Previously enabled jobs must use the
+same candidate and produce fresh healthy statement-job evidence before success.
+The script retains the prior source and immutable service/image identities.
+
+The owner-private `partner-rollout-SHA12.private.json` records completed stages and
+recovery identities. On failure the matching `.private.yml` is retained; a healthy
+admitted guard is kept serving if the old API has drained. Inspect that journal,
+service health and the override on the pinned host before repair. A leftover guard
+blocks another rollout, including a different commit: a retry must not recreate
+the only healthy origin. Do not delete partner data, restore a stale database,
+return to fenced Neon, stop the guard blindly or restart the slicer/tunnel to
+force a retry. Repair forward with a schema-compatible reviewed API, preserve
+accepted obligations, and verify readiness/private denials before draining the guard.
+
+The isolated Compose regression uses only synthetic credentials, an internal
+network and synthetic checkpoint metadata. It proves actual guarded HTTP handover,
+selected-only additive migration, unchanged intake, compatible statement worker
+and unchanged slicer/tunnel identities; it does not perform real Restic backup or
+prove production identity/TLS. CI builds the candidate and runs this regression.
+Production execution, actual same-site authorized sessions, owner-shell rollout,
+DNS/TLS and the remaining acceptance gates above are still open. Professional
+clearance and launch activation remain separate from a flags-off technical release.
+
+The release source root and archive proof stay owner-private. Source files below
+that root use ordinary readable modes so Docker COPY can run them as node/worker.
+The exact tracked `.env.worker.example` is omitted from release archives; no
+environment file is a build requirement. CI builds both runtime images from Linux
+`prepare_source` output before testing the guarded rollout. Run
+`python tests/integration/partner_archive_images.py` to repeat that boundary check.
+
+### Owner source and authentication acceptance
+
+Review the exact release SHA on PR53 (`feat/partner-portal`) before the disabled
+production phase. This trust diagram describes the implemented boundaries; actual
+same-site HTTPS and authorized production sessions still require verification.
+
+```mermaid
+flowchart LR
+  Partner[partners.3dprint4.me static shell] -->|Exact origin, partner session and CSRF| API[api.3dprint4.me via existing tunnel]
+  Owner[work.3dprint4.me owner shell] -->|Existing GitHub-bound owner session and CSRF| API
+  GitHub[Existing GitHub OAuth identity] -->|Unchanged numeric owner binding| API
+  API -->|Role and live-session checks in transactions| DB[Selected private native PostgreSQL]
+```
+
+Partner and owner authentication are separate realms. API-host cookies are
+host-only, Secure and HttpOnly; browser bundles contain no session secret or
+provider credential. Owner commands require the existing numeric GitHub subject,
+role and live binding; partner commands recheck account, credential version and
+session. Static hosting or a preview-protection bypass grants no application role.
+Legal text remains draft/unapproved unless actual recorded professional evidence
+says otherwise. The technical release keeps all three partner flags off and does
+not change OAuth identity configuration, send invitations or authorize payouts.
+
+Owner acceptance must identify the exact reviewed SHA and these source/auth/draft
+boundaries. DNS authorization is separate: provide the approved Cloudflare access
+reference through private custody, capture existing records, and use only the new
+domain's provider-verified target. No approval is inferred from staging success.

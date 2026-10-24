@@ -38,27 +38,27 @@
 - Jobs must not overlap or be enabled without the established writer handover. Compatible API/jobs releases are needed for statement heartbeat health.
 - Failures retain additive partner data and private diagnostic references. No automatic destructive rollback or stale-source restore.
 
-## Task1: Complete committed archive and isolated native rehearsal
+## Task 1: Complete committed archive and isolated native rehearsal
 
 **Interfaces:** local build_payload(release: str, phase: str, repo: Path) -> dict validates committed inputs and produces release/phase/archive/archiveSha256; host run_release(config: dict, *, root: Path, runner) -> aggregate proof. Task2 consumes the verified private source directory, candidate image tags, selected native DB name and previous service/image identities; these stay host-side.
 
 **Focused checks:** node --test tests/unit/partner-release.test.mjs; mocked local/host protocol cases must fail before implementation and pass afterward. Required cases: missing contracts, uncommitted source exclusion, invalid SHA/phase/host, unsafe archive/link, digest mismatch, partial release reuse, scratch cleanup after failure, disabled flags, secret-free argv/output, companion image tags and no live writer/service changes during rehearsal.
 
-- [ ] Add failing archive/argument/SSH/privacy contracts, including contracts required by Docker COPY and rejection of unreviewed/traversal/linked input.
-- [ ] Implement local CLI + host executor boundaries; default phase is explicitly rehearsal. Verify committed source and refuse partial source reuse.
-- [ ] Build candidate API and necessary companion image tags without changing running services or global selection. Record immutable IDs.
-- [ ] Create scratch native DB, apply the migration set and prove private partner tables/grants, disabled enrollment/new work, scoped session denials and current HTTP paths against actual candidate code. Rehearse healthy-origin overlap/drain in an isolated network.
-- [ ] Verify cleanup after success/failure, sanitized failures and no outgoing customer/provider messages. Test command shapes and actual local/disposable protocols.
+- [x] Add failing archive/argument/SSH/privacy contracts, including contracts required by Docker COPY and rejection of unreviewed/traversal/linked input.
+- [x] Implement local CLI + host executor boundaries; default phase is explicitly rehearsal. Verify committed source and refuse partial source reuse.
+- [x] Build candidate API and necessary companion image tags without changing running services or global selection. Record immutable IDs.
+- [x] Create scratch native DB, apply the migration set and prove private partner tables/grants, disabled enrollment/new work, scoped session denials and current HTTP paths against actual candidate code. Rehearse healthy-origin overlap/drain in an isolated network.
+- [x] Verify cleanup after success/failure, sanitized failures and no outgoing customer/provider messages. Test command shapes and actual local/disposable protocols.
 - [ ] Run appropriate full checks and image proof; commit a reviewed rehearsal-capable release source. Execute host rehearsal only after its committed inputs/tests are verified; retain redacted proof outside Git.
 
-## Task2: Disabled production rollout and executable owner handoff
+## Task 2: Disabled production rollout and executable owner handoff
 
 **Interfaces:** deploy_release(verified_context, *, runner) -> aggregate stage proof; consumes Task1 verified artifacts and immutable prior image/service IDs. No private context is serialized to public proof.
 
 **Focused checks:** node --test tests/unit/partner-release.test.mjs, plus disposable native rehearsal. Pin selected-native-only migrations012+013, 5-second migration lock timeout, all three flags0, unchanged existing auth/inquiry/provider env, guard ready before old API stop, no overlapping/newly enabled writers, no slicer/tunnel restart, and no destructive rollback on each injected failure boundary.
 
-- [ ] Implement explicit deploy phase with fresh verified backup/checkpoint precondition, exact selected-native database and all partner switches off. Preserve other env keys.
-- [ ] Apply012+013 atomically; stage guarded API readiness before draining old API; update/restart only previously enabled jobs with the same candidate. Preserve slicer/tunnel state.
-- [ ] Exercise injected failure boundaries and rollback instructions; preserve partner tables, accepted obligations and immutable documents on every path.
+- [x] Implement explicit deploy phase with fresh verified backup/checkpoint precondition, exact selected-native database and all partner switches off. Preserve other env keys.
+- [x] Apply012+013 atomically; stage guarded API readiness before draining old API; update/restart only previously enabled jobs with the same candidate. Preserve slicer/tunnel state.
+- [x] Exercise injected failure boundaries and rollback instructions; preserve partner tables, accepted obligations and immutable documents on every path.
 - [ ] Add feature-off live smoke commands, existing-service checks and exact owner/source/DNS approval handoff. Do not claim the real production phase occurred from rehearsal or mocks.
 - [ ] Fresh final review and required checks; record CI/source/build evidence. Production execution waits for the packet's applicable approval/access gates and prior staging acceptance.

@@ -12,7 +12,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Check out repository
@@ -45,6 +45,11 @@ jobs:
 
       - name: Verify partner PostgreSQL isolation, concurrency and restore
         run: npm run test:partner:postgres
+
+      - name: Verify guarded partner rollout in isolated native stack
+        run: |
+          python tests/integration/partner_archive_images.py
+          python tests/integration/partner_rollout_docker.py --image 3dprint4me-partner-archive-ci-api --diagnostics "$RUNNER_TEMP/partner-rollout-synthetic.log"
 
       - name: Install test tooling
         run: |
