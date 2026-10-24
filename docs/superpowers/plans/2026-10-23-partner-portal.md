@@ -17,7 +17,7 @@
 - Packet integrity: every manifest hash verified; packet validator passed seven templates and nine feature files. This proves packet integrity only.
 - Latest migration: `011_spoolman_inventory.sql`; partner migration starts at 012 if still available at implementation.
 - Native API admits direct operator/auth routes only; partner admission needs explicit scoped route integration.
-- No portal implementation, professional approval, DNS change or production deployment is yet asserted.
+- Discovery began without a portal. See the implementation checkpoints below; no real professional approval, DNS change or production deployment is asserted.
 
 ## Global constraints
 
@@ -122,3 +122,16 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
 - Existing baseline browser suite: 224 passed, one optional skip. UX audit: 241/241.
   Generated artifacts with timestamp-only or nondeterministic changes were not retained
   because this increment makes no visual changes. Partner UI screenshots remain pending.
+
+- HTTP/workflow increment: persisted version-scoped review gates, native runtime
+  routing, independent partner/owner cookie/CSRF realms and transaction-time session
+  rechecks are implemented. Native PostgreSQL tests use the real owner binding and
+  restricted backend grants, including role downgrade denial.
+- Campaigns/offers/counteroffers/acceptance/submission/review/payables, budget changes,
+  private work reasons, business visits, consent/lead review/correction/withdrawal and
+  optional deletable timers are implemented. Referrals, manual settlement, legal
+  editorial/export, UI and full BDD/release gates remain unfinished.
+- Retained attorney-review DOCX was read privately. It explicitly remains nonbinding
+  and contains no signature blocks. Do not import it as approval evidence.
+- Invoice Ninja official expense and CSV mapping documentation was inspected. Account
+  capability and import execution remain unverified; preserve manual-ledger defaults.

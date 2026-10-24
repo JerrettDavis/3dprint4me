@@ -10,7 +10,7 @@ The first integrated run exposed an outdated service-worker cache assertion, now
 
 `tests/contract/filament-matching.contract.test.mjs` executes inventory/settings/work compare-and-swap on local JSON and real PostgreSQL SQL through PGlite. `substitution-email.contract.test.mjs` checks Resend endpoint/method/headers, recipient, escaping, idempotency and sanitized failures. `tests/e2e/test_operator_filament.py` drives inventory editing/deactivation, thresholds/preview, multiple candidates/further bands, requirement corrections, operator acceptance/reopening, pending email fallback, and 390px dark/reduced-motion layout. Screenshot capture includes filament inventory, matching, and pending approval states in the preview board.
 
-## ZIP model packs — local verification (2026-10-05; production gate pending)
+## ZIP model packs â€” local verification (2026-10-05; production gate pending)
 
 Branch `feat/zip-model-packs`, Windows 11 host, Playwright Chromium. In this checkout the customizer bundle is not built (`vite` is not installed), which accounts for every failure listed below. The same failures occur on a clean checkout and are not caused by this change.
 
@@ -43,21 +43,21 @@ The preview board does not include the ZIP picker. The picker was captured separ
 **Manual check with the reference pack** (`turn-tracker-print-pack-v2.zip`, not committed), run in `dev:workspace` with a scratch store:
 
 - The picker listed 10 parts (base, chassis, keycap_E/R/S, latch_bar, lid, panel, plunger, yoke) and showed 8 PNGs, `ASSEMBLY.md` and `turn_tracker.scad` under "Not printed".
-- The upload was verified privately. Deselecting `base` and setting `chassis` to 3 moved the range from $26–$44 to $38–$64.
+- The upload was verified privately. Deselecting `base` and setting `chassis` to 3 moved the range from $26â€“$44 to $38â€“$64.
 - Submit succeeded. The operator inbox showed the ZIP with its ignored list and the 9 selected parts, `chassis` at quantity 3, each with a Download button.
-- The server pack snapshot for that selection was $71–$88. The customer-facing range is the browser's planning figure and is not replaced by the server pack price.
+- The server pack snapshot for that selection was $71â€“$88. The customer-facing range is the browser's planning figure and is not replaced by the server pack price.
 
 **Final fix wave (same day).** The counts above are from after the fixes for the whole-branch review. A real-browser run on `scripts/dev-workspace.mjs` (`npm run dev:workspace`) used two synthetic ZIPs. It attached pack A, set a part to quantity 4, replaced it with pack B, deselected one part, set another to quantity 2, and submitted. Results:
 
 - Only pack B's two selected parts were attached, with quantities 1 and 2.
 - Pack A's ZIP row attached with no parts. The attach rules are unchanged; its parts were unselected when pack B's selection was recorded.
-- The request carried `packParts: "2 of 3 parts: b/left.stl ×1; b/right.stl ×2"`.
+- The request carried `packParts: "2 of 3 parts: b/left.stl Ã—1; b/right.stl Ã—2"`.
 - The operator sheet listed only `b/left.stl` and `b/right.stl` as parts.
 - The pack price note was inspected in harness captures at 390 px, light and dark. It wraps normally under the slice copy and is legible in both themes.
 
 **Pending before production use:** apply `006_model_packs.sql` to production Neon after 005 and before deploying this code; run a synthetic ZIP request against private Blob (upload, extraction, operator per-part download); confirm `npm run estimate:cleanup` reports `orphanedParts` for the unselected parts. None of these were performed.
 
-## Customize section (parametric generators) — local verification (2026-10-03; production gate pending)
+## Customize section (parametric generators) â€” local verification (2026-10-03; production gate pending)
 
 Branch `feat/generator-section`, Node 22.22.0, Windows 11 host, Playwright Chromium. Every number below comes from a run on this date.
 
@@ -79,8 +79,8 @@ npm run screenshots                                  exit 0
 
 What the new checks cover:
 
-- `tests/unit/customize-all-generators.test.mjs` builds every registered generator's defaults and every preset on real Manifold WASM. Each build must be analyzer-clean (no warning other than `embedded_settings_ignored`), use 1–5 colors and finish in under 20 s. In Node the defaults take 5–110 ms. A canary in every sensitive field never appears in any inflated 3MF entry, the filename or a part name. The Wi-Fi tag defaults validate only once a password is supplied; the test allows a failure only on sensitive fields.
-- `npm run validate` checks every generator for a page, a builder, a built page, `origin`, `version` and `rights`. A publishable generator also needs a sitemap entry, a catalog card and a screenshot entry. `public/customize/` may contain no remote URL or remote request, including protocol-relative `//host` URLs in HTML attributes (src, href, srcset, action, poster, data-src), CSS `url()`/`@import` and JS string literals; the site assets those pages load (site.css, shared.css, site.js and its imports, favicon, manifest) may not make a remote request either (their ordinary profile links are navigation, not requests). The gate logic lives in `scripts/generator-gates.mjs`, and `tests/unit/generator-gates.test.mjs` proves each gate fails on a fixture (missing built page, source page, sitemap entry, screenshot entry, rights note, publishable flag, origin, version, builder, catalog card; an unpublishable generator listed). Against the real tree each gate was also shown to fail when broken: an injected `fetch("https://evil.example/x")`, `url(//evil.example/…)` in the bundle CSS and in shared.css, an `<img src="//evil.example/…">` in a built page, a removed sitemap line, an empty `rights.note`, a missing screenshot entry.
+- `tests/unit/customize-all-generators.test.mjs` builds every registered generator's defaults and every preset on real Manifold WASM. Each build must be analyzer-clean (no warning other than `embedded_settings_ignored`), use 1â€“5 colors and finish in under 20 s. In Node the defaults take 5â€“110 ms. A canary in every sensitive field never appears in any inflated 3MF entry, the filename or a part name. The Wi-Fi tag defaults validate only once a password is supplied; the test allows a failure only on sensitive fields.
+- `npm run validate` checks every generator for a page, a builder, a built page, `origin`, `version` and `rights`. A publishable generator also needs a sitemap entry, a catalog card and a screenshot entry. `public/customize/` may contain no remote URL or remote request, including protocol-relative `//host` URLs in HTML attributes (src, href, srcset, action, poster, data-src), CSS `url()`/`@import` and JS string literals; the site assets those pages load (site.css, shared.css, site.js and its imports, favicon, manifest) may not make a remote request either (their ordinary profile links are navigation, not requests). The gate logic lives in `scripts/generator-gates.mjs`, and `tests/unit/generator-gates.test.mjs` proves each gate fails on a fixture (missing built page, source page, sitemap entry, screenshot entry, rights note, publishable flag, origin, version, builder, catalog card; an unpublishable generator listed). Against the real tree each gate was also shown to fail when broken: an injected `fetch("https://evil.example/x")`, `url(//evil.example/â€¦)` in the bundle CSS and in shared.css, an `<img src="//evil.example/â€¦">` in a built page, a removed sitemap line, an empty `rights.note`, a missing screenshot entry.
 - The E2E matrix runs every generator through four checks:
   - Full flow: page, edit, color badge, Continue, order page (`.3mf` chip and notice), submission through the local dev API. The local operator store and `data/dev-requests.ndjson` (create and complete events) then hold `customization.generatorId`. The typed Wi-Fi password appears in neither, nor in browser storage.
   - Offline: a build with every non-storefront request aborted; zero requests were attempted. The route provably sees the build worker's requests: it records the Manifold `.wasm` (fetched only by the worker), and aborting that `.wasm` through the same route makes the build fail.
@@ -94,16 +94,16 @@ What the new checks cover:
 
 **Pending before production use:** the owner-gated rollout in [DEPLOYMENT.md](DEPLOYMENT.md#customize-section-rollout-owner-gated). That covers a preview deployment and its live CSP, a printed and phone-scanned Wi-Fi tag, the slicer worker on jdh-docker-00, `SLICER_PROVIDER`, and a real customizer request end to end. None of these were performed.
 
-## Print estimation — scheduled cleanup (production deployment pending)
+## Print estimation â€” scheduled cleanup (production deployment pending)
 
 The GitHub Actions workflow `.github/workflows/estimate-cleanup.yml` runs `npm run estimate:cleanup` on an hourly schedule. To enable it:
 
 1. Add `NEON_DATABASE_URL` (same value as the storefront's `DATABASE_URL`) and `VERCEL_BLOB_TOKEN` (same value as the storefront's `BLOB_READ_WRITE_TOKEN`) to repository secrets.
-2. Verify the workflow runs successfully in the Actions tab — the first run should show `sweep` results in the workflow logs.
+2. Verify the workflow runs successfully in the Actions tab â€” the first run should show `sweep` results in the workflow logs.
 3. Confirm cleanup logs appear in Vercel function logs, with no critical errors in the past 24 hours.
 4. Verify that sessions and assets older than their retention TTL are removed by querying Neon directly or inspecting Blob storage metrics.
 
-## Print estimation — local verification (2026-09-30; production gate pending)
+## Print estimation â€” local verification (2026-09-30; production gate pending)
 
 `npm test` passed: static validation, 220 unit/contract tests, 61 browser/real-HTTP tests, and the 193/193 UX audit. `npm run screenshots` captured 28 views; the preview board was inspected, including the STL/3MF model panel (desktop light, 390 px dark) and the operator print sheet (desktop light, 390 px dark).
 
@@ -111,7 +111,7 @@ Coverage includes: pinned workbook calibration fixtures and dual-floor boundarie
 
 **Pending before production use:** apply `004_print_estimation.sql` to production Neon; confirm `/api/health` reports `printEstimation: true`; verify a synthetic print request end to end against private Blob (upload, verification, operator download, cleanup); schedule `npm run estimate:cleanup`; optionally provision a slicer worker. None of these were performed in this change.
 
-## Home Assistant work peek — release gate (production installed; synthetic alert pending)
+## Home Assistant work peek â€” release gate (production installed; synthetic alert pending)
 
 Local tests and source review verify the endpoint, snapshot contract, and Home Assistant example. Production evidence below covers deployment and the installed empty-queue dashboard, but not synthetic-work alerts, phone delivery, terminal behavior, or the deliberate failure drills. Record a timestamp, deployment identifier, Home Assistant configuration-check result, synthetic work ID, HTTP status and response-header observations, and before/after work-state evidence for each check below. Never record token values or full private request data.
 
@@ -197,7 +197,7 @@ node --env-file=.env.production.local scripts/verify-live-intake.mjs
 - Vercel publishes only `public/`; functions remain in `api/`.
 - API functions have a 45-second execution cap to accommodate successive bounded provider calls.
 - The inline JSON-LD script has a matching CSP hash.
-- The production social image is a 1200×630 PNG.
+- The production social image is a 1200Ã—630 PNG.
 - `smoke:live` checks deployed routes, configured intake flags, security headers, and private-source denial without sending customer data.
 
 ### API and integration boundaries
@@ -257,7 +257,7 @@ The read-only `npm run smoke:live` check currently fails at the domain with 0 of
 
 No live provider account, DNS record, production credential, or payment webhook is included in the source package.
 
-## Blue/teal integration verification — September 15, 2026
+## Blue/teal integration verification â€” September 15, 2026
 
 Baseline: 35 unit / 27 browser / 193 UX checks. Integrated release: 51 unit / 35 browser / 193 UX checks passed, including quick-inquiry validation, local recovery with denied storage, real client/server contract, same-key retries, uncertain completion, and same-metadata attachment replacement. The $15 print minimum has a regression test.
 
@@ -272,3 +272,28 @@ Follow-up safety verification: 53 unit tests pass, including both actual verifie
 ## Spoolman inventory integration
 
 See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
+
+
+## Partner portal API and workflow checkpoint 2026-10-23
+
+Implementation remains on `feat/partner-portal`; this is not a release acceptance
+or deployment claim. Native API routing, persisted legal/CPA launch gates, scoped
+owner/partner sessions and CSRF, campaign/gig commands, budget controls, private
+work reasons, consented visits/leads and optional activity records are implemented.
+No production migration, DNS record, real invitation or payment has been changed.
+
+Verification run: `npm test` passed build/static/architecture validation, 1,123
+unit/contract tests, 224 browser tests with one optional skip, and 241/241 UX checks.
+Subsequent focused tests passed all 22 partner cases after adding consent-language
+provenance and owner lock-order regressions. `npm run validate` passed again.
+`npm run test:partner:postgres` passed against pinned native PostgreSQL 18 with
+restricted grants, real numeric-bound owner session/downgrade denial, concurrent
+budget acceptance, concurrent retry, owner-withdraw/partner-accept race and synthetic
+dump/restore. These are automated HTTP/database tests; partner PWA browser cookie
+handling, the full nine-feature BDD suite and encrypted production restore remain
+unverified and required before release. No new UI was authored in this increment.
+
+Remaining scope includes settlement/payment correction and exports, referrals and
+bonuses, legal editor/review exports/imports/issuance, partner PWA and owner console,
+retention/outbox/operational proof, reviewed PR and actual disabled staging/production
+release. See [the plan](superpowers/plans/2026-10-23-partner-portal.md).

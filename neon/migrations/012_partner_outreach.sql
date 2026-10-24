@@ -95,10 +95,13 @@ CREATE TABLE IF NOT EXISTS partner_leads (
  contact_data jsonb NOT NULL CHECK(jsonb_typeof(contact_data)='object'), contact_key text NOT NULL,
  consent_text text NOT NULL CHECK(length(trim(consent_text))>0), purpose text NOT NULL CHECK(length(trim(purpose))>0),
  consent_at timestamptz NOT NULL, withdrawn_at timestamptz, deleted_at timestamptz,
+ status text NOT NULL DEFAULT 'needs_review' CHECK(status IN ('needs_review','qualified','rejected','withdrawn','deleted')),
  revision integer NOT NULL DEFAULT 1 CHECK(revision>0), created_at timestamptz NOT NULL DEFAULT now(),
  FOREIGN KEY(visit_id,partner_id) REFERENCES partner_visits(id,partner_id)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS partner_leads_active_contact ON partner_leads(contact_key) WHERE withdrawn_at IS NULL AND deleted_at IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS partner_leads_active_email ON partner_leads((lower(contact_data->>'email'))) WHERE withdrawn_at IS NULL AND deleted_at IS NULL AND contact_data->>'email' IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS partner_leads_active_phone ON partner_leads((contact_data->>'phone')) WHERE withdrawn_at IS NULL AND deleted_at IS NULL AND contact_data->>'phone' IS NOT NULL;
 CREATE INDEX IF NOT EXISTS partner_leads_partner ON partner_leads(partner_id);
 CREATE TABLE IF NOT EXISTS partner_consent_events (
  id uuid PRIMARY KEY, lead_id uuid NOT NULL REFERENCES partner_leads(id), actor_id text NOT NULL,
@@ -158,7 +161,7 @@ CREATE TABLE IF NOT EXISTS partner_legal_reviews (
  scope text NOT NULL CHECK(scope IN ('classification','agreement_language','solicitation_policy','accounting')),
  decision text NOT NULL CHECK(decision IN ('approved','conditional','changes_requested','rejected')),
  reviewer_name text NOT NULL, evidence_ref text NOT NULL, notes text NOT NULL DEFAULT '',
- actor_id text NOT NULL, reviewed_at timestamptz NOT NULL, expires_at timestamptz
+ actor_id text NOT NULL, reviewed_at timestamptz NOT NULL, recorded_at timestamptz NOT NULL DEFAULT now(), expires_at timestamptz
 );
 CREATE INDEX IF NOT EXISTS partner_legal_reviews_version ON partner_legal_reviews(version_id,scope);
 CREATE TABLE IF NOT EXISTS partner_legal_comments (
@@ -182,7 +185,7 @@ CREATE TABLE IF NOT EXISTS partner_agreement_acknowledgments (
 );
 CREATE TABLE IF NOT EXISTS partner_activity_sessions (
  id uuid PRIMARY KEY, partner_id uuid NOT NULL REFERENCES partner_accounts(id),
- started_at timestamptz NOT NULL, ended_at timestamptz, paused_at timestamptz, elapsed_seconds integer NOT NULL DEFAULT 0 CHECK(elapsed_seconds>=0),
+ started_at timestamptz NOT NULL, ended_at timestamptz, paused_at timestamptz, running_since timestamptz, elapsed_seconds integer NOT NULL DEFAULT 0 CHECK(elapsed_seconds>=0),
  optional boolean NOT NULL DEFAULT true CHECK(optional=true), revision integer NOT NULL DEFAULT 1 CHECK(revision>0),
  CHECK(ended_at IS NULL OR ended_at>=started_at)
 );
@@ -209,6 +212,13 @@ CREATE TABLE IF NOT EXISTS partner_export_batches (
  kind text NOT NULL CHECK(kind IN ('accounting','statement','own_data')), manifest jsonb NOT NULL CHECK(jsonb_typeof(manifest)='object'),
  created_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS partner_work_events (
+ id uuid PRIMARY KEY, program_id uuid NOT NULL REFERENCES partner_programs(id), gig_id uuid, partner_id uuid,
+ event_type text NOT NULL, actor_kind text NOT NULL CHECK(actor_kind IN ('OWNER','PARTNER','SYSTEM')), actor_id text NOT NULL,
+ reason text NOT NULL DEFAULT '' CHECK(length(reason)<=2000), data jsonb NOT NULL DEFAULT '{}' CHECK(jsonb_typeof(data)='object'),
+ created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(gig_id,partner_id) REFERENCES partner_gigs(id,partner_id)
+);
+CREATE INDEX IF NOT EXISTS partner_work_events_gig ON partner_work_events(gig_id,created_at,id);
 -- Immutable evidence is corrected by new records, never overwritten or deleted.
 CREATE OR REPLACE FUNCTION partner_reject_evidence_mutation() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN RAISE EXCEPTION 'Partner evidence is immutable'; END;
@@ -216,8 +226,8 @@ $$;
 DO $$
 DECLARE table_name text; immutable boolean;
 BEGIN
- FOREACH table_name IN ARRAY ARRAY['partner_programs','partner_accounts','partner_invites','partner_sessions','partner_rate_limits','partner_program_weeks','partner_campaigns','partner_gigs','partner_budget_reservations','partner_negotiations','partner_visits','partner_leads','partner_consent_events','partner_referrals','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_documents','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_agreement_issues','partner_agreement_acknowledgments','partner_activity_sessions','partner_command_keys','partner_audit_events','partner_outbox','partner_export_batches'] LOOP
-  immutable := table_name=ANY(ARRAY['partner_budget_reservations','partner_negotiations','partner_consent_events','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_agreement_issues','partner_agreement_acknowledgments','partner_audit_events','partner_export_batches']);
+ FOREACH table_name IN ARRAY ARRAY['partner_programs','partner_accounts','partner_invites','partner_sessions','partner_rate_limits','partner_program_weeks','partner_campaigns','partner_gigs','partner_budget_reservations','partner_negotiations','partner_visits','partner_leads','partner_consent_events','partner_referrals','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_documents','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_agreement_issues','partner_agreement_acknowledgments','partner_activity_sessions','partner_command_keys','partner_audit_events','partner_outbox','partner_export_batches','partner_work_events'] LOOP
+  immutable := table_name=ANY(ARRAY['partner_budget_reservations','partner_negotiations','partner_consent_events','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_agreement_issues','partner_agreement_acknowledgments','partner_audit_events','partner_export_batches','partner_work_events']);
   EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY',table_name);
   EXECUTE format('REVOKE ALL ON %I FROM PUBLIC',table_name);
   IF immutable THEN
@@ -250,6 +260,13 @@ REVOKE ALL ON FUNCTION partner_protect_accepted_terms() FROM PUBLIC;
 DO $$ BEGIN
  IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='partner_document_active_version' AND conrelid='partner_legal_documents'::regclass) THEN
   ALTER TABLE partner_legal_documents ADD CONSTRAINT partner_document_active_version FOREIGN KEY(active_version_id,id) REFERENCES partner_legal_versions(id,document_id);
+ END IF;
+END;
+$$;
+
+DO $$ BEGIN
+ IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname='platform_backend') THEN
+  GRANT DELETE ON partner_activity_sessions TO platform_backend;
  END IF;
 END;
 $$;
