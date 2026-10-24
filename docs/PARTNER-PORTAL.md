@@ -133,7 +133,8 @@ use `/api/operator-partners`. No additional storefront Vercel function is introd
 A command body contains only `action`, `input` and a UUID `key`; entity commands
 require the relevant expected revision. Owner invitation/recovery responses show a
 new raw code once and invalidate prior unused codes, rather than persisting codes
-in idempotency receipts. The final OpenAPI schema and browser SDK remain pending.
+in idempotency receipts. The [native API transport contract](PARTNER-API.md) now maps actual routes and command
+fields/roles; complete typed domain schemas and a browser SDK remain pending.
 
 The incremental manual finance, referral, partner and owner workspaces and legal
 review implementation are described below. Full offline PWA lifecycle, exact owner
