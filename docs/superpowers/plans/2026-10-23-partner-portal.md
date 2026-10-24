@@ -36,8 +36,8 @@ Program default OFF, classification approval OFF, accounting approval OFF. New a
 Files: lib/partner-outreach/policy.js, domain.js; tests/unit/partner-policy.test.mjs and partner-domain.test.mjs.
 - [x] Write failing tests for Central Monday boundaries/DST, sunset, strict integer cents, 20000/40000 caps and disabled gates.
 - [x] Implement pure authorization policy; no provider imports.
-- [ ] Test voluntary decline/counteroffer, safety termination, cancellation preserving earned obligations, immutable terms, gift rejection and payment corrections.
-- [ ] Implement explicit state transitions with expected revisions; verify focused tests and commit.
+- [x] Test voluntary decline/counteroffer, safety termination, cancellation preserving earned obligations, immutable terms, gift rejection and payment corrections.
+- [x] Implement explicit state transitions with expected revisions; verify focused tests and commit.
 
 ## Task 2: Transactional persistence
 
@@ -135,3 +135,18 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
   and contains no signature blocks. Do not import it as approval evidence.
 - Invoice Ninja official expense and CSV mapping documentation was inspected. Account
   capability and import execution remain unverified; preserve manual-ledger defaults.
+
+- Ledger/legal backend increment: verified manual settlements, partial payments,
+  compensating reversals, externally evidenced reconciliation, immutable adjustments,
+  funding exceptions and scoped earnings are implemented. Cash/accrual incremental
+  CSV exports claim stable source IDs in the same transaction; no provider writes.
+- Partner profile, own data/statement exports and material issuance/return are
+  implemented. Authentication secrets and other partners' data are excluded.
+- Legal source/schema/issuance hashes, immutable revisions, comparison, comments,
+  package-scoped review decisions, publication, frozen issues and exact read
+  acknowledgment are implemented. Acceptance is linked to the current acknowledged
+  issue. Real professional review and package generation/Word QA remain outstanding.
+- Privacy discovery: the packet's review/CPA cover letters contain private personal
+  and financial scenario facts. Never copy them wholesale into public Git. Anonymize
+  reusable cover templates; supply factual context only in an explicitly approved,
+  private reviewer package. Retain original packet sources privately for comparison.
