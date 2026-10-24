@@ -111,3 +111,11 @@ staging, disabled production deployment and provider-issued DNS/TLS verification
 
 See [implementation status](PARTNER-PORTAL.md) and the
 [implementation plan](superpowers/plans/2026-10-23-partner-portal.md).
+
+
+Owner access lifecycle increment: Accounts now exposes deliberate enrollment/recovery
+issuance and suspension/revocation. Contract evidence covers code replacement, replay,
+old-passphrase rejection, suspended recovery and revoked denial. Browser fixtures cover
+masked private display, hidden/late responses, expiry and authorization loss. Native
+production-composition browser evidence covers suspension, recovery and debt preservation
+while new work is disabled. This does not complete all nine native packet scenarios.

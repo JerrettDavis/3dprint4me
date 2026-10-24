@@ -3,3 +3,5 @@
 .owner-shell pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}
 
 .partner-owner #owner-sign-out{background:transparent;color:#fff;border:1px solid #adc8cf;border-radius:6px;padding:.55rem .8rem;min-height:44px}
+
+.owner-access-code:not(:empty){padding:1rem;border:2px solid var(--teal);border-radius:6px;max-width:45rem;margin:1rem 0}.owner-access-code label{margin:.6rem 0}.owner-access-code input{font-family:ui-monospace,monospace}.owner-access-code h4{margin:0}.owner-access-code .owner-actions{margin-top:1rem}

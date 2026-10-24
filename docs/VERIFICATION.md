@@ -637,3 +637,34 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   lead/referral verification and finance/settlement screens remain required. No
   production migration, deployment, real invite, actual approval, payment or external
   message occurred. Existing backend/provider behavior and runtime image are unchanged.
+
+
+### Owner access lifecycle (2026-10-24)
+
+- Full `npm test` passed: 1,178 unit/contract tests, 259 browser cases and one
+  Windows skip, plus 241/241 UX checks. Thirteen owner UI cases and nine focused
+  auth/client/static tests also passed. Suspended recovery was observed failing
+  before the backend change; the new privacy cases exposed authorization-loss
+  cleanup and hidden pending-response defects before their fixes.
+- Eight native browser cases passed with production runtime composition and a
+  restricted disposable PostgreSQL role. The owner suspends a live partner,
+  their next profile mutation is denied, a fresh private code restores access,
+  and the existing $10 outstanding payable survives while new work remains off.
+  Contract checks cover replaced/replayed code denial, old passphrase rejection,
+  and revoked recovery denial. These are not all nine packet scenarios.
+- Native PostgreSQL permissions, concurrent ceilings, replay and additive restore
+  passed. Operator static build passed; final access assets match built output.
+  Shell cache increments to v14 and includes the access module, never API data.
+- Backend image `3dprint4me-partner-api:20261024-access` built with manifest
+  `sha256:475053a925154eb353a24f470d302f8c4bd04bbdfd6e7f4a6a0f9e9e7abcb36d`.
+  Auth/runtime imports pass without network, with a read-only filesystem, dropped
+  capabilities and no-new-privileges. An initial smoke command named a nonexistent
+  API file; rerunning against the actual auth/runtime modules passed.
+- Captured 96 screenshots and inspected both full new 320-light/390-dark account
+  views plus the owner preview-board section. Credentials remain masked. Restored
+  unrelated generated screenshot/audit changes. Read-only review found no
+  credential/authorization/debt blocker; corrected its minor punctuation finding.
+- No production migration/deployment, real invitation, actual professional
+  approval, payment or external message occurred. Owner lead/referral, finance
+  and legal review workflows, full offline lifecycle, all native packet BDD and
+  staging/production release work remain open.

@@ -7,11 +7,11 @@ import {once} from 'node:events';
 import pg from 'pg';
 import {MIGRATIONS,splitStatements} from '../../scripts/migrate-neon.mjs';
 import {createNativeDatabase,nativePoolOptions,closeDatabase} from '../../lib/database.js';
-import {createPartnerApplication} from '../../lib/partner-outreach/application.js';
+import {createPartnerRuntime} from '../../lib/partner-outreach/runtime.js';
 import {createProjectRequestHandler} from '../../lib/project-request/handler.js';
 import {createRequestRecord,completeRequestRecord} from '../../lib/neon.js';
 import {issueReferral} from '../../lib/partner-outreach/referrals.js';
-import {createPartnerAuth,hashPassword} from '../../lib/partner-outreach/auth.js';
+import {hashPassword} from '../../lib/partner-outreach/auth.js';
 import {createPartnerHandlers} from '../../lib/partner-outreach/http.js';
 import {createPlatformServer} from '../../lib/platform/api-server.js';
 if(process.env.PARTNER_NATIVE_BROWSER_TEST!=='1')throw new Error('Explicit disposable fixture flag required.');
@@ -54,7 +54,7 @@ try{
   await admin.query("INSERT INTO operator_identity_bindings(issuer,subject,operator_id) VALUES('https://github.com/',$1,$2)",[subject,id]);
   await admin.query("INSERT INTO operator_sessions(token_hash,operator_id,issuer,subject,expires_at) VALUES($1,$2,'https://github.com/',$3,$4)",[digest(token),id,subject,new Date(Date.now()+86400000).toISOString()]);
  }
- const app=createPartnerApplication({database,env}),auth=createPartnerAuth({database}),runtime={database,app,auth};
+ const runtime=createPartnerRuntime({database,env});
  const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});
  const requestHandler=createProjectRequestHandler({getRuntime:()=>({mode:'neon',requestRepository:{createDraft:createRequestRecord,completeDraft:completeRequestRecord}}),issueCheckoutProof:()=>null});
  // Explicit loopback fixture admission only; production public intake uses its signed proxy.

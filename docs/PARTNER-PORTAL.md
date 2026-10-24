@@ -544,5 +544,28 @@ Native browser evidence uses an actual bound synthetic GitHub owner session and 
 restricted PostgreSQL runtime: saved cap survives reload, an operator is denied, and
 existing accepted work can be submitted, owner-approved and made payable while new
 work is disabled. This proves that slice, not the full packet owner scenario or live
-GitHub login. Invitations/revocation, lead/referral verification, finance/settlement,
+GitHub login. Lead/referral verification, finance/settlement,
 and legal editorial/review/feedback/encrypted sharing screens are still required.
+
+
+### Owner private access lifecycle
+
+The Accounts view issues enrollment codes only when actual program clearance allows
+it. Recovery is available for active or suspended accounts following the owner identity
+check. Every issue invalidates unused codes; it never automatically retries an unknown
+response. Reconfirm identity before issuing a replacement. Issuance alone does not restore
+a suspended account. Successful redemption resets its passphrase, restores active status
+and invalidates earlier credentials/sessions. Revocation blocks recovery.
+
+One-time codes appear masked in a read-only field for deliberate private handoff. They
+are absent from URLs, browser storage, ordinary command receipts and downloads. The
+owner view clears them on navigation, sign-out, access denial, expiry, page hiding and
+page exit; a late hidden-page response is suppressed. This limits browser exposure and
+does not promise cryptographic memory erasure. The server enforces expiry independently.
+Suspension/revocation require explicit confirmation and preserve accepted obligations.
+
+Native verification now uses the production runtime composition, including enrollment
+clearance and transaction-time owner authorization. A real restricted-role disposable
+database/browser flow proves live suspension denial, fresh-code recovery with new work
+still disabled, and preservation of an existing payable. Initial cleared enrollment,
+production OAuth/TLS and the complete packet scenarios remain separate verification.
