@@ -81,7 +81,15 @@ verified in [deployment evidence](PARTNER-DEPLOYMENT.md). Remaining gates includ
 same-site staging/cookie/CORS/TLS, full host/private-object-provider restore, current
 provider DNS/TTL/proxy discovery, reviewed release/CI and additive disabled production
 migration/API/domain rollout, unchanged existing-service smokes, operational jobs/
-retention/outboxes/statements/forecasts/OpenAPI/monitoring requirements and actual
+retention/outboxes/statements/OpenAPI/monitoring requirements and actual
 provider/accounting validation. Existing status reports estimates/jobs unhealthy and
 files/email unknown; do not erase that evidence. Actual attorney/CPA clearance and owner
 activation remain independent of deployment. No green aggregate count closes these gaps.
+
+
+O-18 now has an owner-only weekly/program forecast implementation with deterministic
+accepted-commitment bounds and actual native lifecycle/role/failure checks. It keeps
+caps, reserved maxima, unpaid obligations, verified spend and unaccepted offers distinct.
+The [forecast plan](superpowers/plans/2026-10-24-partner-spend-forecasts.md) and
+[verification](VERIFICATION.md) track its full checks and still-pending deployment.
+This does not close scheduled weekly statements, other jobs or owner-control BDD.

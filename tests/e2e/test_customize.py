@@ -1063,14 +1063,13 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         page.get_by_label(label, exact=True).fill(value)
         values[key] = value
     draft_key = f"3dp-customize:{generator_id}:v{GENERATOR_VERSIONS.get(generator_id, 1)}"
-    needle = json.dumps(value)[1:-1]
-    for _ in range(100):  # the draft is written in the same step that starts the rebuild
-        if needle in page.evaluate(f"sessionStorage.getItem({draft_key!r}) || ''"):
-            break
-        page.wait_for_timeout(50)
-    else:
-        pytest.fail(f"{generator_id}: the edit never reached the draft")
-    wait_ready(page)
+    # A numeric value can occur in another field of the old draft. Match the
+    # edited field exactly, then let its debounce settle before using the model.
+    page.wait_for_function("""({draftKey,key,value}) => {
+        try { return JSON.parse(sessionStorage.getItem(draftKey) || 'null')?.[key] === value; }
+        catch { return false; }
+    }""", arg={"draftKey": draft_key, "key": key, "value": values[key]}, timeout=BUILD_TIMEOUT)
+    wait_settled(page)
     return values
 
 

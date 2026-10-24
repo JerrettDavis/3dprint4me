@@ -537,13 +537,14 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
     from tests.e2e.test_partner_owner import install_owner_fixture, install_access_fixture
     from tests.e2e.test_partner_owner_referrals import install_review_fixture
     from tests.e2e.test_partner_owner_finance import install_finance_fixture, BATCH
+    from tests.e2e.test_partner_owner_forecasts import install_forecast_fixture
     from tests.e2e.test_partner_owner_legal import install_legal_fixture, VERSION
     from tests.e2e.test_partner_owner_review import review_fixture, PACKAGE, FEEDBACK
     from tests.e2e.test_partner_owner_agreements import install_agreement_fixture, ISSUE, PROGRAM as AGREEMENT_PROGRAM, VERSION as AGREEMENT_VERSION, PARTNER as AGREEMENT_PARTNER
     from tests.e2e.test_partner_shell import GIG_ID, PARTNER
     captured=[]
     with running_operator_workspace() as (_,origin,_):
-        for state,viewport,scheme in [('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
+        for state,viewport,scheme in [('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('forecasts',(390,844),'dark'),('forecasts',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
             path=OUTPUT/f'operator-partners-{state}-{scheme}.png'
             with SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
                 page=site.page
@@ -552,6 +553,7 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                 elif state in ['legal','legal-version']:install_legal_fixture(page)
                 elif state.startswith('review-'):review_fixture(page)
                 elif state in ['finance','accounting-export']:install_finance_fixture(page)
+                elif state=='forecasts':install_forecast_fixture(page,label='Synthetic outreach forecast')
                 elif state in ['leads','leads-suppressed','referrals']:install_review_fixture(page,withdrawn=state=='leads-suppressed')
                 else:install_owner_fixture(page)
                 if state=='gig':

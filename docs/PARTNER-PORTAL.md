@@ -847,3 +847,37 @@ attribution/settlement before awarding the original $20. The quote immediately
 preserves the opted-in code and private receipt for owner review; verified attribution
 remains an explicit owner step. These are disposable test records, not actual customer
 requests, professional approvals, notifications or executed payments.
+
+
+## Owner weekly and program spend forecasts (O-18)
+
+The owner Spend forecasts view supports all programs or an explicit program and
+shows original Central authorization weeks. It reports a deterministic upper bound
+for recorded accepted commitments, without assuming future gigs or conversion rates:
+
+- Potential total spend = verified net spend + remaining exposure.
+- Remaining exposure = unpaid obligations + accepted fees without payables + unearned
+  bonus maxima. A payable replaces the accepted fee; an earned bonus replaces its
+  conditional maximum. Overpayment remains recorded spend and is shown for reconciliation.
+- Unaccepted offered maxima are separate and excluded. Conditional bonuses might never
+  qualify. Historical qualifying evidence can still need review after its deadline.
+- A lower new-authorization cap, pause or sunset never erases existing exposure or debt.
+  Additional evidenced obligations above historical reservations show a funding exception.
+  Gifts stay outside contractor compensation. Payment-date cash exports remain separate
+  from these original-authorization-week projections.
+
+Private owner contract: `GET /api/operator-partners?resource=forecasts`, optionally
+`programId=<UUID>`. The response has `method: recorded_commitment_upper_bound`, `asOf`
+and aggregate program `items` with nested `weeks`. Each scope contains authorization,
+obligation, paid/outstanding/overpaid, pending-fee/contingent-bonus, remaining-exposure,
+potential-total and above-authorization fields in integer cents. Week rows also include
+the current cap and persisted Monday date. No partner contact, bank reference or
+customer details enter this projection. It is not exposed in the partner API realm.
+
+Existing owner verification/no-store handling applies. Ordered shared program locks
+serialize the bounded multi-query read with existing financial writers; no migration
+or new write privilege is needed. Incomplete/mismatched reservations, missing source
+allocations or unsafe monetary values fail with generic 503, not partial lower totals.
+More than 10,000 source records requires narrower scope/owner reconciliation. Actual
+native rollout of this API/owner view remains pending; the protected partner shell
+is a separate artifact. Operator shell v22 precaches the additional static module.

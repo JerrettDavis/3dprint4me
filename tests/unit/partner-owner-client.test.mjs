@@ -47,3 +47,5 @@ test('professional review resources require the owner session and use private cr
  client.clear();await assert.rejects(client.read('review-feedback',{id:'evidence'}),{status:401});
  assert.equal(calls.length,3);
 });
+
+test('forecast reads require owner session and preserve scoped private no-store transport',async()=>{const calls=[];const client=createPartnerOwnerClient({apiBase:'http://127.0.0.1:9999',fetchImpl:async(url,options)=>{calls.push([url,options]);return json(url.includes('resource=session')?{owner:{id:'owner'},csrfToken:'private-memory'}:{items:[]});}});await assert.rejects(client.read('forecasts'),{status:401});await client.session();await client.read('forecasts',{programId:'synthetic-program'});assert.equal(calls[1][0],'http://127.0.0.1:9999/api/operator-partners?resource=forecasts&programId=synthetic-program');assert.equal(calls[1][1].credentials,'include');assert.equal(calls[1][1].cache,'no-store');assert.equal(calls[1][1].method,'GET');});
