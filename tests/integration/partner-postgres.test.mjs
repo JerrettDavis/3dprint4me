@@ -10,6 +10,7 @@ import pg from 'pg';
 import { createPartnerApplication } from '../../lib/partner-outreach/application.js';
 import { createOwnerAuthorizer,createPartnerHandlers } from '../../lib/partner-outreach/http.js';
 import { purgeExpiredPartnerExports } from '../../lib/partner-outreach/export-retention.js';
+import { requirePublishedVersion } from '../../lib/partner-outreach/legal.js';
 import { storedLegalVersion,renderLegalVersion } from '../../lib/partner-outreach/legal-content.js';
 import { digest,canonicalJson } from '../../lib/partner-outreach/postgres-repository.js';
 import { createReviewDocx } from '../../lib/partner-outreach/docx.js';
@@ -120,6 +121,34 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   await financial('legal.publish',{programId,versionId:legal.versionId,expectedRevision:1});
   await financial('program.configure',{programId,expectedRevision:1,contractVersionId:legal.versionId,policyVersionId:legal.versionId,enabled:true});
   const issue=await financial('legal.issue',{programId,versionId:legal.versionId,versionHash:legal.hash,partnerId:partners[winner],bindings:{}});
+  // Shared global documents must remain published through authorization commit,
+  // even when another program edits them. Observe a real PostgreSQL lock barrier.
+  const otherProgram=randomUUID();
+  await admin.query("INSERT INTO partner_programs(id,label,starts_on,synthetic) VALUES($1,'Other synthetic program','2026-10-01',true)",[otherProgram]);
+  for(const check of ['authorization','binding']){
+   let release,checked;
+   const gate=new Promise(resolve=>{release=resolve;}),ready=new Promise(resolve=>{checked=resolve;});
+   const holder=database.withTransaction(async tx=>{
+    const [{pid}]=await tx.query`SELECT pg_backend_pid() AS pid`;
+    if(check==='authorization')assert.equal((await app.approvals.status(tx,programId,new Date('2026-10-23T12:00Z'))).allowed,true);
+    else await requirePublishedVersion(tx,legal.versionId,programId,['classification','accounting'],new Date('2026-10-23T12:00Z'));
+    checked(pid);await gate;
+   });
+   const holderPid=await ready;
+   const revision=(await admin.query('SELECT revision FROM partner_legal_documents WHERE id=$1',[legal.documentId])).rows[0].revision;
+   let finished=false;
+   const writer=financial('legal.retire',{programId:otherProgram,documentId:legal.documentId,expectedRevision:revision,reason:'Synthetic cross-program race'}).finally(()=>{finished=true;});
+   let blocked=false;
+   try{
+    for(let i=0;i<80&&!finished;i++){
+     blocked=(await admin.query('SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE $1::int=ANY(pg_blocking_pids(pid))) AS blocked',[holderPid])).rows[0].blocked;
+     if(blocked)break;await new Promise(resolve=>setTimeout(resolve,10));
+    }
+   }finally{release();await Promise.all([holder,writer]);}
+   assert.equal(blocked,true,check+' holds the shared publication until commit');
+   assert.equal((await app.approvals.status(database,programId,new Date('2026-10-23T12:00Z'))).allowed,false);
+   await financial('legal.publish',{programId,versionId:legal.versionId,expectedRevision:revision+1});
+  }
   const partnerSession=randomUUID();
   await admin.query("INSERT INTO partner_sessions(id,partner_id,token_hash,csrf_hash,credential_version,expires_at,absolute_expires_at,created_at) VALUES($1,$2,$3,$4,1,'2026-10-30T12:00Z','2026-11-22T12:00Z','2026-10-23T12:00Z')",[partnerSession,partners[winner],digest('native-partner-session'),digest('native-partner-csrf')]);
   const actualPartner={role:'PARTNER',id:partners[winner],sessionId:partnerSession,credentialVersion:1};
@@ -128,7 +157,7 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   const approvedOffer=await financial('gig.offer',{campaignId:approvedCampaign.id,partnerId:partners[winner]});
   const boundAcceptance=await app.execute({actor:actualPartner,action:'gig.accept',input:{gigId:approvedOffer.id,expectedRevision:1},key:randomUUID()});assert.equal(boundAcceptance.agreementIssueId,issue.id);
   expectedCommitted+=2000;expectedAccepts++;
-  await financial('legal.save',{programId,templateKey:'independent-marketing-services',title:'Synthetic reviewed terms',markdown:'# DRAFT amendment\nNew unreviewed text.',variablesSchema:{},issuable:false,expectedRevision:2,changeReason:'Must not mutate old issue'});
+  await financial('legal.save',{programId,templateKey:'independent-marketing-services',title:'Synthetic reviewed terms',markdown:'# DRAFT amendment\nNew unreviewed text.',variablesSchema:{},issuable:false,expectedRevision:(await admin.query('SELECT revision FROM partner_legal_documents WHERE id=$1',[legal.documentId])).rows[0].revision,changeReason:'Must not mutate old issue'});
   assert.equal((await app.approvals.status(database,programId,new Date('2026-10-23T12:00Z'))).allowed,false);
   const own=(action,input)=>app.execute({actor:actualPartner,action,input,key:randomUUID()});
   assert.ok(boundAcceptance.referral.code);

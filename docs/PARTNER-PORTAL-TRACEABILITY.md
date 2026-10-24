@@ -177,3 +177,17 @@ and retains separate explicit decision/publication actions. Lifecycle and crypto
 bounds have focused regressions. This supplies the offline sharing path requested
 by the packet; exact issuance, all remaining full-feature acceptance and release
 requirements still need their own evidence.
+
+
+Exact issuance and scoped activation increment: the owner can bind reviewed contract
+and policy versions separately from activation, issue a typed exact-source copy and
+inspect immutable source/render/bindings/hash history after pause or amendment. The
+native runtime journey creates four explicitly synthetic scoped reviews, binds while
+paused, separately activates the disposable fixture, retries issuance after a lost
+response, denies acceptance before read acknowledgment, then ties acceptance to the
+acknowledged copy. An amendment removes new-work clearance without changing history.
+No live setting or professional decision is changed by this fixture. Cross-program
+review pooling is denied; all source-required scopes are enforced. Native PostgreSQL
+lock barriers cover cross-program retirement during authorization and binding.
+This supplies the exact-copy UI path; full partner offline/PWA lifecycle, complete
+packet feature acceptance and operational/deployment work still remain.

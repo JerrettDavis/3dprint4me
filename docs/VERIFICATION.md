@@ -902,3 +902,46 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
 - No deployment, DNS change, actual payment, real invitation or external message occurred.
   Exact owner issuance/program bindings, full offline partner lifecycle and remaining
   packet operations/acceptance/release work remain required. Activation stays off.
+
+
+## 2026-10-24: scoped reviewed bindings and exact owner issuance
+
+- Added program-specific reviewed contract/policy selectors, typed exact-source
+  issuance, latest-200 owner history and immutable copy/source comparison. Paused
+  programs retain history; new work requires separate activation and fresh server gates.
+- Closed cross-program review pooling: only exact-version grants for the selected
+  program authorize publication, binding, issuance and new work. All source-required
+  scopes supplement role minimums; latest decisions remain separate by program.
+- Native runtime browser journey proves bind-while-paused, explicit synthetic fixture
+  activation, exact typed defaults/values, lost-response same-key issuance replay,
+  acceptance denied before read acknowledgment, accepted gig bound to its exact copy,
+  and immutable owner history after a new draft removes new-work clearance.
+- Native PostgreSQL race regression first reproduced a shared-document retirement
+  racing authorization. Shared document locks now preserve publication through commit
+  for authorization, binding and issuance; program locks also serialize enrollment
+  gates with owner changes. Both authorization and binding barriers observe real
+  PostgreSQL blockers, then verify retirement disables fresh clearance. The restricted
+  role permissions, concurrency, replay and additive restore test passes.
+- All 14 native browser cases pass together (118.56 seconds); 11 focused agreement/legal
+  UI checks pass. Read-only review confirmed the race fix and found no new concrete
+  blocker in this increment. Operator build output matches source module/SW bytes.
+- Backend image `3dprint4me-partner-api:20261024-owner-issuance` builds successfully;
+  manifest `5d1e8cee35c56338cba8b742e4421d1219a4a6ee1d56c219ca0c60907319a4ad`.
+  Runtime/legal imports pass with networking disabled, read-only filesystem, dropped
+  capabilities and no new privileges. No production migration or deployment occurred.
+- `npm test` passed build/validation and all 1,188 unit/contract tests. Its browser
+  phase finished with 294 passed, one Windows skip and one navigation failure:
+  Chromium `ERR_NO_BUFFER_SPACE` before loading the existing display-sign logo case.
+  That exact case passed immediately in isolation (2.17 seconds); no application or
+  test change was made for the retry. The chained command exited nonzero, so this is
+  not recorded as an uninterrupted green `npm test` run.
+- Separate UX audit passes 241/241 checks; final validation passes generated-reader,
+  versioned assets, static references and architecture boundaries.
+- Captured 125 screenshots with six new 320-light/390-dark owner issuance, immutable
+  copy/source and paused-program binding states. Inspected all six full images and
+  the regenerated preview-board owner section. Kept updated owner navigation
+  baselines and restored unrelated regenerated images. Corrected an editing-time
+  UTF-8 label conversion before final capture; scoped source diffs remain intact.
+- Full partner offline lifecycle, the remaining packet acceptance/operations work and
+  disabled production rollout still remain. Synthetic review evidence is not an actual
+  professional approval; production launch flags remain off.

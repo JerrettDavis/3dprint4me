@@ -15,7 +15,7 @@ test('launch needs exact published reviews and independent environment flags',as
   await f.database.query`UPDATE partner_legal_documents SET status='draft' WHERE id=${f.documentId}`;
   assert.ok((await approvals.status(f.database,f.programId)).missing.includes('published_agreement'));
   await f.database.query`UPDATE partner_legal_documents SET status='published' WHERE id=${f.documentId}`;
-  await f.database.query`INSERT INTO partner_legal_reviews(id,version_id,scope,decision,reviewer_name,evidence_ref,actor_id,reviewed_at,recorded_at) VALUES(${randomUUID()},${f.versionId},'accounting','changes_requested','Synthetic','SYNTHETIC','owner',${TEST_NOW},'2099-01-01')`;
+  await f.database.query`INSERT INTO partner_legal_reviews(id,version_id,package_id,reviewer_role,scope,decision,reviewer_name,evidence_ref,actor_id,reviewed_at,recorded_at) VALUES(${randomUUID()},${f.versionId},${f.reviewPackageId},'cpa','accounting','changes_requested','Synthetic','SYNTHETIC','owner',${TEST_NOW},'2099-01-01')`;
   assert.ok((await approvals.status(f.database,f.programId)).missing.includes('accounting'));
  }finally{await f.close();}
 });
@@ -67,5 +67,27 @@ test('owner withdrawal locks account and program before gig to avoid acceptance 
   const program=trace.findIndex(sql=>/SELECT.*FROM partner_programs.*FOR UPDATE/s.test(sql));
   const lockedGig=trace.findIndex(sql=>/SELECT.*FROM partner_gigs.*FOR UPDATE/s.test(sql));
   assert.ok(account>=0&&account<program&&program<lockedGig,'account -> program -> gig lock ordering');
+ }finally{await f.close();}
+});
+
+
+test('program gates never inherit another program package clearance on a shared version',async()=>{
+ const f=await partnerFixture();try{
+  const app=createPartnerApplication({database:f.database,env:ACTIVE_ENV,allowSyntheticOwner:true,now:()=>new Date(TEST_NOW)});
+  const other=await app.execute({actor:f.owner,action:'program.create',input:{label:'Other synthetic program',startsOn:'2026-10-01'},key:randomUUID()});
+  await f.database.query`UPDATE partner_programs SET enabled=true,settings=${JSON.stringify({contractVersionId:f.versionId,policyVersionId:f.versionId})}::jsonb WHERE id=${other.id}`;
+  assert.equal((await app.approvals.status(f.database,f.programId)).allowed,true);
+  const wrong=await app.approvals.status(f.database,other.id);assert.equal(wrong.allowed,false);assert.ok(wrong.missing.includes('classification'));
+  await assert.rejects(app.execute({actor:f.owner,action:'legal.publish',input:{programId:other.id,versionId:f.versionId,expectedRevision:1},key:randomUUID()}),{status:409});
+  const packageId=randomUUID(),reviewers=[{name:'Other counsel',role:'attorney',scopes:['classification','agreement_language','solicitation_policy']},{name:'Other accountant',role:'cpa',scopes:['accounting']}];
+  await f.database.query`INSERT INTO partner_review_packages(id,version_id,manifest,created_by,created_at,expires_at) VALUES(${packageId},${f.versionId},${JSON.stringify({programId:other.id,versions:[f.versionId],reviewers})}::jsonb,'synthetic-owner',${TEST_NOW},'2026-10-30T12:00Z')`;
+  const [version]=await f.database.query`SELECT content_sha256 FROM partner_legal_versions WHERE id=${f.versionId}`;
+  const review=async(scope,decision='approved')=>app.execute({actor:f.owner,action:'legal.record_review',input:{programId:other.id,packageId,versionId:f.versionId,versionHash:version.content_sha256,scope,decision,reviewerName:scope==='accounting'?'Other accountant':'Other counsel',reviewerRole:scope==='accounting'?'cpa':'attorney',evidenceReference:'SYNTHETIC-SCOPED-REVIEW',reviewedAt:TEST_NOW},key:randomUUID()});
+  await review('classification');const partial=await app.approvals.status(f.database,other.id);assert.ok(!partial.missing.includes('classification'));assert.ok(partial.missing.includes('accounting'));
+  for(const scope of ['agreement_language','accounting','solicitation_policy'])await review(scope);
+  assert.equal((await app.approvals.status(f.database,other.id)).allowed,true);
+  await app.execute({actor:f.owner,action:'legal.record_review',input:{programId:f.programId,packageId:f.reviewPackageId,versionId:f.versionId,versionHash:version.content_sha256,scope:'classification',decision:'rejected',reviewerName:'Synthetic fixture',reviewerRole:'attorney',evidenceReference:'SYNTHETIC-FIRST-PROGRAM-REJECTION',reviewedAt:TEST_NOW},key:randomUUID()});
+  assert.equal((await app.approvals.status(f.database,f.programId)).allowed,false);assert.equal((await app.approvals.status(f.database,other.id)).allowed,true);
+
  }finally{await f.close();}
 });
