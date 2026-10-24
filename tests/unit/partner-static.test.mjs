@@ -11,7 +11,7 @@ test('partner hosting emits only explicit static shell assets and restrictive he
  assert.equal(headers['Cache-Control'],'no-store');assert.equal(headers['Referrer-Policy'],'no-referrer');assert.equal(headers['X-Robots-Tag'],'noindex, nofollow');
  assert.match(headers['Content-Security-Policy'],/connect-src 'self' https:\/\/api\.3dprint4\.me;/);assert.ok(!headers['Content-Security-Policy'].includes('unsafe-inline'));assert.match(headers['Content-Security-Policy'],/frame-ancestors 'none'/);
  const actual=(await files()).map(p=>relative(root,p).replaceAll('\\','/')).sort();
- assert.deepEqual(actual,['assets/client.js','assets/drafts.js','assets/icon-192.png','assets/icon-512.png','assets/icon.svg','assets/offline-workspace.js','assets/partner.css','assets/partner.js','assets/pwa.js','assets/visits.js','config.json','index.html','manifest.webmanifest','sw.js']);
+ assert.deepEqual(actual,['assets/client.js','assets/drafts.js','assets/icon-192.png','assets/icon-512.png','assets/icon.svg','assets/offline-workspace.js','assets/partner.css','assets/partner.js','assets/pwa.js','assets/statements.js','assets/visits.js','config.json','index.html','manifest.webmanifest','sw.js']);
 });
 
 test('partner shell has no inline scripts, remote styles or server-side imports',async()=>{

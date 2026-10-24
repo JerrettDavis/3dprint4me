@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { closeDatabase, getDatabase, queryDatabase as sql } from '../lib/database.js';
+import { generateWeeklyStatements } from '../lib/partner-outreach/statements.js';
 import { purgeExpiredPartnerExports } from '../lib/partner-outreach/export-retention.js';
 import { createPlatformJobs } from '../lib/platform/jobs.js';
 import { createNeonWorkStore } from '../lib/work-store.js';
@@ -23,6 +24,7 @@ async function main() {
   }
   const jobs=createPlatformJobs({
     spoolman:()=>observeJob('spoolman',syncSpools),
+    statements:()=>observeJob('statements',()=>generateWeeklyStatements({database:getDatabase()})),
     drain:()=>observeJob('push',()=>drainPushOutbox({store,transport,workerId,batchSize:20})),
     cleanup:()=>leased('model-retention',()=>observeJob('cleanup',()=>runMaintenance([]))),
     expire:()=>leased('auth-expiry',()=>observeJob('expiry',async()=>{

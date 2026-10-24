@@ -18,7 +18,7 @@ from tests.support.browser_harness import SiteBrowser
 
 
 @contextmanager
-def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed=False,program_flag_control=False,observe_outbound=False):
+def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed=False,program_flag_control=False,observe_outbound=False,statement_jobs=False):
     port, owner_port = free_port(), free_port()
     owner_origin = f'http://127.0.0.1:{owner_port}'
     shell_origin = f'http://127.0.0.1:{port}'
@@ -38,7 +38,7 @@ def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed
     if clock:set_clock(clock)
     if program_flag_control:set_program_enabled(enable_reviewed_launch)
     native = subprocess.Popen(['node', 'tests/support/partner-native-server.mjs'], cwd=ROOT,
-                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_CLOCK_FILE':str(clock_path) if clock else '', 'PARTNER_TEST_PROGRAM_FLAG_FILE':str(flag_path) if flag_path else '', 'PARTNER_TEST_WORK_SEED':'1' if work_seed else '0', 'PARTNER_TEST_OUTBOUND_FILE':str(outbound_path) if outbound_path else '', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
+                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_STATEMENT_JOBS':'1' if statement_jobs else '0', 'PARTNER_TEST_CLOCK_FILE':str(clock_path) if clock else '', 'PARTNER_TEST_PROGRAM_FLAG_FILE':str(flag_path) if flag_path else '', 'PARTNER_TEST_WORK_SEED':'1' if work_seed else '0', 'PARTNER_TEST_OUTBOUND_FILE':str(outbound_path) if outbound_path else '', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=os.name != 'nt')
     lines = queue.Queue()
     threading.Thread(target=lambda: lines.put(native.stdout.readline()), daemon=True).start()
@@ -51,6 +51,10 @@ def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
+            if shell.poll() is not None:
+                detail=shell.stdout.read()
+                reason='port already in use' if 'EADDRINUSE' in detail else 'startup process exited'
+                raise RuntimeError(f'Partner static shell unavailable ({reason}; exit {shell.returncode})')
             try:
                 if request(shell_origin)[0] == 200:
                     break
@@ -62,6 +66,10 @@ def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed
             env={**os.environ,'OPERATOR_PORT':str(owner_port),'OPERATOR_API_BASE':fixture['apiOrigin']},stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
         deadline=time.monotonic()+10
         while time.monotonic()<deadline:
+            if owner_shell.poll() is not None:
+                detail=owner_shell.stdout.read()
+                reason='port already in use' if 'EADDRINUSE' in detail else 'startup process exited'
+                raise RuntimeError(f'Owner static shell unavailable ({reason}; exit {owner_shell.returncode})')
             try:
                 if request(owner_origin+'/api/config')[0]==200:break
             except OSError:time.sleep(.08)
@@ -69,6 +77,14 @@ def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed
         fixture['setClock']=set_clock if clock else None
         fixture['setProgramEnabled']=set_program_enabled if program_flag_control else None
         fixture['outboundAttempts']=(lambda:int(outbound_path.read_text(encoding='utf-8'))) if observe_outbound else None
+        def run_statement_job():
+            assert statement_jobs
+            response=queue.Queue()
+            threading.Thread(target=lambda:response.put(native.stdout.readline()),daemon=True).start()
+            native.stdin.write('statements\n');native.stdin.flush()
+            result=json.loads(response.get(timeout=30));assert result['ok'],result
+            return result['result']
+        fixture['runStatementJob']=run_statement_job if statement_jobs else None
         fixture['ownerOrigin']=owner_origin
         fixture['_process'] = native
         fixture['_container'] = container

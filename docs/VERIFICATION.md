@@ -1310,3 +1310,92 @@ noise was restored; changed owner-partner navigation views, two forecast views a
 the inspected preview board are retained. This is local build evidence, not upload.
 Hosted run `40112580004` on the preceding `ae15990` head is completed/success; it
 does not attest to this forecast increment.
+
+
+## Scheduled weekly statements (2026-10-24, based on 9ccbdf7)
+
+Initial missing module/export, unsupported owner resource and absent shell-version
+checks failed before their implementations. Focused money/date/job/schema tests
+pass: 20 cases. Native PostgreSQL verified concurrent workers create one snapshot
+and audit per account, backend UPDATE/DELETE denial, visitor SELECT denial, and
+exact CSV/hash survival in the isolated restored database. The first native role
+assertion used the sanitized adapter error; the final test inspects raw role SQL
+errors through the test pool, preserving the production generic failure boundary.
+
+Contract tests cover partial-payment snapshots, no payment references, cross-account
+read denial, immutable history after another settlement, disable preservation,
+per-account rollback/continued progress/retry, no-schema no-write behavior, and DST
+Monday rollover after lock waits. CSV expectations follow the established quoted
+string formatter. DATE-only assertions use SQL text rather than local Date display.
+
+New owner and partner presentation tests: eight passes in 12.94 seconds, including
+320-light/390-dark verified downloads, changed-byte denial, expiry clearing private
+DOM and stale failure isolation. An initial expiry failure revealed a current-view
+guard that included signed-in state after the client had already cleared it on 401;
+the new module now uses view generation for expiry handling. Combined statement/PWA
+focused run passed 20 cases in 41.91 seconds before the final stale-response case.
+
+Actual native owner-form -> scheduler -> partner-download journey passes in 9.12
+seconds: scheduled next Monday, new-work pause retains statements, two enrolled
+accounts receive separate snapshots, another partner is denied, later payment and
+another poll preserve original bytes, stopping scheduling preserves prior records.
+The optional count-only disposable fetch observer stays zero. A final stop-form test
+initially reused the same owner URL after out-of-band program changes; explicit
+Finance -> Statements navigation loads the current revision, and the save response
+is asserted 200/disabled before testing later polls. No raw error or credential is
+included in fixture job responses; the job trigger exists only on stdin in the
+explicitly admitted disposable test process, never as a production HTTP route.
+
+Full regression, final native suite, visual capture/inspection, build/image proof,
+review and commit/deployment of this increment are still pending.
+
+
+Read-only review found a substantive >500-history availability issue before release:
+the initial list limit could prevent owner schedule controls from loading. Replaced
+that failure with scoped 100-row keyset history and Older/Newest navigation in both
+clients. A 501-record regression first failed, then passed while proving complete
+pagination, no duplicate IDs, foreign-cursor denial and continued schedule control.
+An index supports global week/ID ordering. The focused contract set now has four
+passes; UI pagination and actual native HTTP cursor checks are running separately.
+
+
+Pagination follow-up review found no remaining material issue. Focused presentation
+plus actual native HTTP cursor/isolation journey: **11 passed in 36.56 seconds**.
+Final native PostgreSQL concurrency/role/restore check: **passed in 3.91 seconds**.
+The complete frozen regression has passed all **1,215 unit/contract tests** and is
+running its browser phase. Prior forecast head `9ccbdf7` hosted run `40116114627`
+completed successfully, including recovery, native checks, screenshots and artifacts;
+that head does not attest to these uncommitted weekly statement changes.
+
+
+Frozen full regression passed: **1,215 unit/contract**, **322 browser plus one existing
+Windows skip in 595.32 seconds**, and **241/241 UX checks**. The complete native run
+then reported 44 passes and one fixture startup failure in 407.79 seconds: the static
+partner shell was unavailable before the lead-correction test reached any application
+step. That exact case passed independently in 6.77 seconds. Startup diagnostics now
+classify an exited child/port-in-use without exposing raw child output. Runtime code
+is unchanged. A controlled complete native rerun is in progress; screenshots/builds
+remain queued behind its successful exit. The first failed run is retained as evidence.
+
+
+Final serial native rerun: **45 passed in 352.43 seconds**. Screenshot capture reports
+**145 captures plus preview-board.png**. All six new full 390-dark/320-light statement
+views were visually inspected, as were five exact-match crops from the actual preview
+board covering all six entries. Text, controls, hash wrapping and mobile layout are
+readable without horizontal overflow. Unrelated generated image/audit noise was restored.
+
+Owner output passes: **34 static files**, exact source bytes, statement module present,
+shell v23. The new API image `3dprint4me-partner-api:20261024-weekly-statements` passes
+restricted imports with network none, read-only filesystem, all capabilities dropped
+and no-new-privileges. **All 210 copied runtime files** match host SHA-256. Image index
+`sha256:40d9171ef0185599587a4cf7280f64402396365249034e55d163c13536ef30a4`, platform manifest
+`sha256:b289a4eab5ecaa51a28683e439600675f9dd476b70791d749c698fc43b304b2a`.
+The native image, owner output and migration 013 remain undeployed in production.
+
+
+The refreshed protected partner static preview is https://3dprint4me-partners-1hrcyiq8h-jerrettdavis-projects.vercel.app.
+All **15 static files** match local bytes/SHA-256 and configured headers; **nine
+route checks** and anonymous authentication **302** pass. Worker/HTML release is v4,
+with no provider-injected HTML. This uploads only the dedicated static Preview;
+native API, owner output, migrations, DNS and same-site production verification
+remain pending. Private proof is retained outside Git in statements-preview-proof.

@@ -881,3 +881,46 @@ allocations or unsafe monetary values fail with generic 503, not partial lower t
 More than 10,000 source records requires narrower scope/owner reconciliation. Actual
 native rollout of this API/owner view remains pending; the protected partner shell
 is a separate artifact. Operator shell v22 precaches the additional static module.
+
+
+## Scheduled weekly payable statements
+
+The owner may opt a program into weekly statements with `statement.schedule`
+(`programId`, `expectedRevision`, boolean `enabled`). This changes program revision
+and preserves other settings. A newly enabled schedule first becomes due the next
+Monday in America/Chicago. Pausing new work does not stop scheduled balance records;
+stopping the statement schedule preserves all prior snapshots and obligations.
+
+`GET statements` lists private metadata; `GET statements?id=<uuid>` retrieves the
+original CSV and SHA-256. Partners see only their own records; owners may use
+`programId` scope. History uses 100-row keyset pages (`before=<last-id>`), with
+scoped cursor validation and `nextCursor` metadata. Schedule controls remain available
+on every owner history page; both clients expose Older/Newest navigation. The owner Statements screen controls schedules and reads history;
+partner Earnings retains on-demand current CSV and adds saved weekly downloads.
+Both clients verify exact CSV bytes before creating a generated UUID filename.
+Private records are never added to service-worker caches or browser storage.
+
+Native jobs poll bounded batches each minute under the existing explicit
+`PLATFORM_JOBS_ENABLED` writer handover. Before migration 013 they return without
+writes. Each recipient uses an independent transaction and account -> program locks;
+a unique partner/Monday constraint and immutable evidence trigger make retry safe.
+A failed recipient rolls back its statement and audit/outbox event; other recipients
+can complete. A retry skips successes. No email, payment, invitation or activation
+is performed. The outbox carries identifiers only, not balance CSV or contact values.
+
+Each statement is a snapshot of all currently recorded payable balances, including
+adjustments, net verified payments and outstanding amounts. The timestamp is taken
+after financial locks are acquired. A job delayed into a later week creates only
+that current week's snapshot with its real as-of time; it never invents backdated
+balances. Crossing Monday while waiting for locks skips the stale week and retries
+on the next poll. Gifts and payment references are absent. Later ledger changes do
+not rewrite an earlier snapshot. More than 10,000 financial rows fails for owner
+reconciliation rather than silently producing an incomplete statement.
+
+Migration `013_partner_weekly_statements.sql` is additive, native-only and repeatable.
+It denies PUBLIC access and gives the existing backend only SELECT/INSERT on the
+new table. Owner scheduling is off unless explicitly enabled for that program.
+Job health writes bounded counts to `statements.json` when the existing health
+folder is configured. Failure remains unhealthy after an idle poll until actual
+processing succeeds. These are local implementation contracts; native/owner/partner
+production deployment and the remaining retention/delivery operations are separate.

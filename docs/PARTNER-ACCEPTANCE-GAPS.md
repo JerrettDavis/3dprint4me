@@ -93,3 +93,11 @@ caps, reserved maxima, unpaid obligations, verified spend and unaccepted offers 
 The [forecast plan](superpowers/plans/2026-10-24-partner-spend-forecasts.md) and
 [verification](VERIFICATION.md) track its full checks and still-pending deployment.
 This does not close scheduled weekly statements, other jobs or owner-control BDD.
+
+
+O-10 now has opt-in immutable weekly balance snapshots with
+owner scheduling, private history, native bounded job/retry/permission proof and
+an actual owner-to-partner download journey. Full local regression, 45-case native
+suite, inspected visual baselines and build/image proofs pass. Production deployment
+remains pending; do not close the broader
+retention/outbox/provider or operational requirements from this focused evidence.

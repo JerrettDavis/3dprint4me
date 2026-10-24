@@ -444,13 +444,16 @@ def capture_partner_states() -> list[tuple[str, Path]]:
     from tests.support.partner_harness import running_partner_shell
     from tests.e2e.test_partner_shell import install_partner_fixture, install_offer_fixture, install_referral_fixture, activity_fixture, GIG_ID
     from tests.e2e.test_partner_visits import visit_fixture, GIG
+    from tests.e2e.test_partner_statements import install_partner_statement_fixture
     captured = []
     with running_partner_shell() as origin:
-        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark"), ("counteroffer", (390, 844), "dark"), ("counteroffer", (320, 844), "light"), ("referrals", (390, 844), "dark"), ("referrals", (320, 844), "light"), ("activity", (390, 844), "dark"), ("activity", (320, 844), "light"), ("accepted-gig", (390, 844), "dark"), ("accepted-gig", (320, 844), "light"), ("enroll-error", (390, 844), "dark"), ("enroll-error", (320, 844), "light")]:
+        for state, viewport, scheme in [("weekly-statements", (390, 844), "dark"), ("weekly-statements", (320, 844), "light"), ("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark"), ("counteroffer", (390, 844), "dark"), ("counteroffer", (320, 844), "light"), ("referrals", (390, 844), "dark"), ("referrals", (320, 844), "light"), ("activity", (390, 844), "dark"), ("activity", (320, 844), "light"), ("accepted-gig", (390, 844), "dark"), ("accepted-gig", (320, 844), "light"), ("enroll-error", (390, 844), "dark"), ("enroll-error", (320, 844), "light")]:
             path = OUTPUT / f"partner-{state}-{scheme}.png"
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
                 visit_state = state in ["visit", "visit-contact", "drafts"]
-                if state == "enroll-error":
+                if state == "weekly-statements":
+                    install_partner_statement_fixture(site.page)
+                elif state == "enroll-error":
                     install_partner_fixture(site.page,signed_in=False)
                     site.page.route('**/api/partner/v1/invite/redeem',lambda route:route.fulfill(status=401,content_type='application/json',body=json.dumps({'error':'Sign-in could not be completed. Check your details or contact the owner.'})))
                 elif state == "activity":
@@ -471,8 +474,9 @@ def capture_partner_states() -> list[tuple[str, Path]]:
                     visit_fixture(site.page)
                 else:
                     install_partner_fixture(site.page, signed_in=state != "sign-in")
-                site.page.goto(origin + ('/join' if state == 'enroll-error' else '/activity' if state == 'activity' else '/referrals' if state == 'referrals' else '/gigs/' + GIG_ID if state in ['counteroffer','accepted-gig'] else '/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
+                site.page.goto(origin + ('/earnings' if state == 'weekly-statements' else '/join' if state == 'enroll-error' else '/activity' if state == 'activity' else '/referrals' if state == 'referrals' else '/gigs/' + GIG_ID if state in ['counteroffer','accepted-gig'] else '/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
                 site.page.get_by_role('heading', level=1).wait_for()
+                if state == 'weekly-statements':site.page.get_by_role('button',name='Download statement for 2026-10-26',exact=True).wait_for()
                 if state == 'enroll-error':
                     site.page.get_by_label('Invitation or recovery code',exact=True).fill('Example used invitation')
                     site.page.get_by_label('Choose a passphrase',exact=True).fill('Example private passphrase')
@@ -492,9 +496,9 @@ def capture_partner_states() -> list[tuple[str, Path]]:
                 if state == 'counteroffer':
                     site.page.get_by_label('Proposed fee (USD)', exact=True).fill('12.34')
                     site.page.get_by_label('Message to the owner', exact=True).fill('Could this fee cover the additional materials?')
-                if visit_state or state in ['counteroffer', 'referrals', 'activity', 'accepted-gig', 'enroll-error']:
+                if visit_state or state in ['counteroffer', 'referrals', 'activity', 'accepted-gig', 'enroll-error', 'weekly-statements']:
                     site.page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
-                site.screenshot(path, full_page=visit_state or state in ["counteroffer", "referrals", "activity", "accepted-gig", "enroll-error"])
+                site.screenshot(path, full_page=visit_state or state in ["counteroffer", "referrals", "activity", "accepted-gig", "enroll-error", "weekly-statements"])
                 site.console = [e for e in site.console if 'status of 401 (Unauthorized)' not in e.text]
                 site.assert_no_page_errors()
             captured.append((f"Partner {state} · {scheme}", path))
@@ -538,13 +542,14 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
     from tests.e2e.test_partner_owner_referrals import install_review_fixture
     from tests.e2e.test_partner_owner_finance import install_finance_fixture, BATCH
     from tests.e2e.test_partner_owner_forecasts import install_forecast_fixture
+    from tests.e2e.test_partner_statements import install_statement_fixture, STATEMENT
     from tests.e2e.test_partner_owner_legal import install_legal_fixture, VERSION
     from tests.e2e.test_partner_owner_review import review_fixture, PACKAGE, FEEDBACK
     from tests.e2e.test_partner_owner_agreements import install_agreement_fixture, ISSUE, PROGRAM as AGREEMENT_PROGRAM, VERSION as AGREEMENT_VERSION, PARTNER as AGREEMENT_PARTNER
     from tests.e2e.test_partner_shell import GIG_ID, PARTNER
     captured=[]
     with running_operator_workspace() as (_,origin,_):
-        for state,viewport,scheme in [('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('forecasts',(390,844),'dark'),('forecasts',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
+        for state,viewport,scheme in [('statements',(390,844),'dark'),('statements',(320,844),'light'),('weekly-statement',(390,844),'dark'),('weekly-statement',(320,844),'light'),('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('forecasts',(390,844),'dark'),('forecasts',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
             path=OUTPUT/f'operator-partners-{state}-{scheme}.png'
             with SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
                 page=site.page
@@ -553,6 +558,7 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                 elif state in ['legal','legal-version']:install_legal_fixture(page)
                 elif state.startswith('review-'):review_fixture(page)
                 elif state in ['finance','accounting-export']:install_finance_fixture(page)
+                elif state in ['statements','weekly-statement']:install_statement_fixture(page,label='Synthetic outreach statements')
                 elif state=='forecasts':install_forecast_fixture(page,label='Synthetic outreach forecast')
                 elif state in ['leads','leads-suppressed','referrals']:install_review_fixture(page,withdrawn=state=='leads-suppressed')
                 else:install_owner_fixture(page)
@@ -565,7 +571,7 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                             route.fulfill(status=200,content_type='application/json',body=json.dumps({'item':item,'events':[],'negotiations':[]}))
                         else:route.fallback()
                     page.route('**/api/operator-partners*',detail)
-                page.goto(origin+'/partners#'+('agreements/copy/'+ISSUE if state=='agreement-copy' else 'programs' if state=='program-bindings' else 'legal/package/'+PACKAGE if state=='review-package' else 'legal/feedback/'+FEEDBACK if state=='review-feedback' else 'legal' if state=='review-create' else 'gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else 'leads' if state=='leads-suppressed' else 'finance/export/'+BATCH if state=='accounting-export' else 'legal/version/'+VERSION if state=='legal-version' else state))
+                page.goto(origin+'/partners#'+('statements/'+STATEMENT if state=='weekly-statement' else 'agreements/copy/'+ISSUE if state=='agreement-copy' else 'programs' if state=='program-bindings' else 'legal/package/'+PACKAGE if state=='review-package' else 'legal/feedback/'+FEEDBACK if state=='review-feedback' else 'legal' if state=='review-create' else 'gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else 'leads' if state=='leads-suppressed' else 'finance/export/'+BATCH if state=='accounting-export' else 'legal/version/'+VERSION if state=='legal-version' else state))
                 page.get_by_role('heading',level=1).wait_for()
                 if state=='agreements':
                     form=page.locator('[data-issue-agreement]')

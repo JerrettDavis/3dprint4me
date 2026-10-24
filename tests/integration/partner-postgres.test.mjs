@@ -9,6 +9,7 @@ import { readFile } from 'node:fs/promises';
 import pg from 'pg';
 import { createPartnerApplication } from '../../lib/partner-outreach/application.js';
 import { createOwnerAuthorizer,createPartnerHandlers } from '../../lib/partner-outreach/http.js';
+import { generateWeeklyStatements } from '../../lib/partner-outreach/statements.js';
 import { purgeExpiredPartnerExports } from '../../lib/partner-outreach/export-retention.js';
 import { requirePublishedVersion } from '../../lib/partner-outreach/legal.js';
 import { storedLegalVersion,renderLegalVersion } from '../../lib/partner-outreach/legal-content.js';
@@ -37,6 +38,7 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   await admin.query('REVOKE CREATE ON SCHEMA public FROM PUBLIC; CREATE ROLE platform_backend NOLOGIN; CREATE ROLE platform_app LOGIN IN ROLE platform_backend; CREATE ROLE partner_visitor LOGIN; GRANT USAGE ON SCHEMA public TO platform_backend');
   for(const file of MIGRATIONS)for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/'+file,import.meta.url),'utf8')))await admin.query(statement);
   for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/012_partner_outreach.sql',import.meta.url),'utf8')))await admin.query(statement);
+  for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/013_partner_weekly_statements.sql',import.meta.url),'utf8')))await admin.query(statement);
   const programId=randomUUID(),campaignId=randomUUID(),partners=[randomUUID(),randomUUID()],gigs=[randomUUID(),randomUUID()];
   await admin.query("INSERT INTO partner_programs(id,label,starts_on,enabled,synthetic) VALUES($1,'Synthetic','2026-10-01',true,true)",[programId]);
   await admin.query("INSERT INTO partner_campaigns(id,program_id,title,terms,status) VALUES($1,$2,'Visits','{}','published')",[campaignId,programId]);
@@ -202,6 +204,18 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
 
   assert.equal((await app.read(ownerSession.actor,'review-feedback',{id:imported.id})).sha256,digest(httpAttachment));
   await assert.rejects(database.query`UPDATE partner_review_attachments SET sha256=${'b'.repeat(64)} WHERE id=${imported.id}`);
+  const programRevision=(await admin.query('SELECT revision FROM partner_programs WHERE id=$1',[programId])).rows[0].revision;
+  await financial('statement.schedule',{programId,expectedRevision:programRevision,enabled:true});
+  const expectedStatements=(await admin.query('SELECT count(*)::int AS n FROM partner_accounts a WHERE a.credential_hash IS NOT NULL OR EXISTS(SELECT 1 FROM partner_payables p WHERE p.partner_id=a.id)')).rows[0].n;
+  const statementRace=await Promise.all([generateWeeklyStatements({database,now:()=>new Date('2026-10-26T12:00Z')}),generateWeeklyStatements({database,now:()=>new Date('2026-10-26T12:00Z')})]);
+  assert.equal(statementRace.reduce((n,r)=>n+r.generated,0),expectedStatements);
+  const savedStatements=(await admin.query('SELECT id,csv,sha256 FROM partner_weekly_statements ORDER BY id')).rows;
+  assert.equal(savedStatements.length,expectedStatements);for(const statement of savedStatements)assert.equal(digest(statement.csv),statement.sha256);
+  assert.equal((await admin.query("SELECT count(*)::int AS n FROM partner_audit_events WHERE action='statement.generated'")).rows[0].n,expectedStatements);
+  await assert.rejects(pool.query("UPDATE partner_weekly_statements SET csv='changed'"),e=>e.code==='42501');
+  await assert.rejects(pool.query('DELETE FROM partner_weekly_statements'),e=>e.code==='42501');
+  const statementVisitor=new pg.Pool(nativePoolOptions(url.replace('postgres@','partner_visitor@')));
+  try{await assert.rejects(statementVisitor.query('SELECT * FROM partner_weekly_statements'),e=>e.code==='42501');}finally{await statementVisitor.end();}
   const expectedCommands=(await admin.query('SELECT count(*)::int AS n FROM partner_command_keys')).rows[0].n;
   await admin.query('CREATE DATABASE partner_restore');
   // Only this synthetic disposable container is touched. Stream the dump as
@@ -211,6 +225,8 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   const restoreUrl=new URL(url);restoreUrl.pathname='/partner_restore';
   const restored=new pg.Pool(nativePoolOptions(restoreUrl.toString()));
   try{
+   assert.deepEqual((await restored.query('SELECT id,csv,sha256 FROM partner_weekly_statements ORDER BY id')).rows,savedStatements);
+   await assert.rejects(restored.query("UPDATE partner_weekly_statements SET csv='changed'"),/immutable/i);
    assert.equal((await restored.query('SELECT committed_cents FROM partner_program_weeks')).rows[0].committed_cents,expectedCommitted);
    assert.equal((await restored.query('SELECT count(*)::int AS n FROM partner_command_keys')).rows[0].n,expectedCommands);
    assert.equal((await restored.query("SELECT count(*)::int AS n FROM partner_audit_events WHERE action='gig.accepted'")).rows[0].n,expectedAccepts);
