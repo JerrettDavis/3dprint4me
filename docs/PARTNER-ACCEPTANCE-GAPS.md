@@ -1,9 +1,9 @@
 # Remaining partner acceptance work
 
-This 2026-10-24 audit, updated after the budget and authentication increments, compares the private
+This 2026-10-24 audit, updated through the consent/referral increment, compares the private
 packet's nine feature files with native cases across `test_partner_native_browser.py`,
 `test_partner_budget_browser.py`, `test_partner_auth_browser.py` and
-`test_partner_gig_browser.py` and their fixtures. It identifies missing evidence, not automatic product defects.
+`test_partner_gig_browser.py`, `test_partner_consent_referral_browser.py` and their fixtures. It identifies missing evidence, not automatic product defects.
 Synthetic owner sessions are bound to real numeric-identity rules but do not exercise
 GitHub OAuth. Synthetic review decisions never establish actual professional clearance.
 Production flags remain off. This list supplements, rather than replaces, the full
@@ -32,10 +32,14 @@ numbered packet requirements and operational release gates.
   with future acceptance; offline save plus lost committed responses for both visit and
   gig submission, identical retries and one resulting visit/submission event. Previous
   cold-reopen and 100-draft replay evidence remains separate useful coverage.
-- **Visits/leads:** qualified-lead (not sale) bonus qualification/award followed by a
-  different-device duplicate replay; exact consent-version evidence and explicit absence
-  of marketing notifications. Consent, correction, suppression/deletion and owner review
-  already have native flows.
+- **Visits/leads:** all five named scenarios now have direct native mappings in
+  `test_partner_consent_referral_browser.py`: business-only visit/no personal queue;
+  exact persisted permission/audit version and owner qualification; unconsented-email
+  rejection with unchanged contact/consent/outbox counts; withdrawal hiding owner contact
+  and preventing requalification; a real qualified-lead award followed by new-client-ID/
+  new-key evidence from a freshly authenticated second browser with one payable.
+  An optional fixture-only observer records zero fetch attempts during these flows.
+  It is count-only and does not claim to monitor arbitrary network transports.
 - **Optional activity:** all three named native scenarios are directly mapped in
   [traceability](PARTNER-PORTAL-TRACEABILITY.md). This does not establish production TLS.
 - **Ledger/payments:** a separate gift fixture excluded from statements and contractor
@@ -46,11 +50,14 @@ numbered packet requirements and operational release gates.
   exclusion assertions; issuance denied with exact missing gates; attempted amended
   version B under A's reviews, followed by independent B review/reissue/acknowledgment.
   Preserving A after amendment alone does not prove the whole transition.
-- **Referrals:** accept the original bonus, replace current policy, then earn the
-  original accepted amount. Current customer intake records permission without owner
-  attribution until verification: document this deliberate verification boundary when
-  interpreting the packet's quote-attribution scenario. Existing native sale conversion
-  and duplicate settlement checks remain valid.
+- **Referrals:** the original $20 accepted sale policy now survives publication/
+  acceptance of a new $10 policy and a genuine web quote, owner-verified attribution,
+  synthetic settled-sale evidence and original $20 payable award. Existing native
+  quote and settlement/replay cases cover the other two named scenarios. The quote
+  immediately preserves the opted-in code and receipt in the private request and
+  owner pending-attribution queue; a separate verified attribution follows owner
+  checks. No quote alone creates sale evidence or a bonus. This two-stage boundary
+  is deliberate and does not imply automatic verified attribution or real payment.
 - **Owner control:** actual campaign creation/publication/offer and partner publication
   denial; paused acceptance denial with unchanged reservations; full existing owner-work
   API compatibility. Authentication tests now mount the real owner-work handler with
@@ -61,8 +68,8 @@ numbered packet requirements and operational release gates.
 
 The budget spine is now implemented in `tests/support/partner_budget.py`, including
 fresh two-partner enrollment and exact acknowledgment. Authentication now adds positive owner-work controls and explicit environment-off
-enrollment. The gig-choice journeys now reuse them as well. Next add accepted-policy
-referral and qualified-lead duplicate-award scenarios.
+enrollment. Gig-choice and consent/referral journeys now reuse them as well. Next
+complete the remaining contract-review, ledger/payment and owner-control scenarios.
 Do not rebuild synthetic approval plumbing or substitute seeded accepted work for
 an actual authorization transition. The remaining numbered operations/product work
 above and below still needs its own evidence.

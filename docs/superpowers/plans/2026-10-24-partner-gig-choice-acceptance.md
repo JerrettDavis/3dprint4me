@@ -14,7 +14,10 @@ cold-reopen and batch replay remain supplemental. No real invitations, professio
   route fields, preserved obligations and future offer eligibility.
 - [x] Review results and update packet mappings; all 36 native cases pass.
   Application source is unchanged from the complete regression and visual run.
-- [ ] Commit/push and inspect the exact hosted CI head.
+- [x] Commit/push and inspect the exact hosted CI head.
+
+Committed `e3b7209`; hosted run `40111472553` passed recovery/PostgreSQL/native cases
+and entered full regression. Later hosted status remains separate evidence.
 
 Use browser/API positive controls and fresh records. Do not seed accepted work or
 infer future eligibility solely from absence of a penalty label.

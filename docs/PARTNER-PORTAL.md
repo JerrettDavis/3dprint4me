@@ -830,3 +830,20 @@ Error notices occupy document flow before the page layout, receive focus and rem
 clear of mobile retry controls. Success notices leave focus alone. Private export
 expiry removes the signed-in view before displaying session-ended help; delayed
 export failures do not interrupt navigation to another page.
+
+
+## Native consent and accepted bonus policy evidence
+
+All five visits/leads scenarios now have direct native cases, including exact
+persisted consent/audit version, rejected unconsented contact, owner suppression,
+qualification and different-device duplicate evidence after a real payable award.
+Qualification allows the stated project follow-up; it does not grant unrelated
+marketing permission or automatically award a bonus. Withdrawal hides owner contact
+and blocks requalification until valid new permission exists.
+
+A separate native journey accepts an original $20 sale bonus and a later published
+$10 policy, then creates a real synthetic web request and traverses verified
+attribution/settlement before awarding the original $20. The quote immediately
+preserves the opted-in code and private receipt for owner review; verified attribution
+remains an explicit owner step. These are disposable test records, not actual customer
+requests, professional approvals, notifications or executed payments.
