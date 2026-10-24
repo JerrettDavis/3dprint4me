@@ -18,7 +18,7 @@ const server = createServer(async (req, res) => {
   headers(res); const url = new URL(req.url ?? "/", `http://${host}:${port}`);
   if (url.pathname === "/api/config") { const body = JSON.stringify({ apiBase, authBase }); res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Content-Length": Buffer.byteLength(body) }); res.end(body); return; }
   if (!["GET", "HEAD"].includes(req.method ?? "GET")) { res.writeHead(405, { Allow: "GET, HEAD" }); res.end(); return; }
-  let target = resolve(root, `.${decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname)}`);
+  let target = resolve(root, `.${decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname === "/partners" ? "/partners.html" : url.pathname)}`);
   if (!(target === root || target.startsWith(`${root}${sep}`)) || !(await exists(target))) target = resolve(root, "index.html");
   await send(req, res, target);
 });

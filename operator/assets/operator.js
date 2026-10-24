@@ -136,6 +136,7 @@ function createDomView(api) {
       q("#session-view").hidden = !checking; q("#auth-view").hidden = checking || signedIn; q("#workspace").hidden = !signedIn; q("#sign-out").hidden = !signedIn;
       q("#operator-name").textContent = signedIn ? model.operator?.displayName ?? "Operator" : "";
       q('#filament-inventory').hidden = !signedIn;
+      q('#partners-owner').hidden = !signedIn || model.operator?.role !== 'owner';
       if (["signed-out", "forbidden"].includes(name)) { const button = q("#sign-in"); button.disabled = false; button.textContent = "Continue with GitHub"; }
       if (name === "forbidden") q("#auth-title").textContent = "This account is not approved.";
       if (["offline", "unavailable", "error"].includes(name)) view.announce(name === "offline" ? "The inbox is offline. Check the connection and retry." : "The inbox could not load. Try again.");

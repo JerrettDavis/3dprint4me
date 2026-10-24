@@ -19,3 +19,6 @@
 !deploy/platform/
 !deploy/platform/Dockerfile
 !deploy/platform/Dockerfile.dockerignore
+!contracts/
+!contracts/partner/
+!contracts/partner/**

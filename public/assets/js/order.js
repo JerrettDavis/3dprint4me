@@ -1,23 +1,23 @@
-import "./site.js?v=d367ecc51c8342f1";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=d367ecc51c8342f1";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=d367ecc51c8342f1";
-import { toast } from "./site.js?v=d367ecc51c8342f1";
-import { createProjectRequestClient } from "./order/client.js?v=d367ecc51c8342f1";
-import { captureInquiryHandoff, takeInquiryText } from "./order/inquiry-handoff.js?v=d367ecc51c8342f1";
-import { createOrderController } from "./order/controller.js?v=d367ecc51c8342f1";
-import { createDraftStore } from "./order/draft-store.js?v=d367ecc51c8342f1";
-import { createFileManager } from "./order/files.js?v=d367ecc51c8342f1";
-import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=d367ecc51c8342f1";
-import { takeHandoff } from "./order/customize-handoff.js?v=d367ecc51c8342f1";
-import { createStepValidator } from "./order/validation.js?v=d367ecc51c8342f1";
-import { createOrderView } from "./order/view.js?v=d367ecc51c8342f1";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=d367ecc51c8342f1";
-import { modelFormat } from "./print-estimation/geometry.js?v=d367ecc51c8342f1";
-import { isArchiveName } from "./print-estimation/archive.js?v=d367ecc51c8342f1";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=d367ecc51c8342f1";
-import { createModelPanelView } from "./print-estimation/view.js?v=d367ecc51c8342f1";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=d367ecc51c8342f1";
-import { packRequestSpecifications } from "./print-estimation/pack.js?v=d367ecc51c8342f1";
+import "./site.js?v=dcef6fb6d5754a0b";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=dcef6fb6d5754a0b";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=dcef6fb6d5754a0b";
+import { toast } from "./site.js?v=dcef6fb6d5754a0b";
+import { createProjectRequestClient } from "./order/client.js?v=dcef6fb6d5754a0b";
+import { captureInquiryHandoff, takeInquiryText } from "./order/inquiry-handoff.js?v=dcef6fb6d5754a0b";
+import { createOrderController } from "./order/controller.js?v=dcef6fb6d5754a0b";
+import { createDraftStore } from "./order/draft-store.js?v=dcef6fb6d5754a0b";
+import { createFileManager } from "./order/files.js?v=dcef6fb6d5754a0b";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=dcef6fb6d5754a0b";
+import { takeHandoff } from "./order/customize-handoff.js?v=dcef6fb6d5754a0b";
+import { createStepValidator } from "./order/validation.js?v=dcef6fb6d5754a0b";
+import { createOrderView } from "./order/view.js?v=dcef6fb6d5754a0b";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=dcef6fb6d5754a0b";
+import { modelFormat } from "./print-estimation/geometry.js?v=dcef6fb6d5754a0b";
+import { isArchiveName } from "./print-estimation/archive.js?v=dcef6fb6d5754a0b";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=dcef6fb6d5754a0b";
+import { createModelPanelView } from "./print-estimation/view.js?v=dcef6fb6d5754a0b";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=dcef6fb6d5754a0b";
+import { packRequestSpecifications } from "./print-estimation/pack.js?v=dcef6fb6d5754a0b";
 
 const form = document.querySelector("#project-form");
 addEventListener('hashchange',()=>{if(location.hash.startsWith('#inquiry='))location.reload();});
@@ -126,6 +126,7 @@ function mailtoFor(request) {
     `Rough estimate: ${request.estimate.formatted}`,
     `Name: ${request.contact.name}`,
     `Email: ${request.contact.email}`,
+    ...(request.referral?[`Referral credit requested: ${request.referral.code} (permission ${request.referral.consentVersion}; eligibility review required)`]:[]),
     `Phone: ${request.contact.phone || "Not provided"}`,
     "",
     request.description,
