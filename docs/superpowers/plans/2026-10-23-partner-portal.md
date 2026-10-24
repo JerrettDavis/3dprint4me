@@ -214,3 +214,19 @@ packet requirements and existing product tokens determine this direction. First
 online shell/client fixtures are implemented; complete visits/referrals, counteroffers,
 offline drafts/service worker, owner console and native nine-feature browser BDD
 remain required before release. Presentation fixtures are not cookie/persistence proof.
+
+
+- Visit/UI increment: accepted gigs link to business visit recording. Contact
+  permission defaults off, contact values clear when disabled, and business-only
+  device drafts require explicit opt-in/send. Correction/withdrawal/deletion controls
+  operate against native APIs. Purpose and preferred-method changes require renewed
+  permission and reset review. Stable payload/key capture prevents late input events
+  from altering an uncertain retry; expired sessions clear private forms/screens.
+- Native browser proof now includes actual 100-draft replay with a lost committed
+  response, reload and retry: 101 requests produce 100 visits and no personal leads.
+  Session-expired drafts remain private in the UI until same-account reauthentication.
+  Offline reload/service-worker lifecycle still remains open; do not claim full PWA.
+- Before deployment, address the observed dependency audit. An isolated private
+  candidate with Zod 4.6.6/Undici 6.29.1 overrides and Vite 8.3.5 audits clean, but has
+  not yet been applied or compatibility-tested. Then continue counteroffers/referral
+  intake, full offline behavior, owner/legal console and all remaining release gates.

@@ -405,3 +405,39 @@ fresh pinned PostgreSQL container: two independent browser contexts, real cookie
 flags/reload/logout, profile persistence and cross-partner read denial. Cleanup also
 survives a deliberately killed native process. This is now a CI command, not a claim
 of complete packet BDD, production subdomain validation or deployment.
+
+
+## Visit recording and device drafts
+
+Accepted and changes-requested gig sheets link to `/visits/new?gig=...`. The visit
+form records the business, time, outcome and material permission. Personal follow-up
+permission starts off; enabling it reveals the exact server consent language, purpose
+and selected contact method. Disabling it clears contact fields and omits contact and
+purpose from the submitted payload. Contact submissions require an online request.
+
+The `/visits` history separates business visits from personal follow-up records.
+Partners can correct details with renewed permission, withdraw follow-up permission,
+or explicitly delete contact details. Changing email, phone, preferred contact method
+or project purpose requires renewed permission and resets the contact to owner review.
+Withdrawn contacts cannot be renewed through editing. Required consent/financial
+source evidence remains private and immutable; deletion removes active contact values.
+
+Device drafts are an explicit opt-in for business fields only. Contact and consent
+fields cannot enter the draft store. `/drafts` lists this account's records, never
+silently sends them, retains conflicts for review and uses stable source/request IDs.
+The device warning states that drafts are unencrypted and accessible to someone using
+that browser profile. Explicit sign-out clears all partner device draft keys. Session
+expiry hides the form/draft screen and returns to sign-in while retaining pending
+business drafts; only the same authenticated account can resume them in the interface.
+
+Live visit dispatch freezes editing and captures the payload/request key together.
+An uncertain response retains both for an exact retry. It does not clear the form or
+claim submission. Draft replay similarly retains ambiguous source IDs. Native browser
+coverage loses the 51st response after the server commits it, reloads, then resends:
+101 attempts produce exactly 100 visits and no personal-contact leads.
+
+The shell still has no service worker. Draft recording while the signed-in page
+remains open can work offline, and saved business records survive reload/restart in
+storage. A completely offline reload cannot authenticate or load private server
+records. Full offline shell/reopen/upgrade behavior remains an explicit release gap;
+it is not proved by the successful open-page offline/draft replay tests.

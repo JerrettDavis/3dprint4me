@@ -33,7 +33,13 @@ The source packet stays private and the real professional approval gates stay of
   duplicate contacts, owner qualification, correction/renewed consent, withdrawal
   and deletion. `partner-materials.contract.test.mjs` covers issued/returned
   supplies without pay deductions. Immutable qualification evidence survives contact changes; referral contracts cover
-  subsequent bonus use. Lead retention operations and browser forms remain pending.
+  subsequent bonus use. Native browser evidence now records visits with and without contacts, checks
+  unconsented-contact rejection, corrects purpose/contact with renewed permission,
+  withdraws/deletes details, and preserves offline business drafts for explicit send.
+  Browser/store tests cover stable live retries, session-expiry hiding and 100 queued
+  visits with a lost committed response (101 attempts, 100 visits, zero leads).
+  Lead retention operations, offline reload/worker lifecycle and the complete
+  owner qualification/bonus browser scenario remain pending.
 - **optional-activity.feature**: outreach/profile contract tests cover independent
   optional timer start/pause/resume/stop/delete, ownership and data export. Timers
   do not gate fees or acceptance. Browser offline drafts, accessible controls and

@@ -462,3 +462,49 @@ staging and actual disabled production deployment remain required.
 - Visit/contact/counteroffer/referral screens, draft UI, safe worker lifecycle, owner
   console/legal editor, complete native nine-feature browser BDD and all staging/
   disabled-production/operational release gates remain unfinished.
+
+
+### Partner visits, permission changes and device replay — 2026-10-24
+
+- Full `npm test` passed: 1,160 unit/contract tests, 235 browser tests, one
+  Linux-only fresh-host check skipped on Windows, UX 241/241. After adding the
+  exact UI/server consent-text assertion and expiry fix, final `npm run test:unit`
+  passed 1,161. Focused visit browser checks cover default-off/cleared contacts,
+  explicit device storage, live consent, exact uncertain retry and a delayed input
+  event while dispatch is in flight. The late-input race was reproduced before fixing
+  captured payload/key state and freezing controls before dispatch.
+- Purpose-only and preferred-method changes were each observed bypassing renewed
+  permission in failing contracts; both now require it and reset owner qualification.
+  The outreach contract tests pass. UI consent wording matches the server constant.
+- `npm run test:partner:browser`: five native Chromium/PostgreSQL cases pass. They
+  include two-context cookies/isolation/profile/logout; fixture crash cleanup; actual
+  visit/material permission, consent/correction/withdrawal/deletion, rejection of
+  contact with consent false, explicit open-page offline draft submission; 100 queued
+  business visits with the 51st response lost after commit (101 requests, 100 visits,
+  zero leads); and mid-form/mid-sync expiry clearing private UI, retaining business
+  drafts and requiring same-account reauthentication before resuming.
+- `npm run test:partner:postgres` passed native restricted-role/concurrency/restore.
+  Production Docker build passed, manifest list
+  `sha256:38f7074d7a2bd7551a01828f332b42e74981a29ef939e7c90e50dbd16f2cb40a`.
+  Offline/read-only/no-capabilities runtime and consent import smoke passed.
+- Final `npm run screenshots` captured 83 views. Inspected the preview board's partner
+  section and full visit/light, consent/dark and draft/dark images. A full-page capture
+  artifact showing the offscreen skip link after scrolling was fixed by resetting
+  capture scroll/focus, then recaptured and visually checked. No focus styling was
+  removed. Existing unrelated nondeterministic screenshot/audit rewrites are restored.
+- Independent review confirmed the live retry, method-permission and expired-session
+  fixes; no concrete remaining finding in this increment. Full offline reload/worker,
+  owner console, counteroffer/referral presentation/customer opt-in and release gates
+  remain open.
+
+The production build's dependency audit reported seven high-severity transitive
+findings, traced to Zod and Undici. The current workspace still contains them.
+Official advisories identify Zod 4.6.6 and Undici 6.29.1 as patched versions:
+[Zod](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5),
+[Undici parser](https://github.com/advisories/GHSA-4qv8-2p9j-2685),
+[Undici response stream](https://github.com/advisories/GHSA-xjj6-f33q-929c).
+A private isolated lockfile candidate pins those transitive versions and Vite 8.3.5;
+its install audit reports zero vulnerabilities. It has NOT been applied or runtime-
+verified in the workspace. Apply/review the minimal update and rerun compatibility,
+build and audit checks before any production release. Do not treat this candidate
+as evidence that the current production dependency graph is fixed.

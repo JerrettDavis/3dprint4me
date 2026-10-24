@@ -133,3 +133,159 @@ def test_native_partner_fixture_removes_its_container_after_child_crash():
         fixture['_process'].wait(timeout=5)
     remaining = subprocess.run(['docker', 'ps', '--all', '--filter', 'name=^/' + container + '$', '--format', '{{.Names}}'], check=True, capture_output=True, text=True, timeout=15)
     assert not remaining.stdout.strip()
+
+
+def test_native_business_visits_and_specific_contact_permission_persist_privately():
+    with native_partner_workspace() as (origin, fixture), SiteBrowser(viewport=(390,844),reduced_motion='reduce') as site:
+        page=site.page;page.goto(origin)
+        page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        page.goto(origin+'/visits/new?gig='+fixture['acceptedGigId'])
+        page.get_by_label('Business name',exact=True).fill('Native business without contact')
+        page.get_by_label('Outcome',exact=True).select_option('accepted_material')
+        page.get_by_label('Permission to leave materials',exact=True).select_option('permission_received')
+        page.get_by_label('Samples left',exact=True).fill('2')
+        page.get_by_role('button',name='Submit visit',exact=True).click()
+        page.get_by_text('Visit recorded.',exact=True).wait_for()
+        page.reload();page.get_by_text('Native business without contact',exact=True).wait_for()
+        assert 'No personal follow-up contacts recorded.' in page.locator('main').inner_text()
+        page.goto(origin+'/visits/new?gig='+fixture['acceptedGigId'])
+        page.get_by_label('Business name',exact=True).fill('Native business with permission')
+        page.get_by_label('This person explicitly agreed to project follow-up.',exact=True).check()
+        page.get_by_label('Project follow-up purpose',exact=True).fill('Consented printed sign discussion')
+        page.get_by_label('Contact email',exact=True).fill('native-consent@example.test')
+        page.get_by_role('button',name='Submit visit',exact=True).click()
+        page.get_by_text('Visit recorded.',exact=True).wait_for()
+        page.reload();page.get_by_text('native-consent@example.test',exact=True).wait_for()
+        result=page.evaluate("async api=>(await (await fetch(api+'/api/partner/v1/leads',{credentials:'include'})).json())",fixture['apiOrigin'])
+        assert len(result['items'])==1
+        lead=result['items'][0];assert lead['purpose']=='Consented printed sign discussion'
+        assert lead['status']=='needs_review' and lead['followUpAllowed'] is False
+        assert 'withdraw this permission' in lead['consentText']
+        assert 'native-consent@example.test' not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
+        page.get_by_text('Correct contact details',exact=True).click()
+        page.get_by_label('Contact email',exact=True).fill('native-corrected@example.test')
+        page.get_by_label('Project follow-up purpose',exact=True).fill('Renewed permission for a printed sign replacement')
+        page.get_by_label('This person renewed permission for these contact details and purpose.',exact=True).check()
+        page.get_by_role('button',name='Save corrected contact',exact=True).click()
+        page.get_by_text('Corrected contact saved for owner review.',exact=True).wait_for()
+        page.reload();page.get_by_text('native-corrected@example.test',exact=True).wait_for()
+        assert 'native-consent@example.test' not in page.locator('main').inner_text()
+        page.get_by_role('button',name='Withdraw follow-up permission',exact=True).click()
+        page.get_by_text('Follow-up permission withdrawn.',exact=True).wait_for()
+        page.reload()
+        suppressed=page.evaluate("async api=>(await (await fetch(api+'/api/partner/v1/leads',{credentials:'include'})).json()).items[0]",fixture['apiOrigin'])
+        assert suppressed['status']=='withdrawn' and suppressed['followUpAllowed'] is False
+        page.get_by_label('I understand this removes the contact details from active records.',exact=True).check()
+        page.get_by_role('button',name='Delete contact details',exact=True).click()
+        page.get_by_text('Contact details deleted.',exact=True).wait_for()
+        page.reload();assert 'native-corrected@example.test' not in page.locator('main').inner_text()
+        blocked=page.evaluate("""async ({api,gig})=>{
+          const session=await (await fetch(api+'/api/partner/v1/session',{credentials:'include'})).json();
+          const response=await fetch(api+'/api/partner/v1/commands',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':session.csrfToken},body:JSON.stringify({action:'visit.record',key:crypto.randomUUID(),input:{gigId:gig,expectedGigRevision:2,clientId:crypto.randomUUID(),businessName:'Native prohibited contact',approximateArea:'Tulsa',visitedAt:new Date().toISOString(),outcome:'unavailable',placement:'none',sampleCount:0,consent:false,contact:{email:'unpermitted@example.test',preferredContact:'email'}}})});
+          const visits=await (await fetch(api+'/api/partner/v1/visits',{credentials:'include'})).json();
+          return {status:response.status,count:visits.items.length};
+        }""",{'api':fixture['apiOrigin'],'gig':fixture['acceptedGigId']})
+        assert blocked=={'status':422,'count':2}
+        page.goto(origin+'/visits/new?gig='+fixture['acceptedGigId'])
+        page.get_by_label('Business name',exact=True).fill('Native explicit device draft')
+        page.get_by_label('I understand this business-only draft stays on this device and is deleted when I sign out.',exact=True).check()
+        site.context.set_offline(True)
+        page.get_by_role('button',name='Save business draft on this device',exact=True).click()
+        page.get_by_text('Saved on this device. Not submitted yet.',exact=True).wait_for()
+        page.get_by_role('link',name='Device drafts',exact=True).click()
+        page.get_by_text('Native explicit device draft',exact=True).wait_for()
+        site.context.set_offline(False)
+        page.get_by_role('button',name='Send pending business drafts',exact=True).click()
+        page.get_by_text('1 draft submitted. 0 remain on this device.',exact=True).wait_for()
+        page.get_by_role('link',name='Recorded visits',exact=True).click()
+        page.get_by_text('Native explicit device draft',exact=True).wait_for()
+
+
+        assert not site.page_errors
+
+
+def test_native_browser_replays_100_device_drafts_after_lost_committed_response():
+    with native_partner_workspace() as (origin, fixture), SiteBrowser(viewport=(390,844),reduced_motion='reduce') as site:
+        page=site.page;page.goto(origin)
+        page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        page.goto(origin+'/visits/new?gig='+fixture['acceptedGigId'])
+        page.get_by_label('Business name',exact=True).fill('Native replay 0')
+        page.get_by_label('I understand this business-only draft stays on this device and is deleted when I sign out.',exact=True).check()
+        site.context.set_offline(True)
+        page.get_by_role('button',name='Save business draft on this device',exact=True).click()
+        page.get_by_text('Saved on this device. Not submitted yet.',exact=True).wait_for()
+        page.evaluate("""async ({account,gig})=>{
+          const {createVisitDraftStore}=await import('/assets/drafts.js');
+          const store=createVisitDraftStore({storage:localStorage,accountId:account});
+          for(let n=1;n<100;n++)store.save({gigId:gig,expectedGigRevision:2,businessName:'Native replay '+n,approximateArea:'Tulsa',outcome:'unavailable',placement:'none',sampleCount:0,visitedAt:new Date().toISOString()});
+        }""",{'account':fixture['partnerId'],'gig':fixture['acceptedGigId']})
+        page.get_by_role('link',name='Device drafts',exact=True).click()
+        assert page.get_by_role('button',name='Remove device draft',exact=True).count()==100
+        requests=[]
+        def lose_one_committed_response(route):
+            requests.append(route.request.post_data_json)
+            if len(requests)==51:
+                response=route.fetch()
+                assert response.status==200
+                route.abort('failed')
+            else:route.continue_()
+        page.route('**/api/partner/v1/commands',lose_one_committed_response)
+        site.context.set_offline(False)
+        page.get_by_role('button',name='Send pending business drafts',exact=True).click()
+        page.get_by_text('50 drafts submitted. 50 remain on this device.',exact=True).wait_for(timeout=60000)
+        page.reload()
+        page.get_by_role('button',name='Send pending business drafts',exact=True).click()
+        page.get_by_text('50 drafts submitted. 0 remain on this device.',exact=True).wait_for(timeout=60000)
+        assert len(requests)==101 and requests[50]==requests[51]
+        records=page.evaluate("async api=>{const visits=await(await fetch(api+'/api/partner/v1/visits',{credentials:'include'})).json();const leads=await(await fetch(api+'/api/partner/v1/leads',{credentials:'include'})).json();return {visits:visits.items.length,leads:leads.items.length};}",fixture['apiOrigin'])
+        assert records=={'visits':100,'leads':0}
+        assert not site.page_errors
+
+
+def test_native_expired_visit_session_hides_the_private_form():
+    with native_partner_workspace() as (origin, fixture), SiteBrowser(viewport=(390,844)) as site:
+        page=site.page;page.set_default_timeout(10000);page.goto(origin)
+        page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        page.goto(origin+'/visits/new?gig='+fixture['acceptedGigId'])
+        page.get_by_label('Business name',exact=True).fill('Native expired-session visit')
+        page.get_by_label('This person explicitly agreed to project follow-up.',exact=True).check()
+        page.get_by_label('Project follow-up purpose',exact=True).fill('Consented project request')
+        page.get_by_label('Contact email',exact=True).fill('expired-private@example.test')
+        site.context.clear_cookies()
+        page.get_by_role('button',name='Submit visit',exact=True).click()
+        page.get_by_role('heading',name='Your work. Your records.').wait_for()
+        assert page.get_by_role('navigation').is_hidden()
+        assert page.locator('[name=contactEmail]').count()==0
+        page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        page.goto(origin+'/visits/new?gig='+fixture['acceptedGigId'])
+        page.get_by_label('Business name',exact=True).fill('Native draft retained after expiry')
+        page.get_by_label('I understand this business-only draft stays on this device and is deleted when I sign out.',exact=True).check()
+        page.get_by_role('button',name='Save business draft on this device',exact=True).click()
+        page.get_by_role('link',name='Device drafts',exact=True).click()
+        site.context.clear_cookies()
+        page.get_by_role('button',name='Send pending business drafts',exact=True).click()
+        page.get_by_role('heading',name='Your work. Your records.').wait_for()
+        assert 'Native draft retained after expiry' not in page.locator('main').inner_text()
+        assert 'Native draft retained after expiry' in page.evaluate('JSON.stringify({...localStorage})')
+        page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        page.goto(origin+'/drafts')
+        page.get_by_role('button',name='Send pending business drafts',exact=True).click()
+        page.get_by_text('1 draft submitted. 0 remain on this device.',exact=True).wait_for()
+
+        assert 'expired-private@example.test' not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
+        assert not site.page_errors
