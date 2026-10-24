@@ -119,3 +119,12 @@ old-passphrase rejection, suspended recovery and revoked denial. Browser fixture
 masked private display, hidden/late responses, expiry and authorization loss. Native
 production-composition browser evidence covers suspension, recovery and debt preservation
 while new work is disabled. This does not complete all nine native packet scenarios.
+
+
+Owner Leads/Referrals increment: private owner screens now support business visits,
+exact consent review, qualification/rejection, renewed correction, withdrawal/deletion,
+web/paper attribution, independent sale evidence and source-specific accepted-rule awards.
+Production-composition native journeys prove public opt-in through one earned bonus,
+return-URL rejection, duplicate-award/payment-proof protection, suppressed contacts and
+unchanged partner response privacy. This expands referral and visits-leads evidence;
+it does not stand in for all nine full packet feature scenarios or actual settlement.

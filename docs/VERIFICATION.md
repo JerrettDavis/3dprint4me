@@ -668,3 +668,46 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   approval, payment or external message occurred. Owner lead/referral, finance
   and legal review workflows, full offline lifecycle, all native packet BDD and
   staging/production release work remain open.
+
+
+### Owner lead and referral workflows (2026-10-24)
+
+- Full `npm test` passed: 1,178 unit/contract tests, 265 browser cases and one
+  Windows skip, plus 241/241 UX checks. Ten focused contract/client/static checks
+  passed. After the final shared notice guard, 28 owner/PWA browser cases passed,
+  including all seven new lead/referral presentation regressions.
+- Contract RED/GREEN evidence covers missing owner-only evidence collections and
+  malformed/null/numeric permission receipts. Owner referral responses now expose
+  bounded private evidence summaries; partner responses retain their original
+  scoped shape without attribution, settlement, qualification or request records.
+- All ten native browser cases passed together against final production composition
+  and restricted disposable PostgreSQL. New real public request-to-owner conversion
+  proves matching opt-in, exact server time, attribution without a bonus, rejection
+  of checkout-return proof, independently attested full settlement, one $5 payable
+  after repeated award, duplicate settlement denial and partner privacy. Another
+  native flow proves qualification, correction resetting review, withdrawal and
+  contact erasure, with historical qualification retained and no automatic award.
+- An initial native repeat found that an earlier success notice remained visible
+  during the next submission. A deterministic held-response browser regression
+  reproduced the defect; the shared owner handler now hides the prior notice at
+  submission. The complete native rerun passes. A separate initial textarea lookup
+  used label text containing its current value; its accessible textbox name was
+  correct and the native test now uses that role/name.
+- Native PostgreSQL permission/concurrency/replay/additive restore check passed.
+  Operator build passed and final assets match output. Service-worker shell is v15
+  with both new static modules; API data remains excluded. Backend image
+  `3dprint4me-partner-api:20261024-owner-referrals` built with manifest
+  `sha256:2a99aa7b283d690580da5ace3a53f812ee64cc4d393d310b5318f90d845bedbb`.
+  Referral/runtime imports pass offline, read-only, with capabilities dropped.
+- Read-only review and its follow-up found no concrete auth/privacy/payload or
+  stale-rendering issue. Real settlement still requires independent owner checking;
+  synthetic tests do not attest any real bank transfer or complete all packet BDD.
+- Finance/payment/adjustment/export screens, legal editorial/review/encrypted sharing,
+  full offline lifecycle, remaining native packet scenarios and release operations
+  remain open. No production migration/deployment, actual professional approval,
+  payment, real invitation or external message occurred.
+
+- Final screenshot rerun captured 101 views. Inspected the five new full lead/referral
+  states (320-light and 390-dark, including expanded correction and suppression),
+  final referral sections and owner preview-board section. Existing owner baselines
+  reflect the new navigation. Unrelated screenshot/audit rewrites were restored.

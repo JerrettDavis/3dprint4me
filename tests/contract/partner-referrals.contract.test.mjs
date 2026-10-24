@@ -62,6 +62,12 @@ test('accepted reserved bonuses survive contact erasure, cap/pause/sunset and ca
   await assert.rejects(run(f.actor,'referral.award',leadInput),{status:403});
   const earnings=await app.read(f.actor,'earnings');assert.equal(earnings.totals.earnedBonusCents,2500);assert.equal(earnings.totals.contingentBonusCents,3500);
   const own=await app.read(f.actor,'referrals');assert.equal(own.awards.length,2);assert.ok(!JSON.stringify(own).includes('bank:'));assert.ok(!JSON.stringify(own).includes('customer@example.test'));
+  const ownerView=await app.read(f.owner,'referrals');
+  assert.equal(ownerView.attributions.length,1);assert.equal(ownerView.sales.length,1);
+  assert.ok(ownerView.qualifications.some(row=>row.id===q.review.qualificationId&&row.gigId===first.offer.id));
+  assert.equal(ownerView.sales[0].id,sale.id);assert.equal(ownerView.sales[0].amountCents,10000);
+  assert.ok(!JSON.stringify(ownerView.qualifications).includes('identity_keys'));
+  for(const field of ['attributions','sales','qualifications','requests'])assert.ok(!Object.hasOwn(own,field));
   assert.equal((await app.read(f.otherActor,'referrals')).items.length,0);
   await assert.rejects(f.database.query`UPDATE partner_referrals SET policy_snapshot='{}'::jsonb WHERE id=${first.accepted.referral.id}`);
  }finally{await f.close();}
@@ -108,6 +114,11 @@ test('web referral permission binds the selected code and server receipt time wi
   payload.referral.code=accepted.referral.code;
   await f.database.query`UPDATE service_requests SET payload=${JSON.stringify(payload)}::jsonb WHERE id=${requestId}`;
   await assert.rejects(run(f.owner,'referral.attribute',input),{status:400});
+  for(const invalid of [{...payload,submittedAt:null},{...payload,submittedAt:123},{...payload,submittedAt:'bad-time'},{...payload,referral:{...payload.referral,consent:'true'}}]){
+   await f.database.query`INSERT INTO service_requests(id,service,project_title,contact_name,contact_email,status,payload,created_at) VALUES(${'rq_'+randomUUID()},'consult','Malformed permission','Customer','private-not-disclosed@example.test','quoted',${JSON.stringify(invalid)}::jsonb,${TEST_NOW})`;
+  }
+  const candidates=await app.read(f.owner,'referrals');
+  assert.deepEqual(candidates.requests,[{id:requestId,title:'Synthetic',status:'quoted',code:accepted.referral.code,consentedAt:received}]);
   const result=await run(f.owner,'referral.attribute',{...input,consentedAt:received});assert.equal(result.status,'attributed_not_paid');
   assert.equal((await app.read(f.actor,'referrals')).awards.length,0);
  }finally{await f.close();}

@@ -544,7 +544,7 @@ Native browser evidence uses an actual bound synthetic GitHub owner session and 
 restricted PostgreSQL runtime: saved cap survives reload, an operator is denied, and
 existing accepted work can be submitted, owner-approved and made payable while new
 work is disabled. This proves that slice, not the full packet owner scenario or live
-GitHub login. Lead/referral verification, finance/settlement,
+GitHub login. Finance/settlement,
 and legal editorial/review/feedback/encrypted sharing screens are still required.
 
 
@@ -569,3 +569,39 @@ clearance and transaction-time owner authorization. A real restricted-role dispo
 database/browser flow proves live suspension denial, fresh-code recovery with new work
 still disabled, and preservation of an existing payable. Initial cleared enrollment,
 production OAuth/TLS and the complete packet scenarios remain separate verification.
+
+
+### Owner leads and referral review
+
+Leads now shows recorded business context, exact permission language and purpose,
+review state and revision. Qualification/rejection requires an owner reason and creates
+no award. Corrected email/phone/method/purpose requires renewed specific permission and
+resets review. Withdrawal and deletion are explicit separate actions; suppressed contact
+fields are hidden in the owner UI, and deletion erases contact values on the server.
+Business-only visits can be reviewed independently without implying personal permission.
+The visit/lead view shows up to the 1,000 most recent records, matching existing API limits.
+
+Referrals separates customer attribution, independently verified full-sale evidence and
+awarding an accepted bonus. The web request picker uses the exact server permission
+receipt for its matching code; it never substitutes draft creation time. A distinct paper
+form needs an actual eligible request and contemporaneous evidence; server checks still
+reject missing/mismatched web opt-ins. Quotes and return URLs cannot verify payment.
+Each award form discloses the frozen criteria, amount, count, date and refund treatment
+and submits only the source appropriate to that rule. Historical qualification is not
+renewed contact permission. An earned bonus is payable, not a completed transfer.
+
+Owner referral reads add `attributions`, `sales`, `qualifications` and `requests` after
+the partner-safe return boundary. They omit identity hashes and customer contact data.
+Request summaries include ID, title, status, matching code and the server receipt time;
+only boolean opt-ins with the supported version and valid string receipt are candidates.
+The owner response rejects more than 10,000 records in any evidence collection rather
+than presenting a silently complete list. Partner responses retain only own policies and
+awards. Reads still require current owner authorization inside the transaction.
+
+Native evidence includes actual opted-in public intake, owner attribution without any
+award, rejected checkout-return proof, independent manual settlement recording, repeated
+award yielding one $5 payable, duplicate settlement denial and private partner display.
+Another native flow verifies qualification, renewed correction, withdrawal and deletion
+against live permission state. These tests use synthetic data and attestations, not real
+bank verification, live professional approval or complete packet BDD. Finance/settlement,
+legal editorial/review/encrypted sharing and deployment work remain open.
