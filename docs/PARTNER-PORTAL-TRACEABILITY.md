@@ -137,3 +137,12 @@ Native evidence follows real accepted work through payable, lost-response paymen
 reversal/correction, paused safety resolution, lost-response export retry, identical reload
 download and empty incremental re-export. This expands ledger-payments coverage; synthetic
 settlement attestations do not prove an actual bank transfer or provider import.
+
+
+Owner legal editorial increment: template/draft creation and typed immutable saves,
+exact history/hash/text, saved and unsaved comparisons, all-document clause concerns,
+resolutions, review requests, gated publication and retirement now have owner screens.
+Native actual-runtime evidence proves old versions unchanged, comments retained across
+versions, unreviewed publication denied and stale-editor text preserved. This covers
+editorial portions of contract-review.feature; professional package/approval/import,
+encrypted sharing and exact issue/acknowledgment UI journeys remain open requirements.

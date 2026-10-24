@@ -638,3 +638,46 @@ Ninja configuration remains unverified. Native tests use synthetic owner attesta
 real settlement and external resolution still require the owner's independent checking.
 Legal editorial/review/encrypted sharing, full offline lifecycle and release work remain
 open, along with the remaining complete packet scenarios and operations deliverables.
+
+
+### Owner legal editorial workspace
+
+Legal lists the latest draft revision even before any version is published. Owners can
+load the bundled anonymized discussion drafts, create a template, edit only its latest
+revision and inspect older exact source/hash/history. Every save creates a new immutable
+version. Typed variables support text, multiline text, private names, email, dates, whole
+numbers and exact-cent money defaults; unused defaults remain private template data.
+Minimum review scopes are enforced in both the UI and server and cannot be removed by
+unchecking a box. Marking text ready for issuance is not professional approval.
+
+A stale save leaves unsaved form values intact. The owner can compare captured unsaved
+text with the latest server text without submitting another draft or saving it on the
+device, then open the complete latest revision in another tab. Editing again invalidates
+a pending comparison. Navigation and access denial suppress late comparison output;
+access denial removes the private source form. Navigating away discards unsaved edits.
+There is no automatic save or local-storage draft for legal text.
+
+The version view includes clause concerns across prior revisions and explicit resolution
+records, current exact-version reviews, missing scopes, saved-text comparison, review
+request, publication and retirement. Publication is disabled until the latest text is
+issue-ready, scoped approvals are current and displayed concerns are resolved; the server
+rechecks the complete state. A review-request action creates no professional approval.
+Retirement preserves old versions and all issued copies. Actual professional decisions
+remain tied to named grants, source hash, scope and evidence through the existing backend.
+
+Owner `legal` reads now include `latest_version_id`; `legal-version` adds document-wide
+`documentComments`. More than 1,000 comment/resolution records returns an explicit
+reconciliation error rather than silently omitting later resolutions. Template/history
+lists retain their documented 200-record view limits. These remain owner-only reads.
+
+The editorial native journey seeds actual bundled drafts in disposable PostgreSQL,
+records an older clause concern, saves a new revision/hash, resolves the concern and
+requests review without approval. Direct unreviewed publication is denied. A second
+bound owner window saves a newer revision; the first window's stale save is rejected
+without losing its draft, which can be compared against the new server text. Original
+hashes remain intact. This is synthetic verification, not actual counsel review.
+
+Professional package creation/reviewer decision/returned-feedback screens, encrypted
+offline sharing, program publication bindings and exact issued-snapshot UI still need
+completion. Existing backend enforcement is retained; no launch gate is bypassed here.
+Full offline/PWA lifecycle and remaining release operations also remain required.

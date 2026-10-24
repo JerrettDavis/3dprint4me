@@ -704,3 +704,75 @@ def test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_l
                 "SELECT json_build_object('payments',(SELECT count(*) FROM partner_payment_events),'batches',(SELECT count(*) FROM partner_export_batches WHERE kind='accounting'),'adjustments',(SELECT count(*) FROM partner_payable_adjustments),'committed',(SELECT committed_cents FROM partner_program_weeks),'fees',(SELECT sum(accepted_fee_cents) FROM partner_gigs WHERE accepted_at IS NOT NULL))::text"],check=True,capture_output=True,text=True,timeout=15)
             assert json.loads(state.stdout)=={'payments':4,'batches':3,'adjustments':2,'committed':2500,'fees':2000}
         assert not site.page_errors
+
+
+def test_native_owner_legal_editor_preserves_versions_comments_and_conflicting_draft():
+    with native_partner_workspace() as (_,fixture), SiteBrowser(viewport=(390,844),color_scheme='dark',reduced_motion='reduce') as site:
+        page=site.page;api=fixture['apiOrigin'];owner=fixture['ownerOrigin']
+        cookie={'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}
+        site.context.add_cookies([cookie]);page.goto(owner+'/partners#legal')
+        page.get_by_role('heading',name='Legal templates',exact=True).wait_for()
+        page.get_by_role('button',name='Load bundled discussion drafts',exact=True).click()
+        page.get_by_text('Discussion drafts loaded. Professional review is still required.',exact=True).wait_for()
+        page.locator('[data-template="independent-marketing-services"] a').click()
+        page.locator('[data-legal-edit]').wait_for()
+        read=lambda resource,ident=None:page.evaluate("async ({api,resource,id})=>(await fetch(api+'/api/operator-partners?'+new URLSearchParams({resource,...(id?{id}:{})}),{credentials:'include'})).json()",{'api':api,'resource':resource,'id':ident})
+        item=next(d for d in read('legal')['items'] if d['template_key']=='independent-marketing-services')
+        old_id=item['latest_version_id'];old=read('legal-version',old_id)['version']
+        form=page.locator('[data-add-comment]')
+        form.get_by_role('combobox',name='Clause anchor',exact=True).select_option('preamble')
+        form.get_by_label('Reviewer or source attribution',exact=True).fill('Synthetic counsel discussion')
+        form.get_by_label('Clause concern',exact=True).fill('Synthetic clarification needed before professional review.')
+        form.get_by_role('button',name='Add clause concern',exact=True).click()
+        page.get_by_text('Clause concern recorded. Review clearance may need to be renewed.',exact=True).wait_for()
+        form=page.locator('[data-legal-edit]')
+        updated=old['markdown']+'\n## [IMS-99] Browser editorial note\nSynthetic clarification for professional review.\n'
+        form.get_by_role('textbox',name='Markdown source',exact=True).fill(updated)
+        form.get_by_label('Change reason',exact=True).fill('Add the requested synthetic clarification.')
+        form.get_by_role('button',name='Save new immutable revision',exact=True).click()
+        page.get_by_text('New draft revision saved. Existing reviews and issued copies were not changed.',exact=True).wait_for()
+        current_id=next(d for d in read('legal')['items'] if d['id']==item['id'])['latest_version_id']
+        assert current_id!=old_id
+        earlier=read('legal-version',old_id)['version']
+        assert earlier['markdown']==old['markdown'] and earlier['content_sha256']==old['content_sha256']
+        assert page.locator('[data-resolve-comment]').count()==1
+        form=page.locator('[data-resolve-comment]')
+        form.get_by_label('Resolution',exact=True).fill('Synthetic clarification recorded in this new revision.')
+        form.get_by_role('button',name='Record comment resolution',exact=True).click()
+        page.get_by_text('Comment resolution recorded. This does not grant professional approval.',exact=True).wait_for()
+        page.get_by_role('button',name='Mark revision in review',exact=True).click()
+        page.get_by_text('Revision marked in review. No professional approval was created.',exact=True).wait_for()
+        details=read('legal-version',current_id)
+        assert len(details['history'])==2 and details['version']['document_status']=='in_review'
+        assert details['clearance']['approved'] is False and details['reviews']==[]
+        assert page.get_by_role('button',name='Publish reviewed revision',exact=True).is_disabled()
+        form=page.locator('[data-version-compare]')
+        form.get_by_role('combobox',name='Compare with revision',exact=True).select_option(old_id)
+        form.get_by_role('button',name='Compare saved revisions',exact=True).click()
+        page.locator('[data-saved-comparison]').get_by_role('heading',name='IMS-99',exact=True).wait_for()
+        def post(target,action,payload):
+            return target.evaluate("async ({api,action,input})=>{const session=await (await fetch(api+'/api/operator-partners?resource=session',{credentials:'include'})).json();const response=await fetch(api+'/api/operator-partners',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':session.csrfToken},body:JSON.stringify({action,input,key:crypto.randomUUID()})});return {status:response.status,body:await response.json()};}",{'api':api,'action':action,'input':payload})
+        denied=post(page,'legal.publish',{'programId':read('programs')['items'][0]['id'],'versionId':current_id,'expectedRevision':details['version']['document_revision']})
+        assert denied['status']==409
+        # A second bound owner window creates a newer revision while this editor stays open.
+        with site.browser.new_context(viewport={'width':390,'height':844}) as other_context:
+            other_context.add_cookies([cookie]);other=other_context.new_page();other.goto(owner+'/partners#legal')
+            other.get_by_role('heading',name='Legal templates',exact=True).wait_for()
+            v=details['version']
+            saved=post(other,'legal.save',{'programId':read('programs')['items'][0]['id'],'templateKey':v['template_key'],'title':v['title'],
+                'markdown':v['markdown']+'\nSecond owner window clarification.','variablesSchema':v['variables_schema'],'issuable':False,
+                'requiredScopes':v['required_scopes'],'expectedRevision':v['document_revision'],'changeReason':'Synthetic concurrent revision.'})
+            assert saved['status']==200
+        form=page.locator('[data-legal-edit]');unsaved=updated+'\nUnsaved owner proposal retained after conflict.'
+        form.get_by_role('textbox',name='Markdown source',exact=True).fill(unsaved)
+        form.get_by_label('Change reason',exact=True).fill('Synthetic stale editor attempt.')
+        form.get_by_role('button',name='Save new immutable revision',exact=True).click()
+        page.get_by_text('A newer revision exists. Compare it before saving.',exact=True).wait_for()
+        assert form.get_by_role('textbox',name='Markdown source',exact=True).input_value()==unsaved
+        form.get_by_role('button',name='Compare unsaved text with latest revision',exact=True).click()
+        page.locator('[data-unsaved-comparison]').get_by_text('Second owner window clarification.',exact=False).wait_for()
+        assert 'Unsaved owner proposal retained' in page.locator('[data-unsaved-comparison]').inner_text()
+        assert len(read('legal-version',saved['body']['versionId'])['history'])==3
+        assert read('legal-version',old_id)['version']['content_sha256']==old['content_sha256']
+        assert 'Unsaved owner proposal' not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
+        assert not site.page_errors

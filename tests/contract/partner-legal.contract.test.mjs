@@ -31,6 +31,9 @@ test('legal editing, scoped review and issued read acknowledgments preserve ever
   const rollback=await run(f.owner,'legal.save',{...draft,markdown:'# Services terms\n## [IMS-04] Agreed fee\n${{gig_fee_usd}}',issuable:true,expectedRevision:5,changeReason:'Restore prior text as a new revision'});
   assert.equal(rollback.hash,final.hash);assert.notEqual(rollback.versionId,final.versionId);
   await assert.rejects(run(f.owner,'legal.publish',{programId:f.programId,versionId:rollback.versionId,expectedRevision:6}),{status:409});
+  const listed=(await app.read(f.owner,'legal')).items.find(d=>d.id===a.documentId);assert.equal(listed.latest_version_id,rollback.versionId);
+  const historicalComment=await run(f.owner,'legal.add_comment',{programId:f.programId,versionId:a.versionId,clauseAnchor:'IMS-04',body:'Historical clause concern still needs resolution.',reviewerId:'Synthetic counsel'});
+  const latestDetails=await app.read(f.owner,'legal-version',{id:rollback.versionId});assert.ok(latestDetails.documentComments.some(c=>c.id===historicalComment.id&&c.version_no===1));
   const old=(await app.read(f.owner,'legal-version',{id:a.versionId})).version;assert.equal(old.content_sha256,a.hash);
   const issued=(await app.read(f.actor,'agreements')).items.find(row=>row.id===issue.id);assert.equal(issued.snapshot_sha256,issue.snapshotHash);assert.match(issued.snapshot_markdown,/50.00/);assert.ok(issued.acknowledged_at);
   const diff=await app.read(f.owner,'legal-diff',{id:a.versionId,compareTo:final.versionId});assert.ok(diff.changed);
@@ -69,5 +72,15 @@ test('new clause concerns pause publication until resolved and republished',asyn
   await run('legal.resolve_comment',{programId:f.programId,commentId:comment.id,resolution:'Clarification confirmed in recorded reviewer discussion',resolvedByVersionId:version.versionId});
   await run('legal.publish',{programId:f.programId,versionId:version.versionId,expectedRevision:3});
   assert.ok((await run('legal.issue',issue)).snapshotHash);
+ }finally{await f.close();}
+});
+
+
+test('legal concern history refuses an incomplete view instead of dropping later resolutions',async()=>{
+ const f=await partnerFixture();try{
+  const app=createPartnerApplication({database:f.database,env:ACTIVE_ENV,allowSyntheticOwner:true,now:()=>new Date(TEST_NOW)});
+  const [version]=await f.database.query`SELECT id FROM partner_legal_versions LIMIT 1`;
+  await f.database.query`INSERT INTO partner_legal_comments(id,version_id,clause_anchor,body,reviewer_id) SELECT gen_random_uuid(),${version.id},'preamble','Synthetic concern '||n::text,'Synthetic reviewer' FROM generate_series(1,1001) AS n`;
+  await assert.rejects(app.read(f.owner,'legal-version',{id:version.id}),{status:409});
  }finally{await f.close();}
 });
