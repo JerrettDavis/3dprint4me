@@ -313,3 +313,24 @@ responses after leaving. Revocation invalidates sessions/pending codes while lea
 financial evidence intact. Verify masked ephemeral behavior, stale responses,
 replacement/replay denial, suspended recovery, disabled enrollment and preserved
 payables through owner/partner native browser contexts.
+
+
+### Owner leads and referral review
+
+Extend the existing owner-only workspace with Leads and Referrals. Leads show business
+context, exact permission and permitted contact only while unsuppressed. Explicit
+qualification/rejection needs a reason; corrected method/contact/purpose requires renewed
+permission; withdraw/delete invalidate follow-up without erasing existing obligations.
+Referrals disclose immutable accepted rules and provide separate attribution, independently
+verified full-sale evidence and award forms. Web opt-ins use their matching opaque code
+and exact server receipt time; manual paper evidence is a separate explicit form and
+cannot bypass a missing web opt-in. Award source controls include only the source for
+that frozen rule and disclose that historical evidence does not renew contact permission.
+No quote/return URL is payment proof, and an earned bonus is not a completed transfer.
+
+Expose owner-only bounded evidence reads without raw identity hashes or customer contact
+in referral responses; retain partner response shape. Reuse revision/idempotency, form
+locking and route-generation guards. Check malformed/unconsented records, stale private
+responses, live withdrawal, duplicate award and settlement evidence through contracts,
+fixture browser and production-composition disposable native journeys. Preserve existing
+inbox and perform the full suite, static build and inspected screenshots before commit.

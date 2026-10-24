@@ -446,3 +446,128 @@ def test_native_owner_console_uses_github_binding_and_preserves_obligations_whil
             result=page.evaluate("async api=>(await fetch(api+'/api/operator-partners?resource=ledger',{credentials:'include'})).json()",api)
             assert any(row['amountDueCents']==1000 and row['outstandingCents']==1000 for row in result['items'])
         assert not site.page_errors
+
+
+def test_native_owner_referral_conversion_requires_settlement_and_awards_once():
+    with native_partner_workspace() as (origin,fixture), SiteBrowser(viewport=(390,844),color_scheme='dark',reduced_motion='reduce') as site:
+        api=fixture['apiOrigin'];owner=fixture['ownerOrigin'];page=site.page
+        body={'projectTitle':'Native opted-in sign project','service':'consult','description':'Independent project review.',
+              'contact':{'name':'Synthetic customer','email':'native-sale@example.test'},'consent':True,
+              'referral':{'code':fixture['referralCode'],'consent':True,'consentVersion':'referral-v1'}}
+        status,_,raw=request(api+'/api/request',method='POST',payload={'request':body})
+        assert status==201
+        request_id=json.loads(raw)['id']
+        status,_,_=request(api+'/api/request',method='PATCH',payload={'id':request_id,'request':body,'uploadedFiles':[]})
+        assert status==200
+        site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
+        page.goto(owner+'/partners#referrals')
+        page.get_by_role('heading',name='Referral review',exact=True).wait_for()
+        assert 'New work unavailable' in page.locator('#partner-clearance').inner_text()
+        form=page.locator('[data-web-attribution]')
+        form.get_by_role('combobox',name='Consenting web request',exact=True).select_option(request_id)
+        assert form.get_by_label('Server permission receipt (UTC)',exact=True).input_value()
+        form.get_by_label('Permission evidence reference',exact=True).fill('Native private web request permission checked')
+        form.get_by_label('Customer opt-in for this referral code is verified.',exact=True).check()
+        form.get_by_label('I verified this is an independent customer, not a participant purchase.',exact=True).check()
+        form.get_by_role('button',name='Record attribution',exact=True).click()
+        page.get_by_text('Attribution recorded. No sale or bonus was created.',exact=True).wait_for()
+        read=lambda:page.evaluate("async api=>(await fetch(api+'/api/operator-partners?resource=referrals',{credentials:'include'})).json()",api)
+        data=read()
+        assert len(data['attributions'])==1 and len(data['awards'])==0 and len(data['sales'])==0
+        attribution_id=data['attributions'][0]['id']
+        def complete_sale(reference):
+            form=page.locator('[data-sale-verification]')
+            form.get_by_role('combobox',name='Attributed request',exact=True).select_option(attribution_id)
+            form.get_by_label('Settled amount (USD)',exact=True).fill('125.00')
+            form.get_by_label('Settlement reference',exact=True).fill(reference)
+            form.get_by_role('combobox',name='Settlement method',exact=True).select_option('bank_transfer')
+            from datetime import datetime,timezone
+            form.get_by_label('Settled at (ISO 8601 with timezone)',exact=True).fill(datetime.now(timezone.utc).isoformat())
+            for label in ['I independently verified settlement outside this portal.','This customer purchase is paid in full.','I reviewed refunds and reversals.','I verified this is an independent customer, not a participant purchase.']:
+                form.get_by_label(label,exact=True).check()
+            form.get_by_role('button',name='Record verified sale',exact=True).click()
+        complete_sale('https://checkout.example/return?paid=1')
+        page.get_by_text('Record an actual settlement reference, method and consistent payment time.',exact=True).wait_for()
+        assert len(read()['sales'])==0 and len(read()['awards'])==0
+        complete_sale('NATIVE-SYNTHETIC-BANK-1')
+        page.get_by_text('Sale evidence recorded. No bonus was awarded.',exact=True).wait_for()
+        data=read();sale_id=data['sales'][0]['id']
+        assert data['awards']==[]
+        def award():
+            form=page.locator('[data-award-rule="sale"]')
+            form.get_by_role('combobox',name='Verified settlement evidence',exact=True).select_option(sale_id)
+            form.get_by_label('The frozen qualification criteria and deadline are met.',exact=True).check()
+            form.get_by_label('I reviewed self-referral, duplicate and collusion checks.',exact=True).check()
+            form.get_by_role('button',name='Award accepted bonus',exact=True).click()
+            page.get_by_text('Earned bonus recorded as payable. This is not a payment confirmation.',exact=True).wait_for()
+        award();award()
+        data=read()
+        assert len(data['awards'])==1 and data['awards'][0]['amountCents']==500
+        complete_sale('NATIVE-SYNTHETIC-BANK-1')
+        page.get_by_text('This settlement evidence is already recorded.',exact=True).wait_for()
+        counts=subprocess.run(['docker','exec',fixture['_container'],'psql','-U','postgres','-Atc',
+            "SELECT json_build_object('awards',(SELECT count(*) FROM partner_referral_events),'payables',(SELECT count(*) FROM partner_payables),'sale_evidence',(SELECT count(*) FROM partner_sale_evidence),'committed',(SELECT committed_cents FROM partner_program_weeks))::text"],check=True,capture_output=True,text=True,timeout=15)
+        assert json.loads(counts.stdout)=={'awards':1,'payables':1,'sale_evidence':1,'committed':2500}
+        with site.browser.new_context(viewport={'width':390,'height':844}) as partner_context:
+            other=partner_context.new_page();other.goto(origin)
+            other.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+            other.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+            other.get_by_role('button',name='Sign in',exact=True).click()
+            other.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+            other.goto(origin+'/referrals')
+            other.get_by_text(fixture['referralCode'],exact=True).first.wait_for()
+            assert '$5.00' in other.locator('main').inner_text()
+            assert 'native-sale@example.test' not in other.locator('main').inner_text()
+            assert 'NATIVE-SYNTHETIC-BANK-1' not in other.locator('main').inner_text()
+            own=other.evaluate("async api=>(await fetch(api+'/api/partner/v1/referrals',{credentials:'include'})).json()",api)
+            assert all(key not in own for key in ['attributions','sales','qualifications','requests'])
+        assert not site.page_errors
+
+
+def test_native_owner_lead_review_correction_and_withdrawal_update_live_permission():
+    with native_partner_workspace() as (origin,fixture), SiteBrowser(viewport=(390,844),reduced_motion='reduce') as site:
+        page=site.page;api=fixture['apiOrigin'];page.goto(origin)
+        page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        page.goto(origin+'/visits/new?gig='+fixture['acceptedGigId'])
+        page.get_by_label('Business name',exact=True).fill('Native owner review business')
+        page.get_by_label('This person explicitly agreed to project follow-up.',exact=True).check()
+        page.get_by_label('Project follow-up purpose',exact=True).fill('Requested project sign discussion')
+        page.get_by_label('Contact email',exact=True).fill('owner-review@example.test')
+        page.get_by_role('button',name='Submit visit',exact=True).click()
+        page.get_by_text('Visit recorded.',exact=True).wait_for()
+        with site.browser.new_context(viewport={'width':390,'height':844}) as owner_context:
+            owner_context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
+            owner=owner_context.new_page();owner.goto(fixture['ownerOrigin']+'/partners#leads')
+            owner.get_by_role('heading',name='Lead follow-up',exact=True).wait_for()
+            owner.get_by_label('Review reason',exact=True).fill('Specific project interest and permission checked.')
+            owner.get_by_role('button',name='Record lead review',exact=True).click()
+            owner.get_by_text('Lead review recorded. No bonus was created.',exact=True).wait_for()
+            assert 'Follow-up permitted for the recorded purpose' in owner.locator('main').inner_text()
+            owner.get_by_text('Correct contact or purpose',exact=True).click()
+            owner.get_by_label('Email',exact=True).fill('owner-renewed@example.test')
+            owner.get_by_role('textbox',name='Project purpose',exact=True).fill('Renewed permission for the replacement sign project')
+            owner.get_by_label('Renewed purpose-specific permission was explicitly given for these corrected details.',exact=True).check()
+            owner.get_by_role('button',name='Save corrected contact',exact=True).click()
+            owner.get_by_text('Contact correction recorded. Review the current permission before follow-up.',exact=True).wait_for()
+            assert 'Follow-up unavailable' in owner.locator('main').inner_text()
+            assert 'owner-review@example.test' not in owner.locator('main').inner_text()
+            owner.get_by_label('I confirmed the requested suppression or deletion. Existing obligations remain unchanged.',exact=True).check()
+            owner.get_by_role('button',name='Apply permission action',exact=True).click()
+            owner.get_by_text('Permission action recorded. Follow-up is suppressed.',exact=True).wait_for()
+            assert 'owner-renewed@example.test' not in owner.locator('main').inner_text()
+            live=page.evaluate("async api=>(await (await fetch(api+'/api/partner/v1/leads',{credentials:'include'})).json()).items[0]",api)
+            assert live['status']=='withdrawn' and live['followUpAllowed'] is False and live['revision']==4
+            assert live['withdrawnAt']
+            assert owner.get_by_role('button',name='Record lead review',exact=True).count()==0
+            owner.get_by_label('I confirmed the requested suppression or deletion. Existing obligations remain unchanged.',exact=True).check()
+            owner.get_by_role('button',name='Apply permission action',exact=True).click()
+            owner.get_by_text('Permission action recorded. Follow-up is suppressed.',exact=True).wait_for()
+            live=page.evaluate("async api=>(await (await fetch(api+'/api/partner/v1/leads',{credentials:'include'})).json()).items[0]",api)
+            assert live['contact']=={} and live['deletedAt'] and live['followUpAllowed'] is False
+            data=owner.evaluate("async api=>(await (await fetch(api+'/api/operator-partners?resource=referrals',{credentials:'include'})).json())",api)
+            assert len(data['qualifications'])==1 and data['qualifications'][0]['followUpAllowed'] is False
+            assert data['awards']==[]
+        assert not site.page_errors
