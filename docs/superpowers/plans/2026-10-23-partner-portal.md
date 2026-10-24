@@ -354,3 +354,22 @@ current owner/CSRF/route guards and all form locking. Verify unknown-response re
 partial payment/reversal, acknowledged correction, durable/replayed exports and private
 boundaries with contracts, fixture browser and native PostgreSQL journeys; run full
 suite/build/screenshots and inspect before commit.
+
+
+### Owner legal editorial workspace
+
+Add Legal to the bound owner area: bundled anonymized draft loading, template creation,
+immutable revision editing with typed variable definitions/required scopes, exact version
+source/history, clause comparison, all-document unresolved concerns, explicit resolutions,
+request-review/publish/retire commands. Show exact missing review scopes and preserve all
+existing publication and issuance gates. Only the latest revision can be edited here;
+older versions stay inspectable/diffable. Retain unsaved form fields on conflicts and
+provide a guarded comparison with the current server revision without sending draft text
+or storing it on the device. No auto-save or fake review approvals.
+
+Expose latest version IDs for draft navigation and document-wide comment context so prior
+revision concerns cannot disappear from the owner's publishing decision. Reuse stable
+command keys/locking/generation guards and test source escaping, stale conflicts, typed
+values, historical comments and review denial through fixture and actual native flows.
+Follow with professional review package/reviewer decisions/feedback, encrypted offline
+sharing and exact issued snapshots; those remain required parts of the overall goal.

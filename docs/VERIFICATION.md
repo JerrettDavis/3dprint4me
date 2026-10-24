@@ -752,3 +752,41 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   dropped. No production migration/deployment, actual approval, real invitation,
   payment or external message occurred. Legal editorial/review/encrypted sharing,
   full offline lifecycle, complete packet BDD and release operations remain open.
+
+
+### Owner legal editorial workspace (2026-10-24)
+
+- Full `npm test` passed: 1,179 unit/contract tests, 279 browser cases and one
+  Windows skip, plus 241/241 UX checks. Seven new legal presentation cases cover
+  typed defaults/private variables, mandatory scopes, immutable-save payloads,
+  stale text retention/comparison, older revision read-only behavior, historical
+  comment resolution, request-review/retirement semantics, late comparisons and
+  access-denial cleanup. Eleven focused legal/client/hosting checks also passed.
+- All twelve native browser cases passed with production composition and restricted
+  disposable PostgreSQL. The new editorial journey loads actual anonymized bundled
+  drafts, records a clause concern, creates a new hash/revision without changing
+  prior source, resolves an older concern, requests review without approval and
+  rejects direct unreviewed publication. A second bound owner window creates a
+  newer version; the stale first editor retains its source and compares with that
+  revision without adding another saved version. No actual review was fabricated.
+- Contract RED/GREEN evidence covers missing latest-version navigation and
+  document-wide prior concerns. Read-only review found a silent 1,000-record
+  comment-history limit that could omit resolutions. A real 1,001-row fixture
+  reproduced it; a sentinel now returns an explicit reconciliation error before
+  exposing incomplete concern state. Review confirmed this fix and the safe
+  separate-tab link for inspecting full latest metadata while retaining a draft.
+- Native PostgreSQL permissions/concurrency/replay/additive restore passed.
+  Operator build passed and final source matches output. Static-only shell cache
+  increments to v17; API data stays excluded. Captured 109 screenshots and inspected
+  four new full 320-light/390-dark legal list/editor states, expanded typed-variable
+  controls and the owner preview-board section. Retained owner navigation baselines;
+  restored unrelated screenshot/audit rewrites.
+- Backend image `3dprint4me-partner-api:20261024-owner-legal` built with manifest
+  `sha256:56693bbc1662eaa190589608467ee5ef9283ef3437dd22ad4173f480998410e6`.
+  Legal/runtime imports pass with no network, read-only filesystem and capabilities
+  dropped. No production migration/deployment, real invitation, actual professional
+  approval, payment or external message occurred.
+- Professional package/reviewer decision/returned-feedback screens, encrypted offline
+  sharing, approved program-version bindings and exact issued-snapshot UI remain
+  required. This increment covers editorial scenarios, not the complete legal BDD
+  feature. Full offline lifecycle and remaining operations/release work remain open.
