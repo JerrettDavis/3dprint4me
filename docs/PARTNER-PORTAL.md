@@ -753,3 +753,15 @@ mutations take exclusive locks. Native PostgreSQL barriers verify that another
 program cannot retire a shared publication midway through authorization or binding.
 After retirement, fresh authorization fails closed. These locks apply only to mutable
 document rows, not immutable versions, preserving the restricted database role.
+
+
+### Partner offline shell and visit continuity
+
+The partner web manifest and static-only service worker now provide cold offline
+reopen of explicitly saved business drafts and opt-in prepared visit forms. No API
+responses, accepted terms, authentication, consent or contact details are cached.
+Entering an account code offline selects device records without authenticating the
+user. Fresh server access and explicit sending remain necessary after reconnection.
+See [PARTNER-OFFLINE.md](PARTNER-OFFLINE.md) for preparation, privacy, conflicts,
+cache releases, sign-out races, hosting and evidence. Optional timer lifecycle and
+remaining packet operations/acceptance/deployment requirements are still open.

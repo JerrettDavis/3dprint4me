@@ -31,3 +31,25 @@ test('logout serializes behind in-flight authentication and superseded responses
  assert.equal(calls[1].options.headers['X-CSRF-Token'],'stale-csrf');
  await assert.rejects(client.command('gig.accept',{},'key'),{status:401});
 });
+
+
+test('device sign-out forgets in-memory authorization and discards pending authentication',async()=>{
+ let complete;const calls=[];const client=createPartnerClient({fetch:async(url,options)=>{calls.push({url,options});if(url.endsWith('/logout'))return {ok:true,status:200};return new Promise(resolve=>{complete=()=>resolve({ok:true,status:200,json:async()=>({csrfToken:'late-token',partner:{id:'late'}})});});}});
+ const pending=client.session();await new Promise(resolve=>setTimeout(resolve,0));client.forget();complete();
+ await assert.rejects(pending,{status:409});assert.equal(client.signedIn,false);
+ await assert.rejects(client.command('visit.record',{},'key'),{status:401});assert.equal(calls.length,2);assert.ok(calls[1].url.endsWith('/logout'));assert.equal(calls[1].options.headers['X-CSRF-Token'],'late-token');assert.equal(calls[1].options.credentials,'include');
+});
+
+
+test('failed superseded-session cleanup reports uncertainty without restoring authorization',async()=>{
+ let complete,warned=0;const client=createPartnerClient({onUncertainSignOut:()=>warned++,fetch:async url=>{if(url.endsWith('/logout'))throw Error('private network detail');return new Promise(resolve=>{complete=()=>resolve({ok:true,status:200,json:async()=>({csrfToken:'late-token',partner:{id:'late'}})});});}});
+ const pending=client.session();await new Promise(resolve=>setTimeout(resolve,0));client.forget();complete();
+ await assert.rejects(pending,{status:409});assert.equal(warned,1);assert.equal(client.signedIn,false);
+});
+
+
+for(const failure of ['body','network'])test('superseded authentication '+failure+' failure warns when cookie cleanup cannot be confirmed',async()=>{
+ let complete,warnings=0;const client=createPartnerClient({onUncertainSignOut:()=>warnings++,fetch:async()=>new Promise((resolve,reject)=>{complete=()=>failure==='body'?resolve({ok:true,status:200,json:async()=>{throw Error('private malformed body');}}):reject(Error('private network error'));})});
+ const pending=client.login('synthetic','synthetic passphrase');await new Promise(resolve=>setTimeout(resolve,0));client.forget();complete();
+ await assert.rejects(pending,error=>error.status===(failure==='body'?503:0)&&!error.message.includes('private'));assert.equal(warnings,1);assert.equal(client.signedIn,false);
+});

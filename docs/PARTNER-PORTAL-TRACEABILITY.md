@@ -191,3 +191,21 @@ review pooling is denied; all source-required scopes are enforced. Native Postgr
 lock barriers cover cross-program retirement during authorization and binding.
 This supplies the exact-copy UI path; full partner offline/PWA lifecycle, complete
 packet feature acceptance and operational/deployment work still remain.
+
+
+Partner offline PWA increment: P-03 now has a dedicated manifest, fixed static-shell
+cache and cold-reopen workspace. Native runtime evidence prepares a minimal visit
+context online, reopens a new page offline, saves a business-only visit, reloads it,
+then explicitly sends after server session revalidation; one server visit persists.
+No API responses, accepted terms, legal text, credentials, contact or consent enter
+Cache Storage. Device drafts/preparation remain explicit, account-scoped, unencrypted
+business-only data with a device warning. Known conflicts stay for manual review.
+Worker migration preserves unrelated caches and refuses unknown routes/query assets.
+Sign-out clears local records/static caches and other tab views. A native held real
+login response reproduces a late-cookie sign-out race; superseded responses now revoke
+their server session using transient CSRF, while unreadable/network failures announce
+uncertainty instead of silently claiming success. Canonical-shell hosting is tested
+with cleanUrls-style 308 redirects. Unsupported workers cannot claim preparation.
+Chromium installability/manifest inspection reports no errors. This covers offline
+visit continuity; optional timer lifecycle, the remaining complete named packet
+scenarios and operational/disabled deployment gates still need their own evidence.

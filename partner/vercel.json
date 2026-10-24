@@ -1,7 +1,7 @@
 {
  "outputDirectory":"public",
  "cleanUrls":true,
- "rewrites":[{"source":"/visits/new","destination":"/index.html"},{"source":"/visits","destination":"/index.html"},{"source":"/drafts","destination":"/index.html"},{"source":"/gigs/:id","destination":"/index.html"},{"source":"/join","destination":"/index.html"},{"source":"/gigs","destination":"/index.html"},{"source":"/activity","destination":"/index.html"},{"source":"/earnings","destination":"/index.html"},{"source":"/referrals","destination":"/index.html"},{"source":"/agreements","destination":"/index.html"},{"source":"/profile","destination":"/index.html"},{"source":"/help","destination":"/index.html"}],
+ "rewrites":[{"source":"/visits/new","destination":"/"},{"source":"/visits","destination":"/"},{"source":"/drafts","destination":"/"},{"source":"/gigs/:id","destination":"/"},{"source":"/join","destination":"/"},{"source":"/gigs","destination":"/"},{"source":"/activity","destination":"/"},{"source":"/earnings","destination":"/"},{"source":"/referrals","destination":"/"},{"source":"/agreements","destination":"/"},{"source":"/profile","destination":"/"},{"source":"/help","destination":"/"}],
  "headers":[{"source":"/(.*)","headers":[
   {"key":"Cache-Control","value":"no-store"},
   {"key":"Content-Security-Policy","value":"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.3dprint4.me; img-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests"},

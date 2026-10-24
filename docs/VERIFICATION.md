@@ -945,3 +945,52 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
 - Full partner offline lifecycle, the remaining packet acceptance/operations work and
   disabled production rollout still remain. Synthetic review evidence is not an actual
   professional approval; production launch flags remain off.
+
+
+## 2026-10-24: partner offline shell and business visit continuity
+
+- Added the partner install manifest, existing-brand SVG/192/512 PNG icons and a
+  static-only worker. Chromium reports no installability or manifest errors. Cache
+  contents exclude APIs, private records, request bodies, auth and device drafts.
+- Opt-in prepared context stores only account/gig identifiers and expected revision,
+  separate from business-only drafts. Cold offline reopen selects local records by
+  account code, never authenticates, and disables contact/consent/server submission.
+  Sending still requires a revalidated same-account session and explicit action.
+- Native cold-reopen evidence creates a visit after opening a new offline page,
+  retains it across reload, then sends one server visit on reconnection. The existing
+  100-draft native replay remains separate from the new cold-reopen path.
+- Review identified Vercel cleanUrls redirects breaking index.html precache. A native
+  redirect-aware RED reproduced worker installation failure; canonical `/` caching
+  and rewrites resolve it. The development host now mirrors the 308 redirect.
+- Cross-tab RED reproduced a stale private view, then a held actual login Set-Cookie
+  restoring a session after another tab fully signed out. Broadcast invalidation,
+  generation guards and transient-CSRF server cleanup resolve the successful-body
+  race; native cleanup returns 200 and reload stays signed out. Unreadable body,
+  network and cleanup failures warn generically and never restore local auth.
+- Browser RED reproduced preparation claiming readiness with no worker; preparation
+  now waits for a successful bounded acknowledgment before saving minimal context.
+  Another RED proved reseeding could overwrite an active cached release. A complete
+  matching static set is now retained, and reseeding checks matching HTML release
+  markers before/after caching. Worker/HTML marker agreement has a unit contract.
+- Focused final checks pass: 15 client/draft/static unit tests, five real-worker PWA
+  cases and nine PWA/visit presentation cases. Read-only review confirmed each fix;
+  later sequential full-suite/native/screenshots results are recorded below.
+- Earlier diagnostic runs are not final acceptance evidence: one broad run was
+  intentionally stopped after a material auth fix; a later run overlapped availability
+  changes and had 298 browser passes, one skip and one failed unavailable-worker case.
+  The final source is held fixed for the sequential verification pipeline.
+- Final sequential native suite passes all 16 cases (102.60 seconds). Captured 131
+  screenshots, inspected all six new 320-light/390-dark offline chooser/drafts/form
+  states, updated sign-in/visit/contact full views and the preview-board section.
+  Retained relevant baselines and restored 31 unrelated regenerated images.
+- The final frozen sequential pipeline exits zero: `npm test` passes build/static
+  validation, all 1,194 unit/contract tests, 300 browser tests plus one Windows skip,
+  and 241/241 UX checks. No product source changed during this final pipeline.
+  Earlier diagnostic/overlapping runs are superseded by this acceptance run.
+- Read-only Vercel CLI account verification succeeds. This is account readiness only;
+  no new project, domain or DNS record was created. No Vercel/Cloudflare connector is
+  available, so subsequent deployment work can use the existing authenticated CLI.
+- No backend/schema changes, actual professional decision, real invitation/payment,
+  external message, staging/production deployment or DNS change occurred. Launch
+  flags remain off. Optional timer lifecycle and remaining packet operations, full
+  feature acceptance and disabled production rollout remain required.

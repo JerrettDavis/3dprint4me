@@ -485,6 +485,38 @@ def capture_partner_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_partner_offline_states() -> list[tuple[str, Path]]:
+    from tests.support.partner_harness import running_partner_shell
+    from tests.e2e.test_partner_shell import PARTNER
+    from tests.e2e.test_partner_visits import visit_fixture, GIG
+    captured=[]
+    with running_partner_shell() as origin:
+        for state in ['chooser','drafts','form']:
+            for width,scheme in [(320,'light'),(390,'dark')]:
+                with SiteBrowser(viewport=(width,844),color_scheme=scheme,reduced_motion='reduce') as site:
+                    page=site.page;visit_fixture(page);page.goto(origin+'/visits/new?gig='+GIG)
+                    page.wait_for_function('()=>!!navigator.serviceWorker.controller')
+                    page.get_by_role('button',name='Prepare this gig for offline business drafts',exact=True).click()
+                    page.get_by_text('Offline visit form prepared on this device. Current gig status still requires a connection.',exact=True).wait_for()
+                    page.get_by_label('Business name',exact=True).fill('Synthetic device-only business')
+                    page.locator('#device-permission').check()
+                    page.get_by_role('button',name='Save business draft on this device',exact=True).click()
+                    page.unroute_all();site.context.set_offline(True);page.goto(origin+'/drafts')
+                    page.get_by_role('heading',name='This device, offline',exact=True).wait_for()
+                    if state!='chooser':
+                        page.get_by_label('Account code for device drafts',exact=True).fill(PARTNER['id'])
+                        page.get_by_role('button',name='Open device drafts',exact=True).click()
+                        page.get_by_role('heading',name='Device drafts',exact=True).wait_for()
+                    if state=='form':
+                        page.get_by_role('button',name='Record another business visit',exact=True).click()
+                        page.get_by_label('Business name',exact=True).fill('Another synthetic business')
+                    path=OUTPUT/f'partner-offline-{state}-{scheme}.png'
+                    page.evaluate('document.activeElement?.blur();window.scrollTo(0,0)')
+                    site.screenshot(path,full_page=True);assert not site.page_errors
+                    captured.append((f'Partner offline {state} - {scheme}',path))
+    return captured
+
+
 def capture_partner_owner_states() -> list[tuple[str, Path]]:
     from tests.e2e.test_partner_owner import install_owner_fixture, install_access_fixture
     from tests.e2e.test_partner_owner_referrals import install_review_fixture
@@ -619,6 +651,7 @@ def main() -> int:
     cases.extend(capture_filament_states())
     cases.extend(capture_spoolman_states())
     cases.extend(capture_partner_states())
+    cases.extend(capture_partner_offline_states())
     cases.extend(capture_partner_owner_states())
     cases.extend(capture_offline_review_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
