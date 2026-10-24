@@ -571,3 +571,136 @@ def test_native_owner_lead_review_correction_and_withdrawal_update_live_permissi
             assert len(data['qualifications'])==1 and data['qualifications'][0]['followUpAllowed'] is False
             assert data['awards']==[]
         assert not site.page_errors
+
+
+def test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_lost_response():
+    from datetime import datetime,timezone
+    import csv
+    import io
+    with native_partner_workspace() as (origin,fixture), SiteBrowser(viewport=(390,844),reduced_motion='reduce') as site:
+        page=site.page;api=fixture['apiOrigin'];owner=fixture['ownerOrigin']
+        site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
+        with site.browser.new_context(viewport={'width':390,'height':844}) as partner_context:
+            partner=partner_context.new_page();partner.goto(origin)
+            partner.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+            partner.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+            partner.get_by_role('button',name='Sign in',exact=True).click()
+            partner.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+            partner.goto(origin+'/gigs/'+fixture['acceptedGigId'])
+            partner.get_by_role('combobox',name='Action',exact=True).select_option('submit')
+            partner.get_by_label('Reason or submission details',exact=True).fill('Synthetic completed work for finance verification.')
+            partner.get_by_role('button',name='Save decision',exact=True).click()
+            partner.get_by_text('Decision recorded.',exact=True).wait_for()
+            page.goto(owner+'/partners#gig/'+fixture['acceptedGigId'])
+            for action in ['approve','make_payable']:
+                page.get_by_role('combobox',name='Review action',exact=True).select_option(action)
+                page.get_by_label('Review reason',exact=True).fill('Synthetic objective work reviewed.')
+                page.get_by_role('button',name='Record gig review',exact=True).click()
+                page.get_by_text('Gig review recorded.',exact=True).wait_for()
+            page.goto(owner+'/partners#finance')
+            page.get_by_role('heading',name='Partner finance',exact=True).wait_for()
+            read=lambda resource:page.evaluate("async ({api,resource})=>(await fetch(api+'/api/operator-partners?resource='+resource,{credentials:'include'})).json()",{'api':api,'resource':resource})
+            assert read('ledger')['totals']['outstandingCents']==1000
+            attempts=[];lost=[False]
+            def lose_first_payment(route):
+                if route.request.method=='POST' and route.request.post_data_json['action']=='payment.record':
+                    attempts.append(route.request.post_data_json);response=route.fetch();assert response.status==200
+                    if not lost[0]:lost[0]=True;route.abort()
+                    else:route.fulfill(response=response)
+                else:route.fallback()
+            page.route('**/api/operator-partners*',lose_first_payment)
+            def payment(amount,reference):
+                form=page.locator('[data-payment]')
+                form.get_by_label('Settled payment (USD)',exact=True).fill(amount)
+                form.get_by_label('Payment reference',exact=True).fill(reference)
+                form.get_by_label('Settled at (ISO 8601 with timezone)',exact=True).fill(datetime.now(timezone.utc).isoformat())
+                form.get_by_label('I independently verified that this payment actually settled.',exact=True).check()
+                form.get_by_role('button',name='Record verified payment',exact=True).click()
+            payment('4.00','NATIVE-PAYMENT-1')
+            page.get_by_text('Unable to reach partner administration. Check your connection and try again.',exact=True).wait_for()
+            assert read('ledger')['totals']['paidCents']==400
+            page.get_by_role('button',name='Record verified payment',exact=True).click()
+            page.get_by_text('Verified payment recorded. Review the updated outstanding amount.',exact=True).wait_for()
+            assert attempts[0]==attempts[1]
+            payment('6.00','NATIVE-PAYMENT-2')
+            page.get_by_text('Verified payment recorded. Review the updated outstanding amount.',exact=True).wait_for()
+            data=read('ledger');assert data['totals']['paidCents']==1000 and data['totals']['outstandingCents']==0
+            original=next(e for e in data['paymentEvents'] if e['payment_reference']=='NATIVE-PAYMENT-2')
+            form=page.locator('[data-reversal="'+original['id']+'"]')
+            form.locator('..').get_by_text('Record a confirmed returned transfer',exact=True).click()
+            form.get_by_label('Nonsettlement reference',exact=True).fill('NATIVE-RETURN-2')
+            form.get_by_label('Reversed at (ISO 8601 with timezone)',exact=True).fill(datetime.now(timezone.utc).isoformat())
+            form.get_by_label('Reversal reason',exact=True).fill('Synthetic bank confirmation of returned transfer.')
+            form.get_by_label('I verified nonsettlement or return of this original payment.',exact=True).check()
+            form.get_by_role('button',name='Record payment reversal',exact=True).click()
+            page.get_by_text('Reversal recorded. The original event remains in the ledger.',exact=True).wait_for()
+            assert read('ledger')['totals']['outstandingCents']==600
+            page.get_by_text('Record an evidenced obligation adjustment',exact=True).click()
+            form=page.locator('[data-adjustment]')
+            form.get_by_label('Adjustment (USD, positive or negative)',exact=True).fill('2.00')
+            form.get_by_label('Adjustment reason',exact=True).fill('Additional externally documented obligation.')
+            form.get_by_label('Resolution reference',exact=True).fill('NATIVE-RESOLUTION-1')
+            for label in ['The partner acknowledged this resolution.','I verified the external resolution evidence.']:form.get_by_label(label,exact=True).check()
+            form.get_by_role('button',name='Record obligation adjustment',exact=True).click()
+            page.get_by_text('Adjustment recorded. Accepted terms and prior evidence are unchanged.',exact=True).wait_for()
+            assert read('ledger')['totals']['outstandingCents']==800
+            payment('8.00','NATIVE-PAYMENT-3')
+            page.get_by_text('Verified payment recorded. Review the updated outstanding amount.',exact=True).wait_for()
+            data=read('ledger');assert data['totals']['paidCents']==1200 and len(data['paymentEvents'])==4
+            # A separate accepted obligation can be resolved after a safety report while new work is off.
+            referral_gig=read('referrals')['items'][0]['gigId']
+            partner.goto(origin+'/gigs/'+referral_gig)
+            partner.get_by_role('combobox',name='Action',exact=True).select_option('report_unsafe')
+            partner.get_by_label('Reason or submission details',exact=True).fill('Synthetic unsafe access; partial work needs resolution.')
+            partner.get_by_role('button',name='Save decision',exact=True).click()
+            partner.get_by_text('Decision recorded.',exact=True).wait_for()
+            page.reload();page.get_by_role('heading',name='Partner finance',exact=True).wait_for()
+            page.get_by_text('Reconcile accepted work',exact=True).click()
+            form=page.locator('[data-reconciliation="'+referral_gig+'"]')
+            form.get_by_label('Agreed obligation (USD)',exact=True).fill('5.00')
+            form.get_by_label('Resolution reason',exact=True).fill('Synthetic acknowledged safety resolution.')
+            form.get_by_label('Resolution reference',exact=True).fill('NATIVE-SAFETY-RESOLUTION')
+            for label in ['The partner acknowledged this resolution.','I verified the external resolution evidence.']:form.get_by_label(label,exact=True).check()
+            form.get_by_role('button',name='Record resolved obligation',exact=True).click()
+            page.get_by_text('Resolution recorded. This does not confirm a payment.',exact=True).wait_for()
+            assert read('ledger')['totals']['outstandingCents']==500
+            export_attempts=[];lost_export=[False]
+            def lose_first_export(route):
+                if route.request.method=='POST' and route.request.post_data_json['action']=='finance.export':
+                    export_attempts.append(route.request.post_data_json);response=route.fetch();assert response.status==200
+                    if not lost_export[0]:lost_export[0]=True;route.abort()
+                    else:route.fulfill(response=response)
+                else:route.fallback()
+            page.route('**/api/operator-partners*',lose_first_export)
+            form=page.locator('[data-finance-export]')
+            form.get_by_role('combobox',name='Accounting basis',exact=True).select_option('cash')
+            form.get_by_role('button',name='Create incremental CSV batch',exact=True).click()
+            page.get_by_text('Unable to reach partner administration. Check your connection and try again.',exact=True).wait_for()
+            assert len(read('exports')['items'])==1
+            form.get_by_role('button',name='Create incremental CSV batch',exact=True).click()
+            page.get_by_role('heading',name='Accounting export',exact=True).wait_for()
+            assert export_attempts[0]==export_attempts[1]
+            with page.expect_download() as event:page.get_by_role('link',name='Download verified CSV',exact=True).click()
+            cash=event.value.path().read_text()
+            rows=list(csv.DictReader(io.StringIO(cash)));assert len(rows)==4 and sum(int(row['amount_cents']) for row in rows)==1200
+            assert any(row['record_kind']=='reversed' and row['amount_cents']=='-600' for row in rows)
+            assert all(row['tax_reporting_class']=='review_required' for row in rows)
+            first_url=page.url;page.reload();page.get_by_role('link',name='Download verified CSV',exact=True).wait_for()
+            with page.expect_download() as event:page.get_by_role('link',name='Download verified CSV',exact=True).click()
+            assert event.value.path().read_text()==cash and page.url==first_url
+            for basis,expected_count,total in [('accrual',4,1700),('cash',0,0)]:
+                page.get_by_role('link',name='Return to finance and batch history',exact=True).click()
+                page.get_by_role('heading',name='Partner finance',exact=True).wait_for()
+                form=page.locator('[data-finance-export]');form.get_by_role('combobox',name='Accounting basis',exact=True).select_option(basis)
+                form.get_by_role('button',name='Create incremental CSV batch',exact=True).click()
+                page.get_by_role('heading',name='Accounting export',exact=True).wait_for()
+                with page.expect_download() as event:page.get_by_role('link',name='Download verified CSV',exact=True).click()
+                rows=list(csv.DictReader(io.StringIO(event.value.path().read_text())))
+                assert len(rows)==expected_count and sum(int(row['amount_cents']) for row in rows)==total
+            partner.goto(origin+'/earnings');partner.get_by_role('heading',name='Your earnings',exact=True).wait_for()
+            totals=partner.evaluate("async api=>(await (await fetch(api+'/api/partner/v1/earnings',{credentials:'include'})).json()).totals",api)
+            assert totals['paidCents']==1200 and totals['outstandingCents']==500
+            state=subprocess.run(['docker','exec',fixture['_container'],'psql','-U','postgres','-Atc',
+                "SELECT json_build_object('payments',(SELECT count(*) FROM partner_payment_events),'batches',(SELECT count(*) FROM partner_export_batches WHERE kind='accounting'),'adjustments',(SELECT count(*) FROM partner_payable_adjustments),'committed',(SELECT committed_cents FROM partner_program_weeks),'fees',(SELECT sum(accepted_fee_cents) FROM partner_gigs WHERE accepted_at IS NOT NULL))::text"],check=True,capture_output=True,text=True,timeout=15)
+            assert json.loads(state.stdout)=={'payments':4,'batches':3,'adjustments':2,'committed':2500,'fees':2000}
+        assert not site.page_errors

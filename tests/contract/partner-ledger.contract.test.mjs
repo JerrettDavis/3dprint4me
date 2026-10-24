@@ -23,6 +23,7 @@ test('manual settlement is verified, partial, proof-deduplicated and reversible 
   await assert.rejects(f.run(f.actor,'payment.record',evidence(f.payableId)),{status:403});
   await assert.rejects(f.run(f.owner,'payment.record',evidence(f.payableId,{verified:false})),{status:400});
   await assert.rejects(f.run(f.owner,'payment.record',evidence(f.payableId,{amountCents:5001})),{status:409});
+  await assert.rejects(f.run(f.owner,'payment.record',evidence(f.payableId,{paymentReference:'https://checkout.example/return?paid=1'})),{status:400});
   const key=randomUUID(),input=evidence(f.payableId,{amountCents:2000});
   const first=await f.run(f.owner,'payment.record',input,key);assert.equal(first.outstandingCents,3000);
   assert.deepEqual(await f.run(f.owner,'payment.record',input,key),first);
@@ -52,7 +53,11 @@ test('reconciliation adds immutable adjustments, preserves accepted fees and ign
   assert.equal((await f.database.query`SELECT committed_cents FROM partner_program_weeks`)[0].committed_cents,5000);
   await f.run(f.owner,'payable.adjust',{payableId:f.payableId,amountCents:30000,reason:'Additional legally owed work documented outside initial authorization',resolutionReference:'SYNTHETIC-RESOLUTION-02',partnerAcknowledged:true,verifiedResolution:true});
   assert.equal((await f.app.read(f.actor,'earnings')).totals.outstandingCents,32500);
-  assert.equal((await f.app.read(f.owner,'ledger')).totals.unfundedObligationCents,27500);
+  const ownerLedger=await f.app.read(f.owner,'ledger');
+  assert.equal(ownerLedger.totals.unfundedObligationCents,27500);assert.equal(ownerLedger.adjustments.length,2);
+  assert.ok(ownerLedger.adjustments.some(j=>j.resolutionReference==='SYNTHETIC-RESOLUTION-02'&&j.amountCents===30000));
+  assert.ok(!Object.hasOwn(await f.app.read(f.actor,'earnings'),'adjustments'));
+
   await f.run(f.owner,'payment.record',evidence(f.payableId,{amountCents:10000}));
   await assert.rejects(f.run(f.owner,'payable.adjust',{payableId:f.payableId,amountCents:-30000,reason:'Would erase paid value',resolutionReference:'SYNTHETIC-RESOLUTION-03',partnerAcknowledged:true,verifiedResolution:true}),{status:409});
   await assert.rejects(f.database.query`DELETE FROM partner_payable_adjustments`,/immutable/i);
@@ -62,14 +67,18 @@ test('reconciliation adds immutable adjustments, preserves accepted fees and ign
 test('accounting exports freeze stable batches, prevent repeated incremental export and neutralize CSV formulas',async()=>{
  const f=await setup();
  try{
-  await f.run(f.owner,'payment.record',evidence(f.payableId,{paymentReference:'=HYPERLINK("https://invalid.test")'}));
+  await f.run(f.owner,'payment.record',evidence(f.payableId,{paymentReference:'=SUM(1,2)'}));
   const key=randomUUID(),input={programId:f.programId,basis:'cash',from:'2026-10-01',through:'2026-10-31'};
   const batch=await f.run(f.owner,'finance.export',input,key);
-  assert.equal(batch.recordCount,1);assert.match(batch.csv,/record_id/);assert.match(batch.csv,/'=HYPERLINK/);assert.ok(!batch.csv.includes('contact@example'));
+  assert.equal(batch.recordCount,1);assert.match(batch.csv,/record_id/);assert.match(batch.csv,/'=SUM/);assert.ok(!batch.csv.includes('contact@example'));
   assert.deepEqual(await f.run(f.owner,'finance.export',input,key),batch);
   const next=await f.run(f.owner,'finance.export',input);assert.equal(next.recordCount,0);
   assert.deepEqual(await f.app.read(f.owner,'export',{id:batch.batchId}),batch);
   await assert.rejects(f.app.read(f.actor,'export',{id:batch.batchId}),{status:404});
+  const batches=await f.app.read(f.owner,'exports');assert.equal(batches.items.length,2);
+  const summary=batches.items.find(row=>row.id===batch.batchId);assert.equal(summary.recordCount,1);assert.equal(summary.basis,'cash');
+  assert.equal(summary.programId,f.programId);assert.ok(!JSON.stringify(batches).includes('SUM('));
+  await assert.rejects(f.app.read(f.actor,'exports'),{status:404});
   const accrual=await f.run(f.owner,'finance.export',{programId:f.programId,basis:'accrual'});assert.equal(accrual.recordCount,1);
   await assert.rejects(f.run(f.owner,'payment.record',{...evidence(f.payableId),giftCents:20000}),{status:400});
  }finally{await f.close();}
