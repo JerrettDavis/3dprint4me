@@ -49,9 +49,11 @@ The source packet stays private and the real professional approval gates stay of
   restore recomputes legal/snapshot/artifact hashes. Seven anonymized non-issuable
   templates seed without overwriting owner revisions. Signed private Markdown/DOCX
   bundles have audited owner-only expiring downloads, manifests and reviewer grants;
-  all nine rendered template pages were inspected. Simple table rendering, annotated
-  feedback attachment import, encrypted offline sharing, editorial UI and actual
-  professional review remain pending.
+  all nine rendered template pages were inspected. Private feedback imports retain originals and untrusted comment/redline suggestions
+  without applying text or approvals; native HTTP/restore and a LibreOffice saved
+  fixture cover that boundary. Bounded simple table rendering is implemented and its three-page worksheet was
+  rendered/inspected. Encrypted offline sharing, editorial UI and actual professional
+  review remain pending.
 - **referral.feature**: schema placeholders exist, but referral codes, customer
   opt-in attribution, independently verified paid-sale conversion, immutable bonus
   rules/awards and global source uniqueness are not implemented. No referral

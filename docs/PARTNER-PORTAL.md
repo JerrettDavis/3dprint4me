@@ -34,7 +34,7 @@ implementations, then passed. Static and architecture validation passed after th
 changes. The baseline rerun passed 1,112 unit/contract tests; browser regression passed
 224 tests with one Linux-only fresh-host test skipped on Windows; the UX audit passed 241 checks. The first
 baseline attempt overlapped test-first module creation and did not complete.
-Deployment, annotated-feedback import and encrypted backup evidence remain outstanding.
+Deployment and encrypted backup evidence remain outstanding.
 
 ## Operational state
 
@@ -263,14 +263,15 @@ are immutable database evidence, excluded from command receipts and public outpu
 Offline copies require an approved encrypted sharing channel; expiry cannot recall
 copies. In-browser encrypted packaging and reviewer access UI remain pending.
 
-The formatter currently handles text paragraphs, headings, bold/italic/code text and
-bullets. Clause IDs and unresolved placeholders remain visible. No remote images,
+The formatter handles text paragraphs, headings, bold/italic/code text, bullets and
+simple tables with repeated headers and padded cells. Tables support two to six
+columns, up to 200 rows and 4000 characters per cell; invalid dimensions return 400. Clause IDs and unresolved placeholders remain visible. No remote images,
 hyperlinks, templates or macros are introduced. All seven synthetic drafts were rendered
 in offline LibreOffice and all nine pages inspected. Reproduce source samples with
 `node scripts/partner-review-docx-qa.mjs <private-output-outside-repository>`; run the
 bundled documents `render_docx.py` on every file and inspect every rendered page.
-Simple Markdown table formatting, annotated DOCX feedback import and the editor UI
-remain pending. Earlier review-lifecycle tests use synthetic grants; package tests now
+The editor UI remains pending. A three-page synthetic table worksheet was also
+rendered and inspected; the seven prior template DOCX files remain byte-identical. Earlier review-lifecycle tests use synthetic grants; package tests now
 exercise actual generated signed ZIPs and native PostgreSQL/restore. No real counsel/CPA
 decision or live activation has been recorded.
 
@@ -286,3 +287,42 @@ partner export creation. Profile update receipts contain only identity/revision 
 This removes obsolete derived copies without rewriting agreement, consent or ledger
 evidence. Backup retention and legally required source-record retention are separate
 operational policies still requiring the deployment/recovery review.
+
+
+## Returned review feedback
+
+The owner-only `legal.import_feedback` command accepts a DOCX up to 512 KiB as a new
+immutable private attachment. It requires the exact package, program, version and
+source hash, an unexpired named attorney/CPA grant, and an explicit owner attestation
+that the returning reviewer identity was checked through the agreed channel. Names
+inside a Word file are untrusted author claims. Successful retries reuse the original
+receipt; receipts contain counts/IDs/hashes rather than attachments or reviewer text.
+
+All ZIP entries are checked under compressed/expanded, entry-count, ratio, CRC and
+layout bounds. Local names/metadata must agree with the central directory, entries
+cannot overlap, and trailing data is rejected. XML must be valid UTF-8, depth/token
+bounded and free of DTD/entity declarations. Macros, embedded files, external
+relationships/templates, active fields and unsupported executable content are denied.
+PAGE/NUMPAGES fields remain compatible with the generated review footer. Existing
+pinned `fast-xml-parser` is now a direct production dependency; no public parser
+service or document upload provider is used. Owner JSON bodies allow bounded base64
+transport; partner command limits are unchanged.
+
+Standard WordprocessingML comments and tracked insertions/deletions are extracted as
+suggestions with paragraph/clause anchors and untrusted author labels. Extraction
+always requires manual comparison. It does not infer untracked edits, reliably
+interpret moves/formatting changes, verify legal meaning, or apply changes. The
+original attachment is retained for comparison and manual clause comments can be
+recorded with the existing `legal.add_comment` action. Accepting a suggestion requires
+a separate new Markdown revision and exact-version professional review. Import changes
+no source, comments, approval decision or publication state automatically.
+
+Owner legal-version reads list historical packages and feedback metadata, so copies
+can be recovered after closing the browser. `review-feedback` is an owner-only authenticated, audited read returning the original
+bytes and hash-bound evidence. Historical attachments remain recoverable after package
+grant expiry; expired grants cannot import new feedback. Attachment and extraction
+hashes are checked before download, and database evidence is append-only. Native
+PostgreSQL/HTTP tests exercise a DOCX larger than the old 256 KiB JSON limit, oversize
+rejection, restricted-role immutability and restore hash verification. A synthetic
+LibreOffice open/save fixture preserves a comment and both tracked changes and is
+covered by regression tests. This is not a Microsoft Word runtime test.

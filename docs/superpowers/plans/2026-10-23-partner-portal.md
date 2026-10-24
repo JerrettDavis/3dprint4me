@@ -166,3 +166,20 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
 - Feedback attachment import, simple tables, encrypted offline sharing and editor UI
   remain open. The current nine-feature evidence/gap map is in
   docs/PARTNER-PORTAL-TRACEABILITY.md; browser BDD coverage is explicitly still pending.
+
+- Feedback/table increment: owner-only DOCX attachments now bind the exact named
+  reviewer grant, package/program/version/hash and owner identity attestation.
+  Originals and hash-bound untrusted suggestions are immutable private evidence;
+  import never applies edits, clause comments, approval decisions or publication.
+  Layout/CRC/ZIP/XML/active-content bounds reject malformed or unsafe files.
+- Actual native HTTP handles a large returned DOCX under 512 KiB, enforces a bounded
+  owner JSON envelope and preserves no-store/auth/CSRF; restricted-role/native restore
+  verifies original bytes and extraction evidence hashes. An offline LibreOffice saved
+  fixture retains one comment and two tracked changes; its page was inspected.
+- DOCX simple tables now have bounded dimensions, repeated headers, padded cells and
+  weighted column widths; all three worksheet pages were inspected. Maximum legal
+  source plus canonical newline exports successfully. Existing seven template files
+  remain byte-identical. Owner legal-version reads expose recoverable package and
+  feedback metadata with indexed lookup; historical originals stay owner accessible.
+- Encrypted offline sharing, complete legal editor UI, referral/bonus logic, partner
+  PWA, all browser BDD/release gates and actual disabled production remain unfinished.
