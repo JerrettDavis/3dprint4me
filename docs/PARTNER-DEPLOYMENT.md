@@ -10,10 +10,10 @@ The existing storefront, operator, public status and operations projects were no
 modified. No new project was connected to automatic Git deployments.
 
 Current verified Preview:
-<https://3dprint4me-partners-1hrcyiq8h-jerrettdavis-projects.vercel.app>
+<https://3dprint4me-partners-2dcdonotk-jerrettdavis-projects.vercel.app>
 
-The public application bytes include the reviewed weekly-statement history increment,
-with matching worker/HTML release `partner-shell-v4`. Provider output is
+The public application bytes include weekly statements and supplied/returned materials
+history, with matching worker/HTML release `partner-shell-v5`. Provider output is
 Ready / Preview. Authenticated verification used the official CLI's protection
 bypass handling, without printing or copying its managed credential. It proved:
 
@@ -29,7 +29,7 @@ bypass handling, without printing or copying its managed credential. It proved:
   from the exact-byte HTML. Deployment protection remains enabled.
 
 Private operational evidence is retained outside Git in the release-preview-proof
-and activity-preview-proof folders of the session's private work directory: a redacted proof manifest, hashes,
+and activity-preview-proof/materials-preview-proof folders of the session's private work directory: a redacted proof manifest, hashes,
 status/header observations and CLI logs. No authorization/bypass header is copied
 into this document, the repo, URLs or frontend configuration.
 
@@ -129,3 +129,13 @@ matching excludes a provider toolbar. Operator shell v23 remains a local build.
 The earlier v3 preview was https://3dprint4me-partners-39l866vqm-jerrettdavis-projects.vercel.app. Native same-site staging, API rollout, DNS and actual launch gates
 remain open. A read-only DNS query now reports NAME_ERROR for partners.3dprint4.me;
 the credential-source clarification remains pending and no DNS record was changed.
+
+## Materials release checkpoint
+
+The protected v5 Preview above supersedes
+`https://3dprint4me-partners-1hrcyiq8h-jerrettdavis-projects.vercel.app` (v4).
+All 15 exact-source assets, nine route checks, configured hosting headers and
+anonymous 302 protection passed again. This updates only the dedicated static
+Preview. Owner v25 (35 exact static files) and the materials API candidate (210
+exact runtime files; restricted offline imports) remain built locally. No production
+migration, API/owner rollout, DNS or launch activation is implied by that evidence.

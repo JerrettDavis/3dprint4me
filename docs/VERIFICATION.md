@@ -1608,3 +1608,53 @@ and configured security/cache headers, with no injected toolbar; anonymous acces
 redirects (302) to deployment protection. This proves the protected static shell,
 not production API connectivity, same-site cookies, DNS or owner deployment.
 Owner v25 and the native API image above remain built and undeployed.
+
+### Native API transport document (in progress)
+
+Added a docs-only OpenAPI 3.1.1 transport/command-field contract for actual native
+routes, not proposal endpoints. Two missing-document assertions failed first;
+initial document/native HTTP checks then passed. Fresh review found no blocker and
+identified a composition-discovery maintenance concern. A further regression failed
+without fail-closed composition discovery; final affected document/native HTTP set
+passes **six checks** and generated freshness passes. The schema passes the official
+OpenAPI 3.1 structural schema (2022-10-07, SHA-256
+`da01ba28852cac0de53893797cb8d1942bc3b05084f526dcc216717dec314ed0`)
+using Python jsonschema Draft202012Validator. This validates document structure,
+not complete domain types or deployed behavior. Nested typed command schemas,
+resource response models and full API handoff acceptance remain outstanding.
+
+Full npm test is running; no final result claimed. The fourth document regression
+was added after launch and passes in the final focused set; report collection counts
+as observed. No runtime/visible change or static deployment is introduced. Current
+materials-head CI `40131672839` remains in progress; do not claim hosted success.
+
+Typed input follow-up adds closed action-specific schemas for all **57 commands**,
+including nested offer/bonus, material, consent/contact, reviewer and template types.
+The missing-schema regression failed before implementation; all five document checks
+then passed. The real disposable synthetic application/schema journey passes one
+additional Python test (no browser), including successful inputs, malformed material/
+consent/payment input and a structurally valid excessive return rejected by actual
+server state. The updated document passes the official OpenAPI structural schema
+and Draft202012 component-schema validation. Response models and query contracts
+remain incomplete; this is not complete API handoff or deployed/native privilege proof.
+The initial full run collected before later schema tests; preserve its observed counts.
+
+Fresh typed-input review identified three P2 mismatches: missing HTTP 422, optional
+text accepting whitespace-only values, and defaults not matching template variable
+types. New assertions reproduced the omissions; all are corrected. Final focused
+Node document/native HTTP set passes **seven checks**; Python structural/default/
+actual-application examples pass **two checks in 1.84 seconds**. Follow-up read-only
+review finds no blocker. Canonical input restrictions and Unicode length limitations
+are explicit in PARTNER-API.md. Full response/query contract completion remains open.
+
+Final API-input checkpoint verification: full npm test completed with **1,221
+unit/contract checks**, **330 browser passes and one existing Windows skip in
+572.99 seconds**, and **241/241 UX checks**. The command/parser/type additions made
+after initial collection pass a final full unit rerun: **1,223/1,223 in 116.71
+seconds**. The two new Python schema/example checks pass separately; they were not
+part of the earlier 330-browser collection. Final official structural validation
+passes on the generated typed document after all review fixes. No runtime or visual
+change is introduced, so this checkpoint reuses the unchanged reviewed materials
+static/image evidence; unrelated generated audit/status screenshot noise is restored.
+Materials-head hosted CI remains in progress. Local commit is allowed after these
+checks; hold the push until that run concludes so its evidence is not cancelled.
