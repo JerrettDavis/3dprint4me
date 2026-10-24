@@ -26,6 +26,15 @@ test('review packages freeze signed sources, bounded reviewer grants and audited
   const download=await app.read(f.owner,'review-package',{id:result.id});
   const bytes=Buffer.from(download.data,'base64');assert.equal(digest(bytes),result.sha256);
   const files=unzipSync(bytes),manifest=JSON.parse(strFromU8(files['manifest.json'])),signature=JSON.parse(strFromU8(files['signature.json']));
+  assert.deepEqual(download.manifest,manifest);
+  assert.equal(download.publicKey,signature.publicKey);
+  assert.equal(download.signature,signature.signature);
+  assert.equal(download.expiresAt,manifest.expiresAt);
+  const detail=await app.read(f.owner,'legal-version',{id:versions[0].id});
+  const listed=detail.packages.find(item=>item.id===result.id);
+  assert.deepEqual(listed.reviewers,manifest.reviewers);
+  assert.equal(listed.program_id,f.programId);
+  assert.equal(listed.manifest,undefined);
   assert.equal(manifest.documents.length,7);assert.equal(manifest.private,true);assert.equal(manifest.programId,f.programId);
   assert.ok(verify(null,Buffer.from(canonicalJson(manifest)),keys.publicKey,Buffer.from(signature.signature,'base64')));
   for(const file of manifest.files)assert.equal(digest(files[file.name]),file.sha256);

@@ -790,3 +790,28 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   sharing, approved program-version bindings and exact issued-snapshot UI remain
   required. This increment covers editorial scenarios, not the complete legal BDD
   feature. Full offline lifecycle and remaining operations/release work remain open.
+
+
+## 2026-10-24: private professional review handoff read contracts
+
+- Owner review-package responses expose the already-verified canonical manifest,
+  public verification key, detached signature and expiry alongside immutable ZIP
+  bytes. Version package lists project named reviewer grants/program ID. No private
+  signing key or full artifacts enter command receipts or public output.
+- RED/GREEN contract test first failed on the missing manifest, then passed with
+  equality to the ZIP manifest/signature and projected grants. Existing partner
+  denial, expiry and archive/manifest/signature corruption cases remain covered.
+- Owner client now permits private package and feedback reads. A new RED/GREEN
+  client test verifies pre-session denial without fetch and credentialed no-store
+  requests. Final focused package/legal/client/static run: 13 passed.
+- `npm test`: build/validation and all 1,179 unit/contract tests passed; browser run
+  had 278 passed, one Windows skip and one stale PWA assertion expecting shell v17.
+  Updated that assertion to actual v18; all eight PWA tests then passed. No other
+  browser failure was reported. The added client test passed in the focused run
+  after the full unit phase. Separate UX audit: 241/241 passed.
+- Operator build passed; source and output client SHA-256 match. Shell v18 caches
+  static assets only. Read-only review found no blocker. No visible layout changed;
+  no new screenshots were required. Restored unrelated audit/screenshot rewrites.
+- Professional review screens, encrypted offline recipient workflow and exact
+  issuance remain pending. No deployment, professional approval, real invitation,
+  payment or external message occurred; activation flags remain off.
