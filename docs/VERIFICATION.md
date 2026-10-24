@@ -1658,3 +1658,51 @@ change is introduced, so this checkpoint reuses the unchanged reviewed materials
 static/image evidence; unrelated generated audit/status screenshot noise is restored.
 Materials-head hosted CI remains in progress. Local commit is allowed after these
 checks; hold the push until that run concludes so its evidence is not cancelled.
+
+### API response/query contract follow-up (verification in progress)
+
+Resource and command-result models now cover registered successful reads, the owner
+resource multiplexer and all 57 command actions. A missing-read-model assertion and
+a missing-command-result assertion failed before implementation. Actual disposable
+application examples validate 38 read results, including signed review-package and
+DOCX feedback downloads, populated leads/earned referrals/activity and an immutable
+weekly statement CSV. The raw SQL budget DATE example exposed driver-dependent
+date/timestamp serialization, now represented explicitly. Owner application results
+are tested with documented synthetic CSRF composition, separately from HTTP identity.
+
+Fresh review found two P2 mismatches (denied-export generic errors and reuse of a
+stricter canonical offer input model for runtime output). Both failed targeted
+assertions before correction. OfferSnapshot now describes runtime output separately;
+an actual freezeOffer DEL-character example distinguishes input/output constraints.
+Final Node document/native HTTP set passes **eight checks**. The final affected
+Python set passes **six checks in 14.09 seconds**: five schema/application cases and
+one new native PostgreSQL/browser HTTP case validating 20 reads, actual owner CSRF,
+no-store and zero observed outbound attempts. Follow-up review found no blocker.
+
+The native case initially failed because its test URL builder appended a bare ? to
+empty partner queries. Diagnosis identified PARTNER status while the native process
+remained live; the platform rejects noncanonical URL forms before handler CORS.
+Only test URL construction changed. The same case then passed. Full npm test is
+still running; later focused checks cover additions made after its collection.
+
+Materials-head hosted CI **40131672839 passed all steps** on d19bafc: **1,218 unit
+checks, 58 native checks in 423.23 seconds, 331 Linux E2E passes in 578.03 seconds,
+241 UX checks, 153 screenshot captures and uploaded artifacts**. This closes the
+prior materials-head CI wait, not API-head CI or production release gates.
+
+Final response/query checkpoint: full npm test passed **1,224 unit/contract checks**,
+**334 E2E passes plus one existing Windows skip in 567.99 seconds**, and **241/241
+UX checks**. The 334 collection includes four schema/application tests alongside the
+330 prior browser cases. The later DEL-output and new native HTTP case pass in the
+final six-case focused Python set, while final affected Node document/HTTP checks
+pass eight cases. Do not inflate the broad collection with late additions. Final
+official OpenAPI structural validation and component-schema checks pass after review
+fixes; generated freshness passes. No runtime/static assets or user-visible flows
+changed, so no screenshot/deployment refresh is required for this API-documentation
+checkpoint. Unrelated generated audit/status screenshot noise was restored.
+
+The API contract deliverable is now a maintained v1 artifact for actual implemented
+transport, command inputs/results and read/query models. Dynamic authorization and
+policy remain server checks; extensible private JSON is documented. Completion of
+this artifact does not close production identity, provider, retention/outbox, recovery
+or deployment gates, and does not constitute actual professional approval.

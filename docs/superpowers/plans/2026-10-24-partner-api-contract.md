@@ -29,5 +29,5 @@
 ## Task 2: Complete domain contract
 
 - [x] Specify typed inputs for all 57 commands and exercise representative actual positive/negative application journeys. Dynamic policy remains server-authoritative; complete response/query work is still required.
-- [ ] Specify resource-specific responses, query requirements and bounded-history/download semantics.
-- [ ] Validate the complete OpenAPI with an official schema-compatible validator; document native example replay and close API deliverable only after all operations agree.
+- [x] Specify resource-specific and command-result responses, canonical query requirements and bounded-history/download semantics; test populated application results and actual native HTTP reads.
+- [x] Validate the maintained v1 OpenAPI structure/components against the official schema, document populated application examples plus native HTTP replay, complete focused review fixes and full regression. Production behavior remains a separate release gate.
