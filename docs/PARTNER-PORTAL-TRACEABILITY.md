@@ -99,18 +99,20 @@ The source packet stays private and the real professional approval gates stay of
   Native browser views prove account-specific codes with no customer information.
   Partner policy/earned-award display has 320/390 light/dark and inert-message tests.
   Complete owner attribution/settlement/award browser scenarios remain pending.
-- **owner-control.feature**: application/auth/HTTP/native contract tests cover
-  owner-only commands, real GitHub owner identity, revocation, kill switches,
-  payable preservation and reconciliation after pause/sunset. Existing operator
-  and storefront regression checks compatibility. The owner Partners area now exposes
-  real clearance/pause/default caps, disabled program and account creation, campaigns
-  with full bonus maxima, offers, review/reoffer, week caps and audit. Fixtures test
-  320/390 themes, exact command retries, form locks, stale navigation, lost access and
-  skip-link input preservation. Native browser evidence uses a bound synthetic GitHub
-  owner session, denies an ordinary operator, persists cap changes and creates an
-  approved payable from existing work while the program remains disabled. Full owner
-  invitations/revocation, leads/referrals, finance/legal UI and complete scenarios,
-  staging and disabled-production smoke checks remain pending.
+- **owner-control.feature**: `test_partner_owner_control_browser.py` directly maps all
+  four named scenarios through the native API and disposable PostgreSQL:
+  `test_native_only_owner_can_publish_forty_dollar_campaign_and_partner_sees_frozen_offer`,
+  `test_native_owner_suspension_ends_routes_but_preserves_payable_for_lawful_settlement`,
+  `test_native_program_pause_denies_unaccepted_work_without_erasing_prior_debt`, and
+  `test_native_existing_private_work_inbox_updates_while_storefront_and_status_routes_stay_separate`.
+  Assertions cover actual publication/offer and partner 403, route revocation with
+  unchanged debt and partial settlement, paused acceptance with unchanged commitments,
+  and private work acknowledgment/priority/note persistence via existing handlers.
+  Storefront and status static bytes remain unchanged and private contact data stays
+  out of those responses. The owner session is synthetic and bound to the existing
+  GitHub identity provider; this does not prove real OAuth, TLS or live status health.
+  Existing layout, theme, retry, stale-navigation and owner-lifecycle checks remain
+  complementary. Staging and disabled-production smokes remain pending.
 
 ## Release evidence still required
 

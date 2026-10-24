@@ -58,18 +58,20 @@ numbered packet requirements and operational release gates.
   owner pending-attribution queue; a separate verified attribution follows owner
   checks. No quote alone creates sale evidence or a bonus. This two-stage boundary
   is deliberate and does not imply automatic verified attribution or real payment.
-- **Owner control:** actual campaign creation/publication/offer and partner publication
-  denial; paused acceptance denial with unchanged reservations; full existing owner-work
-  API compatibility. Authentication tests now mount the real owner-work handler with
-  a positive private-record control; this does not prove the full existing operations
-  journey. Ordinary storefront/operator regression cannot stand in for that journey.
+- **Owner control:** all four named journeys now have direct native browser assertions:
+  owner publication of a $40 campaign and frozen offer with partner publication denied;
+  suspension ending partner access while preserving a payable and lawful partial settlement;
+  pause denying new acceptance without changing reservations or prior debt; and persisted
+  existing private work-inbox updates alongside unchanged storefront/status static routes.
+  These use a synthetic GitHub-bound owner session and disposable PostgreSQL. They do
+  not establish real GitHub OAuth, production TLS or live status-provider health.
 
 ## Next implementation spine
 
 The budget spine is now implemented in `tests/support/partner_budget.py`, including
 fresh two-partner enrollment and exact acknowledgment. Authentication now adds positive owner-work controls and explicit environment-off
 enrollment. Gig-choice and consent/referral journeys now reuse them as well. Next
-complete the remaining contract-review, ledger/payment and owner-control scenarios.
+complete the remaining contract-review and ledger/payment scenarios.
 Do not rebuild synthetic approval plumbing or substitute seeded accepted work for
 an actual authorization transition. The remaining numbered operations/product work
 above and below still needs its own evidence.
@@ -92,7 +94,8 @@ accepted-commitment bounds and actual native lifecycle/role/failure checks. It k
 caps, reserved maxima, unpaid obligations, verified spend and unaccepted offers distinct.
 The [forecast plan](superpowers/plans/2026-10-24-partner-spend-forecasts.md) and
 [verification](VERIFICATION.md) track its full checks and still-pending deployment.
-This does not close scheduled weekly statements, other jobs or owner-control BDD.
+Weekly statements and owner-control journeys have subsequent evidence below; other
+operational jobs remain separate.
 
 
 O-10 now has opt-in immutable weekly balance snapshots with
@@ -101,3 +104,7 @@ an actual owner-to-partner download journey. Full local regression, 45-case nati
 suite, inspected visual baselines and build/image proofs pass. Production deployment
 remains pending; do not close the broader
 retention/outbox/provider or operational requirements from this focused evidence.
+
+Owner-control follow-up: the complete maintained native suite passes **50 checks**
+(49 browser cases and one socket check) in 388.51 seconds. This closes the four
+owner-control scenario assertions, not production identity or deployment gates.
