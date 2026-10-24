@@ -28,7 +28,7 @@ try{
  let ready=false;for(let n=0;n<80;n++){try{await admin.query('SELECT 1');ready=true;break;}catch{await new Promise(resolve=>setTimeout(resolve,250));}}if(!ready)throw new Error('Disposable database unavailable.');
  await admin.query('REVOKE CREATE ON SCHEMA public FROM PUBLIC; CREATE ROLE platform_backend NOLOGIN; CREATE ROLE platform_app LOGIN IN ROLE platform_backend; GRANT USAGE ON SCHEMA public TO platform_backend');
  for(const file of MIGRATIONS)for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/'+file,import.meta.url),'utf8')))await admin.query(statement);
- const programId=randomUUID(),partnerId=randomUUID(),otherPartnerId=randomUUID(),gigs=[randomUUID(),randomUUID()],campaignId=randomUUID(),password='Synthetic browser fixture passphrase';
+ const programId=randomUUID(),partnerId=randomUUID(),otherPartnerId=randomUUID(),gigs=[randomUUID(),randomUUID()],campaignId=randomUUID(),acceptedGigId=randomUUID(),password='Synthetic browser fixture passphrase';
  const credential=await hashPassword(password),terms={title:'Synthetic business visits',feeCents:1000,maximumBonusCents:0,tasks:['Permitted business introductions'],materials:[],area:'Tulsa',deadline:'2026-12-01'};
  await admin.query("INSERT INTO partner_programs(id,label,starts_on,enabled,synthetic) VALUES($1,'Synthetic browser fixture','2026-10-01',false,true)",[programId]);
  await admin.query("INSERT INTO partner_campaigns(id,program_id,title,terms,status) VALUES($1,$2,'Synthetic visits',$3,'published')",[campaignId,programId,JSON.stringify(terms)]);
@@ -36,8 +36,13 @@ try{
   await admin.query("INSERT INTO partner_accounts(id,program_id,display_name,status,credential_hash) VALUES($1,$2,$3,'active',$4)",[id,programId,'Synthetic Partner '+(index+1),credential]);
   await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,terms_snapshot,status) VALUES($1,$2,$3,$4,$5,'offered')",[gigs[index],programId,id,campaignId,JSON.stringify(terms)]);
  }
+ // Seed a historical accepted obligation separately from new-work approval gates.
+ const weekId=randomUUID();
+ await admin.query("INSERT INTO partner_program_weeks(id,program_id,week_start_local,cap_cents,committed_cents) VALUES($1,$2,'2026-10-19',20000,1000)",[weekId,programId]);
+ await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,program_week_id,terms_snapshot,status,accepted_fee_cents,accepted_at,revision) VALUES($1,$2,$3,$4,$5,$6,'accepted',1000,'2026-10-23T12:00:00Z',2)",[acceptedGigId,programId,partnerId,campaignId,weekId,JSON.stringify(terms)]);
+ await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1000)",[randomUUID(),weekId,acceptedGigId]);
  pool=new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')));const database=createNativeDatabase({pool}),env={PARTNER_WEB_ORIGIN:shell.origin,OPERATOR_WEB_ORIGIN:'https://work.3dprint4.me'};
  const app=createPartnerApplication({database,env}),auth=createPartnerAuth({database}),runtime={database,app,auth};
  const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});server=createPlatformServer({routes:handlers.routes,directPaths:handlers.directPaths,env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');
- process.stdout.write(JSON.stringify({apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],password})+'\n');
+ process.stdout.write(JSON.stringify({apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
 }catch{await stop();process.stderr.write('Disposable native partner fixture failed.\n');process.exitCode=1;}

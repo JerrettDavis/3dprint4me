@@ -433,15 +433,33 @@ def capture_spoolman_states() -> list[tuple[str, Path]]:
 def capture_partner_states() -> list[tuple[str, Path]]:
     from tests.support.partner_harness import running_partner_shell
     from tests.e2e.test_partner_shell import install_partner_fixture
+    from tests.e2e.test_partner_visits import visit_fixture, GIG
     captured = []
     with running_partner_shell() as origin:
-        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light")]:
+        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark")]:
             path = OUTPUT / f"partner-{state}-{scheme}.png"
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
-                install_partner_fixture(site.page, signed_in=state != "sign-in")
-                site.page.goto(origin + ('/agreements' if state == 'agreement' else '/'))
+                visit_state = state in ["visit", "visit-contact", "drafts"]
+                if visit_state:
+                    visit_fixture(site.page)
+                else:
+                    install_partner_fixture(site.page, signed_in=state != "sign-in")
+                site.page.goto(origin + ('/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
                 site.page.get_by_role('heading', level=1).wait_for()
-                site.screenshot(path, full_page=False)
+                if visit_state:
+                    site.page.get_by_label('Business name', exact=True).fill('Synthetic Coffee')
+                    if state == 'visit-contact':
+                        site.page.get_by_label('This person explicitly agreed to project follow-up.', exact=True).check()
+                        site.page.get_by_label('Project follow-up purpose', exact=True).fill('Requested discussion about a printed shop sign')
+                        site.page.get_by_label('Contact email', exact=True).fill('synthetic@example.test')
+                    if state == 'drafts':
+                        site.page.get_by_label('I understand this business-only draft stays on this device and is deleted when I sign out.', exact=True).check()
+                        site.page.get_by_role('button', name='Save business draft on this device', exact=True).click()
+                        site.page.get_by_role('link', name='Device drafts', exact=True).click()
+                        site.page.get_by_role('heading', name='Device drafts').wait_for()
+                if visit_state:
+                    site.page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
+                site.screenshot(path, full_page=visit_state)
                 site.console = [e for e in site.console if 'status of 401 (Unauthorized)' not in e.text]
                 site.assert_no_page_errors()
             captured.append((f"Partner {state} · {scheme}", path))
