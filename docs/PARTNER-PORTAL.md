@@ -765,3 +765,13 @@ user. Fresh server access and explicit sending remain necessary after reconnecti
 See [PARTNER-OFFLINE.md](PARTNER-OFFLINE.md) for preparation, privacy, conflicts,
 cache releases, sign-out races, hosting and evidence. Optional timer lifecycle and
 remaining packet operations/acceptance/deployment requirements are still open.
+
+
+### Isolated static cloud preview
+
+The dedicated partner Vercel project now has a protected static Preview. Its assets
+and headers match reviewed source, and private/source paths are denied. Deployment
+helper/inventory support is explicit and separate from existing sites. See
+[PARTNER-DEPLOYMENT.md](PARTNER-DEPLOYMENT.md) for provider evidence, failed-attempt
+corrections and the remaining staging, DNS, encrypted recovery and production gates.
+A static preview does not activate the program or complete the portal release.

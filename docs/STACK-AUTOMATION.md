@@ -119,6 +119,43 @@ Resend's verified sender. Optional Stripe callbacks must verify payment server-s
 a return URL is never payment evidence. Invoice Ninja remains disabled/manual
 until a separately verified unsent draft is approved for operational use.
 
+## Partner shell release
+
+The separate partner component is `partner/`, linked only to the dedicated
+`3dprint4me-partners` project. Its effective CLI upload root is `partner/` and
+only its `public/` directory is served. Keep `.vercel/project.json` local and
+ignored. If a Git monorepo connection is added later, review the provider's
+root-directory setting separately; do not repoint an existing project.
+
+```sh
+python3 deploy/platform/deploy-cloud.py --component partner
+python3 deploy/platform/deploy-cloud.py --component partner --environment preview --apply
+```
+
+The partner target defaults to Preview, explicitly passes `--target preview` and
+its absolute `partner/vercel.json`, and refuses a local link named for another
+project or missing project/team identifiers. An omitted target/config caused the
+first real attempt to inherit the storefront function settings and be labeled
+Production before failing. Both are now explicit regression contracts.
+
+Before a partner release the helper uses the authenticated official Vercel CLI
+API to PATCH only `enablePreviewFeedback=false` and
+`enableProductionFeedback=false` on the linked project/team. This removes
+provider-injected toolbar scripts without widening CSP or disabling deployment
+protection. A failed settings update prevents deployment. No credential is accepted
+as a command argument or copied into the shell. Other components retain their
+existing dry-run/production defaults and operations-protection prerequisite.
+
+Production is a separate explicit command, only after the release checklist:
+
+```sh
+python3 deploy/platform/deploy-cloud.py --component partner --environment production --apply
+```
+
+A ready static Preview does not prove native API staging, same-site cookies, exact
+production CORS, custom-domain TLS, migrations or program activation. Follow
+[PARTNER-DEPLOYMENT.md](PARTNER-DEPLOYMENT.md) for current evidence and remaining gates.
+
 ## Schedules and routine operation
 
 Use the same private compose environment for every host command:

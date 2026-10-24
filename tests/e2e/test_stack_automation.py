@@ -18,7 +18,7 @@ def test_inventory_covers_every_runtime_and_every_source_exists():
     inventory=json.loads((ROOT/'deploy/platform/stack.json').read_text())
     ids=[item['id'] for item in inventory['components']]
     assert len(ids)==len(set(ids))
-    assert {'storefront','operator','api','database','private-files','jobs','slicer','tunnel','public-status','operations','status-monitor','status-collector','encrypted-backups','github-identity','email-webhooks-payments','home-assistant'}==set(ids)
+    assert {'partner','storefront','operator','api','database','private-files','jobs','slicer','tunnel','public-status','operations','status-monitor','status-collector','encrypted-backups','github-identity','email-webhooks-payments','home-assistant'}==set(ids)
     for item in inventory['components']:
         assert (ROOT/item['source']).is_file()
         assert item['recovery']
@@ -70,3 +70,39 @@ def test_fresh_setup_applies_all_migrations_and_never_starts_writers_or_tunnel(t
     target=json.loads((root/'database-target.private.json').read_text())
     assert target['databaseUrl'].startswith('postgresql://platform_app:')
     assert (root/'api.env').stat().st_mode&0o077==0
+
+
+def test_partner_cloud_release_defaults_to_preview_and_requires_its_exact_link(tmp_path,monkeypatch):
+    cloud=load('deploy-cloud');monkeypatch.setattr(cloud,'ROOT',tmp_path)
+    preview=cloud.plan('partner')
+    assert '--prod' not in preview and preview[-1]==str(tmp_path/'partner')
+    assert preview[preview.index('--target')+1]=='preview'
+    assert preview[preview.index('--local-config')+1]==str(tmp_path/'partner/vercel.json')
+    assert '--prod' in cloud.plan('partner','production')
+    assert '--prod' in cloud.plan('storefront')
+    with pytest.raises(ValueError):cloud.plan('partner','unrecognized')
+    with pytest.raises(ValueError):cloud.plan('monitor','preview')
+    calls=[];monkeypatch.setattr(cloud.subprocess,'run',lambda *a,**kw:calls.append((a,kw)))
+    monkeypatch.setattr(cloud.shutil,'which',lambda _:str(tmp_path/'vercel'))
+    with pytest.raises(ValueError,match='Link'):cloud.deploy('partner',True)
+    link=tmp_path/'partner/.vercel/project.json';link.parent.mkdir(parents=True)
+    link.write_text(json.dumps({'projectName':'3dprint4me','projectId':'prj_other','orgId':'team_test'}))
+    with pytest.raises(ValueError,match='partner project'):cloud.deploy('partner',True)
+    assert calls==[]
+    link.write_text(json.dumps({'projectName':'3dprint4me-partners','projectId':'prj_partner','orgId':'team_test'}))
+    result=cloud.deploy('partner',True)
+    assert result['environment']=='preview' and result['verified'] is False
+    assert len(calls)==2
+    privacy=calls[0][0][0]
+    assert privacy[1:3]==['api','/v9/projects/prj_partner?teamId=team_test']
+    assert privacy[privacy.index('--method')+1]=='PATCH'
+    assert privacy.count('--field')==2 and 'enablePreviewFeedback=false' in privacy and 'enableProductionFeedback=false' in privacy
+    assert '--silent' in privacy
+    assert '--prod' not in calls[1][0][0]
+    assert calls[1][1]['check'] is True and calls[1][1]['timeout']==900
+    calls.clear()
+    def failed_provider(*args,**kwargs):
+        calls.append(args[0]);raise cloud.subprocess.CalledProcessError(1,args[0])
+    monkeypatch.setattr(cloud.subprocess,'run',failed_provider)
+    with pytest.raises(cloud.subprocess.CalledProcessError):cloud.deploy('partner',True)
+    assert len(calls)==1 and calls[0][1]=='api'
