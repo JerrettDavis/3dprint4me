@@ -21,16 +21,16 @@
 
 ## Task 1: Native recording and private history
 
-- [ ] Add failing contract/native browser assertions for owner issue/return, partner record denial, other-partner read denial, excessive return rollback, same-key replay and unchanged payable/budget values.
-- [ ] Resolve bounded history semantics in `lib/partner-outreach/application.js`; test more than 200 events and clear response/view limit messaging. Keep authorization before reading events.
-- [ ] Add `operator/assets/partner-owner-materials.js`; mount it from gig detail with existing bind/escape helpers. Add repeatable label/count rows (up to 50), action choice and current-gig scope. Show immutable event history with explicit incomplete-history notice when applicable.
-- [ ] Update `partner/public/assets/partner.js` to show its own material events without recording controls. Reuse visual tokens and inert text.
-- [ ] Verify focused tests, including lost committed response replay with one persisted event and unchanged compensation.
+- [x] Add failing contract/native browser assertions for owner issue/return, partner record denial, other-partner read denial, excessive return rollback, same-key replay and unchanged payable/budget values.
+- [x] Resolve bounded history semantics in `lib/partner-outreach/application.js`; test more than 200 events and clear response/view limit messaging. Keep authorization before reading events.
+- [x] Add `operator/assets/partner-owner-materials.js`; mount it from gig detail with existing bind/escape helpers. Add repeatable label/count rows (up to 50), action choice and current-gig scope. Show immutable event history with explicit incomplete-history notice when applicable.
+- [x] Update `partner/public/assets/partner.js` to show its own material events without recording controls. Reuse visual tokens and inert text.
+- [x] Verify focused tests, including lost committed response replay with one persisted event and unchanged compensation.
 
 ## Task 2: Accessible release and verification
 
-- [ ] Add 390-dark/320-light fixtures for event history, owner entry and failure/retry. Preserve focus, reduced motion, route-generation guards and sign-out clearing.
-- [ ] Bump owner/partner worker releases for changed cached modules and update installed-worker tests.
-- [ ] Run npm test, native PostgreSQL and maintained native browser checks; run npm run screenshots and inspect full new states plus exact preview-board rows.
-- [ ] Update portal/verification/acceptance docs; review; build and verify exact static/image outputs. Commit only after evidence agrees.
-- [ ] Refresh dedicated protected partner Preview only after source passes. Production deployment and activation remain governed by the broader release gates.
+- [x] Add 390-dark/320-light fixtures for event history, owner entry and failure/retry. Preserve focus, reduced motion, route-generation guards and sign-out clearing.
+- [x] Bump owner/partner worker releases for changed cached modules and update installed-worker tests.
+- [x] Run npm test, native PostgreSQL and maintained native browser checks; run npm run screenshots and inspect full new states plus exact preview-board rows.
+- [x] Update portal/verification/acceptance docs; review; build and verify exact static/image outputs. Commit only after evidence agrees.
+- [x] Refresh dedicated protected partner Preview only after source passes. Production deployment and activation remain governed by the broader release gates.

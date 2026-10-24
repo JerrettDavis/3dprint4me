@@ -114,7 +114,7 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
         if resized.height > 820:
             # These viewport captures show a late approval error near the footer.
             # Keep that changed state visible in the board's bounded thumbnail.
-            top = resized.height - 820 if path.stem.startswith('operator-partners-missing-review-') else 0
+            top = resized.height - 820 if path.stem.startswith(('operator-partners-missing-review-','partner-materials-owner-error-')) else 0
             resized = resized.crop((0, top, resized.width, top + 820))
         rendered.append((label, resized))
 
@@ -633,6 +633,40 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_material_states() -> list[tuple[str, Path]]:
+    from tests.e2e.test_partner_materials import install_owner_material_fixture,install_partner_material_fixture,GIG
+    from tests.support.partner_harness import running_partner_shell
+    captured=[]
+    with running_operator_workspace() as (_,owner,_),running_partner_shell() as partner:
+        for state in ['owner-entry','owner-error','partner-history']:
+            for width,scheme in [(390,'dark'),(320,'light')]:
+                with SiteBrowser(viewport=(width,844),color_scheme=scheme,reduced_motion='reduce') as site:
+                    page=site.page
+                    if state=='partner-history':
+                        install_partner_material_fixture(page,long_label=True);page.goto(partner+'/gigs/'+GIG)
+                        page.get_by_role('heading',name='Supplied and returned materials',exact=True).wait_for()
+                    else:
+                        install_owner_material_fixture(page,reject=state=='owner-error');page.goto(owner+'/partners#gig/'+GIG)
+                        form=page.locator('[data-material-record]')
+                        form.get_by_label('Material label 1',exact=True).fill('Owner-provided sample signs')
+                        form.get_by_label('Material count 1',exact=True).fill('5')
+                        if state=='owner-entry':
+                            form.get_by_role('button',name='Add material item',exact=True).click()
+                            form.get_by_label('Material label 2',exact=True).fill('Flyer bundle')
+                            form.get_by_label('Material count 2',exact=True).fill('1')
+                        else:
+                            form.get_by_role('combobox',name='Material event',exact=True).select_option('returned')
+                            form.get_by_role('button',name='Record materials',exact=True).click()
+                            page.get_by_text('This return exceeds the recorded supplied materials.',exact=True).wait_for()
+                    path=OUTPUT/f'partner-materials-{state}-{scheme}.png'
+                    page.evaluate('document.activeElement?.blur()')
+                    if state=='owner-error':site.screenshot(path,full_page=False)
+                    else:page.locator('[data-owner-materials]' if state=='owner-entry' else '[data-material-history]').screenshot(path=str(path),animations='disabled')
+                    assert not site.page_errors
+                    captured.append((f'Materials {state} · {scheme}',path))
+    return captured
+
+
 def capture_offline_review_states() -> list[tuple[str, Path]]:
     from tests.e2e.test_partner_review_reader import offline_review_fixture, unlock_fixture
     fixture=offline_review_fixture();captured=[]
@@ -685,6 +719,7 @@ def main() -> int:
     cases.extend(capture_partner_states())
     cases.extend(capture_partner_offline_states())
     cases.extend(capture_partner_owner_states())
+    cases.extend(capture_material_states())
     cases.extend(capture_offline_review_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)

@@ -122,6 +122,7 @@ owner-control scenario assertions, not production identity or deployment gates.
 Legal acceptance follow-up passes the maintained **55-check native suite** (54 browser
 cases and one socket check), ordinary regression phases and inspected visual states.
 The direct scenario gaps listed in this audit now have native mappings. This does
-not close numbered product requirements: O-08 still needs materials history and owner
-controls in the workspaces, although its backend command/read exists. Operational,
+not close numbered product requirements: O-08 now has material history and owner recording controls in both workspaces,
+with focused native/UI proof; its full regression, capture and deployment checks
+are recorded separately in verification. Operational,
 professional-review, provider and production deployment gates remain open.
