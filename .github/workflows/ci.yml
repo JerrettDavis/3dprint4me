@@ -52,6 +52,9 @@ jobs:
           python -m pip install -r requirements-dev.txt
           python -m playwright install --with-deps chromium
 
+      - name: Verify real partner browser cookies and private native records
+        run: npm run test:partner:browser
+
       - name: Run validation, unit, E2E, and UX audit
         run: npm test
 

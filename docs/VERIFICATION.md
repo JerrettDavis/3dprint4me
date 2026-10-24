@@ -428,3 +428,37 @@ staging and actual disabled production deployment remain required.
   Read-only, no-network, all-capabilities-dropped production import/bonus validation
   smoke passed. No production migration, provider payment, invitation, staging or
   disabled deployment is asserted by this local evidence.
+
+
+### First online partner shell and device draft store — 2026-10-24
+
+- `npm test` passed with 1,155 unit/contract tests, 230 browser tests, one
+  Linux fresh-host test skipped on Windows, and UX 241/241. After adding the
+  separate unused draft-store module, final `npm run test:unit` passed 1,158.
+- Six shell browser cases use explicit synthetic API fixtures, covering mobile
+  320/390 and desktop layouts, sign-in/out, unavailable-work copy, navigation,
+  memory-only CSRF, inert issued text/exact read acknowledgment, skip-link form
+  preservation and delayed-auth navigation. Three client tests include a reproduced
+  stale-auth-after-logout regression; auth/logout requests now serialize cookie
+  ordering and invalidate obsolete client epochs. Independent review confirmed fixes.
+- `npm run test:partner:browser` passed two integration cases against a pinned,
+  disposable PostgreSQL 18 container using restricted backend grants and actual
+  Chromium requests. Two independent contexts establish different Secure/HttpOnly/
+  SameSite=Strict cookies; reload retains sessions, profile changes persist, cross-
+  partner gig reads return 404/no-store, and logout removes cookies/access. The
+  second case kills the native child and verifies cleanup removes its exact labeled
+  container. No existing database or production endpoint is used. CI runs this command.
+  Local loopback browser evidence does not prove production subdomain/TLS behavior.
+- Three device draft-store tests cover account isolation, contact/consent rejection,
+  100-record restart/replay with an ambiguous committed response, retained conflicts
+  and blocked storage. This module is not connected to a visit form or service worker
+  yet and does not establish the offline browser acceptance requirement.
+- `npm run screenshots` captured 80 views. The preview board was opened as a scaled
+  derivative (the original is 1,680 by 33,646 pixels); the three added partner images
+  were separately inspected at readable size. Sign-in/light, overview/mobile/dark and
+  exact agreement/desktop/light showed no clipping or overflow. Action/muted text
+  contrast samples exceed 4.5:1 in both themes. Existing unrelated nondeterministic
+  screenshot/audit rewrites were restored; the partner images and board are retained.
+- Visit/contact/counteroffer/referral screens, draft UI, safe worker lifecycle, owner
+  console/legal editor, complete native nine-feature browser BDD and all staging/
+  disabled-production/operational release gates remain unfinished.

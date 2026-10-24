@@ -358,3 +358,50 @@ sunset. Earnings distinguish earned bonuses from the remaining contingent maximu
 Scoped referral reads expose codes, accepted criteria and awards, excluding customer
 identities and bank evidence. Excessive export volume fails explicitly rather than
 silently truncating records. No public customer referral integration is claimed complete.
+
+
+## Online partner shell (first increment)
+
+The separate `partner/` hosting project serves only `partner/public/`. Its source
+contains no customer or legal records; private data arrives from the scoped native
+API using the API host's cookie. Hosting applies no-store, noindex, a restrictive
+CSP, no-referrer and denied camera/microphone/geolocation. Production API origin is
+fixed to the existing API host; the client permits HTTP only for local loopback.
+
+The first online views include invitation/recovery-code enrollment, sign-in,
+maintenance-aware overview, gigs and decisions, itemized earnings/statements,
+exact-text issued agreements/read acknowledgment, profile/data download, optional
+activity and help. Legal source text is encoded and displayed inertly, without HTML
+or remote-image interpretation. Themes use a local preference; authentication/CSRF
+state remains in memory. No service worker or offline-private cache is enabled yet.
+
+Authentication requests and sign-out are serialized to preserve cookie response
+ordering. Sign-out invalidates the client epoch immediately; superseded responses
+cannot restore signed-in client state. An in-flight authentication response supplies
+only transient CSRF for its queued server sign-out. A failed server sign-out is
+reported explicitly, including the need for owner revocation. Stale view responses
+cannot render private records or emit downloads after sign-out. Same-page skip links
+move focus without replacing unsaved forms.
+
+Run the static development shell with `node scripts/partner-server.mjs`; it binds
+loopback on port 4190 (`PARTNER_PORT` overrides). Set `PARTNER_API_ORIGIN` to the
+loopback native API origin and configure that API's `PARTNER_WEB_ORIGIN` to match
+the shell origin. This server supplies static files/configuration only; it does not
+replace the native database/authentication runtime. Fixture browser tests explicitly
+mock API responses and do not prove real cookies or PostgreSQL-backed browser flows.
+
+Visit/contact forms, counteroffers, partner referral display, device-only drafts,
+safe service-worker lifecycle and the owner console remain under implementation.
+No deployment or complete PWA/browser acceptance is claimed by these views.
+
+
+The separate device draft-store primitive now has account-specific per-entry storage,
+strict business-field allowlisting and stable idempotent replay; contact and consent
+values are rejected before writing. Conflicts remain for manual review and blocked
+storage never reports a saved record. It is not wired to a form or service worker.
+
+`npm run test:partner:browser` runs the first actual native browser slice in a
+fresh pinned PostgreSQL container: two independent browser contexts, real cookie
+flags/reload/logout, profile persistence and cross-partner read denial. Cleanup also
+survives a deliberately killed native process. This is now a CI command, not a claim
+of complete packet BDD, production subdomain validation or deployment.

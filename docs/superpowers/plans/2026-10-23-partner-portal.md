@@ -194,3 +194,23 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
   Earned amounts leave contingent forecasts; accepted obligations survive changed
   campaigns, pause/cap reduction and sunset. Native concurrent award/restore passed.
   Public customer opt-in, referral UI and browser BDD remain unfinished.
+
+
+### Partner shell design direction
+
+Use existing workshop colors: deep blue `#12304a`, teal `#08776f`, pale gray
+`#f7faf9`, white `#ffffff`, ink `#102631`, and focus amber `#945700`.
+Dark mode uses the operator palette with light teal actions and pale ink. System
+fonts (Segoe UI Variable Text/Aptos/system fallback) avoid remote font requests.
+A narrow navigation rail accompanies left-aligned work records on desktop; mobile
+uses a wrapping navigation strip above a single column. Fees lead each job sheet,
+with status, agreed tasks and decisions directly below. No decorative marketing
+hero, sample offers, gradients or financial balance counters. Keep actions at least
+44 pixels, visible labels/focus, reduced motion, and 320/390-pixel layouts.
+
+The design-skill search returned generic marketing patterns even after narrowing
+to an internal operations dashboard. Those patterns/fonts/palette were not adopted;
+packet requirements and existing product tokens determine this direction. First
+online shell/client fixtures are implemented; complete visits/referrals, counteroffers,
+offline drafts/service worker, owner console and native nine-feature browser BDD
+remain required before release. Presentation fixtures are not cookie/persistence proof.
