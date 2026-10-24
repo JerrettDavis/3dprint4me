@@ -1517,3 +1517,16 @@ copied runtime files** match current source SHA-256. Image index
 platform manifest `sha256:25d8eb577f0e849e31c8036f9fc09c6722647757c2a792dc4c193920c7d039ca`.
 Owner v24 and this API image remain undeployed. Partner static v4 is unchanged and
 needs no new upload. Final read-only review found no material blocker.
+
+
+## Synthetic API performance baseline (2026-10-24)
+
+After the heavy verification sequence and image checks completed, the maintained
+`measure-partner-performance.py` command passed on a fresh disposable native fixture.
+All five endpoints returned 200 through five warmups plus 100 measured requests each;
+fixture outbound fetch attempts were zero. The measured p99 range is **13.6–16.9 ms**.
+The [tracked aggregate evidence](partner-api-baseline.json) and portal operations notes
+record the nearest-rank method, exact API source hashes and a derived **60 ms local
+investigation threshold**. No production/page-render/mobile/concurrent-load claim is
+made. Read-only review found no measurement or privacy blocker. This supports Q-10;
+production performance and remaining operational/product/deployment gates stay open.
