@@ -556,6 +556,19 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_offline_review_states() -> list[tuple[str, Path]]:
+    from tests.e2e.test_partner_review_reader import offline_review_fixture, unlock_fixture
+    fixture=offline_review_fixture();captured=[]
+    for state in ['locked','unlocked']:
+        for width,scheme in [(320,'light'),(390,'dark')]:
+            with SiteBrowser(viewport=(width,844),color_scheme=scheme,reduced_motion='reduce') as site:
+                page=site.page;site.context.set_offline(True);page.goto((ROOT/'operator'/'review-reader.html').as_uri())
+                if state=='unlocked':unlock_fixture(page,fixture)
+                path=OUTPUT/f'offline-review-{state}-{scheme}.png';page.screenshot(path=str(path),full_page=True)
+                captured.append((f'Offline professional review {state} - {scheme}',path))
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -594,6 +607,7 @@ def main() -> int:
     cases.extend(capture_spoolman_states())
     cases.extend(capture_partner_states())
     cases.extend(capture_partner_owner_states())
+    cases.extend(capture_offline_review_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
     print(f"Captured {len(cases) + 1} screenshots and {board.relative_to(ROOT)}")

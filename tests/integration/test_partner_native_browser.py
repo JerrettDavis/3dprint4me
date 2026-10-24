@@ -831,6 +831,17 @@ def test_native_owner_professional_package_decisions_and_returned_feedback():
             docx=z.read(next(n for n in z.namelist() if n.endswith('.docx')))
         assert manifest['documents'][0]['sourceHash']==source['content_sha256']
         assert read('legal-version',version_id)['reviews']==[]
+        secret='Synthetic offline handoff passphrase 2026!'
+        encrypted_form=page.locator('[data-encrypt-review]')
+        encrypted_form.get_by_label('Handoff passphrase (20 to 1024 UTF-8 bytes)',exact=True).fill(secret)
+        encrypted_form.get_by_label('Repeat handoff passphrase',exact=True).fill(secret)
+        encrypted_form.get_by_label('I saved the passphrase separately and will share it through the agreed trusted channel.',exact=True).check()
+        encrypted_form.get_by_role('button',name='Encrypt package on this device',exact=True).click()
+        page.get_by_role('link',name='Download encrypted review file',exact=True).wait_for()
+        with page.expect_download() as encrypted_event:page.get_by_role('link',name='Download encrypted review file',exact=True).click()
+        encrypted_archive=encrypted_event.value.path().read_bytes()
+        assert secret.encode() not in encrypted_archive and source['markdown'].encode() not in encrypted_archive
+        assert encrypted_form.get_by_label('Handoff passphrase (20 to 1024 UTF-8 bytes)',exact=True).input_value()==''
         # Return a real, bounded DOCX with one tracked insertion. File authors remain untrusted.
         w='http://schemas.openxmlformats.org/wordprocessingml/2006/main';ET.register_namespace('w',w)
         buf=io.BytesIO()
@@ -843,10 +854,49 @@ def test_native_owner_professional_package_decisions_and_returned_feedback():
                     run=ET.SubElement(ins,'{'+w+'}r');ET.SubElement(run,'{'+w+'}t').text='Synthetic returned suggestion <script>not executable</script>'
                     payload=ET.tostring(tree,encoding='utf-8',xml_declaration=True)
                 dst.writestr(info.filename,payload)
-        returned=buf.getvalue();form=page.locator('[data-import-feedback]')
+        returned=buf.getvalue()
+        return_secret='Synthetic separate return passphrase 2026!'
+        with site.browser.new_context(viewport={'width':390,'height':844},color_scheme='dark',accept_downloads=True) as reader_context:
+            reader_context.set_offline(True);offline=reader_context.new_page();outbound=[]
+            offline.on('request',lambda request:outbound.append(request.url))
+            offline.goto((ROOT/'operator'/'review-reader.html').as_uri())
+            def unlock(password,fingerprint):
+                form=offline.locator('#unlock')
+                form.get_by_label('Encrypted review file',exact=True).set_input_files({'name':'private.3dpreview','mimeType':'application/json','buffer':encrypted_archive})
+                form.get_by_label('Review passphrase',exact=True).fill(password)
+                form.get_by_label('Independently trusted signing fingerprint',exact=True).fill(fingerprint)
+                form.get_by_role('button',name='Unlock and verify locally',exact=True).click()
+            unlock(secret+'wrong',manifest['publicKeyFingerprint'])
+            offline.get_by_text('Unable to unlock. Check the passphrase and obtain a fresh copy if the file changed.',exact=True).wait_for()
+            assert offline.locator('#result a').count()==0
+            unlock(secret,'b'*64)
+            offline.get_by_text('The archive does not match the independently trusted signing fingerprint.',exact=True).wait_for()
+            assert offline.locator('#result a').count()==0
+            unlock(secret,manifest['publicKeyFingerprint'])
+            offline.get_by_role('heading',name='Verified professional review package',exact=True).wait_for()
+            assert offline.locator('#result a').count()==len(manifest['files'])
+            with offline.expect_download() as md_event:offline.locator('#result a[download$=".md"]').first.click()
+            assert md_event.value.path().read_bytes() in [zbytes for zbytes in [source['markdown'].encode()] if zbytes]
+            form=offline.locator('#return-feedback')
+            form.get_by_label('Returned DOCX (up to 512 KiB)',exact=True).set_input_files({'name':'returned.docx','mimeType':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','buffer':returned})
+            form.get_by_label('Return passphrase (20 to 1024 UTF-8 bytes)',exact=True).fill(return_secret)
+            form.get_by_label('Repeat return passphrase',exact=True).fill(return_secret)
+            form.get_by_role('checkbox').check();form.get_by_role('button',name='Encrypt returned DOCX locally',exact=True).click()
+            offline.get_by_role('link',name='Download encrypted DOCX return',exact=True).wait_for()
+            with offline.expect_download() as event:offline.get_by_role('link',name='Download encrypted DOCX return',exact=True).click()
+            returned_envelope=event.value.path().read_bytes()
+            assert return_secret.encode() not in returned_envelope and returned not in returned_envelope
+            form.get_by_label('Return passphrase (20 to 1024 UTF-8 bytes)',exact=True).fill('Changed private return passphrase 2026!')
+            assert offline.get_by_role('link',name='Download encrypted DOCX return',exact=True).is_hidden()
+            assert not [url for url in outbound if url.startswith(('http:','https:'))]
+            offline.get_by_role('button',name='Lock and clear private view',exact=True).click()
+            assert offline.locator('#result a').count()==0 and offline.locator('#return-feedback').is_hidden()
+            assert offline.locator('[name=passphrase]').first.input_value()==''
+        form=page.locator('[data-import-feedback]')
         form.get_by_role('combobox',name='Returned source version',exact=True).select_option(version_id)
         form.get_by_role('combobox',name='Returning named reviewer',exact=True).select_option('0')
-        form.get_by_label('Returned DOCX (up to 512 KiB)',exact=True).set_input_files({'name':'synthetic-counsel-return.docx','mimeType':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','buffer':returned})
+        form.get_by_label('Returned DOCX (up to 512 KiB)',exact=True).set_input_files({'name':'synthetic-counsel-return.3dpreview','mimeType':'application/json','buffer':returned_envelope})
+        form.get_by_label('Return passphrase (encrypted returns only)',exact=True).fill(return_secret)
         form.get_by_label('I confirmed the returning reviewer identity through the agreed private channel.',exact=True).check()
         form.get_by_role('button',name='Import untrusted feedback',exact=True).click()
         page.get_by_role('heading',name='Returned professional feedback',exact=True).wait_for()

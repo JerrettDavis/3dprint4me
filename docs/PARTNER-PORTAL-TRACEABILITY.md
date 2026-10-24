@@ -166,3 +166,14 @@ changes no source/review state, conditional evidence leaves clearance off and se
 scoped synthetic approvals allow publication while program activation remains off.
 This expands contract-review.feature evidence; encrypted offline recipient handoff,
 exact issued-snapshot UI and the full packet acceptance journey remain required.
+
+
+Encrypted offline professional handoff: owner-local authenticated encryption and a
+separate reusable, self-contained reader now support signed package verification,
+individual editable file retrieval and an encrypted DOCX return. The native runtime
+journey uses a real signed package and an offline local-file reader, rejects wrong
+passphrase/fingerprint, verifies unchanged source/review state after return import,
+and retains separate explicit decision/publication actions. Lifecycle and crypto
+bounds have focused regressions. This supplies the offline sharing path requested
+by the packet; exact issuance, all remaining full-feature acceptance and release
+requirements still need their own evidence.
