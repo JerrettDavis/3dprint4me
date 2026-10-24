@@ -32,7 +32,7 @@ Packet integrity hashes and its structural validator passed (seven draft templat
 nine feature files). Ten new policy/domain tests were observed failing before their
 implementations, then passed. Static and architecture validation passed after these
 changes. The baseline rerun passed 1,112 unit/contract tests; browser regression passed
-224 tests with one optional skip; the UX audit passed 241 checks. The first
+224 tests with one Linux-only fresh-host test skipped on Windows; the UX audit passed 241 checks. The first
 baseline attempt overlapped test-first module creation and did not complete.
 Deployment, legal review export and encrypted backup evidence remain outstanding.
 
