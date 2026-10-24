@@ -1,9 +1,8 @@
 # Remaining partner acceptance work
 
-This 2026-10-24 audit, updated through the consent/referral increment, compares the private
-packet's nine feature files with native cases across `test_partner_native_browser.py`,
-`test_partner_budget_browser.py`, `test_partner_auth_browser.py` and
-`test_partner_gig_browser.py`, `test_partner_consent_referral_browser.py` and their fixtures. It identifies missing evidence, not automatic product defects.
+This 2026-10-24 audit, updated through owner control and ledger boundaries, compares
+nine private-packet feature files with the maintained native browser modules and
+their disposable fixtures. It identifies missing evidence, not automatic product defects.
 Synthetic owner sessions are bound to real numeric-identity rules but do not exercise
 GitHub OAuth. Synthetic review decisions never establish actual professional clearance.
 Production flags remain off. This list supplements, rather than replaces, the full
@@ -42,10 +41,14 @@ numbered packet requirements and operational release gates.
   It is count-only and does not claim to monitor arbitrary network transports.
 - **Optional activity:** all three named native scenarios are directly mapped in
   [traceability](PARTNER-PORTAL-TRACEABILITY.md). This does not establish production TLS.
-- **Ledger/payments:** a separate gift fixture excluded from statements and contractor
-  exports; explicit unconfigured Invoice Ninja/manual fallback and no customer-invoice
-  creation. Existing native settlement/replay/reversal/adjustment/CSV flows are useful
-  but do not prove these missing scenarios.
+- **Ledger/payments:** all five named scenarios have direct native evidence. The
+  two newest cases create a fresh $50 payable, download actual statement/accounting
+  CSVs, and keep a synthetic unconditional $200 gift in separate owner books denied
+  to the application role. With Invoice Ninja explicitly unconfigured, payable and
+  original CSV survive reload, no customer invoice operation is created and the
+  fixture fetch observer remains zero. The separate-books table is disposable test
+  infrastructure; real bookkeeping/provider import and completed 1099 reporting
+  remain unverified. Export classification remains `review_required`.
 - **Contract review:** anonymous private-package download denial; explicit redaction/
   exclusion assertions; issuance denied with exact missing gates; attempted amended
   version B under A's reviews, followed by independent B review/reissue/acknowledgment.
@@ -71,7 +74,7 @@ numbered packet requirements and operational release gates.
 The budget spine is now implemented in `tests/support/partner_budget.py`, including
 fresh two-partner enrollment and exact acknowledgment. Authentication now adds positive owner-work controls and explicit environment-off
 enrollment. Gig-choice and consent/referral journeys now reuse them as well. Next
-complete the remaining contract-review and ledger/payment scenarios.
+complete the remaining contract-review scenarios.
 Do not rebuild synthetic approval plumbing or substitute seeded accepted work for
 an actual authorization transition. The remaining numbered operations/product work
 above and below still needs its own evidence.

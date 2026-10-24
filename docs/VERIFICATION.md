@@ -1421,3 +1421,29 @@ and one fixture socket check. The complete maintained native command passed: **5
 (**49 native browser cases and one socket check**). Previous 1,215 unit/contract, 322 browser,
 241 UX and 145 capture checks describe the unchanged application at eb4d418. This
 increment does not require a new static deployment or new visual baselines.
+
+## Ledger accounting acceptance (2026-10-24, based on 3b6a3d7)
+
+Two direct native scenarios now cover a separate unconditional $200 gift excluded
+from a fresh $50 partner payable's actual statement and cash/accrual accounting
+exports, plus durable unpaid work/manual CSV with Invoice Ninja unconfigured. The
+fixture explicitly disables and empties its three provider settings; the actual
+invoicing runtime reports unconfigured. No customer invoice operation or observed
+fixture fetch occurs. Original export bytes survive reload. The separate owner-books
+schema is synthetic and denied to the application role. This does not establish a
+real bookkeeping integration, provider import or completed 1099 reporting; exported
+classification remains `review_required`.
+
+Initial test-only failures concerned SQL command tags in JSON parsing, normalized
+CSV line endings, a default seeded program selection and extra CSRF response metadata.
+The corrected tests select the exact program and verify original downloaded bytes.
+Focused result: **2 passed in 17.61 seconds**. Read-only review found no material blocker.
+The maintained native command includes both cases; its complete rerun passed
+**52 checks in 389.00 seconds: 51 native browser cases and one socket check**.
+Runtime application and static output are unchanged.
+
+Hosted weekly-statement run `40121648361` on eb4d418 passed native recovery,
+Restic, PostgreSQL, native browser, and validation/unit/E2E/UX steps. A later push
+superseded the run during screenshots: final conclusion **cancelled**, artifact
+upload succeeded. It is not a full successful hosted run. Owner-control head
+3b6a3d7 has its own run `40123411458`; its conclusion remains pending.

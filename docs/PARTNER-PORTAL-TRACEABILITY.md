@@ -69,8 +69,10 @@ The source packet stays private and the real professional approval gates stay of
   verified manual settlement, partial payments, immutable reversals, externally
   evidenced adjustments, duplicate evidence, stable incremental cash/accrual
   exports and source claims. Profile tests cover scoped earnings/statements/data
-  export and derived-copy expiry. Weekly generated statements, forecasts, owner
-  finance UI and account-specific CSV import validation remain pending.
+  export and derived-copy expiry. Native browser journeys now cover owner finance,
+  forecasts and opt-in weekly statements; their production rollout remains pending.
+  The two direct gift/unconfigured-provider mappings are recorded below. Actual
+  account-specific provider import and completed tax reporting remain unverified.
 - **contract-review.feature**: `tests/contract/partner-legal.contract.test.mjs`,
   `partner-template-seed.contract.test.mjs`, `partner-review-package.contract.test.mjs`
   and `tests/unit/partner-legal-content.test.mjs` cover immutable typed/hash-bound
@@ -290,3 +292,13 @@ server receipt and appears in owner pending attribution; verified attribution re
 the owner check. The fresh original-policy test traverses both stages and actual
 synthetic settlement verification, then earns $20 while a separate published/accepted
 policy promises $10. Neither a quote nor synthetic evidence attests to actual payment.
+
+Ledger/payments follow-up: `test_partner_ledger_browser.py` directly maps the remaining
+`Gift is not contractor compensation` and `Invoice Ninja unavailable does not lose
+work` scenarios. Fresh accepted $50 work becomes an actual payable; actual statement
+and cash/accrual downloads exclude a separate synthetic $200 personal gift. The
+application role cannot access the disposable owner-books schema. Invoice Ninja's
+actual runtime reports unconfigured after explicit fixture credential overrides;
+private payable/CSV persist through reload, invoice operation count stays zero and
+no fixture fetch occurs. These are not actual provider import, owner-books integration
+or prepared 1099 evidence; contractor classification still requires CPA review.

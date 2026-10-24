@@ -1,3 +1,4 @@
+import {createInvoicingRuntime} from '../../lib/invoicing/runtime.js';
 import {createSessionHandler} from '../../api/operator-session.js';
 import {createWorkUpdateHandler} from '../../api/operator-work-update.js';
 import {generateWeeklyStatements} from '../../lib/partner-outreach/statements.js';
@@ -95,5 +96,5 @@ try{
  await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1500)",[randomUUID(),weekId,refGigId]);
  await admin.query("UPDATE partner_program_weeks SET committed_cents=2500 WHERE id=$1",[weekId]);
  const referral=await issueReferral(database,{id:refGigId,partner_id:partnerId,program_id:programId,terms_snapshot:bonusTerms},new Date('2026-10-23T12:00:00Z'));
- process.stdout.write(JSON.stringify({privateWorkId,ownerToken,operatorToken,referralCode:referral.code,apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
+ process.stdout.write(JSON.stringify({invoiceNinjaConfigured:createInvoicingRuntime().configured,privateWorkId,ownerToken,operatorToken,referralCode:referral.code,apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
 }catch{await stop();process.stderr.write('Disposable native partner fixture failed.\n');process.exitCode=1;}
