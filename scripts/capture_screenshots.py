@@ -485,6 +485,47 @@ def capture_partner_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_partner_owner_states() -> list[tuple[str, Path]]:
+    from tests.e2e.test_partner_owner import install_owner_fixture
+    from tests.e2e.test_partner_shell import GIG_ID, PARTNER
+    captured=[]
+    with running_operator_workspace() as (_,origin,_):
+        for state,viewport,scheme in [('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light')]:
+            path=OUTPUT/f'operator-partners-{state}-{scheme}.png'
+            with SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
+                page=site.page;install_owner_fixture(page)
+                if state=='gig':
+                    item={'id':GIG_ID,'partnerId':PARTNER['id'],'status':'submitted','revision':3,'feeCents':4000,'maximumBonusCents':0,
+                          'terms':{'title':'Synthetic permitted introductions','feeCents':4000,'maximumBonusCents':0,'area':'Tulsa permitted business areas',
+                                   'deadline':'2026-12-01','tasks':['Respect no-soliciting signs','Ask before leaving materials'],'materials':['Owner-provided sample kit'],'bonusRules':[]}}
+                    def detail(route):
+                        if 'resource=gig&' in route.request.url:
+                            route.fulfill(status=200,content_type='application/json',body=json.dumps({'item':item,'events':[],'negotiations':[]}))
+                        else:route.fallback()
+                    page.route('**/api/operator-partners*',detail)
+                page.goto(origin+'/partners#'+('gig/'+GIG_ID if state=='gig' else state))
+                page.get_by_role('heading',level=1).wait_for()
+                if state=='campaigns':
+                    page.get_by_label('Offer title',exact=True).fill('Permitted business introductions')
+                    page.get_by_label('Offered fee (USD)',exact=True).fill('40.00')
+                    page.get_by_label('Permitted area',exact=True).fill('Tulsa permitted business areas')
+                    page.get_by_label('Completion deadline',exact=True).fill('2026-12-01')
+                    page.get_by_label('Objective tasks (one per line)',exact=True).fill('Ask permission before leaving materials\nRecord consenting introductions')
+                    page.get_by_role('button',name='Add conditional bonus',exact=True).click()
+                    page.get_by_label('Bonus reference',exact=True).fill('settled-sale')
+                    page.get_by_role('combobox',name='Qualifying event',exact=True).select_option('verified_sale')
+                    page.get_by_label('Bonus per award (USD)',exact=True).fill('20.00')
+                    page.get_by_label('Maximum awards',exact=True).fill('2')
+                    page.get_by_label('Objective qualification criteria',exact=True).fill('Independent full settlement and customer opt-in verified by the owner.')
+                    page.get_by_label('Qualify by (Central date)',exact=True).fill('2026-12-31')
+                    page.get_by_label('Refund treatment for a paid-sale bonus',exact=True).fill('Owner reviews refunds separately; no automatic clawback.')
+                page.evaluate('document.activeElement?.blur();window.scrollTo(0,0)')
+                site.screenshot(path,full_page=True)
+                assert not site.page_errors
+            captured.append((f'Owner partners {state} · {scheme}',path))
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -522,6 +563,7 @@ def main() -> int:
     cases.extend(capture_filament_states())
     cases.extend(capture_spoolman_states())
     cases.extend(capture_partner_states())
+    cases.extend(capture_partner_owner_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
     print(f"Captured {len(cases) + 1} screenshots and {board.relative_to(ROOT)}")

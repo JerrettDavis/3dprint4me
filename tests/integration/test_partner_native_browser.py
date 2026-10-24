@@ -17,15 +17,16 @@ from tests.support.browser_harness import SiteBrowser
 
 @contextmanager
 def native_partner_workspace():
-    port = free_port()
+    port, owner_port = free_port(), free_port()
+    owner_origin = f'http://127.0.0.1:{owner_port}'
     shell_origin = f'http://127.0.0.1:{port}'
     container = '3dprint4me-partner-browser-' + uuid.uuid4().hex[:8]
     native = subprocess.Popen(['node', 'tests/support/partner-native-server.mjs'], cwd=ROOT,
-                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_CONTAINER_NAME': container},
+                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container},
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=os.name != 'nt')
     lines = queue.Queue()
     threading.Thread(target=lambda: lines.put(native.stdout.readline()), daemon=True).start()
-    shell = None
+    shell = owner_shell = None
     try:
         first = lines.get(timeout=150)
         fixture = json.loads(first)
@@ -41,10 +42,24 @@ def native_partner_workspace():
                 time.sleep(.08)
         else:
             raise TimeoutError('Partner static shell unavailable')
+        owner_shell = subprocess.Popen(['node','scripts/operator-server.mjs'],cwd=ROOT,
+            env={**os.environ,'OPERATOR_PORT':str(owner_port),'OPERATOR_API_BASE':fixture['apiOrigin']},stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+        deadline=time.monotonic()+10
+        while time.monotonic()<deadline:
+            try:
+                if request(owner_origin+'/api/config')[0]==200:break
+            except OSError:time.sleep(.08)
+        else:raise TimeoutError('Owner shell unavailable')
+        fixture['ownerOrigin']=owner_origin
         fixture['_process'] = native
         fixture['_container'] = container
         yield shell_origin, fixture
     finally:
+        if owner_shell:
+            owner_shell.terminate()
+            try:owner_shell.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                owner_shell.kill();owner_shell.wait(timeout=5)
         if shell:
             shell.terminate()
             try:
@@ -357,4 +372,50 @@ def test_native_customer_referral_request_records_permission_without_creating_a_
         page.get_by_role('navigation').get_by_role('link',name='Referrals',exact=True).click()
         page.get_by_role('heading',name='No referral codes yet').wait_for()
         assert fixture['referralCode'] not in page.locator('main').inner_text()
+        assert not site.page_errors
+
+
+def test_native_owner_console_uses_github_binding_and_preserves_obligations_while_paused():
+    with native_partner_workspace() as (origin,fixture), SiteBrowser(viewport=(390,844),color_scheme='dark',reduced_motion='reduce') as site:
+        owner=fixture['ownerOrigin'];api=fixture['apiOrigin'];page=site.page
+        site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
+        page.goto(owner+'/partners')
+        page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
+        assert 'New work unavailable' in page.locator('#partner-clearance').inner_text()
+        page.get_by_label('Default weekly authorization (USD)',exact=True).fill('175.25')
+        page.get_by_role('button',name='Save program controls',exact=True).click()
+        page.get_by_text('Program controls saved.',exact=True).wait_for()
+        page.reload()
+        assert page.get_by_label('Default weekly authorization (USD)',exact=True).input_value()=='175.25'
+        with site.browser.new_context(viewport={'width':390,'height':844}) as other:
+            other.add_cookies([{'name':'__Host-3dp-session','value':fixture['operatorToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
+            denied=other.new_page();denied.goto(owner+'/partners')
+            denied.get_by_role('heading',name='Owner access required',exact=True).wait_for()
+            assert denied.locator('main form').count()==0
+        # An existing accepted obligation can be submitted/reviewed despite disabled new work.
+        with site.browser.new_context(viewport={'width':390,'height':844}) as partner_context:
+            partner_page=partner_context.new_page();partner_page.goto(origin)
+            partner_page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+            partner_page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+            partner_page.get_by_role('button',name='Sign in',exact=True).click()
+            partner_page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+            partner_page.goto(origin+'/gigs/'+fixture['acceptedGigId'])
+            partner_page.get_by_role('combobox',name='Action',exact=True).select_option('submit')
+            partner_page.get_by_label('Reason or submission details',exact=True).fill('Synthetic completed permitted introductions.')
+            partner_page.get_by_role('button',name='Save decision',exact=True).click()
+            partner_page.get_by_text('Decision recorded.',exact=True).wait_for()
+            page.goto(owner+'/partners#gig/'+fixture['acceptedGigId'])
+            page.get_by_role('combobox',name='Review action',exact=True).select_option('approve')
+            page.get_by_label('Review reason',exact=True).fill('Objective deliverables verified.')
+            page.get_by_role('button',name='Record gig review',exact=True).click()
+            page.get_by_text('Gig review recorded.',exact=True).wait_for()
+            page.get_by_role('combobox',name='Review action',exact=True).select_option('make_payable')
+            page.get_by_role('button',name='Record gig review',exact=True).click()
+            page.get_by_text('Gig review recorded.',exact=True).wait_for()
+            result=page.evaluate("async api=>(await fetch(api+'/api/operator-partners?resource=ledger',{credentials:'include'})).json()",api)
+            assert any(row['amountDueCents']==1000 and row['outstandingCents']==1000 for row in result['items'])
+            partner_page.goto(origin+'/earnings')
+            partner_page.get_by_role('heading',name='Your earnings',exact=True).wait_for()
+            assert '$10.00' in partner_page.locator('main').inner_text()
+            assert 'Verified paid' in partner_page.locator('main').inner_text()
         assert not site.page_errors

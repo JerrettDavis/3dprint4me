@@ -1,6 +1,7 @@
 // Disposable native browser fixture. Never connects to an existing database.
 import {execFileSync} from 'node:child_process';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,randomBytes} from 'node:crypto';
+import {digest} from '../../lib/partner-outreach/postgres-repository.js';
 import {readFile} from 'node:fs/promises';
 import {once} from 'node:events';
 import pg from 'pg';
@@ -16,6 +17,7 @@ import {createPlatformServer} from '../../lib/platform/api-server.js';
 if(process.env.PARTNER_NATIVE_BROWSER_TEST!=='1')throw new Error('Explicit disposable fixture flag required.');
 const shell=new URL(process.env.PARTNER_TEST_SHELL_ORIGIN);
 if(shell.protocol!=='http:'||shell.hostname!=='127.0.0.1'||shell.origin!==process.env.PARTNER_TEST_SHELL_ORIGIN)throw new Error('Fixture shell must be loopback.');
+const ownerOrigin=process.env.PARTNER_TEST_OWNER_ORIGIN??shell.origin;const ownerUrl=new URL(ownerOrigin);if(ownerUrl.origin!==ownerOrigin||ownerUrl.protocol!=='http:'||ownerUrl.hostname!=='127.0.0.1')throw Error('Owner fixture must be loopback.');
 const IMAGE='postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6';
 const docker=(...args)=>execFileSync('docker',args,{encoding:'utf8',timeout:90000,stdio:['pipe','pipe','pipe']}).trim();
 const name=process.env.PARTNER_TEST_CONTAINER_NAME??'3dprint4me-partner-browser-'+randomUUID().slice(0,8);
@@ -44,8 +46,14 @@ try{
  await admin.query("INSERT INTO partner_program_weeks(id,program_id,week_start_local,cap_cents,committed_cents) VALUES($1,$2,'2026-10-19',20000,1000)",[weekId,programId]);
  await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,program_week_id,terms_snapshot,status,accepted_fee_cents,accepted_at,revision) VALUES($1,$2,$3,$4,$5,$6,'accepted',1000,'2026-10-23T12:00:00Z',2)",[acceptedGigId,programId,partnerId,campaignId,weekId,JSON.stringify(terms)]);
  await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1000)",[randomUUID(),weekId,acceptedGigId]);
- pool=new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')));const database=createNativeDatabase({pool}),env={PARTNER_WEB_ORIGIN:shell.origin,OPERATOR_WEB_ORIGIN:'https://work.3dprint4.me'};
+ pool=new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')));const database=createNativeDatabase({pool}),env={PARTNER_WEB_ORIGIN:shell.origin,OPERATOR_WEB_ORIGIN:ownerOrigin,OPERATOR_OWNER_SUBJECT:'2610199'};
  process.env.DATABASE_DRIVER='postgres';process.env.DATABASE_URL=url.replace('postgres@','platform_app@');
+ const ownerToken=randomBytes(32).toString('base64url'),operatorToken=randomBytes(32).toString('base64url');
+ for(const [id,subject,role,token]of [['op_browser_owner','2610199','owner',ownerToken],['op_browser_operator','2610200','operator',operatorToken]]){
+  await admin.query("INSERT INTO operators(id,auth_user_id,display_name,role) VALUES($1,$2,$3,$4)",[id,'github:'+subject,'Synthetic '+role,role]);
+  await admin.query("INSERT INTO operator_identity_bindings(issuer,subject,operator_id) VALUES('https://github.com/',$1,$2)",[subject,id]);
+  await admin.query("INSERT INTO operator_sessions(token_hash,operator_id,issuer,subject,expires_at) VALUES($1,$2,'https://github.com/',$3,$4)",[digest(token),id,subject,new Date(Date.now()+86400000).toISOString()]);
+ }
  const app=createPartnerApplication({database,env}),auth=createPartnerAuth({database}),runtime={database,app,auth};
  const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});
  const requestHandler=createProjectRequestHandler({getRuntime:()=>({mode:'neon',requestRepository:{createDraft:createRequestRecord,completeDraft:completeRequestRecord}}),issueCheckoutProof:()=>null});
@@ -56,5 +64,5 @@ try{
  await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1500)",[randomUUID(),weekId,refGigId]);
  await admin.query("UPDATE partner_program_weeks SET committed_cents=2500 WHERE id=$1",[weekId]);
  const referral=await issueReferral(database,{id:refGigId,partner_id:partnerId,program_id:programId,terms_snapshot:bonusTerms},new Date('2026-10-23T12:00:00Z'));
- process.stdout.write(JSON.stringify({referralCode:referral.code,apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
+ process.stdout.write(JSON.stringify({ownerToken,operatorToken,referralCode:referral.code,apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
 }catch{await stop();process.stderr.write('Disposable native partner fixture failed.\n');process.exitCode=1;}

@@ -393,7 +393,8 @@ mock API responses and do not prove real cookies or PostgreSQL-backed browser fl
 
 Visit/contact forms, business-only device drafts and partner counterproposals are
 implemented below. Partner referral display and customer opt-in intake are implemented below. Safe
-service-worker lifecycle and the owner console remain under implementation.
+service-worker lifecycle and the remaining owner finance/legal workflows are still
+under implementation. The owner core operations are described below.
 No deployment or complete PWA/browser acceptance is claimed by these views.
 
 
@@ -498,3 +499,50 @@ payments, and customer identity, project and settlement evidence are absent. Nat
 HTTP/PostgreSQL proof covers persisted completed request permission with zero
 attributions/awards, and browser proof covers the two partners' scoped code views.
 The complete owner attribution/settlement/award browser scenario is still pending.
+
+
+### Owner Partners area: core operations
+
+The existing operator project includes `/partners`, linked from the work inbox only
+for owner-role sessions. Its separate static shell/controller reuses operator colors,
+fonts and theme choices. Native numeric GitHub owner binding and the existing owner
+host cookie are mandatory at `/api/operator-partners`; the link itself grants no
+access. Ordinary operators and partners are refused. Use the operator project's
+existing `/api/config` with `OPERATOR_API_BASE=https://api.3dprint4.me`; the owner page
+accepts that production origin or explicit loopback development origins only. Sign-in
+continues through the existing work inbox. Production OAuth and TLS are not proved
+by a fixture that installs a synthetic owner session cookie.
+
+Implemented owner views are program clearance/default cap/pause, disabled program
+creation, account creation/status, campaigns, offers and gig review, specific week
+caps and latest audit events. Campaign/reoffer forms disclose tasks, area, deadlines,
+materials and up to ten bonus rules. Every bonus has criteria, amount, bounded count,
+qualification date and a paid-sale refund treatment where applicable. The reservation
+includes the complete sum of all maxima plus the fee; the server validates again.
+Publishing, reoffering, creating offers and activating programs still require the
+actual reviewed/published documents and environment launch settings. The clearance
+region displays the backend's real missing gates. It is not a professional-approval
+badge. Pausing or lowering authorization does not erase accepted obligations.
+
+The owner can approve submitted work, request objective changes, mark approved fees
+payable or withdraw an unaccepted offer using existing revisioned commands. A payable
+is not a bank transfer confirmation. Safety/cancellation settlements, verified manual
+payments and corrections remain separate ledger workflows; they are not arbitrary
+status changes on the gig form. Accepted terms cannot be reoffered or overwritten.
+
+CSRF remains in memory. All API traffic includes credentials, no-store and redirect
+rejection. Forms capture data/key together and disable all current form controls while
+sending. Unchanged uncertain retries retain their key, structural bonus edits create
+new keys, and late responses cannot replace a later route. JSON parsing is also guarded
+against a logout race. Even an unreadable 401/403 response clears owner state and private
+forms/banner. The skip link focuses content without routing or losing unsaved input.
+The operator service-worker version increments for the new static assets; API responses
+are never added to its cache. The owner path has a restrictive CSP and no-store headers.
+`npm --prefix operator run build` explicitly includes the owner page and assets.
+
+Native browser evidence uses an actual bound synthetic GitHub owner session and a
+restricted PostgreSQL runtime: saved cap survives reload, an operator is denied, and
+existing accepted work can be submitted, owner-approved and made payable while new
+work is disabled. This proves that slice, not the full packet owner scenario or live
+GitHub login. Invitations/revocation, lead/referral verification, finance/settlement,
+and legal editorial/review/feedback/encrypted sharing screens are still required.
