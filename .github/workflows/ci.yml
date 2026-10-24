@@ -43,6 +43,9 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
+      - name: Verify partner PostgreSQL isolation, concurrency and restore
+        run: npm run test:partner:postgres
+
       - name: Install test tooling
         run: |
           python -m pip install --upgrade pip

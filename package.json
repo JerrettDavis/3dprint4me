@@ -24,7 +24,8 @@
     "vercel-build": "node scripts/vercel-build.mjs",
     "test:unit": "node --test tests/unit/*.test.mjs tests/contract/*.test.mjs",
     "customizer:build": "vite build --config customizer/vite.config.js",
-    "customizer:dev": "vite --config customizer/vite.config.js"
+    "customizer:dev": "vite --config customizer/vite.config.js",
+    "test:partner:postgres": "node --test tests/integration/partner-postgres.test.mjs"
   },
   "homepage": "https://3dprint4.me",
   "keywords": [

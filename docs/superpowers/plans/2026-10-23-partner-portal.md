@@ -34,17 +34,17 @@ Program default OFF, classification approval OFF, accounting approval OFF. New a
 ## Task 1: Domain policies and financial rules
 
 Files: lib/partner-outreach/policy.js, domain.js; tests/unit/partner-policy.test.mjs and partner-domain.test.mjs.
-- [ ] Write failing tests for Central Monday boundaries/DST, sunset, strict integer cents, 20000/40000 caps and disabled gates.
-- [ ] Implement pure authorization policy; no provider imports.
+- [x] Write failing tests for Central Monday boundaries/DST, sunset, strict integer cents, 20000/40000 caps and disabled gates.
+- [x] Implement pure authorization policy; no provider imports.
 - [ ] Test voluntary decline/counteroffer, safety termination, cancellation preserving earned obligations, immutable terms, gift rejection and payment corrections.
 - [ ] Implement explicit state transitions with expected revisions; verify focused tests and commit.
 
 ## Task 2: Transactional persistence
 
-Files: neon/migrations/012_partner_outreach.sql; lib/partner-outreach/postgres-repository.js, local-repository.js, repository.js; deploy/platform migration and recovery inventories; tests/contract/partner-repository.test.mjs.
-- [ ] Inspect current migration runner and grants before writing schema; load Postgres best practices.
-- [ ] Define programs, partners, credentials/sessions/invites, campaigns, gigs, week reservations, visits/leads/consents, referrals/bonuses, activities, append-only payments/audit/outbox, documents/reviews/issues and command receipts.
-- [ ] Prove transactional idempotency with payload hash, revision CAS and weekly locking; reject mismatched retries.
+Files: neon/migrations/012_partner_outreach.sql; lib/partner-outreach/postgres-repository.js (native-only repository; isolated PostgreSQL for development); deploy/platform migration and recovery inventories; tests/contract/partner-repository.test.mjs.
+- [x] Inspect current migration runner and grants before writing schema; load Postgres best practices.
+- [x] Define programs, partners, credentials/sessions/invites, campaigns, gigs, week reservations, visits/leads/consents, referrals/bonuses, activities, append-only payments/audit/outbox, documents/reviews/issues and command receipts.
+- [x] Prove transactional idempotency with payload hash, revision CAS and weekly locking; reject mismatched retries.
 - [ ] Verify native PostgreSQL role isolation, append-only enforcement, 15000+15000 race against 20000, migration and isolated restore; update recovery inventory.
 
 ## Task 3: Partner identity and HTTP boundaries
@@ -102,3 +102,23 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
 - [ ] Back up, migrate and deploy native API using existing immutable-release handover; deploy partner shell with all launch gates OFF.
 - [ ] Verify provider-issued domain target, two DNS resolvers, certificate, HTTPS, CSP, noindex, no-store, unauthenticated 401, role isolation and synthetic production smoke.
 - [ ] Audit every requirement and delivery gate against current evidence; report deployment URLs, commit/PR, migration, feature flags, restore proof and real external blockers. Never claim activation or bank settlement.
+
+## Implementation rulings and checkpoints
+
+- 2026-10-23: Native-only partner repository instead of a duplicate mutable JSON adapter.
+  Financial reservations, opaque sessions and legal evidence require native transaction
+  semantics. Development/browser fixtures will use disposable PostgreSQL; PGlite runs
+  contract tests. This keeps the production behavior in the local test path.
+- 2026-10-23: Explicit command completion timestamp distinguishes a successful JSON null
+  response from an unfinished receipt. Canonical JSON payload digests ignore object key
+  order, while rejecting conflicting retries. Failure rolls back the receipt and all effects.
+- 2026-10-23: Partner enrollment uses account code + passphrase with secure owner-mediated
+  one-use recovery. No external account requirement; no raw token stored in receipts.
+  Host-only secure cookie and token-bound CSRF support the existing API/partner subdomains.
+  HTTP integration and browser cookie proof remain pending.
+- Native PostgreSQL 18 concurrency/role/restore test passed with a pinned disposable Docker
+  image. It is in CI and npm run test:partner:postgres. This does not substitute for the
+  encrypted full-platform recovery drill required before release.
+- Existing baseline browser suite: 224 passed, one optional skip. UX audit: 241/241.
+  Generated artifacts with timestamp-only or nondeterministic changes were not retained
+  because this increment makes no visual changes. Partner UI screenshots remain pending.
