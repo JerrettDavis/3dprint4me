@@ -486,14 +486,16 @@ def capture_partner_states() -> list[tuple[str, Path]]:
 
 
 def capture_partner_owner_states() -> list[tuple[str, Path]]:
-    from tests.e2e.test_partner_owner import install_owner_fixture
+    from tests.e2e.test_partner_owner import install_owner_fixture, install_access_fixture
     from tests.e2e.test_partner_shell import GIG_ID, PARTNER
     captured=[]
     with running_operator_workspace() as (_,origin,_):
-        for state,viewport,scheme in [('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light')]:
+        for state,viewport,scheme in [('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light')]:
             path=OUTPUT/f'operator-partners-{state}-{scheme}.png'
             with SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
-                page=site.page;install_owner_fixture(page)
+                page=site.page
+                if state=='accounts':install_access_fixture(page)
+                else:install_owner_fixture(page)
                 if state=='gig':
                     item={'id':GIG_ID,'partnerId':PARTNER['id'],'status':'submitted','revision':3,'feeCents':4000,'maximumBonusCents':0,
                           'terms':{'title':'Synthetic permitted introductions','feeCents':4000,'maximumBonusCents':0,'area':'Tulsa permitted business areas',
@@ -503,8 +505,12 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                             route.fulfill(status=200,content_type='application/json',body=json.dumps({'item':item,'events':[],'negotiations':[]}))
                         else:route.fallback()
                     page.route('**/api/operator-partners*',detail)
-                page.goto(origin+'/partners#'+('gig/'+GIG_ID if state=='gig' else state))
+                page.goto(origin+'/partners#'+('gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else state))
                 page.get_by_role('heading',level=1).wait_for()
+                if state=='accounts':
+                    page.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True).check()
+                    page.get_by_role('button',name='Issue recovery code',exact=True).click()
+                    page.get_by_label('One-time recovery code',exact=True).wait_for()
                 if state=='campaigns':
                     page.get_by_label('Offer title',exact=True).fill('Permitted business introductions')
                     page.get_by_label('Offered fee (USD)',exact=True).fill('40.00')

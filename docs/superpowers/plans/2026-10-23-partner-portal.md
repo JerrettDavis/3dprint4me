@@ -291,3 +291,25 @@ initial screens must not claim these later flows or complete BDD/deployment.
 Verify owner/operator distinction through the native HTTP authorizer and an actual
 bound synthetic GitHub session in disposable PostgreSQL, plus compatibility of the
 existing inbox. Capture and inspect the new operator views before completion.
+
+
+### Owner access lifecycle
+
+Add per-account enrollment/recovery and suspension/revocation controls. Enrollment
+requires actual program clearance. Recovery preserves existing account access during
+new-work pauses. A suspended account remains blocked until it redeems a fresh,
+owner-issued recovery code with a new passphrase; revoked accounts cannot recover.
+Verify owner identity inside the existing transaction using the production runtime
+in native fixtures. No synthetic owner shortcut or gate bypass in production.
+
+Issuance is deliberately not a replayable ordinary command: raw tokens are returned
+once and never retained in receipts. Require owner identity/handoff confirmation for
+each deliberate issue/replacement. On an uncertain response do not auto-retry: clear
+the confirmation and explain that the next issue replaces every pending code. Show
+an initially masked code only in the current owner view; never put it in URLs,
+clipboard automatically, drafts, logs, audit, exports or notifications. Clear it on
+expiry, hide, route change, page hiding, loss of access and logout, and suppress late
+responses after leaving. Revocation invalidates sessions/pending codes while leaving
+financial evidence intact. Verify masked ephemeral behavior, stale responses,
+replacement/replay denial, suspended recovery, disabled enrollment and preserved
+payables through owner/partner native browser contexts.

@@ -10,6 +10,6 @@ test('owner shell hosting uses no-store and a restrictive native-origin CSP',asy
 });
 test('owner shell service-worker additions contain only static resources and never private API payloads',async()=>{
  const source=await readFile('operator/sw.js','utf8');const assets=JSON.parse(source.match(/const SHELL_ASSETS = (\[[^;]+\]);/)[1]);
- for(const path of ['/partners','/partners.html','/assets/partner-owner.js','/assets/partner-owner-client.js','/assets/partner-owner.css'])assert.ok(assets.includes(path));
+ for(const path of ['/partners','/partners.html','/assets/partner-owner.js','/assets/partner-owner-client.js','/assets/partner-owner-access.js','/assets/partner-owner.css'])assert.ok(assets.includes(path));
  assert.ok(assets.every(path=>!path.startsWith('/api/')));assert.match(source,/url\.pathname\.startsWith\("\/api\/"\)/);
 });
