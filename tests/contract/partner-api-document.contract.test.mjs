@@ -29,6 +29,8 @@ test('checked-in API document is fresh and contains only local schema references
  const owner=doc.paths['/api/operator-partners'].get.parameters.find(p=>p.name==='resource').schema.enum;
  assert.ok(!owner.includes('activity'));assert.ok(!owner.includes('own-export'));
  assert.ok(!doc.paths['/api/partner/v1/export'].get.responses['200']);
+ assert.ok(doc.paths['/api/partner/v1/export'].get.responses['400']);
+ assert.ok(doc.paths['/api/partner/v1/export'].get.responses['405']);
 });
 
 test('documented API paths, authentication and command transport match native handlers',async()=>{
@@ -74,7 +76,6 @@ test('published command roles and allowed fields cover every application command
  assert.deepEqual(doc['x-command-inventory'],Object.fromEntries(Object.entries(expected).sort(([a],[b])=>a.localeCompare(b))));
  const partnerActions=doc.paths['/api/partner/v1/commands'].post.requestBody.content['application/json'].schema.properties.action.enum;
  assert.deepEqual(partnerActions,Object.keys(expected).filter(k=>expected[k].roles.includes('PARTNER')).sort());
- assert.match(doc.info.description,/not yet a complete typed domain contract/);
 });
 
 test('every published command has a closed typed input schema and role-scoped envelope branch',async()=>{
@@ -85,10 +86,32 @@ test('every published command has a closed typed input schema and role-scoped en
   assert.equal(schema.type,'object');assert.equal(schema.additionalProperties,false);
   assert.deepEqual(Object.keys(schema.properties).sort(),metadata.allowedFields);
   assert.ok(schema.required.every(key=>metadata.allowedFields.includes(key)));
+  assert.ok(doc['x-command-responses'][action]?.$ref,'Missing command result '+action);
   for(const [field,value]of Object.entries(schema.properties))assert.ok(value.type||value.$ref||value.anyOf||value.oneOf,action+'.'+field+' must have a type');
  }
  for(const [path,role]of [['/api/partner/v1/commands','PARTNER'],['/api/operator-partners','OWNER']]){
   const schema=doc.paths[path].post.requestBody.content['application/json'].schema;
   assert.deepEqual(schema.oneOf.map(branch=>branch.properties.action.const),Object.keys(doc['x-command-inventory']).filter(action=>doc['x-command-inventory'][action].roles.includes(role)));
  }
+});
+
+test('every successful read has a resource response and explicit canonical query contract',async()=>{
+ const doc=await document();
+ for(const [path,value]of Object.entries(doc.paths)){
+  if(!value.get||path==='/api/operator-partners'||path==='/api/partner/v1/export')continue;
+  const operation=value.get;
+  assert.ok(operation.responses['200'].content?.['application/json']?.schema,'Untyped read '+path);
+  assert.equal(operation['x-query-schema'].additionalProperties,false,path);
+ }
+ const owner=doc.paths['/api/operator-partners'].get;
+ const resources=owner.parameters.find(p=>p.name==='resource').schema.enum;
+ assert.deepEqual(Object.keys(owner['x-resource-contracts']).sort(),[...resources].sort());
+ for(const contract of Object.values(owner['x-resource-contracts'])){
+  assert.ok(contract.response.$ref);assert.equal(contract.query.additionalProperties,false);
+ }
+ assert.deepEqual(doc.paths['/api/partner/v1/gig'].get['x-query-schema'].required,['id']);
+ assert.deepEqual(owner['x-resource-contracts']['legal-diff'].query.required,['id','compareTo']);
+ assert.equal(doc.components.schemas.PartnerGigDetailResponse.properties.materials.maxItems,200);
+ assert.ok(doc.components.schemas.PartnerGigDetailResponse.required.includes('materialsHasMore'));
+ assert.equal(doc.components.schemas.Gig.properties.terms.$ref,'#/components/schemas/OfferSnapshot');
 });

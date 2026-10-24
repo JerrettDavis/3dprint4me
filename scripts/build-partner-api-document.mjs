@@ -2,6 +2,8 @@ import { readFile,writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { commandInputSchemas } from './partner-api-input-schemas.mjs';
+import { readResponseSchemas,readContracts } from './partner-api-response-schemas.mjs';
+import { commandResponseSchemas } from './partner-api-command-responses.mjs';
 
 const root=new URL('../',import.meta.url);
 const reads=['gigs','gig','earnings','agreements','profile','visits','leads','activity','referrals','statement','statements','export','own-export'];
@@ -13,7 +15,7 @@ const origin={name:'Origin',in:'header',required:true,schema:{type:'string'},des
 const csrf={name:'X-CSRF-Token',in:'header',required:true,schema:{type:'string'},description:'Session-specific token returned by the matching partner or owner session read. Tokens are not interchangeable.'};
 const error={$ref:'#/components/schemas/Error'};
 const headers={'Cache-Control':{schema:{const:'no-store'}},'Referrer-Policy':{schema:{const:'no-referrer'}},'X-Content-Type-Options':{schema:{const:'nosniff'}}};
-const responseDefinitions=()=>Object.fromEntries(Object.entries({200:'Operation-specific JSON. Nested domain/result schemas remain to be completed.',400:'Invalid JSON, fields or domain input.',401:'Missing, expired, revoked or invalid credentials.',403:'Origin, CSRF, role or eligibility denied.',404:'Unknown or inaccessible record.',405:'Method not allowed.',409:'Revision, capacity, replay-payload or lifecycle conflict.',410:'Expired or changed derived export.',413:'JSON body exceeds route limit.',415:'Unsupported content type.',422:'Consent, contact, visit outcome or placement validation failed.',429:'Authentication rate limit.',503:'Sanitized unavailable service; no provider credentials or internal errors.'}).map(([status,description])=>[status,{description,headers,content:json(status==='200'?{type:'object',additionalProperties:true}:error)}]));
+const responseDefinitions=()=>Object.fromEntries(Object.entries({400:'Invalid JSON, fields or domain input.',401:'Missing, expired, revoked or invalid credentials.',403:'Origin, CSRF, role or eligibility denied.',404:'Unknown or inaccessible record.',405:'Method not allowed.',409:'Revision, capacity, replay-payload or lifecycle conflict.',410:'Expired or changed derived export.',413:'JSON body exceeds route limit.',415:'Unsupported content type.',422:'Consent, contact, visit outcome or placement validation failed.',429:'Authentication rate limit.',503:'Sanitized unavailable service; no provider credentials or internal errors.'}).map(([status,description])=>[status,{description,headers,content:json(error)}]));
 const responses=()=>Object.fromEntries(Object.keys(responseDefinitions()).map(status=>[status,{$ref:'#/components/responses/Status'+status}]));
 const query=(name,schema={type:'string'})=>({name,in:'query',schema,description:'At most one value. Resource-specific requiredness and authorization are validated on the server.'});
 
@@ -61,10 +63,33 @@ export async function buildPartnerApiDocument(){
  }
  add('/api/partner/v1/logout','post',{summary:'Revoke current session and clear cookie',parameters:[origin,csrf]});
  add('/api/partner/v1/commands','post',command('PARTNER',262144));
- for(const resource of reads)add('/api/partner/v1/'+resource,'get',{summary:resource==='export'?'Reserved accounting export route (partner denied)':'Own scoped '+resource,parameters:[query('id',uuid),query('programId',uuid),query('compareTo',uuid),...(resource==='statements'?[query('before')]:[])],description:resource==='export'?'This transport route exists but the application restricts accounting exports to OWNER. Partner reads return 404; use own-export for partner personal-data and statement copies.':'Server checks ownership before returning private data. A query field accepted by transport may be denied or invalid for this resource. No arbitrary partnerId query override exists.',...(resource==='export'?{responses:{401:responses()[401],403:responses()[403],404:responses()[404],503:responses()[503]}}:{})});
+ for(const resource of reads)add('/api/partner/v1/'+resource,'get',{summary:resource==='export'?'Reserved accounting export route (partner denied)':'Own scoped '+resource,parameters:[query('id',uuid),query('programId',uuid),query('compareTo',uuid),...(resource==='statements'?[query('before')]:[])],description:resource==='export'?'This transport route exists but the application restricts accounting exports to OWNER. Partner reads return 404; use own-export for partner personal-data and statement copies.':'Server checks ownership before returning private data. A query field accepted by transport may be denied or invalid for this resource. No arbitrary partnerId query override exists.',...(resource==='export'?{responses:Object.fromEntries(Object.entries(responses()).filter(([status])=>status!=='200'))}:{})});
  add('/api/operator-partners','get',{summary:'Owner resource multiplexer',security:[{ownerCookie:[]}],parameters:[query('resource',{type:'string',enum:ownerReads}),query('id',uuid),query('programId',uuid),query('compareTo',uuid),query('before')],description:'Defaults to programs. resource=session returns owner ID and CSRF token. Other successful reads include csrfToken alongside resource data. Requires the numeric GitHub-bound enabled owner session.'});
  add('/api/operator-partners','post',command('OWNER',786432));
- return {openapi:'3.1.1',info:{title:'3dprint4.me native partner API',version:'0.3.0-inputs',description:'Actual native transport and command field inventory; not yet a complete typed domain contract. No deployment or professional clearance is implied. Unknown query keys and duplicate query values are rejected. Successful and error JSON is private no-store. Request JSON accepts application/json and +json media types. Typed command inputs describe structural constraints; dynamic policy and response models remain tracked implementation work.'},servers:[{url:'/',description:'Relative to the configured API origin; deployment and same-site HTTPS must be independently verified.'}],security:[{partnerCookie:[]}],paths,components:{responses:Object.fromEntries(Object.entries(responseDefinitions()).map(([status,value])=>['Status'+status,value])),securitySchemes:{partnerCookie:{type:'apiKey',in:'cookie',name:'__Host-3dp-partner',description:'HttpOnly; Secure; Path=/; SameSite=Strict. Never expose cookie values in browser JavaScript.'},ownerCookie:{type:'apiKey',in:'cookie',name:'__Host-3dp-session',description:'Independent existing owner identity session; partner cookie cannot grant owner access.'}},schemas:{...inputSchemas,Error:{type:'object',required:['error'],properties:{error:{type:'string'},missingGates:{type:'array',items:{type:'string'}}},additionalProperties:false}}},'x-command-inventory':inventory};
+ const responseSchemas={...readResponseSchemas(),...commandResponseSchemas()},contracts=readContracts();
+ const success=schema=>({description:'Resource-specific private JSON; see schema and canonical query contract.',headers,content:json(schema)});
+ for(const [path,operations]of Object.entries(paths)){
+  if(!operations.get||path==='/api/operator-partners'||path==='/api/partner/v1/export')continue;
+  const resource=path.slice('/api/partner/v1/'.length),contract=contracts.partner[resource];
+  if(!contract)throw Error('Missing partner read contract '+resource);
+  operations.get.responses['200']=success(contract.response);
+  operations.get['x-query-schema']=contract.query;
+  operations.get.parameters=Object.entries(contract.query.properties).map(([name,schema])=>({...query(name,schema),required:contract.query.required.includes(name)}));
+ }
+ if(JSON.stringify(Object.keys(contracts.owner).sort())!==JSON.stringify([...ownerReads].sort()))throw Error('Owner read contract inventory is stale.');
+ paths['/api/operator-partners'].get['x-resource-contracts']=Object.fromEntries(Object.entries(contracts.owner).map(([name,contract])=>{
+  responseSchemas[contract.schemaName]=contract.schema;return [name,{query:contract.query,response:contract.response}];
+ }));
+ paths['/api/operator-partners'].get.responses['200']=success({anyOf:Object.values(contracts.owner).map(c=>c.response)});
+ for(const operation of ['login','invite/redeem'])paths['/api/partner/v1/'+operation].post.responses['200']=success({$ref:'#/components/schemas/PartnerSessionResponse'});
+ paths['/api/partner/v1/logout'].post.responses['200']=success({$ref:'#/components/schemas/LogoutResponse'});
+ const commandResponses=Object.fromEntries(Object.keys(inventory).map(action=>{
+  const name='CommandResult_'+action.replaceAll('.','_');
+  if(!responseSchemas[name])throw Error('Missing command result schema '+action);
+  return [action,{$ref:'#/components/schemas/'+name}];
+ }));
+ for(const [path,role]of [['/api/partner/v1/commands','PARTNER'],['/api/operator-partners','OWNER']])paths[path].post.responses['200']=success({anyOf:Object.keys(inventory).filter(action=>inventory[action].roles.includes(role)).map(action=>commandResponses[action])});
+ return {openapi:'3.1.1',info:{title:'3dprint4.me native partner API',version:'1.0.0',description:'Native transport, typed command inputs/results, resource responses and canonical queries. This contract does not imply deployment or professional clearance. Unknown query keys and duplicate query values are rejected. Successful and error JSON is private no-store. Request JSON accepts application/json and +json media types. Structural schemas do not establish current ownership, lifecycle, balances or professional clearance. Opaque private evidence/settings JSON and SQL-backed additional row fields remain deliberately extensible.'},servers:[{url:'/',description:'Relative to the configured API origin; deployment and same-site HTTPS must be independently verified.'}],security:[{partnerCookie:[]}],paths,components:{responses:Object.fromEntries(Object.entries(responseDefinitions()).map(([status,value])=>['Status'+status,value])),securitySchemes:{partnerCookie:{type:'apiKey',in:'cookie',name:'__Host-3dp-partner',description:'HttpOnly; Secure; Path=/; SameSite=Strict. Never expose cookie values in browser JavaScript.'},ownerCookie:{type:'apiKey',in:'cookie',name:'__Host-3dp-session',description:'Independent existing owner identity session; partner cookie cannot grant owner access.'}},schemas:{...inputSchemas,...responseSchemas,Error:{type:'object',required:['error'],properties:{error:{type:'string'},missingGates:{type:'array',items:{type:'string'}}},additionalProperties:false}}},'x-command-inventory':inventory,'x-command-responses':commandResponses};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

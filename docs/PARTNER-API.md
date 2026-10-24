@@ -5,14 +5,16 @@ not the private packet's proposal paths. It is an OpenAPI 3.1.1 document followi
 [official specification](https://spec.openapis.org/oas/v3.1.1.html). The relative server
 URL deliberately makes no claim that a production origin is deployed.
 
-This is **not yet the complete typed domain contract** required for final handoff.
+The contract describes the current native API; deployment acceptance remains separate.
 It covers every registered path, independent session cookies, exact-origin checks,
 CSRF, JSON command envelopes, route body limits, shared errors and all 57 command
 roles/allowed-field sets. Action-specific input schemas provide primitive types,
 required fields, bounds and nested offer/contact/material/reviewer structures. The
 role-scoped envelope selects the matching input schema; owner statement exports
-require a partner ID. Resource response models and query constraints remain unfinished.
-Server-state and policy checks cannot be inferred from structural schema acceptance.
+require a partner ID. Resource and command-result schemas describe successful responses.
+The owner multiplexer has an explicit x-resource-contracts map of response references
+and canonical query schemas; ordinary partner reads expose x-query-schema. Server-state
+and policy checks cannot be inferred from structural schema acceptance.
 
 ## Read and authenticate
 
@@ -80,8 +82,8 @@ identities, exact stored template variable bindings, review expiry/scopes, accep
 bonus rules, current program gates and independent settlement. Input schemas describe
 intended client payloads; permissive ignored legacy values are not a promise of support.
 String limits follow server JavaScript code-unit checks, which may be stricter than
-JSON Schema code-point maxLength for supplementary Unicode characters. Response and
-query-model completion remains required before treating this as the final API handoff.
+JSON Schema code-point maxLength for supplementary Unicode characters. Deployment
+acceptance remains required before treating hosted behavior as verified.
 
 Canonical restrictions are intentional: with consent=false omit contact and purpose
 rather than sending null/empty placeholders; omit unused contact fields rather than
@@ -91,3 +93,36 @@ restrictions define supported client payloads, not every permissive legacy input
 Optional clearable text permits null or exactly empty strings, but never whitespace
 only. Template defaults must match their declared descriptor type. Consent/contact
 failures can return HTTP 422, preserved by the shared error contract.
+
+## Response and query models
+
+Each command result is linked by action in x-command-responses; endpoint responses
+use anyOf because overlapping result shapes do not carry an action discriminator.
+Owner responses include the session CSRF token in addition to the application result.
+SQL-backed row models allow additive fields; private audit/evidence/settings payloads
+are explicitly extensible JSON. They are not an invitation to accept arbitrary client
+input. Normalized OfferSnapshot output is distinct from canonical OfferTerms input.
+
+Canonical query schemas identify required gig/export/version IDs, exact comparison
+IDs, optional owner program scope and statement cursor rules. The owner resource
+parameter selects its map entry; it defaults to programs. Transport also rejects
+unknown or duplicate query parameters. Do not append a bare question mark to an empty
+query: the platform rejects noncanonical URL forms before handler CORS processing.
+
+Gig lists cap at 500; gig detail returns up to 200 work events, newest 200 material
+events with materialsHasMore, and 100 negotiations. Visit/lead/activity lists cap at
+1000. Statement history pages cap at 100 with nextCursor; id downloads the immutable
+CSV and cannot be combined with before. Accounting/personal export scopes over 10000
+records require owner-assisted reconciliation rather than a silent incomplete export.
+Review packages expire and return 410; signed bytes/hashes and independently trusted
+public-key fingerprints still require client verification. Own-data copies also expire
+or become unavailable after corrections; a new copy is then required.
+
+The maintained example journey now includes populated consented leads, an earned
+referral, active optional activity, generated weekly statements and a statement CSV,
+plus actual signed review-package and DOCX-feedback reads. The separate native case
+`test_native_http_read_results_match_published_api_schemas` validates 20 real browser
+HTTP reads against disposable PostgreSQL, including owner session/CSRF composition,
+private no-store headers and zero observed outbound fetches. These are synthetic
+loopback acceptance checks; production same-site HTTPS and actual review/provider
+clearance remain independent release gates.

@@ -93,7 +93,7 @@ verified in [deployment evidence](PARTNER-DEPLOYMENT.md). Remaining gates includ
 same-site staging/cookie/CORS/TLS, full host/private-object-provider restore, current
 provider DNS/TTL/proxy discovery, reviewed release/CI and additive disabled production
 migration/API/domain rollout, unchanged existing-service smokes, operational jobs/
-retention/outboxes/statements/OpenAPI/monitoring requirements and actual
+retention/outboxes/monitoring requirements and actual
 provider/accounting validation. Existing status reports estimates/jobs unhealthy and
 files/email unknown; do not erase that evidence. Actual attorney/CPA clearance and owner
 activation remain independent of deployment. No green aggregate count closes these gaps.
@@ -126,3 +126,10 @@ not close numbered product requirements: O-08 now has material history and owner
 with focused native/UI proof; its full regression, capture and deployment checks
 are recorded separately in verification. Operational,
 professional-review, provider and production deployment gates remain open.
+
+The [native API contract](PARTNER-API.md) now documents actual routes, 57 typed
+command inputs/results, resource response/query contracts, error behavior and bounded
+histories/downloads. Official schema validation, actual populated application
+examples, 20 native browser HTTP reads and reviewed full regression provide evidence.
+This closes the API-schema artifact gap; production identity/cookies, provider behavior
+and operational release requirements remain separate.

@@ -1204,3 +1204,30 @@ def test_native_optional_activity_gig_and_visit_screens_never_request_geolocatio
         page.get_by_role('link',name='Record a business visit',exact=True).click()
         page.get_by_label('Business name',exact=True).fill('Synthetic map-free visit')
         assert page.evaluate('window.__geoCalls')==[] and not site.page_errors
+
+
+def test_native_http_read_results_match_published_api_schemas():
+    """Real PostgreSQL/browser credentials and HTTP composition; local schema refs only."""
+    from jsonschema import Draft202012Validator,FormatChecker
+    from tests.support.partner_budget import reviewed_budget_workspace,finish_gig
+    document=json.loads((ROOT/'docs/partner-openapi.json').read_text(encoding='utf-8'))
+    with reviewed_budget_workspace(observe_outbound=True) as w:
+        gig=w['offer'](5000);w['accept'](gig)
+        w['post']('material.record',{'gigId':gig['id'],'eventType':'issued','items':[{'label':'Synthetic supplied signs','count':5}]})
+        finish_gig(w,gig)
+        owner_reads=[('session',{}),('programs',{}),('budgets',{}),('gig',{'id':gig['id']}),('ledger',{}),('forecasts',{'programId':w['programId']}),('statements',{}),('agreements',{})]
+        partner_reads=[('status',{}),('session',{}),('gigs',{}),('gig',{'id':gig['id']}),('earnings',{}),('profile',{}),('agreements',{}),('visits',{}),('leads',{}),('activity',{}),('referrals',{}),('statements',{})]
+        for role,selections in [('OWNER',owner_reads),('PARTNER',partner_reads)]:
+            page=w['owner'] if role=='OWNER' else w['pages'][0]
+            for resource,input in selections:
+                endpoint='/api/operator-partners' if role=='OWNER' else '/api/partner/v1/'+resource
+                query={'resource':resource,**input} if role=='OWNER' else input
+                response=page.evaluate("""async ({api,endpoint,query})=>{try{const suffix=new URLSearchParams(query).toString();const r=await fetch(api+endpoint+(suffix?'?'+suffix:''),{credentials:'include'});return {status:r.status,cache:r.headers.get('cache-control'),body:await r.json()};}catch{return {unavailable:true};}}""",{'api':w['fixture']['apiOrigin'],'endpoint':endpoint,'query':query})
+                assert not response.get('unavailable'),(role,resource,'Native read unavailable',w['fixture']['_process'].poll())
+                assert response['status']==200,(role,resource,response['status'])
+                assert response['cache']=='no-store'
+                schema=document['paths'][endpoint]['get']['x-resource-contracts'][resource]['response'] if role=='OWNER' else document['paths'][endpoint]['get']['responses']['200']['content']['application/json']['schema']
+                validator=Draft202012Validator({**schema,'components':document['components']},format_checker=FormatChecker())
+                errors=list(validator.iter_errors(response['body']))
+                assert not errors,f'{role} {resource}: {[error.message for error in errors]}'
+        assert w['fixture']['outboundAttempts']()==0
