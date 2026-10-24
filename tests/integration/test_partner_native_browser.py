@@ -776,3 +776,107 @@ def test_native_owner_legal_editor_preserves_versions_comments_and_conflicting_d
         assert read('legal-version',old_id)['version']['content_sha256']==old['content_sha256']
         assert 'Unsaved owner proposal' not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
         assert not site.page_errors
+
+
+def test_native_owner_professional_package_decisions_and_returned_feedback():
+    import base64
+    import hashlib
+    import io
+    import zipfile
+    from datetime import datetime, timedelta, timezone
+    from xml.etree import ElementTree as ET
+    with native_partner_workspace() as (_,fixture),SiteBrowser(viewport=(390,844),color_scheme='dark',reduced_motion='reduce') as site:
+        page=site.page;api=fixture['apiOrigin'];owner=fixture['ownerOrigin']
+        site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
+        read=lambda resource,ident=None:page.evaluate("async ({api,resource,id})=>(await fetch(api+'/api/operator-partners?'+new URLSearchParams({resource,...(id?{id}:{})}),{credentials:'include'})).json()",{'api':api,'resource':resource,'id':ident})
+        page.goto(owner+'/partners#legal');page.get_by_role('button',name='Load bundled discussion drafts',exact=True).click()
+        page.get_by_text('Discussion drafts loaded. Professional review is still required.',exact=True).wait_for()
+        page.locator('[data-template="independent-marketing-services"] a').click();page.locator('[data-legal-edit]').wait_for()
+        original=next(v for v in read('legal')['items'] if v['template_key']=='independent-marketing-services')
+        source=read('legal-version',original['latest_version_id'])['version']
+        form=page.locator('[data-legal-edit]');form.get_by_role('textbox',name='Markdown source',exact=True).fill('# Synthetic services terms\n## [IMS-04] Scope\nSynthetic voluntary introductions in a disposable browser test.\n')
+        form.get_by_label('Mark this text ready for reviewed issuance (does not grant approval)',exact=True).check()
+        form.get_by_label('Change reason',exact=True).fill('Synthetic professional review journey only.')
+        form.get_by_role('button',name='Save new immutable revision',exact=True).click()
+        page.get_by_text('New draft revision saved. Existing reviews and issued copies were not changed.',exact=True).wait_for()
+        version_id=page.url.rsplit('/',1)[-1];source=read('legal-version',version_id)['version']
+        page.get_by_text('Create professional review package',exact=True).click();form=page.locator('[data-review-package-create]')
+        form.locator('[name=versionIds]').check()
+        for name,role,scopes in [('Synthetic native counsel','attorney',['Classification','Agreement language']),('Synthetic native accountant','cpa',['Accounting'])]:
+            form.get_by_role('button',name='Add named reviewer',exact=True).click();row=form.locator('[data-reviewer]').last
+            row.get_by_label('Reviewer name',exact=True).fill(name);row.get_by_role('combobox',name='Professional role',exact=True).select_option(role)
+            for scope in scopes:row.get_by_label(scope,exact=True).check()
+        expires=(datetime.now(timezone.utc)+timedelta(days=2)).isoformat()
+        form.get_by_label('Grant expires at (ISO 8601 with timezone)',exact=True).fill(expires)
+        form.get_by_label('Private factual brief and review questions',exact=True).fill('Synthetic facts. No actual professional decision or engagement.')
+        form.get_by_label('I checked redaction, private facts and permission to share this package.',exact=True).check()
+        attempts=[]
+        def lose_package(route):
+            if route.request.method=='POST' and route.request.post_data_json['action']=='legal.export_package':
+                attempts.append(route.request.post_data_json);response=route.fetch();assert response.status==200
+                if len(attempts)==1:route.abort()
+                else:route.fulfill(response=response)
+            else:route.fallback()
+        page.route('**/api/operator-partners*',lose_package)
+        form.get_by_role('button',name='Create private signed package',exact=True).click()
+        page.get_by_text('Unable to reach partner administration. Check your connection and try again.',exact=True).wait_for()
+        assert len(read('legal-version',version_id)['packages'])==1
+        form.get_by_role('button',name='Create private signed package',exact=True).click()
+        page.get_by_role('heading',name='Professional review package',exact=True).wait_for();assert attempts[0]==attempts[1]
+        package_id=page.url.rsplit('/',1)[-1];package=read('review-package',package_id)
+        with page.expect_download() as event:page.get_by_role('link',name='Download signed ZIP (unencrypted)',exact=True).click()
+        archive=event.value.path().read_bytes();assert hashlib.sha256(archive).hexdigest()==package['sha256']
+        with zipfile.ZipFile(io.BytesIO(archive)) as z:
+            manifest=json.loads(z.read('manifest.json'));assert manifest==package['manifest']
+            docx=z.read(next(n for n in z.namelist() if n.endswith('.docx')))
+        assert manifest['documents'][0]['sourceHash']==source['content_sha256']
+        assert read('legal-version',version_id)['reviews']==[]
+        # Return a real, bounded DOCX with one tracked insertion. File authors remain untrusted.
+        w='http://schemas.openxmlformats.org/wordprocessingml/2006/main';ET.register_namespace('w',w)
+        buf=io.BytesIO()
+        with zipfile.ZipFile(io.BytesIO(docx)) as src,zipfile.ZipFile(buf,'w',zipfile.ZIP_DEFLATED) as dst:
+            for info in src.infolist():
+                payload=src.read(info.filename)
+                if info.filename=='word/document.xml':
+                    tree=ET.fromstring(payload);body=tree.find('{'+w+'}body');paragraph=ET.SubElement(body,'{'+w+'}p')
+                    ins=ET.SubElement(paragraph,'{'+w+'}ins',{'{'+w+'}author':'Untrusted synthetic file author','{'+w+'}id':'99'})
+                    run=ET.SubElement(ins,'{'+w+'}r');ET.SubElement(run,'{'+w+'}t').text='Synthetic returned suggestion <script>not executable</script>'
+                    payload=ET.tostring(tree,encoding='utf-8',xml_declaration=True)
+                dst.writestr(info.filename,payload)
+        returned=buf.getvalue();form=page.locator('[data-import-feedback]')
+        form.get_by_role('combobox',name='Returned source version',exact=True).select_option(version_id)
+        form.get_by_role('combobox',name='Returning named reviewer',exact=True).select_option('0')
+        form.get_by_label('Returned DOCX (up to 512 KiB)',exact=True).set_input_files({'name':'synthetic-counsel-return.docx','mimeType':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','buffer':returned})
+        form.get_by_label('I confirmed the returning reviewer identity through the agreed private channel.',exact=True).check()
+        form.get_by_role('button',name='Import untrusted feedback',exact=True).click()
+        page.get_by_role('heading',name='Returned professional feedback',exact=True).wait_for()
+        page.get_by_text('Synthetic returned suggestion <script>not executable</script>',exact=True).wait_for()
+        assert page.locator('main script').count()==0
+        attachment=read('review-feedback',page.url.rsplit('/',1)[-1]);assert base64.b64decode(attachment['data'])==returned
+        assert read('legal-version',version_id)['version']['content_sha256']==source['content_sha256']
+        assert read('legal-version',version_id)['reviews']==[]
+        page.get_by_role('link',name='Return to the source review package',exact=True).click()
+        page.get_by_role('heading',name='Professional review package',exact=True).wait_for()
+        def decision(grant,choice,reference):
+            form=page.locator('[data-record-review]')
+            form.get_by_role('combobox',name='Reviewed source version',exact=True).select_option(version_id)
+            form.get_by_role('combobox',name='Named reviewer and scope',exact=True).select_option(str(grant))
+            form.get_by_role('combobox',name='Professional decision',exact=True).select_option(choice)
+            form.get_by_label('Evidence reference',exact=True).fill(reference)
+            form.get_by_label('Reviewed at (ISO 8601 with timezone)',exact=True).fill(datetime.now(timezone.utc).isoformat())
+            form.get_by_label('I verified the reviewer identity and this decision through the agreed private channel.',exact=True).check()
+            form.get_by_role('button',name='Record professional decision',exact=True).click()
+            page.get_by_text('Professional decision recorded for the exact source hash. This does not publish or issue a document.',exact=True).wait_for()
+        decision(0,'conditional','SYNTHETIC-CONDITIONAL')
+        assert read('legal-version',version_id)['clearance']['approved'] is False
+        for grant in range(3):decision(grant,'approved','SYNTHETIC-NOT-ACTUAL-APPROVAL-'+str(grant))
+        detail=read('legal-version',version_id);assert detail['clearance']['approved'] is True and len(detail['reviews'])==4
+        assert detail['version']['document_status']=='draft'
+        page.goto(owner+'/partners#legal/version/'+version_id);page.get_by_role('button',name='Publish reviewed revision',exact=True).click()
+        page.get_by_text('Reviewed revision published. Existing issued copies are unchanged.',exact=True).wait_for()
+        assert read('legal-version',version_id)['version']['document_status']=='published'
+        assert read('programs')['items'][0]['clearance']['allowed'] is False
+        assert read('legal-version',original['latest_version_id'])['version']['content_sha256']==original['content_sha256']
+        state=subprocess.run(['docker','exec',fixture['_container'],'psql','-U','postgres','-Atc',"SELECT json_build_object('packages',(SELECT count(*) FROM partner_review_packages),'attachments',(SELECT count(*) FROM partner_review_attachments),'reviews',(SELECT count(*) FROM partner_legal_reviews))::text"],check=True,capture_output=True,text=True,timeout=15)
+        assert json.loads(state.stdout)=={'packages':1,'attachments':1,'reviews':4}
+        assert not site.page_errors

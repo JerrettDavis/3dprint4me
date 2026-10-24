@@ -15,10 +15,12 @@ test('legal editing, scoped review and issued read acknowledgments preserve ever
   await assert.rejects(run(f.owner,'legal.save',{...draft,expectedRevision:1}),{status:409});
   const final=await run(f.owner,'legal.save',{...draft,markdown:'# Services terms\n## [IMS-04] Agreed fee\n${{gig_fee_usd}}',issuable:true,expectedRevision:2,changeReason:'Synthetic final version for isolated testing'});
   const packageId=randomUUID(),reviewers=[{name:'Synthetic counsel',role:'attorney',scopes:['classification','agreement_language']},{name:'Synthetic accountant',role:'cpa',scopes:['accounting']}];
-  await f.database.query`INSERT INTO partner_review_packages(id,version_id,manifest,created_by,created_at,expires_at) VALUES(${packageId},${final.versionId},${JSON.stringify({versions:[final.versionId],reviewers})}::jsonb,${f.owner.id},${TEST_NOW},'2026-10-24T12:00Z')`;
+  await f.database.query`INSERT INTO partner_review_packages(id,version_id,manifest,created_by,created_at,expires_at) VALUES(${packageId},${final.versionId},${JSON.stringify({programId:f.programId,versions:[final.versionId],reviewers})}::jsonb,${f.owner.id},${TEST_NOW},'2026-10-24T12:00Z')`;
   const review=scope=>({programId:f.programId,packageId,versionId:final.versionId,versionHash:final.hash,scope,decision:'approved',reviewerName:scope==='accounting'?'Synthetic accountant':'Synthetic counsel',reviewerRole:scope==='accounting'?'cpa':'attorney',evidenceReference:'SYNTHETIC-REVIEW-'+scope,reviewedAt:TEST_NOW,notes:'Synthetic fixture only'});
   await assert.rejects(run(f.owner,'legal.record_review',{...review('agreement_language'),versionHash:b.hash}),{status:409});
   await assert.rejects(run(f.owner,'legal.record_review',{...review('accounting'),reviewerRole:'attorney'}),{status:403});
+  const unrelated=await run(f.owner,'program.create',{label:'Unrelated synthetic program',startsOn:'2026-10-01'});
+  await assert.rejects(run(f.owner,'legal.record_review',{...review('agreement_language'),programId:unrelated.id}),{status:403});
   for(const scope of ['classification','agreement_language','accounting'])await run(f.owner,'legal.record_review',review(scope));
   await run(f.owner,'legal.publish',{programId:f.programId,versionId:final.versionId,expectedRevision:3});
   await run(f.owner,'program.configure',{programId:f.programId,expectedRevision:1,contractVersionId:final.versionId,enabled:true});
@@ -63,7 +65,7 @@ test('new clause concerns pause publication until resolved and republished',asyn
  try{
   const app=createPartnerApplication({database:f.database,env:ACTIVE_ENV,allowSyntheticOwner:true,now:()=>new Date(TEST_NOW)}),run=(action,input)=>app.execute({actor:f.owner,action,input,key:randomUUID()});
   const version=await run('legal.save',{programId:f.programId,templateKey:'custom-terms',title:'Terms',markdown:'# Terms\n## [C-01] Scope\nVoluntary work.',variablesSchema:{},issuable:true,expectedRevision:0,changeReason:'Synthetic text'});
-  const packageId=randomUUID();await f.database.query`INSERT INTO partner_review_packages(id,version_id,manifest,created_by,created_at,expires_at) VALUES(${packageId},${version.versionId},${JSON.stringify({versions:[version.versionId],reviewers:[{name:'Synthetic counsel',role:'attorney',scopes:['agreement_language']}]})}::jsonb,${f.owner.id},${TEST_NOW},'2026-10-24T12:00Z')`;
+  const packageId=randomUUID();await f.database.query`INSERT INTO partner_review_packages(id,version_id,manifest,created_by,created_at,expires_at) VALUES(${packageId},${version.versionId},${JSON.stringify({programId:f.programId,versions:[version.versionId],reviewers:[{name:'Synthetic counsel',role:'attorney',scopes:['agreement_language']}]})}::jsonb,${f.owner.id},${TEST_NOW},'2026-10-24T12:00Z')`;
   await run('legal.record_review',{programId:f.programId,packageId,versionId:version.versionId,versionHash:version.hash,scope:'agreement_language',decision:'approved',reviewerName:'Synthetic counsel',reviewerRole:'attorney',evidenceReference:'SYNTHETIC-ONLY',reviewedAt:TEST_NOW});
   await run('legal.publish',{programId:f.programId,versionId:version.versionId,expectedRevision:1});
   const comment=await run('legal.add_comment',{programId:f.programId,versionId:version.versionId,clauseAnchor:'C-01',body:'Clarify the reviewed scope before further issuance.',reviewerId:'Synthetic counsel'});
