@@ -1741,5 +1741,107 @@ live production DB. No deployment occurred.
 
 Executed committed-source archive inspection also proves the inquiry-specific
 release helper omits required contracts/partner build inputs and applies only009.
-The dedicated partner release plan addresses the real archive/migration/staging gap;
-it does not claim an implemented helper, host rehearsal or production approval.
+That planning checkpoint identified the archive/migration/staging gap. The release
+implementation below supersedes the plan-only state; host rehearsal and production
+approval still require separate evidence.
+
+
+## Partner-aware native rehearsal and guarded release, local candidate
+
+The new archive/SSH/host boundary has 25 Python cases; the rollout has 11 Python
+cases including 11 independently injected external failure points. Six focused
+Node cases exercise these and the sanitized entry/backup gate/runtime checks. RED/GREEN
+runs cover required contracts, committed-only bytes, SHA/phase/host rejection,
+archive traversal/link/digest/duplicate rejection, partial source reuse, complete
+sanitized output proof, both companion tags, disabled live flags, native control
+selection, no live service/config writes and cleanup on native/overlap failures.
+
+`npm run test:partner:postgres` now includes the separate release rehearsal
+integration and passes both native test files. Actual PostgreSQL18 rejects excess
+immutable-row updates, public table privileges and disabled partner-account RLS.
+The real application and HTTP boundary prove new engagement/enrollment disabled,
+anonymous private/owner route denial and foreign-origin denial.
+
+API candidate `3dprint4me-partner-api:20261024-release-rehearsal`, identity
+`sha256:81be68f5471cb4da91a832688df5b436d56f8beeb28e2208786bdbf28fd4ba83`,
+matches all 211 runtime files and passes imports with no network, read-only root,
+no capabilities and no new privileges. Its added file is the guarded rehearsal
+entry; application and statement source hashes are unchanged. All 211 file hashes
+also equal the earlier f193ab5 candidate; different build identities do not imply
+a bit-reproducible container build.
+
+The companion slicer candidate `3dprint4me-partner-slicer:20261024-release-rehearsal`,
+identity `sha256:aaf270ba1a3e526092f4da2befac7e4cc73dbc99d4c10590695341f3c4142be4`,
+was also built from this source. All 185 copied runtime files match; restricted
+no-network/read-only imports, executable CLI access and profile JSON parsing pass.
+This preserves the shared release tag contract without restarting a running slicer.
+
+A separate actual candidate-container/native-DB rehearsal passed all schema and
+role checks and 48 HTTP requests with zero overlap/drain failures. It created no
+invites, professional reviews, outbox entries or payables; all disposable
+resources/env files were removed. The first run exposed Docker's short default
+`ps -q` IDs, which prevented the full-ID cleanup guard from accepting them.
+The regression now models that actual default; `--no-trunc` fixes the boundary,
+and the complete actual-container rerun passes. No production resource was used.
+
+The complete rehearsal-source `npm test` run passed 1,229 unit/contract checks,
+335 E2E cases plus the existing Windows skip (555.00s), and 241 UX checks.
+Guarded rollout/backup additions landed afterward and have separate focused and
+actual native proofs; final whole-source regression and review remain required.
+No visible UI or public asset changed in this release-tooling increment.
+
+The explicit deploy phase is implemented behind the fresh complete checkpoint
+and reviewed-source gates. Committed backup/exporter code is loaded separately
+from uncommitted local source; failed readback reports a failed heartbeat only
+after custody validation. The native host consumes private verified context only
+after the complete scratch rehearsal. The loader does not write bytecode into
+verified release source. Missing/stale/wrong-database/incomplete receipts and
+changed private configuration/manifests fail before production mutation.
+
+`python tests/integration/partner_rollout_docker.py --image CANDIDATE_API_IMAGE`
+passed against an actual isolated synthetic Compose stack. The final run served
+130 continuous requests with zero failures across the guard/API/jobs handover.
+Only the selected business database received 012 and 013; control storage remained
+unchanged, existing synthetic intake survived, the real replacement worker
+produced fresh statement heartbeat evidence, and slicer/tunnel identities stayed
+unchanged. All disposable resources were removed. The fixture's checkpoint
+metadata is synthetic: no real backup, customer/provider or production call is
+claimed. CI now builds the candidate image and repeats this runtime regression.
+
+Failure injection covers migration/configuration, guard readiness/admission,
+prior-worker/API drain, replacement readiness/admission, writer start/health and
+guard drain. After prior API drain a healthy admitted guard is retained on failure;
+there is no destructive database rollback. An existing guard blocks blind retries.
+Source/env/provider settings and immutable recovery identities are retained privately.
+
+Hosted statement-head CI 40137136103 was cancelled during screenshots after native,
+unit/E2E/UX checks passed. Its authoritative annotation says the job exceeded 30m0s;
+artifact upload completed. The job now permits 45 minutes for the expanded required
+suite; individual operation/test deadlines remain bounded. A fresh complete hosted
+run is still required. This is not a retrospective success for the cancelled run.
+
+No SSH-host invocation, selected production migration, API/jobs/owner rollout,
+DNS mutation, same-site production session proof or launch activation is implied
+by these local results.
+
+Release review identified a source-mode gap: private archive extraction produced
+root-owned unreadable runtime files after Docker COPY. The new Linux integration
+`python tests/integration/partner_archive_images.py` builds both images from the
+actual host extractor output and checks non-root imports with no network, a
+read-only filesystem, no capabilities and no new privileges. Its initial API
+probe failed with EACCES opening package.json. Source files/directories now have
+normal readable modes beneath the private release root; the proof marker remains
+private. A separate regression rejects the tracked slicer environment example as
+a build input by excluding that exact example from Git archives; other environment
+paths remain forbidden. CI uses the extracted-source API image for rollout proof.
+Both extracted-source images pass the restricted checks. The extracted API image
+`sha256:8450cc1979c1ab586f9b03b70dec20744d82c9644b44fd49389dee576e95b4e5`
+then passed the actual isolated guarded rollout: 193 continuous HTTP requests,
+zero failures, selected-only migration, preserved intake, fresh real statement
+worker and unchanged slicer/tunnel identities; all disposable resources removed.
+Checkpoint metadata in that fixture remains synthetic. Final post-review `npm test`
+passed 1,231 unit checks, 335 E2E tests plus one existing Windows skip in 618.30s,
+and 241 UX checks. Six focused Node groups cover 25 release and 11 rollout Python
+cases. All 18 frozen candidate hashes matched at terminal success. This increment
+changes no visible application behavior; no new screenshot baseline is required.
+Actual native-host rehearsal and new hosted CI remain pending.
