@@ -1083,3 +1083,52 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   native steps, not test names. [PARTNER-ACCEPTANCE-GAPS.md](PARTNER-ACCEPTANCE-GAPS.md)
   records remaining proof and the next budget-authorization fixture spine. Optional
   activity is complete at the native scenario level; the overall goal remains active.
+
+
+## Native budget authorization spine (2026-10-24, based on 361fd98)
+
+- Eight native cases map all five private budget-week scenarios, including the four
+  example instants. Fresh program, synthetic scoped reviews, publication/binding,
+  initial invitation UI enrollment, issuance/acknowledgment, campaigns and offers use
+  actual browser/API boundaries and restricted native PostgreSQL. No accepted gigs or
+  reservations are directly seeded for this new program.
+- Initial $50/$60 native case passes; the first full new suite has four passes and
+  four failed week assertions. Investigation finds that list reads join the week but
+  individual gig reads omit it. A focused contract RED independently observes null
+  versus the accepted week. The detail path now reads the assigned week only after
+  authorized gig lookup; money and command lock semantics stay unchanged. The contract
+  and all eight native cases then pass (52.64 seconds).
+- Concurrency uses a held program-row lock and observes both real acceptance
+  transactions waiting before releasing them: exactly one $150 reservation and one
+  clear cap conflict. Cap reduction retains $200 payable; Jan 1 blocks new acceptance
+  while prior work is reviewed and verified synthetic settlement recorded. No actual
+  professional decision, live activation, provider payment or external message occurs.
+- Clock-file injection is confined to the explicitly admitted loopback disposable
+  test fixture, with atomic writes and temporary-file cleanup; production runtime
+  receives no new clock endpoint/configuration. The default fixture remains real-time.
+  The existing CI partner browser command now includes both native test modules.
+- Final combined native/regression/image and screenshot evidence follows below.
+
+- Read-only review finds no material money/auth/race/fixture false-positive issue.
+  Setup creates campaigns and invitation codes through owner HTTP commands; recipient
+  enrollment, acknowledgment and acceptance use the UI. This is not owner-form coverage.
+  Fee-only concurrency is covered; conditional bonus maxima need broader native evidence.
+- Final `npm run test:partner:postgres` passes the real isolation/concurrency/restore
+  integration (3.73 seconds). The updated CI native browser command passes all 27
+  cases in 162.03 seconds. The sequential full `npm test` run follows with source fixed.
+- Captured 135 screenshots; inspected both new full accepted-gig views at 320-light/
+  390-dark and the real preview-board row. They show the exact authorization week and
+  agreed $50 fee. Restored 33 unrelated regenerated baselines.
+- Built `3dprint4me-partner-api:20261024-budget-acceptance`; platform manifest
+  `b778d49a21236cc1485a90b3a87ae09e275a01e6c186a1e16b1564b12863dac6`,
+  manifest-list/image identity
+  `4c2170583b861d2af7c0ee8a8f616932feef9722a255674e636fb2285210d24b`.
+  Application bytes match local source exactly. Imports pass with network disabled,
+  read-only root, all capabilities dropped and no-new-privileges. This image is built,
+  not a claimed staging/production deployment. The static preview bytes are unchanged.
+
+- Final frozen `npm test` exits zero: build/static validation, 1,194 unit/contract
+  tests, 304 browser tests plus one existing Windows skip in 478.74 seconds, and
+  241/241 UX checks. No application/test source changed during the final sequential
+  PostgreSQL/native-browser/full-suite pipeline. Generated audit/status-image noise
+  is restored; the two new accepted-gig images and updated board are retained.

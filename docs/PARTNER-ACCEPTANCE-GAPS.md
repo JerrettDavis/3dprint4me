@@ -1,20 +1,25 @@
 # Remaining partner acceptance work
 
-This 2026-10-24 read-only audit compares the private packet's nine feature files
-with the actual nineteen tests in `tests/integration/test_partner_native_browser.py`
-and its native fixture. It identifies missing evidence, not automatic product defects.
+This 2026-10-24 audit, updated after the budget increment, compares the private
+packet's nine feature files with 27 native cases across `test_partner_native_browser.py`
+and `test_partner_budget_browser.py` and their actual fixtures. It identifies missing evidence, not automatic product defects.
 Synthetic owner sessions are bound to real numeric-identity rules but do not exercise
 GitHub OAuth. Synthetic review decisions never establish actual professional clearance.
 Production flags remain off. This list supplements, rather than replaces, the full
 numbered packet requirements and operational release gates.
 
-- **Budget/week:** native browser evidence still needs combined commitment/remaining
-  amounts, two-partner concurrent cap enforcement, reduced existing-week caps preserving
-  debt and denying new commitments, post-sunset review/payment, and Monday/DST examples.
-  Directly seeded accepted gigs/reservations do not prove authorization behavior.
-- **Authentication:** initial invitation enrollment without GitHub, invitation replay
+- **Budget/week:** all five named scenarios now map to eight cases in
+  `tests/integration/test_partner_budget_browser.py`. The reviewed-program helper
+  creates fresh programs, invitations/enrollment, issues/acknowledgments and actual
+  campaign/offer commands. No accepted gigs or reservations are seeded for this
+  program. Evidence includes two genuinely blocked simultaneous acceptance transactions,
+  cap reduction preserving earned debt, post-sunset review/payment and four Central
+  Monday/DST examples. This does not establish production readiness or every other
+  numbered financial requirement.
+- **Authentication:** initial invitation replay
   from another browser, disabled-program enrollment denial, and exact earnings-ID/
-  unrelated owner-work API denials. Recovery redemption is not initial enrollment.
+  unrelated owner-work API denials. The budget helper now exercises genuine initial enrollment without GitHub; recovery
+  redemption alone remains insufficient for enrollment evidence.
 - **Gig choice:** one complete offered-to-accepted-to-ten-unique-visits-to-submission/
   owner-review journey with reservation and unpaid assertions; decline without penalty;
   unsafe-work refusal with preserved future-offer eligibility. Existing offline replay
@@ -45,11 +50,13 @@ numbered packet requirements and operational release gates.
 
 ## Next implementation spine
 
-Extract the reviewed-program fixture setup from the native issuance journey. Create
-campaigns/offers through actual commands/UI, issue and acknowledge for two partners,
-then prove the five budget scenarios with an explicit disposable-fixture-only clock.
-This supplies reusable setup for enrollment, decline, owner publication and immutable
-accepted-bonus tests. Preserve the restricted backend role and test-only launch flags.
+The budget spine is now implemented in `tests/support/partner_budget.py`, including
+fresh two-partner enrollment and exact acknowledgment. Reuse it for invitation replay/
+disabled enrollment/owner-work isolation and complete gig acceptance/decline/unsafe-work
+journeys. Add accepted-policy referral and qualified-lead duplicate-award scenarios.
+Do not rebuild synthetic approval plumbing or substitute seeded accepted work for
+an actual authorization transition. The remaining numbered operations/product work
+above and below still needs its own evidence.
 
 ## Operations remain separate
 

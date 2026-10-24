@@ -3,6 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {randomUUID,randomBytes,generateKeyPairSync} from 'node:crypto';
 import {digest} from '../../lib/partner-outreach/postgres-repository.js';
 import {readFile} from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
 import {once} from 'node:events';
 import pg from 'pg';
 import {MIGRATIONS,splitStatements} from '../../scripts/migrate-neon.mjs';
@@ -18,6 +19,9 @@ if(process.env.PARTNER_NATIVE_BROWSER_TEST!=='1')throw new Error('Explicit dispo
 const shell=new URL(process.env.PARTNER_TEST_SHELL_ORIGIN);
 if(shell.protocol!=='http:'||shell.hostname!=='127.0.0.1'||shell.origin!==process.env.PARTNER_TEST_SHELL_ORIGIN)throw new Error('Fixture shell must be loopback.');
 const ownerOrigin=process.env.PARTNER_TEST_OWNER_ORIGIN??shell.origin;const ownerUrl=new URL(ownerOrigin);if(ownerUrl.origin!==ownerOrigin||ownerUrl.protocol!=='http:'||ownerUrl.hostname!=='127.0.0.1')throw Error('Owner fixture must be loopback.');
+// Clock control exists only in this explicitly admitted disposable fixture.
+const clockFile=process.env.PARTNER_TEST_CLOCK_FILE;
+const now=()=>{if(!clockFile)return new Date();const value=JSON.parse(readFileSync(clockFile,'utf8')),instant=new Date(value);if(typeof value!=='string'||!Number.isFinite(instant.getTime())||instant.getUTCFullYear()<2026||instant.getUTCFullYear()>2027)throw Error('Invalid fixture clock');return instant;};
 const IMAGE='postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6';
 const docker=(...args)=>execFileSync('docker',args,{encoding:'utf8',timeout:90000,stdio:['pipe','pipe','pipe']}).trim();
 const name=process.env.PARTNER_TEST_CONTAINER_NAME??'3dprint4me-partner-browser-'+randomUUID().slice(0,8);
@@ -53,9 +57,9 @@ try{
  for(const [id,subject,role,token]of [['op_browser_owner','2610199','owner',ownerToken],['op_browser_operator','2610200','operator',operatorToken]]){
   await admin.query("INSERT INTO operators(id,auth_user_id,display_name,role) VALUES($1,$2,$3,$4)",[id,'github:'+subject,'Synthetic '+role,role]);
   await admin.query("INSERT INTO operator_identity_bindings(issuer,subject,operator_id) VALUES('https://github.com/',$1,$2)",[subject,id]);
-  await admin.query("INSERT INTO operator_sessions(token_hash,operator_id,issuer,subject,expires_at) VALUES($1,$2,'https://github.com/',$3,$4)",[digest(token),id,subject,new Date(Date.now()+86400000).toISOString()]);
+  await admin.query("INSERT INTO operator_sessions(token_hash,operator_id,issuer,subject,expires_at) VALUES($1,$2,'https://github.com/',$3,$4)",[digest(token),id,subject,new Date(Math.max(Date.now(),now().getTime())+(clockFile?366:1)*86400000).toISOString()]);
  }
- const runtime=createPartnerRuntime({database,env});
+ const runtime=createPartnerRuntime({database,env,now});
  const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});
  const requestHandler=createProjectRequestHandler({getRuntime:()=>({mode:'neon',requestRepository:{createDraft:createRequestRecord,completeDraft:completeRequestRecord}}),issueCheckoutProof:()=>null});
  // Explicit loopback fixture admission only; production public intake uses its signed proxy.
