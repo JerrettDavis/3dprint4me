@@ -30,3 +30,20 @@ test('logout during a delayed JSON body cannot restore an owner session',async()
  const pending=client.session();await new Promise(setImmediate);client.clear();parse({owner:{id:'old-owner'},csrfToken:'stale'});
  await assert.rejects(pending);assert.equal(client.signedIn,false);
 });
+
+
+test('professional review resources require the owner session and use private credentialed reads',async()=>{
+ const calls=[];
+ const client=createPartnerOwnerClient({apiBase:'http://127.0.0.1:9999',fetchImpl:async(url,options)=>{calls.push({url,options});return json(url.includes('resource=session')?{owner:{id:'owner'},csrfToken:'private'}:{id:'evidence'});}});
+ await assert.rejects(client.read('review-package',{id:'package'}),{status:401});
+ assert.equal(calls.length,0);
+ await client.session();
+ for(const resource of ['review-package','review-feedback']){
+  assert.equal((await client.read(resource,{id:'evidence'})).id,'evidence');
+  const call=calls.at(-1);
+  assert.equal(new URL(call.url).searchParams.get('resource'),resource);
+  assert.equal(call.options.credentials,'include');assert.equal(call.options.cache,'no-store');assert.equal(call.options.redirect,'error');
+ }
+ client.clear();await assert.rejects(client.read('review-feedback',{id:'evidence'}),{status:401});
+ assert.equal(calls.length,3);
+});

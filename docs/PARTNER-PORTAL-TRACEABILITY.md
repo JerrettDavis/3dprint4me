@@ -146,3 +146,12 @@ Native actual-runtime evidence proves old versions unchanged, comments retained 
 versions, unreviewed publication denied and stale-editor text preserved. This covers
 editorial portions of contract-review.feature; professional package/approval/import,
 encrypted sharing and exact issue/acknowledgment UI journeys remain open requirements.
+
+
+Professional review handoff preparation: owner package downloads now expose the
+verified manifest/public key/signature/expiry alongside the same immutable ZIP.
+Version details project package reviewer grants and program ID without full
+artifacts. The owner client allows both private review-package and review-feedback
+reads with its existing session, epoch and no-store protections. This is API/client
+preparation; it does not complete the professional reviewer or encrypted offline
+recipient journey in contract-review.feature.

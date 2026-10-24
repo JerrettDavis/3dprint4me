@@ -258,7 +258,11 @@ fingerprint. Convey/verify that fingerprint through an independently trusted cha
 the embedded key alone cannot establish identity. Preserve old keys/fingerprints with
 recovery records. This artifact signature is not a person's electronic signature.
 Only authenticated owners can download via `review-package`; downloads verify archive
-hash/signature, enforce expiry and append a minimal audit event. Bytes and manifest
+hash/signature, enforce expiry and append a minimal audit event. The verified owner
+response includes the canonical manifest, public key, detached signature and expiry
+alongside archive bytes so the handoff interface can display exact source hashes and
+reviewer grants. Legal-version package listings project named grants and program ID
+without loading archive bytes or the full manifest. Bytes and manifest
 are immutable database evidence, excluded from command receipts and public output.
 Offline copies require an approved encrypted sharing channel; expiry cannot recall
 copies. In-browser encrypted packaging and reviewer access UI remain pending.
