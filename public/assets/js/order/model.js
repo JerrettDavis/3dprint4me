@@ -1,3 +1,4 @@
+import {REFERRAL_CONSENT_VERSION} from './referral.js?v=dcef6fb6d5754a0b';
 const COMMON_FIELDS = new Set([
   "service", "projectTitle", "description", "modelUrl", "deadline", "delivery",
   "contactNotes", "name", "email", "phone", "preferredContact", "address",
@@ -24,6 +25,7 @@ const isPlainObject = value => value != null && typeof value === "object" && !Ar
 export function projectRequestFromData({ data, estimate, files, buildSummary, customization = null, packSelection = null }) {
   const active = activeProjectData(data);
   let summary = buildSummary(active, estimate, files);
+  if(data.referralConsent===true)summary={...summary,referral:{code:String(data.referralCode??'').trim(),consent:true,consentVersion:REFERRAL_CONSENT_VERSION}};
   // A ZIP pack's part selection is print-only plain text (see packRequestSpecifications).
   if (active.service === "print" && packSelection && Object.keys(packSelection).length) summary = { ...summary, specifications: { ...summary.specifications, ...packSelection } };
   if (active.service !== "print" || !customization) return summary;
@@ -45,5 +47,6 @@ export function handoffPrefill(record) {
 export function readProjectForm(form, { FormDataImpl = FormData, terms = form.querySelector?.("#terms") } = {}) {
   const data = Object.fromEntries(new FormDataImpl(form).entries());
   data.terms = Boolean(terms?.checked);
+  data.referralConsent = Boolean(form.querySelector?.("#referral-consent")?.checked);
   return data;
 }

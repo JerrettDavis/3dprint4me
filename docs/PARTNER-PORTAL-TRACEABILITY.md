@@ -75,8 +75,15 @@ The source packet stays private and the real professional approval gates stay of
   identity checks at attribution/verification/award, global identity/request/payment
   uniqueness and atomic earned payables. Qualification evidence survives contact
   erasure; accepted promises survive reduced caps, pause and sunset. Native PostgreSQL
-  covers concurrent award replay, restricted-role immutability and restore. Public
-  customer opt-in intake, referral UI and complete browser scenarios remain pending.
+  covers concurrent award replay, restricted-role immutability and restore. Four-path
+  browser tests cover optional customer permission, malformed codes, no permission
+  reuse in pending drafts, review, JSON recovery and email fallback. Strict server
+  normalization and owner attribution bind web choices to the selected code/server
+  receipt; absent web consent cannot use the manual/paper path. Native HTTP with
+  the actual request repository persists permission without attribution or awards.
+  Native browser views prove account-specific codes with no customer information.
+  Partner policy/earned-award display has 320/390 light/dark and inert-message tests.
+  Complete owner attribution/settlement/award browser scenarios remain pending.
 - **owner-control.feature**: application/auth/HTTP/native contract tests cover
   owner-only commands, real GitHub owner identity, revocation, kill switches,
   payable preservation and reconciliation after pause/sunset. Existing operator

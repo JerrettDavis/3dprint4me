@@ -193,7 +193,8 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
   verification and award now check frozen identities plus current request contacts.
   Earned amounts leave contingent forecasts; accepted obligations survive changed
   campaigns, pause/cap reduction and sunset. Native concurrent award/restore passed.
-  Public customer opt-in, referral UI and browser BDD remain unfinished.
+  Public customer opt-in and partner display are now implemented below; the complete
+  owner attribution/payment browser scenario remains unfinished.
 
 
 ### Partner shell design direction
@@ -234,5 +235,37 @@ remain required before release. Presentation fixtures are not cookie/persistence
   persisted inert negotiation history, exact retry key and pending form locks.
   Native browser verifies persistence without acceptance; complete owner
   reoffer/acceptance/budget browser flow remains required.
-- Continue partner referral display/customer intake, full offline behavior,
-  owner/legal console and all remaining release gates.
+- Partner referral display/customer intake are implemented below. Continue full offline
+  behavior, owner/legal console and all remaining release gates.
+
+
+### Customer referral intake design
+
+Use a manual optional 16-character opaque code on the shared contact step for all
+four service paths. A separate unchecked permission checkbox discloses possible
+partner compensation and no contact/file sharing with the partner. Only an opted-in
+code enters the request, outside service specifications. No URL or public code lookup
+is needed. Pending browser drafts never retain referral permission or code; customers
+reconfirm it after reload. The completed recovery copy retains the chosen code and
+permission version, including in no-integration mode and its email fallback.
+
+The server rejects malformed, unconsented, extra-field or unknown-version referral
+objects. It records the versioned customer instruction in the private request, not an
+automatic bonus or paid-sale assertion. Existing owner-verified attribution remains
+separate: web instructions must match the chosen code and server receipt time;
+legacy/paper opt-in still needs explicit owner evidence. Unknown well-shaped codes
+are privately retained for reconciliation without public identity/existence disclosure.
+Add partner code/policy/earned-award display without customer identities or fabricated
+share URLs. Keep request attribution, verified sale, earned bonus and actual payment
+separate. Update privacy, four-path tests, native proof and screenshots.
+
+
+- Referral intake implementation: unchecked versioned permission and exact code across
+  all four paths, no pending draft permission reuse, private normalized payload,
+  recovery/download/email fallback, and privacy notice. Web attribution binds code
+  and server receipt; absent consent cannot use the paper fallback. Independent review
+  found/reproduced that fallback gap and confirmed the regression fix.
+- Partner referrals display codes, accepted policy and earned awards without customer
+  information or a payment claim. Native request-handler/repository proof persists
+  permission without automatic attribution/award; two-account browser views stay scoped.
+  Full owner attribution/settlement/award browser coverage remains required.

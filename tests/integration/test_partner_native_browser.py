@@ -318,3 +318,43 @@ def test_native_partner_counterproposal_persists_without_accepting_or_changing_f
         page.get_by_role('heading', name='Synthetic business visits', exact=True).wait_for()
         assert page.get_by_role('button', name='Send counterproposal', exact=True).count() == 0
         assert not site.page_errors
+
+
+def test_native_customer_referral_request_records_permission_without_creating_a_bonus():
+    with native_partner_workspace() as (origin, fixture), SiteBrowser(viewport=(390,844), reduced_motion='reduce') as site:
+        referral={'code':fixture['referralCode'],'consent':True,'consentVersion':'referral-v1'}
+        body={'projectTitle':'Synthetic referral request','service':'consult','description':'Independent project review.',
+              'contact':{'name':'Synthetic customer','email':'customer@example.test'},'consent':True,'referral':referral}
+        status, _, raw=request(fixture['apiOrigin']+'/api/request',method='POST',payload={'request':body})
+        assert status==201
+        request_id=json.loads(raw)['id']
+        status, _, _=request(fixture['apiOrigin']+'/api/request',method='PATCH',payload={'id':request_id,'request':body,'uploadedFiles':[]})
+        assert status==200
+        assert request_id.startswith('3DP-') and all(c.isalnum() or c=='-' for c in request_id)
+        result=subprocess.run(['docker','exec',fixture['_container'],'psql','-U','postgres','-Atc',
+            "SELECT json_build_object('payload',payload,'status',status,'awards',(SELECT count(*) FROM partner_referral_events),'attributions',(SELECT count(*) FROM partner_referral_attributions))::text FROM service_requests WHERE id='"+request_id+"'"],check=True,capture_output=True,text=True,timeout=15)
+        saved=json.loads(result.stdout)
+        assert saved['payload']['referral']==referral and saved['status']=='submitted'
+        assert saved['awards']==0 and saved['attributions']==0
+        assert saved['payload']['submittedAt']
+        status, _, _=request(fixture['apiOrigin']+'/api/request',method='POST',payload={'request':{**body,'referral':{**referral,'consent':False}}})
+        assert status==400
+        page=site.page
+        page.goto(origin)
+        page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        page.get_by_role('navigation').get_by_role('link',name='Referrals',exact=True).click()
+        page.get_by_text(fixture['referralCode'],exact=True).wait_for()
+        assert 'No earned referral awards recorded.' in page.locator('main').inner_text()
+        assert 'customer@example.test' not in page.locator('main').inner_text()
+        page.get_by_role('button',name='Sign out',exact=True).click()
+        page.get_by_label('Account code',exact=True).fill(fixture['otherPartnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 2.').wait_for()
+        page.get_by_role('navigation').get_by_role('link',name='Referrals',exact=True).click()
+        page.get_by_role('heading',name='No referral codes yet').wait_for()
+        assert fixture['referralCode'] not in page.locator('main').inner_text()
+        assert not site.page_errors

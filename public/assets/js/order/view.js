@@ -1,4 +1,4 @@
-import { formatBytes } from "./files.js?v=d367ecc51c8342f1";
+import { formatBytes } from "./files.js?v=dcef6fb6d5754a0b";
 
 export function createOrderView({ document, window, form, formatEstimate }) {
   const elements = {
@@ -18,6 +18,8 @@ export function createOrderView({ document, window, form, formatEstimate }) {
 
   function updateConditionalFields(data) {
     const service = data.service || "print";
+    const referral=document.querySelector('#referral-code');
+    if(referral){const enabled=data.referralConsent===true;document.querySelector('#referral-fields').hidden=!enabled;referral.disabled=!enabled;if(!enabled)referral.value='';}
     document.querySelectorAll("[data-service-panel]").forEach(panel => {
       const visible = panel.dataset.servicePanel === service;
       panel.classList.toggle("visible", visible);
@@ -53,6 +55,7 @@ export function createOrderView({ document, window, form, formatEstimate }) {
       ["Contact", `${summary.contact.name} · ${summary.contact.email}`], ["Handoff", data.delivery || "pickup"],
       ["Files", files.length ? files.map(file => file.name).join(", ") : "Link or details only"], ["Description", summary.description]
     ];
+    if(summary.referral)rows.push(['Referral credit',summary.referral.code+' · Optional permission confirmed; eligibility review required.']);
     document.querySelector("#review-card").replaceChildren(...rows.map(([label, value]) => {
       const row = document.createElement("div");
       row.className = "review-row";

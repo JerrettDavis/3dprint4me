@@ -1,3 +1,4 @@
+const withoutReferralChoice=value=>{const safe={...value};delete safe.referralCode;delete safe.referralConsent;delete safe.referral;return safe;};
 // Customizer parameters are never stored in the browser: only which generator and version.
 function withoutCustomizationParams(value) {
   if (!value?.customization) return value;
@@ -9,11 +10,11 @@ export function createDraftStore({ storage, draftKey, submittedKey }) {
   const resolveStorage = () => typeof storage === "function" ? storage() : storage;
   return {
     loadDraft() {
-      try { return JSON.parse(resolveStorage().getItem(draftKey) || "{}"); }
+      try { return withoutReferralChoice(JSON.parse(resolveStorage().getItem(draftKey) || "{}")); }
       catch { return {}; }
     },
     saveDraft(data) {
-      const safe = { ...withoutCustomizationParams(data) };
+      const safe = withoutReferralChoice(withoutCustomizationParams(data));
       delete safe.terms;
       delete safe.website;
       try { resolveStorage().setItem(draftKey, JSON.stringify(safe)); return true; }

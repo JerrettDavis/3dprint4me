@@ -553,3 +553,44 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   Own unrelated nondeterministic screenshot/audit rewrites are restored.
 - Independent read-only review found no concrete security/retry/navigation defect.
   No server behavior, database schema, production migration or deployment changed.
+
+
+### Customer referral intake and partner referral records (2026-10-24)
+
+- Initial six unit cases failed before implementation. Optional, unchecked, versioned
+  permission now applies to all four detailed service paths. Code/permission stay
+  outside specifications, pending drafts discard them, and recovery JSON/email retain
+  the opted-in choice. Normalization rejects unconsented/malformed/extra-field claims.
+- Four-path browser cases plus a restored-draft case passed, including invalid-code
+  feedback, off-clearing, review, downloaded JSON and email fallback. The browser's
+  inline module harness includes the new shared constants; native runtime imports
+  also passed. Public privacy copy and effective date were updated.
+- Owner attribution rejects web code mismatch and binds permission to server receipt
+  time, including completion after draft creation. Review found the absent-consent
+  web payload could fall through to paper attestation; a red regression reproduced it.
+  The fix classifies trusted web provenance and rejects missing permission. Genuine
+  paper fixtures continue to pass. Independent re-review confirmed the fix.
+- Partner `/referrals` shows own codes, frozen policy/hash and earned awards, without
+  customer/project/settlement evidence or a claim of payment. Two light/dark 320/390
+  browser cases passed. Deep-link failure exposed a missing route; both development
+  admission and production rewrite are now covered/fixed.
+- All seven native tests passed. The new public HTTP case uses the actual request
+  handler and request repository with restricted-role disposable PostgreSQL: completed
+  permission persists, unconsented payload is rejected, and attribution/award counts
+  remain zero. Real browser partner views show the code only to its owner and no
+  customer email. This is not the complete owner attribution/settlement/award journey.
+- Native PostgreSQL isolation/concurrency/restore passed. Production image build and
+  read-only/network-disabled/capability-free referral normalization/imports passed.
+  Manifest list: `sha256:9e440fae01b24033b89fde65a95499700982df1b621c0f0d25551aaf3d27baa1`.
+- Full `npm test` passed: 1,171 unit/contract tests, 246 browser tests with one existing
+  Windows skip, and 241/241 UX checks. Validation includes architecture and own-origin
+  generator policy; customizer build and offline browser regressions passed. Asset
+  release `dcef6fb6d5754a0b` updates 60 references; 31 public/customizer files change
+  version references only. No generator geometry behavior changed.
+- `npm run screenshots` captured 90 views. Inspected both new intake and referral
+  images (320 light/390 dark), the full privacy notice and preview board partner
+  section. Updated partner navigation baselines are retained. Own unrelated
+  nondeterministic screenshots/audit reports are restored. `git diff --check` passed.
+- No production migration, deployment, payment, actual legal approval or external
+  message was performed. Full owner console, offline lifecycle and release gates
+  remain unfinished.

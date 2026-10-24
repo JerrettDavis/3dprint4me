@@ -61,6 +61,16 @@ def prepare_consult_details(page) -> None:
     page.locator("#description").fill("Review the current setup and recommend a calibration plan.")
 
 
+def prepare_referral_contact(page) -> None:
+    prepare_consult_details(page)
+    page.locator('#next-button').click()
+    page.locator('#name').fill('Synthetic Customer')
+    page.locator('#email').fill('synthetic@example.test')
+    page.locator('#referral-consent').check()
+    page.locator('#referral-code').fill('AbCdEfGh1234_-xy')
+    page.evaluate('document.activeElement?.blur(); window.scrollTo(0, 0)')
+
+
 def prepare_mobile_repair(page) -> None:
     page.locator("#next-button").click()
     page.locator("#project-title").fill("Voron print-quality diagnosis")
@@ -432,22 +442,25 @@ def capture_spoolman_states() -> list[tuple[str, Path]]:
 
 def capture_partner_states() -> list[tuple[str, Path]]:
     from tests.support.partner_harness import running_partner_shell
-    from tests.e2e.test_partner_shell import install_partner_fixture, install_offer_fixture, GIG_ID
+    from tests.e2e.test_partner_shell import install_partner_fixture, install_offer_fixture, install_referral_fixture, GIG_ID
     from tests.e2e.test_partner_visits import visit_fixture, GIG
     captured = []
     with running_partner_shell() as origin:
-        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark"), ("counteroffer", (390, 844), "dark"), ("counteroffer", (320, 844), "light")]:
+        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark"), ("counteroffer", (390, 844), "dark"), ("counteroffer", (320, 844), "light"), ("referrals", (390, 844), "dark"), ("referrals", (320, 844), "light")]:
             path = OUTPUT / f"partner-{state}-{scheme}.png"
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
                 visit_state = state in ["visit", "visit-contact", "drafts"]
-                if state == "counteroffer":
+                if state == "referrals":
+                    data = install_referral_fixture(site.page)
+                    data["items"][0]["bonusRules"][0]["criteria"] = "An independent purchase with full settlement verified by the owner."
+                elif state == "counteroffer":
                     _, negotiation = install_offer_fixture(site.page)
                     negotiation[0]["message"] = "Revised fee for the additional materials; please review before accepting."
                 elif visit_state:
                     visit_fixture(site.page)
                 else:
                     install_partner_fixture(site.page, signed_in=state != "sign-in")
-                site.page.goto(origin + ('/gigs/' + GIG_ID if state == 'counteroffer' else '/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
+                site.page.goto(origin + ('/referrals' if state == 'referrals' else '/gigs/' + GIG_ID if state == 'counteroffer' else '/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
                 site.page.get_by_role('heading', level=1).wait_for()
                 if visit_state:
                     site.page.get_by_label('Business name', exact=True).fill('Synthetic Coffee')
@@ -463,9 +476,9 @@ def capture_partner_states() -> list[tuple[str, Path]]:
                 if state == 'counteroffer':
                     site.page.get_by_label('Proposed fee (USD)', exact=True).fill('12.34')
                     site.page.get_by_label('Message to the owner', exact=True).fill('Could this fee cover the additional materials?')
-                if visit_state or state == 'counteroffer':
+                if visit_state or state in ['counteroffer', 'referrals']:
                     site.page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
-                site.screenshot(path, full_page=visit_state or state == "counteroffer")
+                site.screenshot(path, full_page=visit_state or state in ["counteroffer", "referrals"])
                 site.console = [e for e in site.console if 'status of 401 (Unauthorized)' not in e.text]
                 site.assert_no_page_errors()
             captured.append((f"Partner {state} · {scheme}", path))
@@ -498,6 +511,11 @@ def main() -> int:
         ("Consult intake · desktop · light", capture("/order.html?service=consult", "order-consult-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_consult_details)),
         ("Storage warning · mobile · dark", capture("/order.html?service=consult", "order-storage-warning-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_storage_warning, storage_denied=True)),
     ]
+    cases.extend([
+        ("Referral permission · mobile · dark", capture('/order.html?service=consult', 'order-referral-contact-dark.png', viewport=(390,844), scheme='dark', full_page=True, prepare=prepare_referral_contact)),
+        ("Referral permission · narrow · light", capture('/order.html?service=consult', 'order-referral-contact-light.png', viewport=(320,844), scheme='light', full_page=True, prepare=prepare_referral_contact)),
+        ("Privacy · referral notice · light", capture('/privacy.html', 'privacy-referral-light.png', viewport=(1280,1000), scheme='light', full_page=True)),
+    ])
     cases.extend(capture_customize_states())
     cases.extend(capture_operator_states())
     cases.extend(capture_inquiry_workflow_states())
