@@ -112,7 +112,10 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
         ratio = card_width / image.width
         resized = image.resize((card_width, int(image.height * ratio)), Image.Resampling.LANCZOS)
         if resized.height > 820:
-            resized = resized.crop((0, 0, resized.width, 820))
+            # These viewport captures show a late approval error near the footer.
+            # Keep that changed state visible in the board's bounded thumbnail.
+            top = resized.height - 820 if path.stem.startswith('operator-partners-missing-review-') else 0
+            resized = resized.crop((0, top, resized.width, top + 820))
         rendered.append((label, resized))
 
     row_heights = []
@@ -543,18 +546,19 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
     from tests.e2e.test_partner_owner_finance import install_finance_fixture, BATCH
     from tests.e2e.test_partner_owner_forecasts import install_forecast_fixture
     from tests.e2e.test_partner_statements import install_statement_fixture, STATEMENT
-    from tests.e2e.test_partner_owner_legal import install_legal_fixture, VERSION
+    from tests.e2e.test_partner_owner_legal import install_legal_fixture, install_missing_review_fixture, VERSION
     from tests.e2e.test_partner_owner_review import review_fixture, PACKAGE, FEEDBACK
     from tests.e2e.test_partner_owner_agreements import install_agreement_fixture, ISSUE, PROGRAM as AGREEMENT_PROGRAM, VERSION as AGREEMENT_VERSION, PARTNER as AGREEMENT_PARTNER
     from tests.e2e.test_partner_shell import GIG_ID, PARTNER
     captured=[]
     with running_operator_workspace() as (_,origin,_):
-        for state,viewport,scheme in [('statements',(390,844),'dark'),('statements',(320,844),'light'),('weekly-statement',(390,844),'dark'),('weekly-statement',(320,844),'light'),('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('forecasts',(390,844),'dark'),('forecasts',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
+        for state,viewport,scheme in [('missing-review',(390,844),'dark'),('missing-review',(320,844),'light'),('statements',(390,844),'dark'),('statements',(320,844),'light'),('weekly-statement',(390,844),'dark'),('weekly-statement',(320,844),'light'),('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('forecasts',(390,844),'dark'),('forecasts',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
             path=OUTPUT/f'operator-partners-{state}-{scheme}.png'
             with SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
                 page=site.page
                 if state in ['agreements','agreement-copy','program-bindings']:install_agreement_fixture(page,available=state!='program-bindings')
                 elif state=='accounts':install_access_fixture(page)
+                elif state=='missing-review':install_missing_review_fixture(page)
                 elif state in ['legal','legal-version']:install_legal_fixture(page)
                 elif state.startswith('review-'):review_fixture(page)
                 elif state in ['finance','accounting-export']:install_finance_fixture(page)
@@ -571,7 +575,7 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                             route.fulfill(status=200,content_type='application/json',body=json.dumps({'item':item,'events':[],'negotiations':[]}))
                         else:route.fallback()
                     page.route('**/api/operator-partners*',detail)
-                page.goto(origin+'/partners#'+('statements/'+STATEMENT if state=='weekly-statement' else 'agreements/copy/'+ISSUE if state=='agreement-copy' else 'programs' if state=='program-bindings' else 'legal/package/'+PACKAGE if state=='review-package' else 'legal/feedback/'+FEEDBACK if state=='review-feedback' else 'legal' if state=='review-create' else 'gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else 'leads' if state=='leads-suppressed' else 'finance/export/'+BATCH if state=='accounting-export' else 'legal/version/'+VERSION if state=='legal-version' else state))
+                page.goto(origin+'/partners#'+('statements/'+STATEMENT if state=='weekly-statement' else 'agreements/copy/'+ISSUE if state=='agreement-copy' else 'programs' if state=='program-bindings' else 'legal/package/'+PACKAGE if state=='review-package' else 'legal/feedback/'+FEEDBACK if state=='review-feedback' else 'legal' if state=='review-create' else 'gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else 'leads' if state=='leads-suppressed' else 'finance/export/'+BATCH if state=='accounting-export' else 'legal/version/'+VERSION if state in ['legal-version','missing-review'] else state))
                 page.get_by_role('heading',level=1).wait_for()
                 if state=='agreements':
                     form=page.locator('[data-issue-agreement]')
@@ -601,6 +605,9 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                     form=page.locator('[data-record-review]');form.get_by_role('combobox',name='Reviewed source version',exact=True).select_option(VERSION)
                     form.get_by_role('combobox',name='Named reviewer and scope',exact=True).select_option('0')
                     form.get_by_role('combobox',name='Professional decision',exact=True).select_option('changes_requested')
+                if state=='missing-review':
+                    page.get_by_role('button',name='Publish reviewed revision',exact=True).click()
+                    page.get_by_text('This exact version is not approved. Missing requirements: Classification review; Agreement language review.',exact=True).wait_for()
                 if state=='legal-version' and scheme=='light':page.get_by_text('Typed variables and required reviews',exact=True).click()
                 if state=='finance' and scheme=='light':page.locator('main details').evaluate_all('(xs)=>xs.forEach(x=>x.open=true)')
                 if state=='leads' and scheme=='light':page.get_by_text('Correct contact or purpose',exact=True).click()
@@ -619,7 +626,8 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                     page.get_by_label('Qualify by (Central date)',exact=True).fill('2026-12-31')
                     page.get_by_label('Refund treatment for a paid-sale bonus',exact=True).fill('Owner reviews refunds separately; no automatic clawback.')
                 page.evaluate('document.activeElement?.blur();window.scrollTo(0,0)')
-                site.screenshot(path,full_page=True)
+                if state=='missing-review':page.locator('#owner-message').scroll_into_view_if_needed()
+                site.screenshot(path,full_page=state!='missing-review')
                 assert not site.page_errors
             captured.append((f'Owner partners {state} · {scheme}',path))
     return captured

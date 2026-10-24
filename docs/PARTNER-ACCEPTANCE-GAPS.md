@@ -1,6 +1,6 @@
 # Remaining partner acceptance work
 
-This 2026-10-24 audit, updated through owner control and ledger boundaries, compares
+This 2026-10-24 audit, updated through legal-review acceptance, compares
 nine private-packet feature files with the maintained native browser modules and
 their disposable fixtures. It identifies missing evidence, not automatic product defects.
 Synthetic owner sessions are bound to real numeric-identity rules but do not exercise
@@ -49,10 +49,17 @@ numbered packet requirements and operational release gates.
   fixture fetch observer remains zero. The separate-books table is disposable test
   infrastructure; real bookkeeping/provider import and completed 1099 reporting
   remain unverified. Export classification remains `review_required`.
-- **Contract review:** anonymous private-package download denial; explicit redaction/
-  exclusion assertions; issuance denied with exact missing gates; attempted amended
-  version B under A's reviews, followed by independent B review/reissue/acknowledgment.
-  Preserving A after amendment alone does not prove the whole transition.
+- **Contract review:** the remaining direct native cases now inspect the downloaded
+  signed Markdown/DOCX ZIP, per-file SHA-256 manifest and clause/change/checklist
+  artifacts; exclude seeded unrelated private-work/contact/partner-name markers;
+  and deny an anonymous download after positive owner access. This is specific
+  exclusion evidence, not automatic redaction of arbitrary owner-authored text.
+  Unreviewed issuance returns the exact classification/language gates. Version B
+  cannot borrow A's reviews, then receives independent synthetic review, publication,
+  program binding, issue and new partner acknowledgment while A stays byte-identical.
+  A later language-review change is revalidated at publication and the owner sees its
+  missing gate. Existing native editor/stale-save cases cover the other scenarios.
+  Synthetic evidence does not establish actual attorney/CPA clearance.
 - **Referrals:** the original $20 accepted sale policy now survives publication/
   acceptance of a new $10 policy and a genuine web quote, owner-verified attribution,
   synthetic settled-sale evidence and original $20 payable award. Existing native
@@ -74,7 +81,7 @@ numbered packet requirements and operational release gates.
 The budget spine is now implemented in `tests/support/partner_budget.py`, including
 fresh two-partner enrollment and exact acknowledgment. Authentication now adds positive owner-work controls and explicit environment-off
 enrollment. Gig-choice and consent/referral journeys now reuse them as well. Next
-complete the remaining contract-review scenarios.
+maintain these scenario proofs while completing the operational release gates.
 Do not rebuild synthetic approval plumbing or substitute seeded accepted work for
 an actual authorization transition. The remaining numbered operations/product work
 above and below still needs its own evidence.
@@ -111,3 +118,10 @@ retention/outbox/provider or operational requirements from this focused evidence
 Owner-control follow-up: the complete maintained native suite passes **50 checks**
 (49 browser cases and one socket check) in 388.51 seconds. This closes the four
 owner-control scenario assertions, not production identity or deployment gates.
+
+Legal acceptance follow-up passes the maintained **55-check native suite** (54 browser
+cases and one socket check), ordinary regression phases and inspected visual states.
+The direct scenario gaps listed in this audit now have native mappings. This does
+not close numbered product requirements: O-08 still needs materials history and owner
+controls in the workspaces, although its backend command/read exists. Operational,
+professional-review, provider and production deployment gates remain open.

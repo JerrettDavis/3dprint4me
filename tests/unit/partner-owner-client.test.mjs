@@ -49,3 +49,13 @@ test('professional review resources require the owner session and use private cr
 });
 
 test('forecast reads require owner session and preserve scoped private no-store transport',async()=>{const calls=[];const client=createPartnerOwnerClient({apiBase:'http://127.0.0.1:9999',fetchImpl:async(url,options)=>{calls.push([url,options]);return json(url.includes('resource=session')?{owner:{id:'owner'},csrfToken:'private-memory'}:{items:[]});}});await assert.rejects(client.read('forecasts'),{status:401});await client.session();await client.read('forecasts',{programId:'synthetic-program'});assert.equal(calls[1][0],'http://127.0.0.1:9999/api/operator-partners?resource=forecasts&programId=synthetic-program');assert.equal(calls[1][1].credentials,'include');assert.equal(calls[1][1].cache,'no-store');assert.equal(calls[1][1].method,'GET');});
+
+test('owner conflict displays only recognized missing approval gates without raw details',async()=>{
+ const client=createPartnerOwnerClient({apiBase:'http://127.0.0.1:9999',fetchImpl:async url=>json(url.includes('resource=session')?{owner:{id:'owner'},csrfToken:'private'}:{error:'This version is not approved.',missingGates:['classification','agreement_language','classification','<script>secret</script>','__proto__',null]},url.includes('resource=session')?200:409)});
+ await client.session();await assert.rejects(client.command('legal.issue',{},'key'),e=>e.status===409&&e.message==='This version is not approved. Missing requirements: Classification review; Agreement language review.');
+});
+
+test('owner server failures never expose missing gate payloads',async()=>{
+ const client=createPartnerOwnerClient({apiBase:'http://127.0.0.1:9999',fetchImpl:async url=>json(url.includes('resource=session')?{owner:{id:'owner'},csrfToken:'private'}:{error:'secret',missingGates:['classification']},url.includes('resource=session')?200:503)});
+ await client.session();await assert.rejects(client.command('legal.issue',{},'key'),{message:'Partner administration is temporarily unavailable.',status:503});
+});

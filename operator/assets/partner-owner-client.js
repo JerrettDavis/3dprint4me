@@ -1,6 +1,8 @@
 export class PartnerOwnerError extends Error {
  constructor(status,message){super(message);this.status=status;}
 }
+const gateLabels={program_environment:'Program launch setting',classification_environment:'Classification launch setting',accounting_environment:'Accounting launch setting',owner_activation:'Owner activation',published_agreement:'Published agreement',published_policy:'Published outreach policy',classification:'Classification review',agreement_language:'Agreement language review',solicitation_policy:'Outreach policy review',accounting:'Accounting review',program_dates:'Pilot dates'};
+function missingRequirements(data,status){if(status!==409||!Array.isArray(data.missingGates))return '';const labels=[...new Set(data.missingGates.slice(0,32).filter(code=>typeof code==='string'&&Object.hasOwn(gateLabels,code)).map(code=>gateLabels[code]))];return labels.length?' Missing requirements: '+labels.join('; ')+'.':'';}
 const resources=new Set(['programs','partners','campaigns','gigs','gig','budgets','audit','leads','visits','referrals','forecasts','statements','ledger','exports','export','legal','legal-version','legal-diff','review-package','review-feedback','legal-choices','agreements','agreement']);
 export function createPartnerOwnerClient({apiBase,fetchImpl=fetch}={}){
  const url=new URL(apiBase);
@@ -15,7 +17,7 @@ export function createPartnerOwnerClient({apiBase,fetchImpl=fetch}={}){
   if([401,403].includes(response.status)){clear();throw new PartnerOwnerError(response.status,response.status===403?'Owner access is required.':'Owner sign-in is required.');}
   try{data=await response.json();}catch{throw new PartnerOwnerError(503,'Partner administration is temporarily unavailable.');}
   if(expected!==epoch)throw new PartnerOwnerError(401,'Owner access changed. Return to sign-in.');
-  if(!response.ok){throw new PartnerOwnerError(response.status,response.status>=500?'Partner administration is temporarily unavailable.':typeof data.error==='string'?data.error.slice(0,1000):'The request could not be completed.');}
+  if(!response.ok){throw new PartnerOwnerError(response.status,response.status>=500?'Partner administration is temporarily unavailable.':(typeof data.error==='string'?data.error.slice(0,1000):'The request could not be completed.')+missingRequirements(data,response.status));}
   return data;
  }
  return {
