@@ -939,3 +939,29 @@ A new revision needs its own exact-hash review, publication, program binding, is
 and partner acknowledgment. Prior issued text and acknowledgments stay unchanged.
 Do not enable launch flags to bypass missing professional evidence. The software's
 recorded review controls do not establish actual attorney or CPA clearance.
+
+
+### Measured local API baseline (Q-10)
+
+`python scripts/measure-partner-performance.py --output <private-evidence>/baseline.json`
+creates a disposable PostgreSQL/browser fixture, two enrolled partners and a fresh
+accepted $50 payable. It needs the existing Node, Docker and Playwright test setup.
+Run it after other heavy verification jobs finish. It cannot write evidence into
+`public/`. No actual customer, payment or professional approval is used.
+
+The [recorded baseline](partner-api-baseline.json), measured on Windows on 2026-10-24,
+contains 100 sequential measured requests after five warmups for each read. Timing
+includes browser fetch, body consumption and JSON parsing; nearest-rank p99 is the
+99th sorted sample. Observed p99: partner gigs **16.9 ms**, earnings **14.9 ms**,
+agreements **14.5 ms**, owner programs **14.5 ms**, and owner forecasts **13.6 ms**.
+API source hashes bind the evidence to the measured code; the recorded Git head is
+4b289ad, before the owner-only display change, which does not change these API files.
+
+Use **60 ms p99** as an initial local investigation threshold for the same fixture
+and comparable unloaded environment: three times the largest observed p99, rounded
+up to the next 10 ms. Exceeding it calls for investigation and repeat measurement,
+not a claim that a production SLA failed. This is not page-render, mobile hardware,
+concurrent load, throughput or production network evidence. Measure those separately
+in same-site staging before treating production performance as verified. Output has
+only synthetic aggregate timings, response sizes and source hashes; no cookies,
+request URLs or response contents are retained.
