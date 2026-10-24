@@ -1039,3 +1039,47 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
 - Full host/config/provider/object restore, independent offsite custody, production
   origins/cookies/CORS and packet acceptance remain gates. No DNS, native migration,
   invitation, payment or launch activation.
+
+
+## Optional partner activity lifecycle (2026-10-24, source based on b39fe73)
+
+- Browser RED cases reproduce concurrent enabled actions, stale navigation replaced
+  by delayed command completion and missing revision-conflict refresh. The renderer
+  now serializes activity actions, retains stable retry keys, handles expiry, guards
+  view generations and displays saved seconds. Three focused cases pass.
+- Review identified an old success notice during a subsequent pending action; a
+  separate RED reproduces it, and clearing the notice passes the regression.
+- Native scenario checks cover P-09 start/pause/resume/stop/reload/delete, one committed
+  start after a lost response, partner isolation, owner denial, timer-free submission
+  and no geolocation calls during gig/visit navigation. The initial native submission
+  selector did not match the wrapping label; using the existing role/name selector
+  passes. Final combined native/full-suite evidence follows when complete.
+- The 20 focused partner shell/PWA cases pass before the notice regression; the three
+  activity cases pass again afterward. Four static-shell boundary tests pass. Worker
+  and HTML release markers both change to v2; static allowlist/privacy stays fixed.
+- No backend/schema changes or launch activation. The existing cloud preview remains
+  the earlier deployment until an explicit upload and remote byte verification.
+
+- Final sequential native run passes all 19 cases in 111.41 seconds. Captured 133
+  screenshots; inspected both new full activity views (320-light/390-dark) and the
+  actual preview-board row. Unrelated regenerated baselines were restored.
+
+- Read-only Cloudflare browser preflight reaches its sign-in page; no authenticated
+  dashboard session is available in that profile. No DNS records were read or changed.
+  Existing project-specific private environment/status custody contains no Cloudflare
+  DNS API credential. Provider DNS discovery remains outstanding; no guessed target.
+
+- Final frozen `npm test` exits zero: build/static validation, all 1,194 unit/contract
+  tests, 304 browser tests plus one existing Windows skip in 486.86 seconds, and all
+  241 UX checks. No application/test source changed during this sequential pipeline.
+  Generated audit/status-image noise is restored; release evidence remains separate.
+
+- Uploaded the reviewed v2 static source to the dedicated protected Vercel project.
+  The [current preview](PARTNER-DEPLOYMENT.md) passes byte/SHA-256 equality for all
+  14 assets and all configured headers, eight route checks (including activity),
+  and anonymous authentication redirect 302. No toolbar script or source/private
+  path is exposed. No production native deployment, DNS mutation or activation.
+- A read-only acceptance review compares every named packet feature against actual
+  native steps, not test names. [PARTNER-ACCEPTANCE-GAPS.md](PARTNER-ACCEPTANCE-GAPS.md)
+  records remaining proof and the next budget-authorization fixture spine. Optional
+  activity is complete at the native scenario level; the overall goal remains active.

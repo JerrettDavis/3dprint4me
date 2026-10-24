@@ -1049,7 +1049,7 @@ def test_native_prepared_visit_survives_offline_cold_reopen_and_manual_replay():
         assert page.get_by_role('button',name='Remove device draft',exact=True).count()==0
         rows=page.evaluate("async api=>(await(await fetch(api+'/api/partner/v1/visits',{credentials:'include'})).json()).items",fixture['apiOrigin'])
         assert len(rows)==1 and rows[0]['business_name']=='Native cold offline business'
-        assert page.evaluate("async()=>{const c=await caches.open('partner-shell-v1');return(await c.keys()).every(r=>!r.url.includes('/api/'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('partner-shell-v2');return(await c.keys()).every(r=>!r.url.includes('/api/'));}")
 
 
 def test_native_late_login_cookie_after_other_tab_logout_is_revoked():
@@ -1086,3 +1086,81 @@ def test_native_late_login_cookie_after_other_tab_logout_is_revoked():
         second.reload()
         second.get_by_role('heading',name='Your work. Your records.',exact=True).wait_for(timeout=5000)
         assert second.get_by_role('heading',name='Hello, Synthetic Partner 1.').count()==0
+
+
+def activity_partner_sign_in(page,origin,fixture,other=False):
+    page.goto(origin)
+    page.get_by_label('Account code',exact=True).fill(fixture['otherPartnerId'] if other else fixture['partnerId'])
+    page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+    page.get_by_role('button',name='Sign in',exact=True).click()
+    page.get_by_role('heading',name='Hello, Synthetic Partner '+('2' if other else '1')+'.',exact=True).wait_for()
+
+
+def test_native_optional_activity_partner_can_track_and_delete_own_elapsed_record():
+    """optional-activity.feature: Partner can choose to track an activity session."""
+    with native_partner_workspace() as (origin,fixture),SiteBrowser(viewport=(390,844),color_scheme='dark',reduced_motion='reduce') as site:
+        page=site.page;activity_partner_sign_in(page,origin,fixture)
+        page.goto(origin+'/activity');page.get_by_role('heading',name='Optional activity',exact=True).wait_for()
+        assert 'Not required for accepting gigs or payment' in page.locator('main').inner_text()
+        commands=[]
+        def lose_first_committed_start(route):
+            command=route.request.post_data_json;commands.append(command)
+            if len(commands)==1:
+                response=route.fetch();assert response.status==200;route.abort('failed')
+            else:route.continue_()
+        page.route('**/api/partner/v1/commands',lose_first_committed_start)
+        page.get_by_role('button',name='Start optional record',exact=True).click()
+        page.get_by_text('Unable to reach the partner service. Check your connection and try again.',exact=True).wait_for()
+        page.get_by_role('button',name='Start optional record',exact=True).click()
+        page.get_by_text('Optional activity updated.',exact=True).wait_for()
+        assert commands[0]==commands[1]
+        read=lambda:page.evaluate("async api=>(await(await fetch(api+'/api/partner/v1/activity',{credentials:'include',cache:'no-store'})).json()).items",fixture['apiOrigin'])
+        rows=read();assert len(rows)==1 and rows[0]['optional'] is True
+        record_id=rows[0]['id']
+        # Advance only the disposable fixture's stored running segment, avoiding flaky waits.
+        subprocess.run(['docker','exec',fixture['_container'],'psql','-U','postgres','-v','ON_ERROR_STOP=1','-c',"UPDATE partner_activity_sessions SET running_since=now()-interval '7 seconds' WHERE id='"+record_id+"'"],check=True,capture_output=True,timeout=15)
+        page.get_by_role('button',name='Pause',exact=True).click();page.get_by_role('button',name='Resume',exact=True).wait_for()
+        paused=read()[0];assert paused['elapsedSeconds']>=7 and paused['runningSince'] is None
+        assert str(paused['elapsedSeconds'])+' saved seconds' in page.locator('main').inner_text()
+        page.reload();page.get_by_role('button',name='Resume',exact=True).wait_for()
+        page.get_by_role('button',name='Resume',exact=True).click();page.get_by_role('button',name='Pause',exact=True).wait_for()
+        page.get_by_role('button',name='Stop',exact=True).click();page.get_by_text('Stopped',exact=False).wait_for()
+        stopped=read()[0];assert stopped['endedAt'] and stopped['runningSince'] is None and stopped['elapsedSeconds']>=paused['elapsedSeconds']
+        with site.browser.new_context() as other:
+            second=other.new_page();activity_partner_sign_in(second,origin,fixture,other=True)
+            denied=second.evaluate("""async ({api,id,revision})=>{const session=await(await fetch(api+'/api/partner/v1/session',{credentials:'include'})).json();const response=await fetch(api+'/api/partner/v1/commands',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':session.csrfToken},body:JSON.stringify({action:'activity.delete',key:crypto.randomUUID(),input:{activityId:id,expectedRevision:revision}})});return {status:response.status,items:(await(await fetch(api+'/api/partner/v1/activity',{credentials:'include'})).json()).items};}""",{'api':fixture['apiOrigin'],'id':record_id,'revision':stopped['revision']})
+            assert denied=={'status':404,'items':[]}
+        with site.browser.new_context() as owner:
+            owner.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':fixture['apiOrigin'].replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
+            operator=owner.new_page();operator.goto(fixture['ownerOrigin']+'/partners')
+            status=operator.evaluate("async api=>(await fetch(api+'/api/operator-partners?resource=activity',{credentials:'include'})).status",fixture['apiOrigin'])
+            assert status in [400,403,404]
+        page.get_by_role('button',name='Delete record',exact=True).click();page.get_by_text('Activity record deleted.',exact=True).wait_for()
+        page.reload();page.get_by_text('No optional activity records.',exact=True).wait_for()
+        assert read()==[]
+        assert not page.evaluate("Object.keys(localStorage).some(k=>k.includes('activity'))") and not site.page_errors
+
+
+def test_native_optional_activity_work_submission_never_requires_a_timer():
+    """optional-activity.feature: Partner can complete work without tracking time."""
+    with native_partner_workspace() as (origin,fixture),SiteBrowser(viewport=(390,844)) as site:
+        page=site.page;activity_partner_sign_in(page,origin,fixture)
+        page.goto(origin+'/gigs/'+fixture['acceptedGigId'])
+        page.get_by_role('combobox',name='Action',exact=True).select_option('submit')
+        page.get_by_label('Reason or submission details',exact=True).fill('Synthetic agreed visit completed without optional tracking.')
+        page.get_by_role('button',name='Save decision',exact=True).click();page.get_by_text('Decision recorded.',exact=True).wait_for()
+        result=page.evaluate("""async ({api,id})=>({gig:(await(await fetch(api+'/api/partner/v1/gig?id='+id,{credentials:'include'})).json()).item,activity:(await(await fetch(api+'/api/partner/v1/activity',{credentials:'include'})).json()).items})""",{'api':fixture['apiOrigin'],'id':fixture['acceptedGigId']})
+        assert result['gig']['status']=='submitted' and result['activity']==[] and not site.page_errors
+
+
+def test_native_optional_activity_gig_and_visit_screens_never_request_geolocation():
+    """optional-activity.feature: No passive GPS surveillance."""
+    with native_partner_workspace() as (origin,fixture),SiteBrowser(viewport=(390,844),color_scheme='dark') as site:
+        site.context.add_init_script("window.__geoCalls=[];for(const key of ['getCurrentPosition','watchPosition'])Object.defineProperty(navigator.geolocation,key,{value:()=>{window.__geoCalls.push(key);throw Error('Unexpected geolocation');}});")
+        page=site.page;activity_partner_sign_in(page,origin,fixture)
+        page.get_by_role('navigation').get_by_role('link',name='Gigs',exact=True).click()
+        page.get_by_role('heading',name='Your gigs',exact=True).wait_for()
+        page.locator('a[href="/gigs/'+fixture['acceptedGigId']+'"]').click()
+        page.get_by_role('link',name='Record a business visit',exact=True).click()
+        page.get_by_label('Business name',exact=True).fill('Synthetic map-free visit')
+        assert page.evaluate('window.__geoCalls')==[] and not site.page_errors

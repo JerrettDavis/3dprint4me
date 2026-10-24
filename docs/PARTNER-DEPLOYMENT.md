@@ -10,9 +10,10 @@ The existing storefront, operator, public status and operations projects were no
 modified. No new project was connected to automatic Git deployments.
 
 Current verified Preview:
-<https://3dprint4me-partners-nedg8fuca-jerrettdavis-projects.vercel.app>
+<https://3dprint4me-partners-fr1qrhv6b-jerrettdavis-projects.vercel.app>
 
-The public application bytes are the reviewed `8608e18` source. Provider output is
+The public application bytes include the reviewed optional-activity increment based
+on `b39fe73`, with matching worker/HTML release `partner-shell-v2`. Provider output is
 Ready / Preview. Authenticated verification used the official CLI's protection
 bypass handling, without printing or copying its managed credential. It proved:
 
@@ -20,7 +21,7 @@ bypass handling, without printing or copying its managed credential. It proved:
   the HTML, worker, manifest, icons and complete JavaScript graph.
 - CSP, no-store, noindex/nofollow, no-referrer, nosniff and frame denial match the
   tracked hosting configuration on the actual served assets.
-- Draft/gig deep links return the generic shell; `/index.html` redirects to `/`.
+- Activity/draft/gig deep links return the generic shell; `/index.html` redirects to `/`.
   Package metadata, `.env`, server source and an API path return 404.
 - Anonymous access receives a 302 Vercel authentication redirect. This is preview
   protection, not partner authentication or proof that the application API works.
@@ -28,7 +29,7 @@ bypass handling, without printing or copying its managed credential. It proved:
   from the exact-byte HTML. Deployment protection remains enabled.
 
 Private operational evidence is retained outside Git in the release-preview-proof
-folder of the session's private work directory: a redacted proof manifest, hashes,
+and activity-preview-proof folders of the session's private work directory: a redacted proof manifest, hashes,
 status/header observations and CLI logs. No authorization/bypass header is copied
 into this document, the repo, URLs or frontend configuration.
 
@@ -82,3 +83,20 @@ proof, but do not replace real same-site cookie/CORS/TLS smoke tests.
 No production native API deployment, production migration, custom domain assignment,
 DNS mutation, real invitation, payment or professional review occurred in this
 preview increment. The overall partner portal goal remains active.
+
+
+## Optional activity preview refresh
+
+The current URL above supersedes the original protected static preview, whose source
+was `8608e18`. All 14 current static files match local bytes/SHA-256 and all configured
+hosting headers. Eight route checks cover activity/drafts/gig navigation, canonical
+index redirect and private/server-path denials; anonymous HEAD returns authentication
+302. No provider toolbar is injected. This verifies static hosting only: the native
+partner API and actual production cookie/CORS/TLS paths remain undeployed/unproven.
+
+The reviewed activity controls and all three packet activity scenarios pass native
+browser evidence. The final 19-case native suite, 1,194 unit/contract tests, 304 browser
+tests (one Windows skip), 241 UX checks and 133-image screenshot capture are
+recorded in [VERIFICATION.md](VERIFICATION.md). Only the two new activity views and
+updated preview board are new visual baselines. The exact remaining scenario audit
+is [PARTNER-ACCEPTANCE-GAPS.md](PARTNER-ACCEPTANCE-GAPS.md).

@@ -1,7 +1,8 @@
 # Partner portal implementation status
 
 The partner portal is under implementation on `feat/partner-portal`, based on
-`e981a7f89fea596f7fb11102e273710fbb2a3203`. It is not deployed or activated.
+`e981a7f89fea596f7fb11102e273710fbb2a3203`. Its static shell has a protected preview; the native partner backend is not yet
+deployed and new work is not activated.
 The implementation plan is [here](superpowers/plans/2026-10-23-partner-portal.md).
 The owner-provided source packet and its contextual documents remain outside Git.
 
@@ -22,7 +23,7 @@ The owner-provided source packet and its contextual documents remain outside Git
 - Gifts are excluded from gig offer fields and the service compensation ledger.
 - Personally identifying contacts require affirmative, specific follow-up consent;
   withdrawal removes follow-up eligibility.
-- A future separate partner hosting project will emit only its `public/` directory.
+- The separate partner hosting project emits only its `public/` directory.
   Root storefront output stays `public/`; source, legal files and dependencies are never
   served as the static project root.
 
@@ -775,3 +776,20 @@ helper/inventory support is explicit and separate from existing sites. See
 [PARTNER-DEPLOYMENT.md](PARTNER-DEPLOYMENT.md) for provider evidence, failed-attempt
 corrections and the remaining staging, DNS, encrypted recovery and production gates.
 A static preview does not activate the program or complete the portal release.
+
+
+## Optional activity browser lifecycle
+
+P-09 uses the existing independent partner-only timer service: start, pause, resume,
+stop and delete. Saved seconds include short records; running time is saved by the
+service when paused/stopped, not inferred as a payment or attendance measure. Activity
+is never required for a gig, and no GPS is requested. These records are not persisted
+on the device for offline use. Visit drafts remain the separate offline capability.
+
+Only one activity command can be pending per view. Actions share pending locks, clear
+old notices and retain their command key for an unchanged retry after a lost response.
+Navigation/sign-out supersedes late responses; session expiry removes private records.
+A revision conflict leaves the current record visible and offers an explicit fresh read.
+The worker/HTML static release is now `partner-shell-v2` so the new controls install
+with their matching shell. Native packet scenario mappings and limits are in
+[PARTNER-PORTAL-TRACEABILITY.md](PARTNER-PORTAL-TRACEABILITY.md).

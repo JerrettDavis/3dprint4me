@@ -116,11 +116,24 @@ function renderAgreements(items){
  for(const i of items){main.querySelector(`[data-download="${i.id}"]`).addEventListener('click',()=>download(`agreement-${i.id}.md`,i.snapshot_markdown,'text/markdown;charset=utf-8'));const form=main.querySelector(`[data-issue="${i.id}"]`);if(form)formSubmit(form,async(_,key)=>{await client.command('agreement.acknowledge',{issueId:i.id,snapshotHash:i.snapshot_sha256,readAcknowledgment:true},key);await route();announce('Read acknowledgment recorded.');});}
 }
 function renderActivity(items){
- main.innerHTML=`<h1>Optional activity</h1><p class="notice">For your own records. Not required for accepting gigs or payment. No location is recorded. You may stop or delete a record at any time.</p>${items.some(i=>!i.endedAt)?'':'<button id="start-activity">Start optional record</button>'}<ul class="records">${items.map(i=>`<li><strong>${escape(date(i.startedAt))}</strong><p>${i.endedAt?'Stopped':i.runningSince?'Running':'Paused'} · ${Math.floor(i.elapsedSeconds/60)} saved minutes</p><div class="actions">${!i.endedAt?`<button data-id="${i.id}" data-action="${i.runningSince?'pause':'resume'}">${i.runningSince?'Pause':'Resume'}</button><button data-id="${i.id}" data-action="stop">Stop</button>`:''}<button data-id="${i.id}" data-action="delete">Delete record</button></div></li>`).join('')||'<li>No optional activity records.</li>'}</ul>`;
- main.querySelector('#start-activity')?.addEventListener('click',()=>activity('start',{}));
- for(const button of main.querySelectorAll('[data-action]'))button.addEventListener('click',()=>{const i=items.find(i=>i.id===button.dataset.id);activity(button.dataset.action,{activityId:i.id,expectedRevision:i.revision});});
- async function activity(action,input){try{await client.command('activity.'+action,input,crypto.randomUUID());await route();announce(action==='delete'?'Activity record deleted.':'Optional activity updated.');}catch(e){announce(e.message,true);}}
+ const viewGeneration=generation;let pending=false;
+ main.innerHTML=`<h1>Optional activity</h1><p class="notice">For your own records. Not required for accepting gigs or payment. No location is recorded. You may stop or delete a record at any time.</p><p class="hint">Saved time comes from the service. A running record is updated when you pause or stop. These records are not stored on this device for offline use.</p><div class="actions"><button id="refresh-activity">Refresh activity records</button>${items.some(i=>!i.endedAt)?'':'<button id="start-activity">Start optional record</button>'}</div><ul class="records">${items.map(i=>`<li><strong>${escape(date(i.startedAt))}</strong><p>${i.endedAt?'Stopped':i.runningSince?'Running':'Paused'} · ${escape(i.elapsedSeconds)} saved seconds</p><div class="actions">${!i.endedAt?`<button data-id="${escape(i.id)}" data-action="${i.runningSince?'pause':'resume'}">${i.runningSince?'Pause':'Resume'}</button><button data-id="${escape(i.id)}" data-action="stop">Stop</button>`:''}<button data-id="${escape(i.id)}" data-action="delete">Delete record</button></div></li>`).join('')||'<li>No optional activity records.</li>'}</ul>`;
+ const controls=[...main.querySelectorAll('button')],refresh=main.querySelector('#refresh-activity');
+ refresh.addEventListener('click',()=>{if(!pending&&viewGeneration===generation)route();});
+ const start=main.querySelector('#start-activity');if(start)bind(start,'start',{});
+ for(const button of main.querySelectorAll('[data-action]')){const item=items.find(i=>i.id===button.dataset.id);bind(button,button.dataset.action,{activityId:item.id,expectedRevision:item.revision});}
+ function bind(button,action,input){
+  const key=crypto.randomUUID();
+  button.addEventListener('click',async()=>{
+   if(pending||viewGeneration!==generation)return;
+   pending=true;message.hidden=true;for(const control of controls)control.disabled=true;
+   try{await client.command('activity.'+action,input,key);if(viewGeneration!==generation)return;await route();if(generation===viewGeneration+1)announce(action==='delete'?'Activity record deleted.':'Optional activity updated.');}
+   catch(error){if(viewGeneration!==generation)return;if(error.status===401)await expired();else announce(error.message,true);}
+   finally{pending=false;for(const control of controls)control.disabled=false;}
+  });
+ }
 }
+
 document.addEventListener('click',event=>{const link=event.target.closest('a');if(!link||link.hasAttribute('data-reload')||event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey||link.origin!==location.origin)return;event.preventDefault();if(link.hash&&link.pathname===location.pathname&&link.search===location.search){document.getElementById(decodeURIComponent(link.hash.slice(1)))?.focus();return;}history.pushState({},'',link.href);route().then(()=>main.focus());});
 addEventListener('popstate',()=>route());
 signOut.addEventListener('click',async()=>{++generation;main.replaceChildren();signedOut();let warning;deviceChannel?.postMessage('signed-out');try{clearVisitDrafts(localStorage);}catch{warning='Device drafts could not be cleared. Clear this browser’s site data before sharing the device.';}try{await clearOfflineShell();}catch{warning='Offline shell could not be cleared. Clear this browser site data before sharing the device.';}try{await client.logout();}catch(error){warning=error.message+' Device sign-out could not be confirmed. Close this browser and ask the owner to revoke access.';}history.replaceState({},'','/');await route();announce(warning??'Signed out.',!!warning);});
