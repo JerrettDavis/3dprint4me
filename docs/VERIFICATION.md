@@ -815,3 +815,46 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
 - Professional review screens, encrypted offline recipient workflow and exact
   issuance remain pending. No deployment, professional approval, real invitation,
   payment or external message occurred; activation flags remain off.
+
+
+## 2026-10-24: owner professional review workspace
+
+- Owner legal library/version pages now create signed packages from frozen saved
+  versions with named attorney/CPA scopes, explicit redaction/share confirmation and
+  bounded expiry. Saved package/feedback links preserve the exact source context.
+  Separate forms record external professional decisions and import returned DOCX
+  as immutable untrusted suggestions. No automatic edit, resolution or approval.
+- Package/feedback views check browser SHA-256 before exposing private Blob downloads,
+  escape all reviewer text and revoke downloads on route, logout, concealment and
+  page exit. Shared command binding supports async bounded file reads with a session
+  and route check before POST; unchanged uncertain retries retain their command key.
+- Read-only review reproduced a V8 stack overflow in the first base64 regex at large
+  valid package sizes. A real 8 MiB browser regression failed before canonical linear
+  validation and passes after it. A delayed-hash conceal/return regression reproduced
+  a fresh Blob URL after concealment; captured lifecycle state now prevents it.
+  Review confirmed both fixes and found no remaining concrete blocker in this scope.
+- A separate RED/GREEN server regression proved a review decision could name another
+  program despite the package grant. The command now rejects a mismatched package
+  program. Existing synthetic manual grants were updated to carry their true program.
+- Focused final checks: 16 review/editor browser cases, 14 package/feedback/legal/client/
+  static tests. Full `npm test` passed: 1,180 unit/contract, 288 browser plus one Windows
+  skip, 241/241 UX. Native PostgreSQL permissions/concurrency/replay/additive restore
+  passed; all 13 native browser cases passed together through the production runtime.
+- New native journey creates one signed package despite a lost response and retries
+  the same key; checks original ZIP/hash/manifest; returns a real DOCX with tracked
+  insertion; verifies immutable attachment and unchanged source/review state; records
+  conditional then separately scoped synthetic approvals; publishes explicitly while
+  new-work gates remain off. No actual professional decision or engagement is claimed.
+- Operator build passed; final review/router/legal sources match built output hashes.
+  Shell v19 includes the new static module and still excludes private API data. Captured
+  115 screenshots, inspected all six new 320-light/390-dark review states and owner
+  preview-board crop, retained changed legal baselines and restored unrelated noise.
+- Backend image `3dprint4me-partner-api:20261024-owner-review` built with manifest
+  `sha256:1f57dbbb01a76840d5d74ce5cb9032ab03b197dec2a7f4a116c4b58851c8d770`
+  (manifest-list/image ID `sha256:fe0d0014ad528a560a73288a25caca76d0219c98f60366138b6aaa82929a635d`).
+  Legal/runtime imports pass with no network, read-only filesystem and capabilities
+  dropped. No deployment, actual payment, real invitation or external message occurred.
+- Owner ZIP retrieval is explicitly unencrypted. The usable encrypted offline recipient
+  workflow, exact issued-snapshot UI/program bindings, full offline PWA lifecycle and
+  remaining packet operations/release acceptance work remain required. This increment
+  expands contract-review coverage; it is not proof the complete packet is implemented.

@@ -7,3 +7,5 @@
 .owner-access-code:not(:empty){padding:1rem;border:2px solid var(--teal);border-radius:6px;max-width:45rem;margin:1rem 0}.owner-access-code label{margin:.6rem 0}.owner-access-code input{font-family:ui-monospace,monospace}.owner-access-code h4{margin:0}.owner-access-code .owner-actions{margin-top:1rem}
 
 .owner-shell textarea[name="markdown"]{min-height:22rem;font-family:ui-monospace,monospace}.owner-shell [data-unsaved-comparison] pre,.owner-shell [data-saved-comparison] pre{padding:1rem;border:1px solid var(--line);border-radius:6px}.owner-shell [data-variables]{display:grid;gap:1rem}
+
+.owner-shell{overflow-wrap:anywhere}

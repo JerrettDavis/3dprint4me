@@ -134,10 +134,11 @@ require the relevant expected revision. Owner invitation/recovery responses show
 new raw code once and invalidate prior unused codes, rather than persisting codes
 in idempotency receipts. The final OpenAPI schema and browser SDK remain pending.
 
-Financial settlement/reconciliation/exports, referrals and bonus qualification,
-legal editor and document packages, partner PWA/owner UI, full BDD browser coverage,
-retention jobs and the actual disabled release remain in the implementation plan.
-Existing integration tests do not prove those unfinished capabilities.
+The incremental manual finance, referral, partner and owner workspaces and legal
+review implementation are described below. Full offline PWA lifecycle, encrypted
+professional handoff, exact owner issuance, remaining BDD acceptance coverage,
+retention/operations jobs and the actual disabled release remain in the plan.
+Incremental integration tests do not prove those unfinished capabilities.
 
 ## Accounting compatibility research
 
@@ -265,7 +266,7 @@ reviewer grants. Legal-version package listings project named grants and program
 without loading archive bytes or the full manifest. Bytes and manifest
 are immutable database evidence, excluded from command receipts and public output.
 Offline copies require an approved encrypted sharing channel; expiry cannot recall
-copies. In-browser encrypted packaging and reviewer access UI remain pending.
+copies. In-browser encrypted packaging and the offline recipient workflow remain pending.
 
 The formatter handles text paragraphs, headings, bold/italic/code text, bullets and
 simple tables with repeated headers and padded cells. Tables support two to six
@@ -685,3 +686,36 @@ Professional package creation/reviewer decision/returned-feedback screens, encry
 offline sharing, program publication bindings and exact issued-snapshot UI still need
 completion. Existing backend enforcement is retained; no launch gate is bypassed here.
 Full offline/PWA lifecycle and remaining release operations also remain required.
+
+
+### Owner professional review workspace
+
+The owner legal library and exact-version pages can create signed packages from
+saved versions with up to eight named attorney/CPA grants, compatible scopes,
+thirty-day maximum expiry, a factual brief and explicit redaction/share confirmation.
+Package creation sends no external message and grants no professional approval.
+Saved package and returned-feedback links remain attached to the source version.
+
+The package view shows frozen source hashes, named grants, expiry and the signing-key
+fingerprint. Download verifies the archive SHA-256 in the browser after server-side
+signature/hash verification. The owner ZIP download is explicitly unencrypted; use
+an approved encrypted channel for handoff. This is not the pending encrypted offline
+recipient workflow. Download URLs are revoked on navigation, sign-out, concealment
+and page exit; a hash completing after concealment cannot recreate a download.
+Private evidence and returned filenames are not saved in browser storage.
+
+A separate form records an actual external professional decision for a selected
+exact source and granted reviewer/scope. It starts with no decision selected and
+requires a reference, review date and owner confirmation of identity and decision
+through the agreed private channel. Dates, live grants, source hash and package
+program are revalidated by the server. Recording a decision does not publish or
+issue text; conditional/requested changes/rejection do not grant clearance.
+
+Returned DOCX import requires a named granted reviewer, exact source and renewed
+identity confirmation. The browser bounds the attachment to 512 KiB; the server
+validates the ZIP/XML and preserves immutable original evidence. Async file reads
+cannot submit after route or session changes. Parsed comments, author claims,
+tracked text and warnings display as escaped untrusted suggestions. The owner must
+compare the original and take separate editorial/decision actions. Import never
+changes a source hash, resolves a clause concern or records approval automatically.
+The original returned attachment remains privately downloadable for manual review.

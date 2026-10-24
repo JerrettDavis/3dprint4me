@@ -155,3 +155,14 @@ artifacts. The owner client allows both private review-package and review-feedba
 reads with its existing session, epoch and no-store protections. This is API/client
 preparation; it does not complete the professional reviewer or encrypted offline
 recipient journey in contract-review.feature.
+
+
+Owner professional review workspace increment: package creation, frozen source/grant
+inspection, private signed archive retrieval, explicit external professional decision
+recording, bounded DOCX return import and original/suggestion inspection now have
+owner screens. Native runtime evidence proves package command replay after a lost
+response creates one package, download hash matches, importing a tracked insertion
+changes no source/review state, conditional evidence leaves clearance off and separate
+scoped synthetic approvals allow publication while program activation remains off.
+This expands contract-review.feature evidence; encrypted offline recipient handoff,
+exact issued-snapshot UI and the full packet acceptance journey remain required.
