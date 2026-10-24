@@ -26,7 +26,7 @@
     "customizer:build": "vite build --config customizer/vite.config.js",
     "customizer:dev": "vite --config customizer/vite.config.js",
     "test:partner:postgres": "node --test tests/integration/partner-postgres.test.mjs",
-    "test:partner:browser": "python -m pytest tests/integration/test_partner_native_browser.py tests/integration/test_partner_budget_browser.py tests/integration/test_partner_auth_browser.py tests/integration/test_partner_gig_browser.py -q",
+    "test:partner:browser": "python -m pytest tests/integration/test_partner_native_browser.py tests/integration/test_partner_budget_browser.py tests/integration/test_partner_auth_browser.py tests/integration/test_partner_gig_browser.py tests/integration/test_partner_consent_referral_browser.py -q",
     "review:reader:build": "node scripts/build-review-reader.mjs"
   },
   "homepage": "https://3dprint4.me",

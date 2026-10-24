@@ -4,8 +4,9 @@ This is a coverage map, not a release certificate. The later scenario-level
 [acceptance gap audit](PARTNER-ACCEPTANCE-GAPS.md) supersedes historical pending-flow
 notes below when newer native journeys already cover part of them. The private packet names nine
 Gherkin features. The implementations below have unit, contract or isolated native
-PostgreSQL evidence. Optional activity, budget-week, partner-auth and gig-choice scenarios now have direct
-native mappings; the remaining features still need their complete partner/owner flows.
+PostgreSQL evidence. Optional activity, budget-week, partner-auth, gig-choice and visits/leads now have
+direct native mappings. Referral uses the staged attribution interpretation below.
+The remaining features still need their complete partner/owner flows.
 Existing storefront/operator browser regression is a separate compatibility check.
 `test_partner_shell.py` adds synthetic API presentation/client checks for sign-in,
 maintenance, responsive navigation, inert issued text/exact acknowledgment, skip-link
@@ -270,3 +271,20 @@ by identical visit/work retries after actual committed responses are lost. Exact
 visit and one submission event remain. No accepted gig/reservation is seeded for these
 programs. Existing cold-reopen/100-draft tests supplement this exact scenario mapping.
 The native command explicitly includes the new module, so the CI boundary maintains it.
+
+
+Consent/referral increment: `test_partner_consent_referral_browser.py` directly maps
+all five visits-leads scenarios and the original-$20-versus-new-$10 referral policy
+scenario. Actual second-browser login, new client IDs/command keys, a qualified-lead
+award and exact single visit/lead/award/payable counts prove the duplicate boundary.
+Consent language/version and audit evidence are read from native persistence. Rejected
+unconsented data creates no visit/lead/consent/outbox side effect; withdrawal suppresses
+owner contact and server requalification. The optional disposable fixture fetch observer
+writes only a count and denies attempts; zero observed fetch calls does not claim to
+monitor other network transports. No production control surface is added.
+
+Quote attribution is two-stage: private intake immediately retains opted-in code and
+server receipt and appears in owner pending attribution; verified attribution requires
+the owner check. The fresh original-policy test traverses both stages and actual
+synthetic settlement verification, then earns $20 while a separate published/accepted
+policy promises $10. Neither a quote nor synthetic evidence attests to actual payment.

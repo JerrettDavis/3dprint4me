@@ -1221,3 +1221,33 @@ Final combined native command: **36 passed in 224.52 seconds**. This includes th
 unchanged-policy assertion and all prior native authorization/authentication cases.
 No application code/assets changed, so the prior complete regression and inspected
 visual/deployment evidence are retained without duplicating those runs.
+
+
+## Native consent and original-policy referral acceptance (based on e3b7209)
+
+Six focused cases pass in 40.79 seconds. The initial five-case run had four passes
+and one assertion using an already-open owner hash route; explicit reload obtains the
+fresh suppressed view. No product change was indicated. Subsequent exact duplicate
+error assertions strengthen the second-device evidence. Read-only review found no
+material privacy/false-positive issue; it requested an audit-count assertion as well
+as existing contact/consent/outbox counts in the rejected-email case.
+
+The observer is optional and confined to explicitly admitted disposable fixture code.
+It writes counts only, denies fixture fetch and exposes no production route/config.
+It proves zero fetch attempts in these flows, not a universal network transport audit.
+Actual consent/audit version, owner qualification/suppression, semantic award replay,
+new-device request identities, genuine customer request receipts and original-policy
+settled-sale award are checked against native persistence. All financial evidence is
+synthetic; $20 payable is expressly distinct from verified paid.
+
+No production application/asset changed. Prior frozen complete regression, inspected
+137-image visual output and protected v3 remote-byte/header proof remain applicable.
+
+Combined maintained native command: **42 passed in 263.90 seconds**, including exact
+business/contact duplicate error assertions. The review-requested rejected-email audit
+count was then added for a focused final rerun, rather than repeating unaffected cases.
+Hosted authentication run `40110565353` on `5eaddab` subsequently passed full regression
+and entered screenshot generation; the gig head's run remains separate live evidence.
+
+Final focused rerun with the added audit-count assertion: **6 passed in 50.40 seconds**.
+The rejected request leaves audit rows unchanged as well as contacts, consent and outbox.

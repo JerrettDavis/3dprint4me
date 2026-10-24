@@ -3,7 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {randomUUID,randomBytes,generateKeyPairSync} from 'node:crypto';
 import {digest} from '../../lib/partner-outreach/postgres-repository.js';
 import {readFile} from 'node:fs/promises';
-import {readFileSync} from 'node:fs';
+import {readFileSync,writeFileSync} from 'node:fs';
 import {once} from 'node:events';
 import pg from 'pg';
 import {MIGRATIONS,splitStatements} from '../../scripts/migrate-neon.mjs';
@@ -23,6 +23,8 @@ if(process.env.PARTNER_NATIVE_BROWSER_TEST!=='1')throw new Error('Explicit dispo
 const shell=new URL(process.env.PARTNER_TEST_SHELL_ORIGIN);
 if(shell.protocol!=='http:'||shell.hostname!=='127.0.0.1'||shell.origin!==process.env.PARTNER_TEST_SHELL_ORIGIN)throw new Error('Fixture shell must be loopback.');
 const ownerOrigin=process.env.PARTNER_TEST_OWNER_ORIGIN??shell.origin;const ownerUrl=new URL(ownerOrigin);if(ownerUrl.origin!==ownerOrigin||ownerUrl.protocol!=='http:'||ownerUrl.hostname!=='127.0.0.1')throw Error('Owner fixture must be loopback.');
+// Optional test-only outbound observer records counts, never URLs or credentials.
+if(process.env.PARTNER_TEST_OUTBOUND_FILE){const file=process.env.PARTNER_TEST_OUTBOUND_FILE;let attempts=0;writeFileSync(file,'0');globalThis.fetch=async()=>{writeFileSync(file,String(++attempts));throw Error('Unexpected outbound fetch in disposable fixture');};}
 // Clock control exists only in this explicitly admitted disposable fixture.
 const clockFile=process.env.PARTNER_TEST_CLOCK_FILE;
 const now=()=>{if(!clockFile)return new Date();const value=JSON.parse(readFileSync(clockFile,'utf8')),instant=new Date(value);if(typeof value!=='string'||!Number.isFinite(instant.getTime())||instant.getUTCFullYear()<2026||instant.getUTCFullYear()>2027)throw Error('Invalid fixture clock');return instant;};
