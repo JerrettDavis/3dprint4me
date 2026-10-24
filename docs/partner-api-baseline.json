@@ -1,57 +1,57 @@
 {
-  "generatedAt": "2026-10-24T20:08:54.117141+00:00",
+  "generatedAt": "2026-10-24T20:49:15.833644+00:00",
   "scope": "synthetic disposable native PostgreSQL; loopback browser-to-API fetch+body+JSON; sequential; no production network, real users, mobile hardware, throughput or concurrency claim",
   "quantile": "nearest rank ceil(N*q), 100 measured requests after 5 warmups per endpoint",
-  "head": "4b289ad1d6a2de39aa36a668517f2ce5efb1ad3e",
+  "head": "63dd35e1dcb50d6bddf6762a2fe5008419f2c52e",
   "os": "Windows",
   "metrics": {
     "partner_gigs": {
-      "p50Ms": 8.6,
-      "p95Ms": 10.7,
-      "p99Ms": 16.9,
+      "p50Ms": 7.1,
+      "p95Ms": 8.7,
+      "p99Ms": 9.2,
       "samples": 100,
-      "minMs": 5.9,
-      "maxMs": 17.3,
+      "minMs": 5.4,
+      "maxMs": 9.4,
       "minimumResponseCharacters": 575,
       "warmupRequests": 5
     },
     "partner_earnings": {
-      "p50Ms": 11.4,
-      "p95Ms": 13.5,
-      "p99Ms": 14.9,
+      "p50Ms": 9.5,
+      "p95Ms": 12.2,
+      "p99Ms": 13,
       "samples": 100,
-      "minMs": 8.8,
-      "maxMs": 34.3,
+      "minMs": 7.4,
+      "maxMs": 13.3,
       "minimumResponseCharacters": 736,
       "warmupRequests": 5
     },
     "partner_agreements": {
-      "p50Ms": 8.4,
-      "p95Ms": 12.4,
-      "p99Ms": 14.5,
+      "p50Ms": 6.8,
+      "p95Ms": 8.2,
+      "p99Ms": 8.8,
       "samples": 100,
-      "minMs": 5.5,
-      "maxMs": 16.8,
+      "minMs": 5.6,
+      "maxMs": 8.8,
       "minimumResponseCharacters": 408,
       "warmupRequests": 5
     },
     "owner_programs": {
-      "p50Ms": 10.2,
-      "p95Ms": 12.4,
-      "p99Ms": 14.5,
+      "p50Ms": 8.6,
+      "p95Ms": 10.3,
+      "p99Ms": 11.3,
       "samples": 100,
-      "minMs": 8.2,
-      "maxMs": 17.7,
+      "minMs": 6.7,
+      "maxMs": 12.4,
       "minimumResponseCharacters": 1054,
       "warmupRequests": 5
     },
     "owner_forecasts": {
-      "p50Ms": 9.4,
-      "p95Ms": 11.2,
-      "p99Ms": 13.6,
+      "p50Ms": 8.1,
+      "p95Ms": 10.4,
+      "p99Ms": 12.2,
       "samples": 100,
-      "minMs": 7.5,
-      "maxMs": 13.9,
+      "minMs": 6.3,
+      "maxMs": 13.5,
       "minimumResponseCharacters": 870,
       "warmupRequests": 5
     }
@@ -62,9 +62,10 @@
   },
   "outboundFetchAttempts": 0,
   "sourceHashes": {
-    "lib/partner-outreach/application.js": "286f282ac395f80340fb9ba50c637b79a84f0aa4a8d65b54460af2d6ac61556c",
+    "lib/partner-outreach/application.js": "6c4d64f8e7d5af13d373354ef48c3f0432f0015ae7c143d3f172859d09a57e25",
     "lib/partner-outreach/forecasts.js": "4c718571b14dee43d08d5ce14ca7c5b171553949d33d43f9ca4658fb7f6efcd7",
     "lib/partner-outreach/http.js": "ee5ee5d5700b382163c136adb218d1706de9718eab8e0b423aa4f89820832d52",
     "lib/partner-outreach/runtime.js": "ffb0363c971424e466a401abe7a86fca5d0845f97df13ff9eb58328b057aac0e"
-  }
+  },
+  "sourceState": "Materials working tree; sourceHashes identify measured API files; rtk read is preceding committed checkpoint."
 }

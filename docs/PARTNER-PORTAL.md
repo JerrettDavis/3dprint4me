@@ -952,16 +952,44 @@ Run it after other heavy verification jobs finish. It cannot write evidence into
 The [recorded baseline](partner-api-baseline.json), measured on Windows on 2026-10-24,
 contains 100 sequential measured requests after five warmups for each read. Timing
 includes browser fetch, body consumption and JSON parsing; nearest-rank p99 is the
-99th sorted sample. Observed p99: partner gigs **16.9 ms**, earnings **14.9 ms**,
-agreements **14.5 ms**, owner programs **14.5 ms**, and owner forecasts **13.6 ms**.
+99th sorted sample. Observed p99: partner gigs **9.2 ms**, earnings **13.0 ms**,
+agreements **8.8 ms**, owner programs **11.3 ms**, and owner forecasts **12.2 ms**.
 API source hashes bind the evidence to the measured code; the recorded Git head is
-4b289ad, before the owner-only display change, which does not change these API files.
+63dd35e, the preceding committed checkpoint; the explicit source hashes identify the
+materials working-tree API measured in this rerun.
 
 Use **60 ms p99** as an initial local investigation threshold for the same fixture
-and comparable unloaded environment: three times the largest observed p99, rounded
-up to the next 10 ms. Exceeding it calls for investigation and repeat measurement,
+and comparable unloaded environment. This retains the initial baseline threshold
+(three times its 16.9 ms maximum p99, rounded up to the next 10 ms). Exceeding it calls for investigation and repeat measurement,
 not a claim that a production SLA failed. This is not page-render, mobile hardware,
 concurrent load, throughput or production network evidence. Measure those separately
 in same-site staging before treating production performance as verified. Output has
 only synthetic aggregate timings, response sizes and source hashes; no cookies,
 request URLs or response contents are retained.
+
+
+### Supplied and returned materials (O-08)
+
+The owner gig page now exposes material history and an owner-only recording form.
+Add up to 50 distinct labels with positive whole-number counts (at most 10,000 each).
+New supply is available only for accepted/changes-requested work; a return remains
+subject to the server's locked full-history check. Unchanged retries retain their
+command key and a lost committed response cannot create a second material event.
+Recording materials never changes an accepted fee, budget reservation, payable or
+payment, and does not create a repayment obligation for an unconditional personal gift.
+
+The partner gig page shows only that partner's own supplied/returned records, without
+recording controls. Both views escape labels, keep long lists collapsed initially,
+and show the newest 200 events in descending timestamp/ID order. The gig response's
+`materialsHasMore` flag explicitly identifies omitted older history; neither view
+infers a complete inventory balance from the displayed subset. Eligible complete
+personal-data exports remain a separate workflow with their existing bounded limit.
+No database migration, provider integration or new role grant is introduced.
+
+Owner worker release is v25 and partner release is v5, keeping cached modules current.
+
+The protected v5 static Preview is
+https://3dprint4me-partners-2dcdonotk-jerrettdavis-projects.vercel.app .
+All 15 static assets and nine routes match source and configured headers; anonymous
+access redirects to Vercel deployment protection. Owner v25 and the native API are
+built and verified locally, with their production rollout still outstanding.

@@ -1530,3 +1530,81 @@ record the nearest-rank method, exact API source hashes and a derived **60 ms lo
 investigation threshold**. No production/page-render/mobile/concurrent-load claim is
 made. Read-only review found no measurement or privacy blocker. This supports Q-10;
 production performance and remaining operational/product/deployment gates stay open.
+
+
+## Materials workflow (2026-10-24, based on 63dd35e)
+
+Owner gig details now expose actual material events and owner-only supplied/returned
+recording; partner details show their own private history. Existing server command
+locks, validation, immutable events and compensation separation remain unchanged.
+The gig read now selects 201 newest entries, returns 200 and `materialsHasMore`,
+after existing gig authorization. Both views explicitly label partial history and
+collapse long lists instead of claiming a complete inventory balance.
+
+The new contract test failed on the missing partial-history flag; the native browser
+case failed on the absent owner section. Both now pass. The real native journey loses
+a committed issue response, retries exactly with one event, records a return, denies
+a partner command and a foreign read, rejects an excessive return without changes,
+and preserves the full $50 payable and authorization. A second actual PostgreSQL
+journey verifies 201 history entries, newest selection and both visible notices.
+
+Focused contracts: **2 passed**. Final UI/native/installed-worker checks: **13 passed
+in 36.87 seconds**. Initial presentation assertions were corrected to wait for route
+removal and rendered options; runtime behavior did not require a fix. Read-only review
+found no blocker. Owner/partner caches advance to v25/v5. Full PostgreSQL, ordinary
+regression, maintained native browser suite and screenshots are running sequentially
+against frozen source. No deployment result is claimed from these focused checks.
+
+An additional adversarial layout probe found a valid 120-character unbroken label
+expanded the partner page to 1,874 pixels at a 320-pixel viewport. Both new 320/390
+regressions failed before the fix. Component-scoped `overflow-wrap:anywhere` now
+keeps the material history readable; final affected UI/native/worker checks pass
+**15 cases in 43.24 seconds**. Capture uses a maximum-label fixture. These two cases
+were added after the broad browser run collected its tests, so that run's count
+must not be inflated by two. Final current-head hosted CI still needs the full
+updated collection. Backend source is unchanged by this layout correction.
+
+Full ordinary sequence passed: **1,218 unit/contract checks**, **328 browser passes
+plus one existing Windows skip in 571.57 seconds**, and **241/241 UX checks**. The
+separate 15-case final focused set includes the two later wrapping regressions.
+Global native PostgreSQL isolation/concurrency/role/restore check passed in 4.82
+seconds. Owner build verifies **35 exact-source-byte static files**, v25 and the
+new materials module; it remains undeployed. Complete native browser/capture sequence
+is still running. Supplemental review found no new blocker after the wrapping fix.
+
+The complete native suite passed **57 checks in 382.20 seconds**: 56 browser cases
+and one socket check. Screenshot capture is running.
+
+Hosted legal-head run `40128660501` concluded **failure**: native checks passed,
+then 323 ordinary browser tests passed and one initial operator navigation failed
+with `ERR_CONNECTION_REFUSED`; screenshots were skipped and artifacts uploaded.
+Readiness investigation found the general workspace fixture could allocate the same
+free port twice and accept storefront HTML as operator readiness. A deterministic
+same-port regression failed before the fix. The helper now reserves distinct ports
+until launch and checks the operator HTML marker; startup diagnostics are sanitized.
+The new harness regression and exact hosted-failing case both pass locally. This
+proves the fixed harness hazard, not the unobserved cause of that particular hosted
+failure. The final current-head CI remains required. The new workspace harness case
+was collected separately from the 57-case native run; do not label it a browser case.
+
+Final materials capture completed with **153 screenshots plus preview-board.png**.
+Inspected all six new 320-light/390-dark source images and the three exact matching
+rows cropped from the actual preview board, plus changed owner/partner gig detail
+views. Long labels wrap and excessive-return feedback remains visible. Unrelated
+generated screenshot and audit noise was restored. The API image
+`3dprint4me-partner-api:20261024-materials` builds and matches **210 runtime files**;
+imports pass with networking disabled, read-only filesystem, no capabilities and
+no-new-privileges. Its manifest is
+`sha256:e799efb7a9d3458d272c2644e4afc25c520a8493871fac108513037faf50ea2b`.
+The unloaded synthetic timing rerun records p99 **9.2/13.0/8.8/11.3/12.2 ms** for
+gigs/earnings/agreements/programs/forecasts respectively, all below the retained
+60 ms local investigation threshold. Source hashes, rather than the preceding Git
+checkpoint alone, identify the measured API. This is not production load evidence.
+
+Protected partner Preview v5 is deployed at
+https://3dprint4me-partners-2dcdonotk-jerrettdavis-projects.vercel.app .
+Authenticated verification matched all **15 static file bytes**, **nine routes**
+and configured security/cache headers, with no injected toolbar; anonymous access
+redirects (302) to deployment protection. This proves the protected static shell,
+not production API connectivity, same-site cookies, DNS or owner deployment.
+Owner v25 and the native API image above remain built and undeployed.
