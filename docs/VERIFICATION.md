@@ -497,14 +497,38 @@ staging and actual disabled production deployment remain required.
   owner console, counteroffer/referral presentation/customer opt-in and release gates
   remain open.
 
-The production build's dependency audit reported seven high-severity transitive
-findings, traced to Zod and Undici. The current workspace still contains them.
-Official advisories identify Zod 4.6.6 and Undici 6.29.1 as patched versions:
-[Zod](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5),
+### Security dependency refresh (2026-10-24)
+
+The previous image's seven high-severity transitive findings are addressed in the
+workspace with Zod 4.6.6 and Undici 6.29.1 overrides. Vite moves from 8.3.2 to
+8.3.5. Direct provider SDK majors are unchanged. The operator auth browser bundle
+was rebuilt; independent review confirmed an exact in-memory rebuild.
+
+`npm ci` succeeds with the existing npm 10.9.4; both its complete graph audit and
+`npm audit --omit=dev` report zero vulnerabilities. An accidental machine-local
+self dependency introduced during preparation was removed before installation;
+the lock regression guard rejects its return and checks every patched package copy.
+No npm upgrade or peer-dependency bypass is required. Existing provider peer and
+deprecation warnings remain; audit results do not establish production auth behavior.
+
+The platform Docker stages and host preparation now pin Node 22.23.4 by official
+image digest `sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d`.
+This also patches Node's bundled Undici, which a package override does not replace.
+The rebuilt image manifest list is
+`sha256:dd323aa40942c6e6ca7317e2647b800c3cb715ae4515a8b44355993d731403c0`.
+Read-only, network-disabled, capability-free imports passed; the image reports Node
+22.23.4, bundled and installed Undici 6.29.1, and installed Zod 4.6.6.
+Native PostgreSQL isolation/concurrency/restore and all five native partner browser
+tests passed. Full `npm test` passed: 1,162 unit/contract tests, 235 browser tests
+with one existing Windows skip, and 241/241 UX checks. The dependency guard was
+rerun after adding the local-path regression assertion and passed. Independent
+review found no concrete defect. No visible UI behavior changed; screenshots from
+the prior visit increment remain the visual baseline. Generated esbuild output
+contains a whitespace-bearing template literal (also present before this change);
+source diff whitespace checks pass. No deployment has occurred.
+
+Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5),
 [Undici parser](https://github.com/advisories/GHSA-4qv8-2p9j-2685),
-[Undici response stream](https://github.com/advisories/GHSA-xjj6-f33q-929c).
-A private isolated lockfile candidate pins those transitive versions and Vite 8.3.5;
-its install audit reports zero vulnerabilities. It has NOT been applied or runtime-
-verified in the workspace. Apply/review the minimal update and rerun compatibility,
-build and audit checks before any production release. Do not treat this candidate
-as evidence that the current production dependency graph is fixed.
+[Undici response stream](https://github.com/advisories/GHSA-xjj6-f33q-929c),
+[Vite advisory](https://github.com/advisories/GHSA-587h-7wmj-h5pm), and
+[Node security release](https://nodejs.org/en/blog/release/v22.23.4).
