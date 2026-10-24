@@ -26,8 +26,9 @@ def test_installed_operator_upgrade_removes_legacy_cached_assets() -> None:
             }""")
             page.wait_for_function("() => Boolean(navigator.serviceWorker.controller)")
             page.wait_for_function("async () => !(await caches.keys()).includes('operator-shell-v10') && !(await caches.match('/obsolete-v10.js'))")
-            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v21')")
+            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v22')")
             assert page.evaluate("async () => !(await caches.match('/obsolete-v10.js'))")
+            assert page.evaluate("async () => !!(await caches.match('/assets/partner-owner-forecasts.js'))")
             # An ordinary reopen uses the new shell without clearing application storage.
             page.reload(wait_until="networkidle")
             page.locator("#workspace:not([hidden])").wait_for()

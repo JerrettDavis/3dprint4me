@@ -1251,3 +1251,62 @@ and entered screenshot generation; the gig head's run remains separate live evid
 
 Final focused rerun with the added audit-count assertion: **6 passed in 50.40 seconds**.
 The rejected request leaves audit rows unchanged as well as contacts, consent and outbox.
+
+
+## Owner spend forecasts (2026-10-24, based on ae15990)
+
+O-18 now has deterministic upper-bound program/week projections and an owner view.
+Initial unit import and application resource checks failed before implementation;
+six projection cases plus application contract then passed. Owner client whitelist
+and v22 operator upgrade/cache tests also failed before their changes. The final
+focused unit/contract/client set has 15 passes, including review-requested historical
+overpayment behavior. Read-only review found no material correctness/privacy/locking
+blocker. Two new mobile presentation cases plus all operator PWA cases pass: ten
+in 23.18 seconds. The headline now leads with total/verified/remaining figures and
+puts the explanation in accessible native details.
+
+The initial native run exposed two harness assumptions: advancing seven days expires
+the partner session, so the test must sign in again; immutable reservation updates
+are correctly denied even in the disposable database. The final corruption check uses
+a deliberately inconsistent mutable week counter instead. Final focused native/UI:
+four passes in 20.01 seconds. Actual backend-role reads exercise shared program locks;
+partial payment/reversal, earned-versus-contingent bonus, cap reduction, acknowledged
+additional debt and two original authorization weeks retain correct projections.
+A trusted-Origin owner endpoint rejects a real partner cookie, with owner positive
+controls. Inconsistent evidence returns only the generic HTTP 503 message.
+
+Application/test source is frozen for the combined native command, full regression
+and 139-image capture. No native/owner deployment is claimed from these local checks.
+
+Final combined native suite: **44 passed in 341.45 seconds**. Capture completed with
+139 images including the board. Full 390-dark/320-light forecast images and their
+exact preview-board row were inspected. Frozen full regression passed all **1,204
+unit/contract tests**; its browser phase reported a pumpkin IndexedDB-download case
+failure. That exact case passed an isolated diagnostic in 2.86 seconds while the
+full run continued. The full failure details and remaining run are still being checked;
+no full-regression success is claimed from this partial result.
+
+Built `3dprint4me-partner-api:20261024-spend-forecasts`, image inspection ID
+`sha256:846dd8c9a8b6a14e5de19d181d276afaf0d056d90bbf355967df7ac3f4074c25`,
+platform manifest `sha256:53aa3cb6e78a5d9f84ee9dec56da4daf4fe3822ead0776fe83bf350c0ef1ab9d`.
+Restricted import verification passes with network none, read-only filesystem, all
+capabilities dropped and no-new-privileges. **All 209 copied runtime files** match
+host SHA-256, including application and forecast code. The private proof retains the
+full manifest. The image is built and remains undeployed; owner UI is also undeployed.
+
+The first full browser phase finished with 311 passes, one Windows skip and the
+pumpkin download timeout. Inspection found the shared edit helper could accept a
+substring in an older draft and an older ready state while debounce was pending.
+It now checks exact draft field values and waits for settled rendering. All six
+fallback cases pass in 5.84 seconds; read-only review found no issue with this
+test-only synchronization change. A serial full regression is running; its 1,204
+unit/contract tests pass. No production customizer behavior changed.
+
+Final serial full regression passes: **1,204 unit/contract tests**, **312 browser
+tests plus one existing Windows skip in 493.41 seconds**, and **241/241 UX checks**.
+The owner build passes: all **33 static output files** exactly match their source,
+including the forecast module and operator shell v22. Unrelated generated screenshot
+noise was restored; changed owner-partner navigation views, two forecast views and
+the inspected preview board are retained. This is local build evidence, not upload.
+Hosted run `40112580004` on the preceding `ae15990` head is completed/success; it
+does not attest to this forecast increment.
