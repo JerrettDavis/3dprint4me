@@ -407,3 +407,24 @@ There is no new portal/storefront UI in this increment. Encrypted offline sharin
 complete owner/partner UI, bonus/referral and opt-in customer attribution logic,
 all nine real-browser partner acceptance features, full operational recovery,
 staging and actual disabled production deployment remain required.
+
+
+### Partner reserved referral bonuses — 2026-10-24
+
+- Full `npm test`: 1,152 unit/contract tests passed; existing browser regression
+  suite 224 passed, one Linux fresh-host test skipped on Windows; UX 241/241.
+  This run predates the new partner shell/client fixtures and does not claim their
+  complete native browser acceptance coverage.
+- Focused referral/profile contracts passed. A new regression first reproduced the
+  stale participant identity sale bypass, then passed after frozen identity evidence
+  and verification/award rechecks. An independent reviewer confirmed both that fix
+  and explicit export-volume failure behavior.
+- Native PostgreSQL 18 permission/concurrency/restore test passed, including concurrent
+  same-source award replay, immutable bonus/code evidence and restored policy/claim
+  checks. Accepted promises survive reduced campaign bonuses, cap cuts, pause/sunset;
+  contact erasure does not erase prior qualification evidence.
+- Production Docker build passed (manifest list
+  `sha256:fe6cc2b1f4c770ced1ad09154448f13d333b5380075b86cc23e3148c11f966e3`).
+  Read-only, no-network, all-capabilities-dropped production import/bonus validation
+  smoke passed. No production migration, provider payment, invitation, staging or
+  disabled deployment is asserted by this local evidence.

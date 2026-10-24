@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS partner_leads (
  contact_data jsonb NOT NULL CHECK(jsonb_typeof(contact_data)='object'), contact_key text NOT NULL,
  consent_text text NOT NULL CHECK(length(trim(consent_text))>0), purpose text NOT NULL CHECK(length(trim(purpose))>0),
  consent_at timestamptz NOT NULL, withdrawn_at timestamptz, deleted_at timestamptz,
+ UNIQUE(id,partner_id),
  status text NOT NULL DEFAULT 'needs_review' CHECK(status IN ('needs_review','qualified','rejected','withdrawn','deleted')),
  revision integer NOT NULL DEFAULT 1 CHECK(revision>0), created_at timestamptz NOT NULL DEFAULT now(),
  FOREIGN KEY(visit_id,partner_id) REFERENCES partner_visits(id,partner_id)
@@ -107,19 +108,49 @@ CREATE TABLE IF NOT EXISTS partner_consent_events (
  id uuid PRIMARY KEY, lead_id uuid NOT NULL REFERENCES partner_leads(id), actor_id text NOT NULL,
  event_type text NOT NULL CHECK(event_type IN ('granted','withdrawn','corrected','deleted')), evidence jsonb NOT NULL DEFAULT '{}', created_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS partner_lead_qualifications (
+ id uuid PRIMARY KEY, lead_id uuid NOT NULL UNIQUE, partner_id uuid NOT NULL,
+ program_id uuid NOT NULL REFERENCES partner_programs(id), gig_id uuid NOT NULL,
+ identity_keys jsonb NOT NULL CHECK(jsonb_typeof(identity_keys)='array'),
+ evidence jsonb NOT NULL CHECK(jsonb_typeof(evidence)='object'), qualified_at timestamptz NOT NULL,
+ verified_by text NOT NULL, UNIQUE(id,partner_id),
+ FOREIGN KEY(lead_id,partner_id) REFERENCES partner_leads(id,partner_id),
+ FOREIGN KEY(gig_id,partner_id) REFERENCES partner_gigs(id,partner_id)
+);
 CREATE TABLE IF NOT EXISTS partner_referrals (
- id uuid PRIMARY KEY, partner_id uuid NOT NULL REFERENCES partner_accounts(id), code text NOT NULL UNIQUE,
- originating_gig_id uuid, policy_snapshot jsonb NOT NULL CHECK(jsonb_typeof(policy_snapshot)='object'), created_at timestamptz NOT NULL DEFAULT now(),
+ id uuid PRIMARY KEY, partner_id uuid NOT NULL REFERENCES partner_accounts(id), program_id uuid NOT NULL REFERENCES partner_programs(id), code text NOT NULL UNIQUE CHECK(code ~ '^[A-Za-z0-9_-]{16}$'),
+ originating_gig_id uuid NOT NULL UNIQUE, policy_sha256 text NOT NULL CHECK(policy_sha256 ~ '^[a-f0-9]{64}$'), policy_snapshot jsonb NOT NULL CHECK(jsonb_typeof(policy_snapshot)='object'), created_at timestamptz NOT NULL DEFAULT now(),
  FOREIGN KEY(originating_gig_id,partner_id) REFERENCES partner_gigs(id,partner_id), UNIQUE(id,partner_id)
+);
+CREATE TABLE IF NOT EXISTS partner_referral_attributions (
+ id uuid PRIMARY KEY, referral_id uuid NOT NULL REFERENCES partner_referrals(id),
+ request_id text NOT NULL UNIQUE REFERENCES service_requests(id),
+ identity_keys jsonb NOT NULL CHECK(jsonb_typeof(identity_keys)='array'),
+ consented_at timestamptz NOT NULL, evidence_reference text NOT NULL,
+ recorded_by text NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS partner_sale_evidence (
+ id uuid PRIMARY KEY, attribution_id uuid NOT NULL REFERENCES partner_referral_attributions(id),
+ identity_keys jsonb NOT NULL CHECK(jsonb_typeof(identity_keys)='array'),
+ request_id text NOT NULL REFERENCES service_requests(id), amount_cents integer NOT NULL CHECK(amount_cents>0),
+ payment_reference text NOT NULL, proof_key text NOT NULL UNIQUE,
+ payment_method text NOT NULL, settled_at timestamptz NOT NULL,
+ verified_by text NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS partner_referral_events (
  id uuid PRIMARY KEY, referral_id uuid NOT NULL, partner_id uuid NOT NULL,
- source_event_id text NOT NULL, event_type text NOT NULL CHECK(event_type IN ('consented_lead','verified_sale','rejected')),
+ rule_id text NOT NULL, source_event_id text NOT NULL, event_type text NOT NULL CHECK(event_type IN ('consented_lead','verified_sale','rejected')),
  bonus_policy_version text NOT NULL, amount_cents integer NOT NULL DEFAULT 0 CHECK(amount_cents BETWEEN 0 AND 40000),
  verified_by text NOT NULL, verified_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE(referral_id,source_event_id,event_type,bonus_policy_version), UNIQUE(id,partner_id),
  FOREIGN KEY(referral_id,partner_id) REFERENCES partner_referrals(id,partner_id)
 );
+CREATE TABLE IF NOT EXISTS partner_bonus_claims (
+ source_kind text NOT NULL, source_key text NOT NULL, event_id uuid NOT NULL REFERENCES partner_referral_events(id),
+ PRIMARY KEY(source_kind,source_key)
+);
+CREATE INDEX IF NOT EXISTS partner_bonus_claims_event ON partner_bonus_claims(event_id);
+CREATE INDEX IF NOT EXISTS partner_referral_events_rule ON partner_referral_events(referral_id,rule_id);
 CREATE TABLE IF NOT EXISTS partner_payables (
  id uuid PRIMARY KEY, partner_id uuid NOT NULL REFERENCES partner_accounts(id), gig_id uuid, referral_event_id uuid,
  amount_cents integer NOT NULL CHECK(amount_cents>=0), currency text NOT NULL DEFAULT 'USD' CHECK(currency='USD'),
@@ -268,8 +299,8 @@ $$;
 DO $$
 DECLARE table_name text; immutable boolean;
 BEGIN
- FOREACH table_name IN ARRAY ARRAY['partner_programs','partner_accounts','partner_invites','partner_sessions','partner_rate_limits','partner_program_weeks','partner_campaigns','partner_gigs','partner_budget_reservations','partner_negotiations','partner_visits','partner_leads','partner_consent_events','partner_referrals','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_documents','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_review_artifacts','partner_review_attachments','partner_agreement_issues','partner_agreement_acknowledgments','partner_activity_sessions','partner_command_keys','partner_audit_events','partner_outbox','partner_export_batches','partner_work_events','partner_payable_adjustments','partner_export_entries','partner_export_payloads'] LOOP
-  immutable := table_name=ANY(ARRAY['partner_budget_reservations','partner_negotiations','partner_consent_events','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_review_artifacts','partner_review_attachments','partner_agreement_issues','partner_agreement_acknowledgments','partner_audit_events','partner_export_batches','partner_work_events','partner_payable_adjustments','partner_export_entries']);
+ FOREACH table_name IN ARRAY ARRAY['partner_programs','partner_accounts','partner_invites','partner_sessions','partner_rate_limits','partner_program_weeks','partner_campaigns','partner_gigs','partner_budget_reservations','partner_negotiations','partner_visits','partner_leads','partner_consent_events','partner_lead_qualifications','partner_referrals','partner_referral_attributions','partner_sale_evidence','partner_referral_events','partner_bonus_claims','partner_payables','partner_payment_events','partner_material_events','partner_legal_documents','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_review_artifacts','partner_review_attachments','partner_agreement_issues','partner_agreement_acknowledgments','partner_activity_sessions','partner_command_keys','partner_audit_events','partner_outbox','partner_export_batches','partner_work_events','partner_payable_adjustments','partner_export_entries','partner_export_payloads'] LOOP
+  immutable := table_name=ANY(ARRAY['partner_budget_reservations','partner_negotiations','partner_consent_events','partner_lead_qualifications','partner_referrals','partner_referral_attributions','partner_sale_evidence','partner_referral_events','partner_bonus_claims','partner_payables','partner_payment_events','partner_material_events','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_review_artifacts','partner_review_attachments','partner_agreement_issues','partner_agreement_acknowledgments','partner_audit_events','partner_export_batches','partner_work_events','partner_payable_adjustments','partner_export_entries']);
   EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY',table_name);
   EXECUTE format('REVOKE ALL ON %I FROM PUBLIC',table_name);
   IF immutable THEN

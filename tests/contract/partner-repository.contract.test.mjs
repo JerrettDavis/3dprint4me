@@ -15,13 +15,14 @@ function adapter(db) {
 test('command receipt, reservation, gig, audit and outbox commit once or roll back together', async () => {
  const db = new PGlite();
  try {
+  for(const s of splitStatements(await readFile(new URL('../../neon/migrations/001_service_requests.sql',import.meta.url),'utf8')))await db.query(s);
   for(const s of splitStatements(await readFile(new URL('../../neon/migrations/012_partner_outreach.sql',import.meta.url),'utf8'))) await db.query(s);
   const database = adapter(db), repo = createPostgresPartnerRepository({database});
   const programId=uuid(), partnerId=uuid(), campaignId=uuid(), gigId=uuid();
   await database.query`INSERT INTO partner_programs(id,label,starts_on,enabled,synthetic) VALUES(${programId},'Synthetic','2026-10-01',true,true)`;
   await database.query`INSERT INTO partner_accounts(id,program_id,display_name,status) VALUES(${partnerId},${programId},'Synthetic','active')`;
   await database.query`INSERT INTO partner_campaigns(id,program_id,title,terms,status) VALUES(${campaignId},${programId},'Visits','{}','published')`;
-  const terms={title:'Visits',feeCents:15000,maximumBonusCents:1000,tasks:['Visits'],materials:[],area:'Tulsa',deadline:'2026-12-01'};
+  const terms={title:'Visits',feeCents:15000,maximumBonusCents:1000,bonusRules:[{id:'qualified-lead',trigger:'qualified_lead',amountCents:1000,maximumAwards:1,criteria:'Unique consented qualified project introduction.',qualifiesBy:'2026-12-31'}],tasks:['Visits'],materials:[],area:'Tulsa',deadline:'2026-12-01'};
   await database.query`INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,terms_snapshot,status) VALUES(${gigId},${programId},${partnerId},${campaignId},${JSON.stringify(terms)}::jsonb,'offered')`;
   const otherPartnerId=uuid();
   await database.query`INSERT INTO partner_accounts(id,program_id,display_name,status) VALUES(${otherPartnerId},${programId},'Other synthetic','active')`;

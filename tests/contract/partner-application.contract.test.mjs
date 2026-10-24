@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { partnerFixture,ACTIVE_ENV,TEST_NOW } from '../support/partner-fixture.mjs';
 import { createPartnerApplication } from '../../lib/partner-outreach/application.js';
 import { createPartnerApprovals } from '../../lib/partner-outreach/approvals.js';
-const terms={title:'Business introductions',feeCents:5000,maximumBonusCents:1000,tasks:['Ten permitted business visits'],materials:['Samples'],area:'Tulsa',deadline:'2026-12-01'};
+const terms={title:'Business introductions',feeCents:5000,maximumBonusCents:1000,bonusRules:[{id:'qualified-lead',trigger:'qualified_lead',amountCents:1000,maximumAwards:1,criteria:'Unique consented qualified project introduction.',qualifiesBy:'2026-12-31'}],tasks:['Ten permitted business visits'],materials:['Samples'],area:'Tulsa',deadline:'2026-12-01'};
 
 test('launch needs exact published reviews and independent environment flags',async()=>{
  const f=await partnerFixture();

@@ -326,3 +326,35 @@ PostgreSQL/HTTP tests exercise a DOCX larger than the old 256 KiB JSON limit, ov
 rejection, restricted-role immutability and restore hash verification. A synthetic
 LibreOffice open/save fixture preserves a comment and both tracked changes and is
 covered by regression tests. This is not a Microsoft Word runtime test.
+
+## Reserved referral bonuses
+
+Accepted offers with bonuses require explicit rules whose award counts and amounts
+exactly equal the reserved maximum. Each rule freezes its criteria, Central-time
+qualification deadline and, for sales, refund treatment. Acceptance issues an opaque
+code and immutable policy hash. A later campaign revision cannot reduce that promise.
+No award is inferred from a quote, a checkout return URL or referral attribution.
+
+Owner-only commands record opt-in evidence against an actual customer request,
+independently verified full settlement and a separately reviewed award. These manual
+attestations are the current fallback; public customer opt-in intake and browser flows
+remain unfinished. Settlement references must be unique, qualified external receipt
+identifiers; normalized case-insensitive reuse is denied across payment methods.
+These commands do not contact payment providers or establish external payment truth.
+
+Consented lead qualifications retain hashed identity evidence, source consent IDs,
+qualification time and participant-match results without retaining a second raw
+contact copy. Attribution and settlement likewise freeze hashed customer identities.
+Sale verification and award recheck both frozen and current request identities against
+participant profiles; owner assertions cannot override a detected match. Collusion and
+identities never supplied to the system still require owner investigation. Hashes are
+pseudonymous evidence, not anonymous data; source-evidence retention remains subject
+to the outstanding operational retention review.
+
+Global source claims prevent repeated identity, request and settlement awards. Account,
+program and gig locks serialize accepted maxima and event/payable creation. Awards
+qualified within the accepted period remain payable after pause, cap reduction or
+sunset. Earnings distinguish earned bonuses from the remaining contingent maximum.
+Scoped referral reads expose codes, accepted criteria and awards, excluding customer
+identities and bank evidence. Excessive export volume fails explicitly rather than
+silently truncating records. No public customer referral integration is claimed complete.
