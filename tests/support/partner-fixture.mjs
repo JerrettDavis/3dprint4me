@@ -7,7 +7,8 @@ export const TEST_NOW='2026-10-23T12:00:00.000Z';
 export const ACTIVE_ENV={PARTNER_PROGRAM_ENABLED:'1',PARTNER_CLASSIFICATION_APPROVED:'1',PARTNER_ACCOUNTING_APPROVED:'1'};
 export async function partnerFixture({reviewed=true,acknowledged=true,issuable=true}={}) {
  const db=new PGlite();
- for(const s of splitStatements(await readFile(new URL('../../neon/migrations/012_partner_outreach.sql',import.meta.url),'utf8')))await db.query(s);
+ for(const s of splitStatements(await readFile(new URL('../../neon/migrations/001_service_requests.sql',import.meta.url),'utf8')))await db.query(s);
+  for(const s of splitStatements(await readFile(new URL('../../neon/migrations/012_partner_outreach.sql',import.meta.url),'utf8')))await db.query(s);
  const query=target=>async(strings,...values)=>(await target.query(strings.reduce((s,p,i)=>s+(i?'$'+i:'')+p,''),values)).rows;
  const database={query:query(db),withTransaction:fn=>db.transaction(tx=>fn({query:query(tx)}))};
  const programId=randomUUID(),partnerId=randomUUID(),otherPartnerId=randomUUID(),documentId=randomUUID(),versionId=randomUUID(),sessionId=randomUUID();

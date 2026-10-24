@@ -26,6 +26,7 @@ test('password hashing uses salted scrypt and bounded passphrases',async()=>{
 test('one-use enrollment, independent login, CSRF, recovery, revocation and disabled gates',async()=>{
  const db=new PGlite();
  try{
+  for(const s of splitStatements(await readFile(new URL('../../neon/migrations/001_service_requests.sql',import.meta.url),'utf8')))await db.query(s);
   for(const s of splitStatements(await readFile(new URL('../../neon/migrations/012_partner_outreach.sql',import.meta.url),'utf8')))await db.query(s);
   const database=adapter(db),programId=randomUUID(),partnerId=randomUUID(),owner={role:'OWNER',id:'verified-owner'};
   await database.query`INSERT INTO partner_programs(id,label,starts_on) VALUES(${programId},'Synthetic','2026-10-01')`;

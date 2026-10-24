@@ -42,7 +42,7 @@ test('unsafe termination and disputes retain original accepted fee and authoriza
 });
 
 test('offer snapshots reject unknown values and cannot be changed through source references', () => {
-  const input = { title: 'Introductions', feeCents: 5000, maximumBonusCents: 1000, tasks: ['Ten permitted business visits'], materials: ['Samples'], area: 'Tulsa', deadline: '2026-12-01' };
+  const input = { title: 'Introductions', feeCents: 5000, maximumBonusCents: 1000, bonusRules:[{id:'qualified-lead',trigger:'qualified_lead',amountCents:1000,maximumAwards:1,criteria:'Unique consented qualified project introduction.',qualifiesBy:'2026-12-31'}], tasks: ['Ten permitted business visits'], materials: ['Samples'], area: 'Tulsa', deadline: '2026-12-01' };
   const offer = freezeOffer(input);
   input.tasks[0] = 'Changed';
   assert.equal(offer.tasks[0], 'Ten permitted business visits');
@@ -50,4 +50,14 @@ test('offer snapshots reject unknown values and cannot be changed through source
   assert.throws(() => freezeOffer({ ...input, personalGiftCents: 20000 }));
   assert.throws(() => freezeOffer({ ...input, feeCents: '5000' }));
   assert.throws(() => freezeOffer({ ...input, tasks: [] }));
+});
+test('promised bonuses require explicit bounded frozen rules matching the complete reserved maximum',()=>{
+ const base={title:'Visits',feeCents:5000,maximumBonusCents:1000,tasks:['Permitted introductions'],materials:[],area:'Tulsa',deadline:'2026-12-01'};
+ assert.throws(()=>freezeOffer(base));
+ const rule={id:'qualified-introduction',trigger:'qualified_lead',amountCents:500,maximumAwards:2,criteria:'Consented unique project inquiry, independently reviewed; no sale required.',qualifiesBy:'2026-12-31'};
+ const offer=freezeOffer({...base,bonusRules:[rule]});rule.amountCents=1;
+ assert.equal(offer.bonusRules[0].amountCents,500);assert.ok(Object.isFrozen(offer.bonusRules[0]));
+ assert.throws(()=>freezeOffer({...base,bonusRules:[{...rule,amountCents:500,maximumAwards:3}]}));
+ assert.throws(()=>freezeOffer({...base,bonusRules:[{...rule,amountCents:500,trigger:'quote_requested'}]}));
+ assert.throws(()=>freezeOffer({...base,bonusRules:[{...rule,amountCents:500,trigger:'verified_sale'}]}));
 });

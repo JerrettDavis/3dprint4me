@@ -14,6 +14,7 @@ test('partner migration is repeatable, private, ownership-linked and preserves f
   const db = new PGlite();
   try {
     await db.exec('CREATE ROLE platform_backend NOLOGIN; CREATE ROLE partner_visitor NOLOGIN');
+    for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/001_service_requests.sql',import.meta.url),'utf8')))await db.query(statement);
     const sql = await readFile(new URL('../../neon/migrations/012_partner_outreach.sql', import.meta.url), 'utf8');
     for (let n = 0; n < 2; n++) for (const statement of splitStatements(sql)) await db.query(statement);
     await db.query('INSERT INTO partner_programs(id,label,starts_on) VALUES ($1,$2,$3)', [program,'Synthetic','2026-10-01']);

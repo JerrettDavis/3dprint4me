@@ -183,3 +183,14 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
   feedback metadata with indexed lookup; historical originals stay owner accessible.
 - Encrypted offline sharing, complete legal editor UI, referral/bonus logic, partner
   PWA, all browser BDD/release gates and actual disabled production remain unfinished.
+
+- Referral increment: accepted offers now freeze bounded explicit lead/sale bonus rules
+  matching the full reserved maximum and issue opaque policy-bound codes. Owner-only
+  opt-in attribution, independently verified settlement and award are separate actions.
+  Immutable qualification/attribution/settlement identity evidence and global source
+  claims prevent detected self-referrals and repeated identity/request/payment awards.
+- Regression review reproduced and fixed stale participant checks in the sale path:
+  verification and award now check frozen identities plus current request contacts.
+  Earned amounts leave contingent forecasts; accepted obligations survive changed
+  campaigns, pause/cap reduction and sunset. Native concurrent award/restore passed.
+  Public customer opt-in, referral UI and browser BDD remain unfinished.

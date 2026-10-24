@@ -28,8 +28,8 @@ The source packet stays private and the real professional approval gates stay of
   covers business visits, permission for materials, specific contact consent,
   duplicate contacts, owner qualification, correction/renewed consent, withdrawal
   and deletion. `partner-materials.contract.test.mjs` covers issued/returned
-  supplies without pay deductions. Referral qualification evidence surviving later
-  contact changes, lead retention operations and browser forms remain pending.
+  supplies without pay deductions. Immutable qualification evidence survives contact changes; referral contracts cover
+  subsequent bonus use. Lead retention operations and browser forms remain pending.
 - **optional-activity.feature**: outreach/profile contract tests cover independent
   optional timer start/pause/resume/stop/delete, ownership and data export. Timers
   do not gate fees or acceptance. Browser offline drafts, accessible controls and
@@ -54,10 +54,14 @@ The source packet stays private and the real professional approval gates stay of
   fixture cover that boundary. Bounded simple table rendering is implemented and its three-page worksheet was
   rendered/inspected. Encrypted offline sharing, editorial UI and actual professional
   review remain pending.
-- **referral.feature**: schema placeholders exist, but referral codes, customer
-  opt-in attribution, independently verified paid-sale conversion, immutable bonus
-  rules/awards and global source uniqueness are not implemented. No referral
-  acceptance scenario is marked covered by generic ledger or checkout tests.
+- **referral.feature**: `partner-referrals.contract.test.mjs` covers opaque codes,
+  immutable accepted bonus criteria and exact reserved maxima, consent-attested
+  attribution to real requests, independently owner-verified settlements, participant
+  identity checks at attribution/verification/award, global identity/request/payment
+  uniqueness and atomic earned payables. Qualification evidence survives contact
+  erasure; accepted promises survive reduced caps, pause and sunset. Native PostgreSQL
+  covers concurrent award replay, restricted-role immutability and restore. Public
+  customer opt-in intake, referral UI and complete browser scenarios remain pending.
 - **owner-control.feature**: application/auth/HTTP/native contract tests cover
   owner-only commands, real GitHub owner identity, revocation, kill switches,
   payable preservation and reconciliation after pause/sunset. Existing operator
