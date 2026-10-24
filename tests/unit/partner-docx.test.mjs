@@ -16,3 +16,15 @@ test('review DOCX bounds source and rejects invalid provenance',()=>{
  assert.throws(()=>createReviewDocx({markdown:'x',sourceHash:'bad'}));
  assert.throws(()=>createReviewDocx({markdown:'x'.repeat(200001),sourceHash:'a'.repeat(64)}));
 });
+test('simple review tables have repeated headers, padded cells and escaped editable content',()=>{
+ const files=unzipSync(createReviewDocx({markdown:'# Review worksheet\n\n| Clause | Question |\n| --- | --- |\n| IMS-04 | Fee & timing |\n| IMS-05 | Cancellation |',sourceHash:'a'.repeat(64)}));
+ const xml=strFromU8(files['word/document.xml']);
+ assert.match(xml,/<w:tbl>/);assert.match(xml,/<w:tblHeader\/>/);assert.match(xml,/<w:tcMar>/);assert.match(xml,/Fee &amp; timing/);
+ assert.equal((xml.match(/<w:tr>/g)??[]).length,3);
+});
+test('table dimensions fail with an actionable client error',()=>{
+ for(const markdown of ['A | B\n--- | ---\nOnly one cell | two | three',Array.from({length:7},(_,i)=>`Header ${i}`).join('|')+'\n'+Array(7).fill('---').join('|')])assert.throws(()=>createReviewDocx({markdown,sourceHash:'a'.repeat(64)}),{status:400});
+});
+test('the maximum canonical legal source including its final newline remains exportable',()=>{
+ assert.ok(createReviewDocx({markdown:'x'.repeat(200000)+'\n',sourceHash:'a'.repeat(64)}).length);
+});

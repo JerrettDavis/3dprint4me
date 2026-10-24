@@ -1,14 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { randomUUID,generateKeyPairSync } from 'node:crypto';
+import { randomUUID,generateKeyPairSync,randomBytes } from 'node:crypto';
+import { once } from 'node:events';
+import { zipSync,unzipSync,strToU8 } from 'fflate';
+import { createPlatformServer } from '../../lib/platform/api-server.js';
 import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import pg from 'pg';
 import { createPartnerApplication } from '../../lib/partner-outreach/application.js';
-import { createOwnerAuthorizer } from '../../lib/partner-outreach/http.js';
+import { createOwnerAuthorizer,createPartnerHandlers } from '../../lib/partner-outreach/http.js';
 import { purgeExpiredPartnerExports } from '../../lib/partner-outreach/export-retention.js';
 import { storedLegalVersion,renderLegalVersion } from '../../lib/partner-outreach/legal-content.js';
-import { digest } from '../../lib/partner-outreach/postgres-repository.js';
+import { digest,canonicalJson } from '../../lib/partner-outreach/postgres-repository.js';
+import { createReviewDocx } from '../../lib/partner-outreach/docx.js';
 import { splitStatements,MIGRATIONS } from '../../scripts/migrate-neon.mjs';
 import { createNativeDatabase, nativePoolOptions } from '../../lib/database.js';
 import { createPostgresPartnerRepository } from '../../lib/partner-outreach/postgres-repository.js';
@@ -18,7 +22,7 @@ const docker=(...args)=>execFileSync('docker',args,{encoding:'utf8',timeout:9000
 
 test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and additive restore', {timeout:120000}, async()=>{
  const name='3dprint4me-partner-test-'+randomUUID().slice(0,8);
- let admin, database, started=false;
+ let admin, database, server, started=false;
  try {
   docker('run','--detach','--rm','--name',name,'--label','3dprint4me.purpose=partner-integration','--publish','127.0.0.1::5432','--env','POSTGRES_HOST_AUTH_METHOD=trust',IMAGE);
   started=true;
@@ -142,6 +146,25 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   const packageDownload=await app.read(ownerSession.actor,'review-package',{id:artifact.id});
   assert.equal(digest(Buffer.from(packageDownload.data,'base64')),artifact.sha256);
   await assert.rejects(database.query`UPDATE partner_review_artifacts SET filename='review-changed.zip' WHERE package_id=${artifact.id}`);
+  const returnedDocx=createReviewDocx({markdown:'# Returned synthetic feedback\nUntracked suggestion only.',sourceHash:legal.hash});
+  const returnedParts=unzipSync(returnedDocx);
+  returnedParts['docProps/custom.xml']=strToU8('<Properties>'+randomBytes(260000).toString('base64')+'</Properties>');
+  const httpAttachment=zipSync(returnedParts);
+  const importInput={programId,packageId:artifact.id,versionId:legal.versionId,sourceHash:legal.hash,reviewerName:'Native synthetic counsel',reviewerRole:'attorney',reviewerIdentityConfirmed:true,data:Buffer.from(httpAttachment).toString('base64')};
+  assert.ok(importInput.data.length>262144&&httpAttachment.length<524288);
+  const handlers=createPartnerHandlers({getRuntime:()=>({database,app}),env:ownerEnv,now:()=>new Date('2026-10-23T12:00Z')});
+  server=createPlatformServer({routes:handlers.routes,directPaths:handlers.directPaths,env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');
+  const apiOrigin='http://127.0.0.1:'+server.address().port,ownerHeaders={Origin:'https://work.3dprint4.me',Cookie:'__Host-3dp-session='+ownerToken};
+  const ownerResponse=await fetch(apiOrigin+'/api/operator-partners?resource=session',{headers:ownerHeaders});assert.equal(ownerResponse.status,200);
+  const ownerCsrf=(await ownerResponse.json()).csrfToken;
+  const importedResponse=await fetch(apiOrigin+'/api/operator-partners',{method:'POST',headers:{...ownerHeaders,'Content-Type':'application/json','X-CSRF-Token':ownerCsrf},body:JSON.stringify({action:'legal.import_feedback',input:importInput,key:randomUUID()})});
+  assert.equal(importedResponse.status,200);assert.equal(importedResponse.headers.get('cache-control'),'no-store');
+  const imported=await importedResponse.json();
+  const oversizedResponse=await fetch(apiOrigin+'/api/operator-partners',{method:'POST',headers:{...ownerHeaders,'Content-Type':'application/json','X-CSRF-Token':ownerCsrf},body:JSON.stringify({action:'legal.import_feedback',input:{...importInput,data:'A'.repeat(800000)},key:randomUUID()})});
+  assert.equal(oversizedResponse.status,413);
+
+  assert.equal((await app.read(ownerSession.actor,'review-feedback',{id:imported.id})).sha256,digest(httpAttachment));
+  await assert.rejects(database.query`UPDATE partner_review_attachments SET sha256=${'b'.repeat(64)} WHERE id=${imported.id}`);
   const expectedCommands=(await admin.query('SELECT count(*)::int AS n FROM partner_command_keys')).rows[0].n;
   await admin.query('CREATE DATABASE partner_restore');
   // Only this synthetic disposable container is touched. Stream the dump as
@@ -162,6 +185,9 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
    assert.equal((await restored.query('SELECT snapshot_sha256 FROM partner_agreement_issues WHERE id=$1',[issue.id])).rows[0].snapshot_sha256,issue.snapshotHash);
    assert.equal((await restored.query('SELECT snapshot_sha256 FROM partner_agreement_acknowledgments WHERE issue_id=$1',[issue.id])).rows[0].snapshot_sha256,issue.snapshotHash);
    assert.equal(digest((await restored.query('SELECT bytes FROM partner_review_artifacts WHERE package_id=$1',[artifact.id])).rows[0].bytes),artifact.sha256);
+   const restoredAttachment=(await restored.query('SELECT * FROM partner_review_attachments WHERE id=$1',[imported.id])).rows[0];
+   assert.equal(digest(restoredAttachment.bytes),imported.sha256);
+   assert.equal(digest(canonicalJson(restoredAttachment.evidence)),restoredAttachment.evidence_sha256);
    const restoredVersion=(await restored.query('SELECT * FROM partner_legal_versions WHERE id=$1',[legal.versionId])).rows[0];
    assert.equal(storedLegalVersion(restoredVersion).hash,legal.hash);
    const restoredIssue=(await restored.query('SELECT * FROM partner_agreement_issues WHERE id=$1',[issue.id])).rows[0];
@@ -169,6 +195,7 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
    assert.equal((await restored.query('SELECT count(*)::int AS n FROM partner_legal_reviews WHERE package_id=$1',[reviewPackage])).rows[0].n,4);
   }finally{await restored.end();}
  }finally{
+  server?.closeAllConnections();await new Promise(resolve=>server?server.close(resolve):resolve());
   await database?.close();await admin?.end();
   // Fixed prefix, fresh UUID and ownership label prevent touching other stacks.
   const owned=started?JSON.parse(docker('inspect',name))[0]:null;

@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID,generateKeyPairSync } from 'node:crypto';
+import { createPartnerApplication } from '../../lib/partner-outreach/application.js';
+import { createReviewDocx } from '../../lib/partner-outreach/docx.js';
+import { digest } from '../../lib/partner-outreach/postgres-repository.js';
+import { partnerFixture,ACTIVE_ENV,TEST_NOW } from '../support/partner-fixture.mjs';
+test('feedback import binds reviewer/package/version, preserves original privately, and never changes or approves source',async()=>{
+ const f=await partnerFixture({reviewed:false});
+ try{
+  let instant=new Date(TEST_NOW);
+  const env={...ACTIVE_ENV,PARTNER_REVIEW_SIGNING_PRIVATE_KEY:generateKeyPairSync('ed25519').privateKey.export({type:'pkcs8',format:'pem'})};
+  const app=createPartnerApplication({database:f.database,env,allowSyntheticOwner:true,now:()=>instant});
+  const run=(action,input,key=randomUUID())=>app.execute({actor:f.owner,action,input,key});
+  const version=await run('legal.save',{programId:f.programId,templateKey:'feedback-test',title:'Draft',markdown:'# DRAFT\n## [TEST-01] Review this\nOriginal text.',variablesSchema:{},issuable:false,expectedRevision:0,changeReason:'Synthetic fixture'});
+  const pkg=await run('legal.export_package',{programId:f.programId,versionIds:[version.versionId],reviewers:[{name:'Synthetic Counsel',role:'attorney',scopes:['agreement_language']}],expiresAt:'2026-10-25T12:00:00Z',redactionConfirmed:true});
+  const bytes=createReviewDocx({markdown:'# DRAFT\n## [TEST-01] Review this\nChanged untracked text.',sourceHash:version.hash});
+  const input={programId:f.programId,packageId:pkg.id,versionId:version.versionId,sourceHash:version.hash,reviewerName:'Synthetic Counsel',reviewerRole:'attorney',reviewerIdentityConfirmed:true,data:Buffer.from(bytes).toString('base64')};
+  await assert.rejects(app.execute({actor:f.actor,action:'legal.import_feedback',input,key:randomUUID()}),{status:403});
+  await assert.rejects(run('legal.import_feedback',{...input,reviewerIdentityConfirmed:false}),{status:400});
+  await assert.rejects(run('legal.import_feedback',{...input,reviewerName:'Someone else'}),{status:403});
+  await assert.rejects(run('legal.import_feedback',{...input,sourceHash:'b'.repeat(64)}),{status:409});
+  const key=randomUUID(),result=await run('legal.import_feedback',input,key);
+  assert.deepEqual(await run('legal.import_feedback',input,key),result);assert.equal(result.data,undefined);assert.equal(result.manualReviewRequired,true);
+  const library=await app.read(f.owner,'legal-version',{id:version.versionId});
+  assert.ok(library.packages.some(p=>p.id===pkg.id));assert.ok(library.feedback.some(item=>item.id===result.id));
+  const feedback=await app.read(f.owner,'review-feedback',{id:result.id});assert.equal(feedback.sha256,digest(bytes));assert.deepEqual(Buffer.from(feedback.data,'base64'),Buffer.from(bytes));
+  assert.match(feedback.evidence.parsed.warnings.join(' '),/Untracked edits/);
+  await assert.rejects(app.read(f.otherActor,'review-feedback',{id:result.id}),{status:404});
+  const [stored]=await f.database.query`SELECT markdown,content_sha256 FROM partner_legal_versions WHERE id=${version.versionId}`;
+  assert.equal(stored.content_sha256,version.hash);assert.match(stored.markdown,/Original text/);
+  assert.equal((await f.database.query`SELECT id FROM partner_legal_reviews`).length,0);
+  assert.equal((await f.database.query`SELECT id FROM partner_review_attachments`).length,1);
+  const receipts=await f.database.query`SELECT response_json FROM partner_command_keys WHERE operation='legal.import_feedback'`;
+  assert.ok(!JSON.stringify(receipts).includes(input.data));assert.ok(!JSON.stringify(receipts).includes('Synthetic Counsel'));
+  await assert.rejects(f.database.query`DELETE FROM partner_review_attachments WHERE id=${result.id}`);
+  instant=new Date('2026-10-26T12:00:00Z');await assert.rejects(run('legal.import_feedback',input),{status:403});
+  assert.equal((await app.read(f.owner,'review-feedback',{id:result.id})).sha256,result.sha256,'historical evidence remains owner-accessible');
+ }finally{await f.close();}
+});

@@ -325,8 +325,8 @@ stable cash/accrual CSV batches; material issuance/return; typed/hash-bound lega
 revisions, comparison, comments/resolution, scoped review evidence, publication and
 frozen issuance/read acknowledgment. No payment provider write or e-signature exists.
 
-Still pending: annotated-feedback import, simple DOCX tables and encrypted offline
-sharing; referrals/bonuses and consented intake attribution; partner PWA and owner UI; full nine-feature browser BDD coverage;
+Still pending: encrypted offline sharing; referrals/bonuses and consented intake
+attribution; partner PWA and owner UI; full nine-feature browser BDD coverage;
 retention/outbox/monitoring and encrypted recovery; reviewed PR/CI, staging and actual
 disabled production deployment. Source packet, factual background and reviewer notes
 remain private. No real approval, invitation, payment, DNS or production migration
@@ -368,3 +368,42 @@ review. Eight focused legal/package/seed/DOCX/native tests passed after that cha
 including invalid signing configuration, incompatible grants and simulated archive,
 manifest and signature corruption rejection. No Critical/Important review findings
 remained. The production image was rebuilt after the scope correction.
+
+
+## Partner returned feedback and table increment
+
+Observed 2026-10-24, following checkpoint `5fe71ce`:
+
+- Private imports bind named reviewer/role, unexpired package, program, version and
+  exact source hash, plus explicit owner identity attestation. Strict base64 and
+  512 KiB attachment limits preserve bounded owner HTTP transport; a real native
+  owner session/CSRF test imported a DOCX beyond the old 256 KiB JSON envelope and
+  rejected an oversized envelope with 413/no-store.
+- Unit/contract tests reject partner reads/imports, identity/hash/grant mismatches,
+  expired imports, malformed XML, DTDs, macros, embedded/external/active content,
+  excessive nesting/expansion, CRC/layout ambiguity and nonzero disk-start fields.
+  Successful retries create one immutable attachment, no new legal text, review
+  decision, clause comment or publication change. Original/evidence hashes survive
+  native PostgreSQL restricted-role storage and isolated dump/restore.
+- A synthetic DOCX was opened/saved by offline LibreOffice 7.4.7.2. Regression tests
+  recover its one comment and two tracked changes, including renumbered comment IDs.
+  Its rendered page was inspected. Empty identity metadata and fixture provenance
+  are documented in `tests/fixtures/partner-review/README.md`; no real packet narrative
+  or reviewer identity is present. This is not a Microsoft Word runtime test.
+- Simple editable DOCX tables render padded cells and repeated headers. All three
+  pages of a synthetic worksheet were inspected. Invalid dimensions return a client
+  error; maximum canonical source length plus newline exports successfully. Existing
+  seven draft DOCX outputs remain byte-identical to their inspected predecessors.
+- Independent read-only review found no blocking issues; the suggested ZIP layout
+  hardening and disk-field check were verified with failing then passing tests.
+- Initial full run: 1146 unit/contract tests, 224 E2E tests plus one Windows skip,
+  and 241/241 UX checks passed. Final unit rerun after table/discovery changes passed
+  **1149/1149**, with no failures/skips. Focused native/feedback/legal/package/DOCX
+  checks pass. Final static validation and the production image build passed; a
+  read-only/offline image smoke parsed the returned annotations and generated/reopened
+  a table DOCX without development dependencies.
+
+There is no new portal/storefront UI in this increment. Encrypted offline sharing,
+complete owner/partner UI, bonus/referral and opt-in customer attribution logic,
+all nine real-browser partner acceptance features, full operational recovery,
+staging and actual disabled production deployment remain required.
