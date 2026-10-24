@@ -722,3 +722,34 @@ tracked text and warnings display as escaped untrusted suggestions. The owner mu
 compare the original and take separate editorial/decision actions. Import never
 changes a source hash, resolves a clause concern or records approval automatically.
 The original returned attachment remains privately downloadable for manual review.
+
+
+### Reviewed bindings and issued agreement history
+
+Owner program cards offer a lazy, program-scoped catalog of currently published,
+issue-ready versions. Agreement and outreach-policy choices require both the role's
+base review scopes and every scope declared by the source, all granted by a package
+for that program and exact version. Unpackaged or another program's evidence cannot
+clear these gates. Saving bindings is revision checked and does not activate a paused
+program. The server revalidates bindings even when new work is disabled.
+
+The legal-version review context selector and publication form use the same program;
+latest scope decisions are separated by package program. Reads expose
+`clearanceByProgram`; unscoped `clearance` deliberately fails closed. Decision history
+shows the latest 200 records; source and issued-copy history remain separate.
+
+Issued agreements provides an owner-only list of the latest 200 copies and a typed
+issuance form. Only used source variables appear, including typed defaults; money is
+submitted as integer cents. Issuance requires an active partner in the selected
+program, exact source hash, renewed confirmation and fresh server clearance. The
+command receipt key survives an unchanged retry. No typed private values enter
+browser storage. The owner can read a copy by ID after pause, source edits or retirement.
+The server recomputes the original source render and snapshot hash before returning
+that immutable text and its typed bindings. Read acknowledgment is not a signature.
+
+Authorization holds the program row and shared locks on bound global documents until
+transaction commit. Binding and issuance also hold shared document locks; document
+mutations take exclusive locks. Native PostgreSQL barriers verify that another
+program cannot retire a shared publication midway through authorization or binding.
+After retirement, fresh authorization fails closed. These locks apply only to mutable
+document rows, not immutable versions, preserving the restricted database role.

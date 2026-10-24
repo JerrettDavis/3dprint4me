@@ -86,3 +86,18 @@ test('legal concern history refuses an incomplete view instead of dropping later
   await assert.rejects(app.read(f.owner,'legal-version',{id:version.id}),{status:409});
  }finally{await f.close();}
 });
+
+
+test('owner binding choices and issued snapshot reads stay exact, private and available after pause',async()=>{
+ const f=await partnerFixture();try{
+  const app=createPartnerApplication({database:f.database,env:ACTIVE_ENV,allowSyntheticOwner:true,now:()=>new Date(TEST_NOW)});
+  const choices=await app.read(f.owner,'legal-choices',{programId:f.programId});assert.ok(choices.items.some(v=>v.id===f.versionId&&v.contractEligible&&v.policyEligible));
+  await assert.rejects(app.read(f.actor,'legal-choices',{programId:f.programId}),{status:404});
+  const list=await app.read(f.owner,'agreements');assert.equal(list.items.length,2);assert.equal(list.items[0].bindings,undefined);assert.equal(list.items[0].snapshotMarkdown,undefined);
+  const detail=await app.read(f.owner,'agreement',{id:list.items[0].id});assert.equal(detail.snapshotHash,list.items[0].snapshotHash);assert.ok(detail.sourceMarkdown);assert.equal(detail.sourceHash,(await app.read(f.owner,'legal-version',{id:f.versionId})).version.content_sha256);
+  await app.execute({actor:f.owner,action:'program.configure',input:{programId:f.programId,expectedRevision:1,enabled:false},key:randomUUID()});
+  assert.deepEqual(await app.read(f.owner,'agreement',{id:detail.id}),detail);
+  await assert.rejects(app.read(f.actor,'agreement',{id:detail.id}),{status:404});
+  await assert.rejects(app.execute({actor:f.owner,action:'program.configure',input:{programId:f.programId,expectedRevision:2,enabled:false,contractVersionId:randomUUID()},key:randomUUID()}),{status:409});
+ }finally{await f.close();}
+});

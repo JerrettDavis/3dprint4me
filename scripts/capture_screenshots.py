@@ -491,14 +491,16 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
     from tests.e2e.test_partner_owner_finance import install_finance_fixture, BATCH
     from tests.e2e.test_partner_owner_legal import install_legal_fixture, VERSION
     from tests.e2e.test_partner_owner_review import review_fixture, PACKAGE, FEEDBACK
+    from tests.e2e.test_partner_owner_agreements import install_agreement_fixture, ISSUE, PROGRAM as AGREEMENT_PROGRAM, VERSION as AGREEMENT_VERSION, PARTNER as AGREEMENT_PARTNER
     from tests.e2e.test_partner_shell import GIG_ID, PARTNER
     captured=[]
     with running_operator_workspace() as (_,origin,_):
-        for state,viewport,scheme in [('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light')]:
+        for state,viewport,scheme in [('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
             path=OUTPUT/f'operator-partners-{state}-{scheme}.png'
             with SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
                 page=site.page
-                if state=='accounts':install_access_fixture(page)
+                if state in ['agreements','agreement-copy','program-bindings']:install_agreement_fixture(page,available=state!='program-bindings')
+                elif state=='accounts':install_access_fixture(page)
                 elif state in ['legal','legal-version']:install_legal_fixture(page)
                 elif state.startswith('review-'):review_fixture(page)
                 elif state in ['finance','accounting-export']:install_finance_fixture(page)
@@ -513,8 +515,19 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                             route.fulfill(status=200,content_type='application/json',body=json.dumps({'item':item,'events':[],'negotiations':[]}))
                         else:route.fallback()
                     page.route('**/api/operator-partners*',detail)
-                page.goto(origin+'/partners#'+('legal/package/'+PACKAGE if state=='review-package' else 'legal/feedback/'+FEEDBACK if state=='review-feedback' else 'legal' if state=='review-create' else 'gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else 'leads' if state=='leads-suppressed' else 'finance/export/'+BATCH if state=='accounting-export' else 'legal/version/'+VERSION if state=='legal-version' else state))
+                page.goto(origin+'/partners#'+('agreements/copy/'+ISSUE if state=='agreement-copy' else 'programs' if state=='program-bindings' else 'legal/package/'+PACKAGE if state=='review-package' else 'legal/feedback/'+FEEDBACK if state=='review-feedback' else 'legal' if state=='review-create' else 'gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else 'leads' if state=='leads-suppressed' else 'finance/export/'+BATCH if state=='accounting-export' else 'legal/version/'+VERSION if state=='legal-version' else state))
                 page.get_by_role('heading',level=1).wait_for()
+                if state=='agreements':
+                    form=page.locator('[data-issue-agreement]')
+                    form.get_by_role('combobox',name='Program',exact=True).select_option(AGREEMENT_PROGRAM)
+                    form.get_by_role('combobox',name='Active partner',exact=True).select_option(AGREEMENT_PARTNER)
+                    form.get_by_role('combobox',name='Exact reviewed source',exact=True).select_option(AGREEMENT_VERSION)
+                    form.get_by_label('partner name (private-person-name)',exact=True).fill('Synthetic private partner')
+                    form.get_by_label('service date (date)',exact=True).fill('2026-10-25')
+                if state=='program-bindings':
+                    page.get_by_text('Bind reviewed agreement and outreach policy',exact=True).click()
+                    page.locator('[data-program-bindings]').get_by_role('combobox',name='Reviewed agreement',exact=True).select_option(AGREEMENT_VERSION)
+                if state=='agreement-copy' and scheme=='light':page.get_by_text('Compare with the exact source at issuance',exact=True).click()
                 if state=='accounts':
                     page.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True).check()
                     page.get_by_role('button',name='Issue recovery code',exact=True).click()

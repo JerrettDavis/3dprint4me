@@ -1,7 +1,7 @@
 export class PartnerOwnerError extends Error {
  constructor(status,message){super(message);this.status=status;}
 }
-const resources=new Set(['programs','partners','campaigns','gigs','gig','budgets','audit','leads','visits','referrals','ledger','exports','export','legal','legal-version','legal-diff','review-package','review-feedback']);
+const resources=new Set(['programs','partners','campaigns','gigs','gig','budgets','audit','leads','visits','referrals','ledger','exports','export','legal','legal-version','legal-diff','review-package','review-feedback','legal-choices','agreements','agreement']);
 export function createPartnerOwnerClient({apiBase,fetchImpl=fetch}={}){
  const url=new URL(apiBase);
  if(url.origin!==apiBase||!(apiBase==='https://api.3dprint4.me'||url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname)))throw new Error('Unsupported owner API origin.');

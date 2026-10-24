@@ -47,6 +47,7 @@ try{
  await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,program_week_id,terms_snapshot,status,accepted_fee_cents,accepted_at,revision) VALUES($1,$2,$3,$4,$5,$6,'accepted',1000,'2026-10-23T12:00:00Z',2)",[acceptedGigId,programId,partnerId,campaignId,weekId,JSON.stringify(terms)]);
  await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1000)",[randomUUID(),weekId,acceptedGigId]);
  pool=new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')));const database=createNativeDatabase({pool}),env={PARTNER_WEB_ORIGIN:shell.origin,OPERATOR_WEB_ORIGIN:ownerOrigin,OPERATOR_OWNER_SUBJECT:'2610199',PARTNER_REVIEW_SIGNING_PRIVATE_KEY:generateKeyPairSync('ed25519').privateKey.export({type:'pkcs8',format:'pem'})};
+ if(process.env.PARTNER_TEST_REVIEWED_LAUNCH==='1')Object.assign(env,{PARTNER_PROGRAM_ENABLED:'1',PARTNER_CLASSIFICATION_APPROVED:'1',PARTNER_ACCOUNTING_APPROVED:'1'});
  process.env.DATABASE_DRIVER='postgres';process.env.DATABASE_URL=url.replace('postgres@','platform_app@');
  const ownerToken=randomBytes(32).toString('base64url'),operatorToken=randomBytes(32).toString('base64url');
  for(const [id,subject,role,token]of [['op_browser_owner','2610199','owner',ownerToken],['op_browser_operator','2610200','operator',operatorToken]]){

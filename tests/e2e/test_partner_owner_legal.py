@@ -12,7 +12,7 @@ NEW='70000000-1000-4000-8000-100000000004'
 COMMENT='70000000-1000-4000-8000-100000000005'
 SOURCE='# Services terms\n## [IMS-04] Fee\n${{fee_usd}}\n'
 
-def install_legal_fixture(page,*,conflict=False):
+def install_legal_fixture(page,*,conflict=False,clearance_by_program=None,issuable=False,concerns=True):
     install_owner_fixture(page);commands=[];changed=[False]
     def handle(route):
         if route.request.method=='POST':
@@ -24,12 +24,13 @@ def install_legal_fixture(page,*,conflict=False):
             query=parse_qs(urlparse(route.request.url).query);resource=query.get('resource',[''])[0];version=query.get('id',[VERSION])[0]
             if resource=='legal':result={'items':[{'id':DOC,'template_key':'independent-marketing-services','title':'Services terms','revision':7,'status':'draft','latest_version_id':NEW if changed[0] else VERSION,'version_no':2,'content_sha256':'a'*64,'issuable':False}]}
             elif resource=='legal-version':
-                result={'version':{'id':version,'document_id':DOC,'template_key':'independent-marketing-services','version_no':1 if version==OLD else 3 if version==NEW else 2,'title':'Services terms','markdown':SOURCE+'\nServer counsel revision' if version==NEW else SOURCE,'variables_schema':{'fee_usd':{'type':'money','required':True,'default':5000}},'required_scopes':['agreement_language','classification','accounting'],'issuable':False,'content_sha256':'a'*64,'document_revision':7,'document_status':'draft','active_version_id':None},
+                result={'version':{'id':version,'document_id':DOC,'template_key':'independent-marketing-services','version_no':1 if version==OLD else 3 if version==NEW else 2,'title':'Services terms','markdown':SOURCE+'\nServer counsel revision' if version==NEW else SOURCE,'variables_schema':{'fee_usd':{'type':'money','required':True,'default':5000}},'required_scopes':['agreement_language','classification','accounting'],'issuable':issuable,'content_sha256':'a'*64,'document_revision':7,'document_status':'draft','active_version_id':None},
                         'history':[{'id':VERSION,'version_no':2,'content_sha256':'a'*64,'change_reason':'Synthetic revision'},{'id':OLD,'version_no':1,'content_sha256':'b'*64,'change_reason':'Initial'}],
                         'documentComments':[{'id':COMMENT,'version_id':OLD,'version_no':1,'clause_anchor':'IMS-04','body':'Earlier clause concern <script>unsafe()</script>','reviewer_id':'Synthetic counsel','resolves_comment_id':None}],
-                        'comments':[],'reviews':[],'packages':[],'feedback':[],'clearance':{'approved':False,'missing':['agreement_language','classification','accounting']}}
+                        'comments':[],'reviews':[],'packages':[],'feedback':[],'clearanceByProgram':clearance_by_program or {},'clearance':{'approved':False,'missing':['agreement_language','classification','accounting']}}
             elif resource=='legal-diff':result={'changed':True,'clauses':[{'anchor':'IMS-04','changed':True,'before':'Earlier fee text','after':'Current fee text'}]}
             else:route.fallback();return
+        if route.request.method=='GET' and resource=='legal-version' and not concerns:result['documentComments']=[]
         route.fulfill(status=200,content_type='application/json',body=json.dumps(result))
     page.route('**/api/operator-partners*',handle)
     return commands
@@ -179,3 +180,21 @@ def test_owner_compare_access_denial_removes_unsaved_private_source():
         page.get_by_role('heading',name='Owner access required',exact=True).wait_for()
         assert page.locator('main textarea').count()==0
         assert 'Private unsaved' not in page.locator('body').inner_text()
+
+
+def test_owner_publication_context_never_borrows_another_program_clearance():
+    other='40000000-1000-4000-8000-100000000002'
+    with running_operator_workspace() as (_,origin,_),SiteBrowser() as site:
+        page=site.page;install_legal_fixture(page,issuable=True,concerns=False,clearance_by_program={PROGRAM:{'approved':True,'missing':[]},other:{'approved':False,'missing':['accounting']}})
+        def programs(route):
+            if route.request.method=='GET' and parse_qs(urlparse(route.request.url).query).get('resource')==['programs']:
+                route.fulfill(status=200,content_type='application/json',body=json.dumps({'items':[{'id':PROGRAM,'label':'Reviewed program','clearance':{'allowed':False,'missing':[]}},{'id':other,'label':'Unreviewed program','clearance':{'allowed':False,'missing':[]}}]}))
+            else:route.fallback()
+        page.route('**/api/operator-partners*',programs);page.goto(origin+'/partners#legal/version/'+VERSION)
+        button=page.get_by_role('button',name='Publish reviewed revision',exact=True)
+        assert button.is_enabled()
+        page.get_by_role('combobox',name='Review context program',exact=True).select_option(other)
+        assert button.is_disabled()
+        assert page.locator('[data-publish-legal] [name=programId]').input_value()==other
+        page.locator('[data-publish-legal] [name=programId]').select_option(PROGRAM)
+        assert button.is_enabled() and page.get_by_role('combobox',name='Review context program',exact=True).input_value()==PROGRAM

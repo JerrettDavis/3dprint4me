@@ -16,13 +16,13 @@ from tests.support.browser_harness import SiteBrowser
 
 
 @contextmanager
-def native_partner_workspace():
+def native_partner_workspace(*,enable_reviewed_launch=False):
     port, owner_port = free_port(), free_port()
     owner_origin = f'http://127.0.0.1:{owner_port}'
     shell_origin = f'http://127.0.0.1:{port}'
     container = '3dprint4me-partner-browser-' + uuid.uuid4().hex[:8]
     native = subprocess.Popen(['node', 'tests/support/partner-native-server.mjs'], cwd=ROOT,
-                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container},
+                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=os.name != 'nt')
     lines = queue.Queue()
     threading.Thread(target=lambda: lines.put(native.stdout.readline()), daemon=True).start()
@@ -918,9 +918,9 @@ def test_native_owner_professional_package_decisions_and_returned_feedback():
             form.get_by_role('button',name='Record professional decision',exact=True).click()
             page.get_by_text('Professional decision recorded for the exact source hash. This does not publish or issue a document.',exact=True).wait_for()
         decision(0,'conditional','SYNTHETIC-CONDITIONAL')
-        assert read('legal-version',version_id)['clearance']['approved'] is False
+        assert read('legal-version',version_id)['clearanceByProgram'][manifest['programId']]['approved'] is False
         for grant in range(3):decision(grant,'approved','SYNTHETIC-NOT-ACTUAL-APPROVAL-'+str(grant))
-        detail=read('legal-version',version_id);assert detail['clearance']['approved'] is True and len(detail['reviews'])==4
+        detail=read('legal-version',version_id);assert detail['clearanceByProgram'][manifest['programId']]['approved'] is True and len(detail['reviews'])==4
         assert detail['version']['document_status']=='draft'
         page.goto(owner+'/partners#legal/version/'+version_id);page.get_by_role('button',name='Publish reviewed revision',exact=True).click()
         page.get_by_text('Reviewed revision published. Existing issued copies are unchanged.',exact=True).wait_for()
@@ -930,3 +930,86 @@ def test_native_owner_professional_package_decisions_and_returned_feedback():
         state=subprocess.run(['docker','exec',fixture['_container'],'psql','-U','postgres','-Atc',"SELECT json_build_object('packages',(SELECT count(*) FROM partner_review_packages),'attachments',(SELECT count(*) FROM partner_review_attachments),'reviews',(SELECT count(*) FROM partner_legal_reviews))::text"],check=True,capture_output=True,text=True,timeout=15)
         assert json.loads(state.stdout)=={'packages':1,'attachments':1,'reviews':4}
         assert not site.page_errors
+
+
+def test_native_owner_scoped_bindings_typed_issue_ack_and_immutable_history():
+    from datetime import datetime,timedelta,timezone
+    with native_partner_workspace(enable_reviewed_launch=True) as (origin,fixture),SiteBrowser(viewport=(390,844),color_scheme='dark',reduced_motion='reduce') as site:
+        page=site.page;api=fixture['apiOrigin'];owner=fixture['ownerOrigin']
+        site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
+        page.goto(owner+'/partners#programs');page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
+        read=lambda resource,ident=None:page.evaluate("async ({api,resource,id})=>(await fetch(api+'/api/operator-partners?'+new URLSearchParams({resource,...(id?{id}:{})}),{credentials:'include'})).json()",{'api':api,'resource':resource,'id':ident})
+        def post(action,input):
+            response=page.evaluate("async ({api,action,input})=>{const s=await(await fetch(api+'/api/operator-partners?resource=session',{credentials:'include'})).json();const r=await fetch(api+'/api/operator-partners',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':s.csrfToken},body:JSON.stringify({action,input,key:crypto.randomUUID()})});return {status:r.status,body:await r.json()};}",{'api':api,'action':action,'input':input})
+            assert response['status']==200,response
+            return response['body']
+        program=read('programs')['items'][0];program_id=program['id']
+        markdown='# Synthetic terms\n## [TEST-01] Scope\n{{partner_name}}\nFee ${{fee_usd}}\nDate {{service_date}}\nCount {{count}}\nContact {{email}}\n{{notes}}\n'
+        schema={'partner_name':{'type':'private-person-name','required':True},'fee_usd':{'type':'money','required':True,'default':5000},'service_date':{'type':'date','required':True},'count':{'type':'integer','required':True},'email':{'type':'email','required':True},'notes':{'type':'multiline','required':False},'unused_person':{'type':'private-person-name','required':True}}
+        version=post('legal.save',{'programId':program_id,'templateKey':'native-issuance-terms','title':'Synthetic exact typed terms','markdown':markdown,'variablesSchema':schema,'issuable':True,'requiredScopes':['classification','agreement_language','solicitation_policy','accounting'],'expectedRevision':0,'changeReason':'Synthetic isolated typed issuance journey.'})
+        package=post('legal.export_package',{'programId':program_id,'versionIds':[version['versionId']],'reviewers':[{'name':'Synthetic counsel','role':'attorney','scopes':['classification','agreement_language','solicitation_policy']},{'name':'Synthetic accountant','role':'cpa','scopes':['accounting']}],'expiresAt':(datetime.now(timezone.utc)+timedelta(days=1)).isoformat(),'redactionConfirmed':True})
+        for scope in ['classification','agreement_language','solicitation_policy','accounting']:
+            post('legal.record_review',{'programId':program_id,'packageId':package['id'],'versionId':version['versionId'],'versionHash':version['hash'],'scope':scope,'decision':'approved','reviewerName':'Synthetic accountant' if scope=='accounting' else 'Synthetic counsel','reviewerRole':'cpa' if scope=='accounting' else 'attorney','evidenceReference':'SYNTHETIC-NOT-ACTUAL-REVIEW-'+scope,'reviewedAt':datetime.now(timezone.utc).isoformat()})
+        post('legal.publish',{'programId':program_id,'versionId':version['versionId'],'expectedRevision':1})
+        page.reload();page.get_by_text('Bind reviewed agreement and outreach policy',exact=True).click()
+        form=page.locator('[data-program-bindings]')
+        for label in ['Reviewed agreement','Reviewed outreach policy']:form.get_by_role('combobox',name=label,exact=True).select_option(version['versionId'])
+        form.get_by_role('button',name='Save reviewed version bindings',exact=True).click()
+        page.get_by_text('Reviewed version bindings saved. Program activation is unchanged.',exact=True).wait_for()
+        assert read('programs')['items'][0]['enabled'] is False
+        page.get_by_label('Enable new work after all clearance checks pass',exact=True).check()
+        page.get_by_role('button',name='Save program controls',exact=True).click()
+        page.get_by_text('Program controls saved.',exact=True).wait_for()
+        assert read('programs')['items'][0]['clearance']['allowed'] is True
+        page.get_by_role('link',name='Issued agreements',exact=True).click()
+        form=page.locator('[data-issue-agreement]')
+        form.get_by_role('combobox',name='Program',exact=True).select_option(program_id)
+        form.get_by_role('combobox',name='Active partner',exact=True).select_option(fixture['partnerId'])
+        form.get_by_role('combobox',name='Exact reviewed source',exact=True).select_option(version['versionId'])
+        form.get_by_label('partner name (private-person-name)',exact=True).fill('Synthetic typed partner')
+        form.get_by_label('fee usd (USD)',exact=True).fill('12.34')
+        form.get_by_label('service date (date)',exact=True).fill('2026-10-25')
+        form.get_by_label('count (integer)',exact=True).fill('3')
+        form.get_by_label('email (email)',exact=True).fill('synthetic@example.test')
+        form.get_by_label('notes (multiline)',exact=True).fill('Private objective scope.\n*Literal* note.')
+        assert form.locator('[name="binding:unused_person"]').count()==0
+        form.get_by_label('I reviewed the typed values and will issue this exact saved version to this partner.',exact=True).check()
+        attempts=[]
+        def lose_issue(route):
+            if route.request.method=='POST' and route.request.post_data_json['action']=='legal.issue':
+                attempts.append(route.request.post_data_json);response=route.fetch();assert response.status==200
+                if len(attempts)==1:route.abort()
+                else:route.fulfill(response=response)
+            else:route.fallback()
+        page.route('**/api/operator-partners*',lose_issue)
+        form.get_by_role('button',name='Issue frozen agreement copy',exact=True).click()
+        page.get_by_text('Unable to reach partner administration. Check your connection and try again.',exact=True).wait_for()
+        assert len(read('agreements')['items'])==1
+        form.get_by_role('button',name='Issue frozen agreement copy',exact=True).click()
+        page.get_by_role('heading',name='Issued agreement copy',exact=True).wait_for()
+        assert attempts[0]==attempts[1]
+        issue_id=page.url.rsplit('/',1)[-1];issued=read('agreement',issue_id)
+        assert issued['bindings']=={'partner_name':'Synthetic typed partner','fee_usd':1234,'service_date':'2026-10-25','count':3,'email':'synthetic@example.test','notes':'Private objective scope.\n*Literal* note.'}
+        assert '12.34' in issued['snapshotMarkdown'] and '{{' not in issued['snapshotMarkdown']
+        with site.browser.new_context(viewport={'width':390,'height':844},color_scheme='dark') as partner_context:
+            partner=partner_context.new_page();partner.goto(origin)
+            partner.get_by_label('Account code',exact=True).fill(fixture['partnerId']);partner.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+            partner.get_by_role('button',name='Sign in',exact=True).click();partner.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+            partner.goto(origin+'/gigs/'+fixture['gigId'])
+            partner.get_by_role('combobox',name='Action',exact=True).select_option('accept');partner.get_by_role('button',name='Save decision',exact=True).click()
+            partner.get_by_text('Read and acknowledge the current reviewed agreement before accepting new work.',exact=True).wait_for()
+            partner.goto(origin+'/agreements');partner.get_by_role('heading',name='Your agreements',exact=True).wait_for()
+            assert '12.34' in partner.locator('main').inner_text()
+            partner.get_by_label('I have read this exact issued version.',exact=True).check();partner.get_by_role('button',name='Record read acknowledgment',exact=True).click()
+            partner.get_by_text('Read acknowledgment recorded.',exact=True).wait_for()
+            partner.goto(origin+'/gigs/'+fixture['gigId']);partner.get_by_role('combobox',name='Action',exact=True).select_option('accept')
+            partner.get_by_role('button',name='Save decision',exact=True).click();partner.get_by_text('Offer accepted. Receipt',exact=False).wait_for()
+        acknowledged=read('agreement',issue_id);assert acknowledged['acknowledgedAt'] and acknowledged['snapshotHash']==issued['snapshotHash']
+        detail=read('legal-version',version['versionId'])['version']
+        post('legal.save',{'programId':program_id,'templateKey':detail['template_key'],'title':detail['title'],'markdown':detail['markdown']+'\nNew unreviewed amendment.','variablesSchema':detail['variables_schema'],'issuable':False,'requiredScopes':detail['required_scopes'],'expectedRevision':detail['document_revision'],'changeReason':'Synthetic amendment must not rewrite an issued copy.'})
+        assert read('programs')['items'][0]['clearance']['allowed'] is False
+        page.reload();page.get_by_role('heading',name='Issued agreement copy',exact=True).wait_for()
+        final=read('agreement',issue_id);assert final['snapshotMarkdown']==issued['snapshotMarkdown'] and final['snapshotHash']==issued['snapshotHash'] and final['sourceMarkdown']==issued['sourceMarkdown']
+        assert len(read('agreements')['items'])==1 and 'Synthetic typed partner' not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
+        state=subprocess.run(['docker','exec',fixture['_container'],'psql','-U','postgres','-Atc',"SELECT agreement_issue_id::text FROM partner_gigs WHERE id='"+fixture['gigId']+"'"],check=True,capture_output=True,text=True,timeout=15)
+        assert state.stdout.strip()==issue_id and not site.page_errors
