@@ -135,8 +135,8 @@ new raw code once and invalidate prior unused codes, rather than persisting code
 in idempotency receipts. The final OpenAPI schema and browser SDK remain pending.
 
 The incremental manual finance, referral, partner and owner workspaces and legal
-review implementation are described below. Full offline PWA lifecycle, encrypted
-professional handoff, exact owner issuance, remaining BDD acceptance coverage,
+review implementation are described below. Full offline PWA lifecycle, exact owner
+issuance, remaining BDD acceptance coverage,
 retention/operations jobs and the actual disabled release remain in the plan.
 Incremental integration tests do not prove those unfinished capabilities.
 
@@ -266,7 +266,8 @@ reviewer grants. Legal-version package listings project named grants and program
 without loading archive bytes or the full manifest. Bytes and manifest
 are immutable database evidence, excluded from command receipts and public output.
 Offline copies require an approved encrypted sharing channel; expiry cannot recall
-copies. In-browser encrypted packaging and the offline recipient workflow remain pending.
+copies. The encrypted offline recipient/return workflow is described in
+`docs/PARTNER-REVIEW-HANDOFF.md`.
 
 The formatter handles text paragraphs, headings, bold/italic/code text, bullets and
 simple tables with repeated headers and padded cells. Tables support two to six
@@ -698,9 +699,11 @@ Saved package and returned-feedback links remain attached to the source version.
 
 The package view shows frozen source hashes, named grants, expiry and the signing-key
 fingerprint. Download verifies the archive SHA-256 in the browser after server-side
-signature/hash verification. The owner ZIP download is explicitly unencrypted; use
-an approved encrypted channel for handoff. This is not the pending encrypted offline
-recipient workflow. Download URLs are revoked on navigation, sign-out, concealment
+signature/hash verification. The owner ZIP download is explicitly unencrypted. The
+encrypted offline
+handoff card creates a separate authenticated file and links the trusted reusable
+reader; see `docs/PARTNER-REVIEW-HANDOFF.md` for the recipient and encrypted-return
+flow. Download URLs are revoked on navigation, sign-out, concealment
 and page exit; a hash completing after concealment cannot recreate a download.
 Private evidence and returned filenames are not saved in browser storage.
 
@@ -712,7 +715,7 @@ program are revalidated by the server. Recording a decision does not publish or
 issue text; conditional/requested changes/rejection do not grant clearance.
 
 Returned DOCX import requires a named granted reviewer, exact source and renewed
-identity confirmation. The browser bounds the attachment to 512 KiB; the server
+identity confirmation. The browser bounds the decoded DOCX to 512 KiB; the server
 validates the ZIP/XML and preserves immutable original evidence. Async file reads
 cannot submit after route or session changes. Parsed comments, author claims,
 tracked text and warnings display as escaped untrusted suggestions. The owner must

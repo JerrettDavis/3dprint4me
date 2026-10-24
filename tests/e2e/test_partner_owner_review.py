@@ -188,3 +188,49 @@ def test_owner_concealment_during_hashing_cannot_restore_a_private_download():
         }""")
         page.get_by_role('heading',name='Professional review package',exact=True).wait_for()
         assert page.locator('[data-package-download]').get_attribute('href') is None
+
+
+def test_owner_encryption_never_sends_passphrase_and_concealment_cancels_pending_result():
+    with running_operator_workspace() as (_,origin,_),SiteBrowser(viewport=(390,844),color_scheme='dark') as site:
+        page=site.page;commands=review_fixture(page);page.goto(origin+'/partners#legal/package/'+PACKAGE)
+        form=page.locator('[data-encrypt-review]');secret='Synthetic private handoff passphrase 2026!'
+        page.evaluate("""() => {const encrypt=crypto.subtle.encrypt.bind(crypto.subtle);crypto.subtle.encrypt=async (...args)=>{const value=await encrypt(...args);return new Promise(resolve=>{window.finishEncryption=()=>resolve(value);});};}""")
+        form.get_by_label('Handoff passphrase (20 to 1024 UTF-8 bytes)',exact=True).fill(secret)
+        form.get_by_label('Repeat handoff passphrase',exact=True).fill(secret)
+        form.get_by_label('I saved the passphrase separately and will share it through the agreed trusted channel.',exact=True).check()
+        form.get_by_role('button',name='Encrypt package on this device',exact=True).click()
+        page.wait_for_function("typeof window.finishEncryption==='function'")
+        assert form.get_by_label('Handoff passphrase (20 to 1024 UTF-8 bytes)',exact=True).input_value()==''
+        page.evaluate("""() => {Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));Object.defineProperty(document,'hidden',{configurable:true,value:false});window.finishEncryption();}""")
+        page.wait_for_function("!document.querySelector('[data-encrypt-review] button[type=button]').disabled")
+        assert page.locator('[data-encrypted-download]').is_hidden()
+        assert commands==[] and secret not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+
+
+def test_owner_encrypted_feedback_uncertain_retry_reuses_decrypted_bytes_without_resending_password():
+    with running_operator_workspace() as (_,origin,_),SiteBrowser() as site:
+        page=site.page;review_fixture(page);page.goto(origin+'/partners#legal/package/'+PACKAGE)
+        secret='Synthetic private return passphrase 2026!'
+        envelope=page.evaluate("async ({secret,bytes})=>{const {encryptReviewArchive}=await import('/assets/review-envelope.js');return encryptReviewArchive(new Uint8Array(bytes),secret,'returned-docx');}",{'secret':secret,'bytes':list(DOCX_BYTES)})
+        attempts=[]
+        def lose(route):
+            if route.request.method=='POST' and route.request.post_data_json['action']=='legal.import_feedback':
+                attempts.append(route.request.post_data_json)
+                if len(attempts)==1:route.abort()
+                else:route.fulfill(status=200,content_type='application/json',body=json.dumps({'id':FEEDBACK}))
+            else:route.fallback()
+        page.route('**/api/operator-partners*',lose)
+        form=page.locator('[data-import-feedback]')
+        form.get_by_role('combobox',name='Returned source version',exact=True).select_option(VERSION)
+        form.get_by_role('combobox',name='Returning named reviewer',exact=True).select_option('0')
+        form.get_by_label('Returned DOCX (up to 512 KiB)',exact=True).set_input_files({'name':'private.3dpreview','mimeType':'application/json','buffer':json.dumps(envelope).encode()})
+        form.get_by_label('Return passphrase (encrypted returns only)',exact=True).fill(secret)
+        form.get_by_label('I confirmed the returning reviewer identity through the agreed private channel.',exact=True).check()
+        form.get_by_role('button',name='Import untrusted feedback',exact=True).click()
+        page.get_by_text('Unable to reach partner administration. Check your connection and try again.',exact=True).wait_for()
+        assert form.get_by_label('Return passphrase (encrypted returns only)',exact=True).input_value()==''
+        form.get_by_role('button',name='Import untrusted feedback',exact=True).click()
+        page.get_by_role('heading',name='Returned professional feedback',exact=True).wait_for()
+        assert attempts[0]==attempts[1] and base64.b64decode(attempts[0]['input']['data'])==DOCX_BYTES
+        assert secret not in json.dumps(attempts)

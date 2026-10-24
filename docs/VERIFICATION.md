@@ -858,3 +858,47 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   workflow, exact issued-snapshot UI/program bindings, full offline PWA lifecycle and
   remaining packet operations/release acceptance work remain required. This increment
   expands contract-review coverage; it is not proof the complete packet is implemented.
+
+
+## 2026-10-24: encrypted offline professional handoff and DOCX return
+
+- Owner-local AES-256-GCM envelopes now carry the private signed ZIP separately from
+  a reusable, self-contained reader. Fresh salt/IV, fixed PBKDF2-HMAC-SHA256 600,000
+  work factor and purpose-authenticated headers bound archives/returned DOCX separately.
+  Passphrases remain outside API inputs, filenames and browser storage; fields clear
+  after use. Source/returned evidence stays private and decisions remain explicit.
+- The trusted reader runs from a local file with networking disabled. It requires an
+  independently supplied signing fingerprint, verifies the Ed25519 manifest and every
+  listed file hash/size, enforces bounded streaming ZIP expansion, and offers only
+  verified individual document/data downloads. Returned DOCX can be encrypted locally
+  with a separate passphrase and decrypted in the owner view before private import.
+- The native PostgreSQL-backed journey verifies wrong passphrase/fingerprint rejection,
+  a real signed package, verified Markdown retrieval, encrypted DOCX return, unchanged
+  source/review state after import, separate decision/publication actions and new-work
+  gates off. All 13 native browser cases pass together. No real professional approval
+  or engagement is represented by these synthetic decisions.
+- Focused checks: 12 review/reader UI cases, eight crypto/verifier/CSP/static tests.
+  Crypto cases include the actual 8 MiB boundary, tampered headers/ciphertext, wrong
+  purpose, unsupported/expensive parameters, altered signed metadata/file hashes,
+  extra entries, expired grants and wrong trusted key. Delayed encryption concealment
+  cannot revive a download. An uncertain encrypted-return retry sends the same command
+  and original DOCX bytes after clearing its passphrase, with no secret in requests.
+- Read-only review found a stale encrypted-return download after editing inputs. A
+  native regression reproduced it; edits/new attempts now revoke the old URL and a
+  separate return epoch rejects late results. Review confirmed the fix and found no
+  remaining concrete blocker in this increment. Password forms prevent native request
+  fallback; offline CSP forbids connections and form actions, with exact inline hashes.
+- Full `npm test` passed: 1,186 unit/contract, 291 browser plus one Windows skip, and
+  241/241 UX checks. The generated-reader consistency check runs in validation. The
+  operator build copies the committed artifact without a development-bundler runtime
+  dependency; final compiled HTML and owner module bytes match built output.
+- Captured 119 screenshots; inspected four new full 320-light/390-dark locked/unlocked
+  reader states, both updated owner package states and the preview-board owner/reader
+  section. Retained those baselines and restored unrelated regenerated image/audit noise.
+- `docs/PARTNER-REVIEW-HANDOFF.md` records format, bounds, trusted delivery, return steps,
+  lifecycle and expiry limitations. Offline clock checks cannot recall saved copies or
+  authenticate a reviewer; owner identity/evidence checks and server grant expiry remain
+  authoritative. Browser reference clearing is not a promise of secure memory erasure.
+- No deployment, DNS change, actual payment, real invitation or external message occurred.
+  Exact owner issuance/program bindings, full offline partner lifecycle and remaining
+  packet operations/acceptance/release work remain required. Activation stays off.
