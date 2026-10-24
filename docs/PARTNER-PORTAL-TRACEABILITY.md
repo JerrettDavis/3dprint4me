@@ -1,8 +1,11 @@
 # Partner portal acceptance traceability
 
-This is a coverage map, not a release certificate. The private packet names nine
+This is a coverage map, not a release certificate. The later scenario-level
+[acceptance gap audit](PARTNER-ACCEPTANCE-GAPS.md) supersedes historical pending-flow
+notes below when newer native journeys already cover part of them. The private packet names nine
 Gherkin features. The implementations below have unit, contract or isolated native
-PostgreSQL evidence; none yet has the requested complete partner/owner browser flow.
+PostgreSQL evidence. The three optional-activity scenarios now have native browser
+evidence; the remaining features still need their complete partner/owner flows.
 Existing storefront/operator browser regression is a separate compatibility check.
 `test_partner_shell.py` adds synthetic API presentation/client checks for sign-in,
 maintenance, responsive navigation, inert issued text/exact acknowledgment, skip-link
@@ -47,10 +50,19 @@ The source packet stays private and the real professional approval gates stay of
   visits with a lost committed response (101 attempts, 100 visits, zero leads).
   Lead retention operations, offline reload/worker lifecycle and the complete
   owner qualification/bonus browser scenario remain pending.
-- **optional-activity.feature**: outreach/profile contract tests cover independent
-  optional timer start/pause/resume/stop/delete, ownership and data export. Timers
-  do not gate fees or acceptance. Browser offline drafts, accessible controls and
-  deletion from device storage remain pending.
+- **optional-activity.feature**: P-09's three named scenarios map directly to
+  `test_native_optional_activity_partner_can_track_and_delete_own_elapsed_record`,
+  `test_native_optional_activity_work_submission_never_requires_a_timer` and
+  `test_native_optional_activity_gig_and_visit_screens_never_request_geolocation`
+  in `tests/integration/test_partner_native_browser.py`. Real partner cookies/API/
+  restricted native PostgreSQL prove start, committed-response replay, pause,
+  reload, resume, stop and elapsed display, partner isolation, owner read denial,
+  deletion, submission without any activity record and map-free navigation.
+  Browser fixtures additionally cover pending locks, same-key retry, stale navigation,
+  expired sessions, explicit refresh after conflict and clearing prior success while
+  pending. Records stay server-side; no offline activity draft or passive GPS is added.
+  This feature's native evidence does not establish production subdomain/TLS or the
+  remaining eight complete packet features.
 - **ledger-payments.feature**: `tests/contract/partner-ledger.contract.test.mjs`,
   `tests/unit/partner-export.test.mjs` and native restore tests cover earned debt,
   verified manual settlement, partial payments, immutable reversals, externally

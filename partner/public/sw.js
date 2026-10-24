@@ -1,5 +1,5 @@
 // Static shell only. Private requests never enter Cache Storage.
-const CACHE='partner-shell-v1',PREFIX='partner-shell-';
+const CACHE='partner-shell-v2',PREFIX='partner-shell-';
 const STATIC=['/','/config.json','/manifest.webmanifest','/assets/icon.svg','/assets/icon-192.png','/assets/icon-512.png','/assets/partner.css','/assets/partner.js','/assets/client.js','/assets/drafts.js','/assets/visits.js','/assets/pwa.js','/assets/offline-workspace.js'];
 let work=Promise.resolve();
 function serialize(run){const result=work.then(run);work=result.catch(()=>{});return result;}

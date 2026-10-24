@@ -234,3 +234,70 @@ def test_partner_referral_codes_policy_and_earned_awards_do_not_expose_customers
         assert 'DO-NOT-DISPLAY' not in text and page.locator('main img').count()==0
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         assert not site.page_errors
+
+
+def take_activity_request(page,pending):
+    for _ in range(100):
+        if pending:return pending.pop(0)
+        page.wait_for_timeout(10)
+    raise AssertionError('Activity command did not reach the service')
+
+
+def activity_fixture(page):
+    install_partner_fixture(page)
+    record={'id':'70000000-1000-4000-8000-100000000001','startedAt':'2026-10-24T12:00:00Z','endedAt':None,'runningSince':'2026-10-24T12:00:00Z','elapsedSeconds':37,'revision':1,'optional':True}
+    page.route('**/api/partner/v1/activity',lambda route:route.fulfill(status=200,content_type='application/json',body=json.dumps({'items':[record]})))
+    return record
+
+
+def test_partner_activity_lost_response_retries_same_key_and_locks_all_controls():
+    with running_partner_shell() as origin,SiteBrowser(viewport=(390,844)) as site:
+        page=site.page;activity_fixture(page);pending=[]
+        page.route('**/api/partner/v1/commands',lambda route:pending.append(route))
+        page.goto(origin+'/activity')
+        page.get_by_role('button',name='Pause',exact=True).click()
+        assert page.get_by_role('button',name='Stop',exact=True).is_disabled()
+        assert page.get_by_role('button',name='Delete record',exact=True).is_disabled()
+        first=take_activity_request(page,pending);key=first.request.post_data_json['key'];first.abort('failed')
+        page.get_by_role('button',name='Pause',exact=True).wait_for(state='visible')
+        page.wait_for_function("()=>!document.querySelector('[data-action=pause]').disabled")
+        page.get_by_role('button',name='Pause',exact=True).click()
+        retry=take_activity_request(page,pending)
+        assert retry.request.post_data_json['key']==key
+        retry.fulfill(status=200,content_type='application/json',body='{}')
+        page.get_by_text('Optional activity updated.',exact=True).wait_for()
+        assert '37 saved seconds' in page.locator('main').inner_text()
+        page.get_by_role('button',name='Stop',exact=True).click()
+        held=take_activity_request(page,pending)
+        assert page.locator('#message').is_hidden()
+        held.fulfill(status=200,content_type='application/json',body='{}')
+
+
+def test_partner_activity_delayed_command_preserves_navigation_and_expired_session_hides_records():
+    with running_partner_shell() as origin,SiteBrowser(viewport=(320,844),color_scheme='dark') as site:
+        page=site.page;activity_fixture(page);pending=[]
+        page.route('**/api/partner/v1/commands',lambda route:pending.append(route))
+        page.goto(origin+'/activity');page.get_by_role('button',name='Stop',exact=True).click()
+        page.get_by_role('navigation').get_by_role('link',name='Help',exact=True).click()
+        page.get_by_role('heading',name='Help & privacy',exact=True).wait_for()
+        take_activity_request(page,pending).fulfill(status=200,content_type='application/json',body='{}')
+        page.wait_for_timeout(80)
+        assert page.get_by_role('heading',name='Help & privacy',exact=True).count()==1
+        assert page.locator('#message').is_hidden()
+        page.goto(origin+'/activity');page.get_by_role('button',name='Pause',exact=True).click()
+        take_activity_request(page,pending).fulfill(status=401,content_type='application/json',body='{"error":"Sign in required"}')
+        page.get_by_role('heading',name='Your work. Your records.',exact=True).wait_for()
+        assert page.get_by_role('navigation').is_hidden()
+        assert page.get_by_role('button',name='Delete record',exact=True).count()==0
+
+
+def test_partner_activity_revision_conflict_requires_explicit_refresh():
+    with running_partner_shell() as origin,SiteBrowser(viewport=(390,844)) as site:
+        page=site.page;record=activity_fixture(page)
+        page.route('**/api/partner/v1/commands',lambda route:route.fulfill(status=409,content_type='application/json',body='{"error":"This optional activity record has changed."}'))
+        page.goto(origin+'/activity');page.get_by_role('button',name='Pause',exact=True).click()
+        page.get_by_text('This optional activity record has changed.',exact=True).wait_for()
+        record.update(runningSince=None,revision=2)
+        page.get_by_role('button',name='Refresh activity records',exact=True).click()
+        page.get_by_role('button',name='Resume',exact=True).wait_for()
+        assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')

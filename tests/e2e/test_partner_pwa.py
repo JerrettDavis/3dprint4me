@@ -10,7 +10,7 @@ def test_static_worker_cold_reload_recovers_only_local_drafts_and_logout_clears_
         page.goto(origin)
         page.get_by_role('heading',name='Hello, Synthetic Partner.',exact=True).wait_for()
         page.wait_for_function("() => !!navigator.serviceWorker.controller")
-        assert page.evaluate("async()=> (await caches.keys()).includes('partner-shell-v1')")
+        assert page.evaluate("async()=> (await caches.keys()).includes('partner-shell-v2')")
         page.evaluate("""async accountId=>{
             const {createVisitDraftStore}=await import('/assets/drafts.js');
             const store=createVisitDraftStore({storage:localStorage,accountId});
@@ -63,7 +63,7 @@ def test_worker_migrates_only_its_own_static_cache_and_ignores_unknown_routes():
         page.goto(origin+'/help')
         page.get_by_role('heading',name='Help & privacy',exact=True).wait_for()
         page.evaluate("async()=>{await fetch('/assets/partner.js?private-query=excluded');await fetch('/api/not-a-static-route',{method:'POST',body:'private-post'});}")
-        entries=page.evaluate("async()=> (await(await caches.open('partner-shell-v1')).keys()).map(r=>r.url)")
+        entries=page.evaluate("async()=> (await(await caches.open('partner-shell-v2')).keys()).map(r=>r.url)")
         assert all('private-query' not in url and '/api/' not in url and 'unknown-private-path' not in url for url in entries)
 
 
@@ -93,5 +93,5 @@ def test_preparing_again_preserves_the_active_release_static_set():
     with running_partner_shell() as origin,SiteBrowser() as site:
         page=site.page;page.goto(origin+'/help')
         page.wait_for_function('()=>!!navigator.serviceWorker.controller')
-        value=page.evaluate("""async()=>{const cache=await caches.open('partner-shell-v1');await cache.put('/assets/partner.js',new Response('/* active release fixture */'));const {prepareOfflineShell}=await import('/assets/pwa.js');await prepareOfflineShell();return(await cache.match('/assets/partner.js')).text();}""")
+        value=page.evaluate("""async()=>{const cache=await caches.open('partner-shell-v2');await cache.put('/assets/partner.js',new Response('/* active release fixture */'));const {prepareOfflineShell}=await import('/assets/pwa.js');await prepareOfflineShell();return(await cache.match('/assets/partner.js')).text();}""")
         assert value=='/* active release fixture */'
