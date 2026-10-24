@@ -9,6 +9,8 @@ import subprocess
 import threading
 import time
 import signal
+import tempfile
+from pathlib import Path
 import uuid
 from contextlib import contextmanager
 from tests.support.server import ROOT, free_port, request
@@ -16,13 +18,21 @@ from tests.support.browser_harness import SiteBrowser
 
 
 @contextmanager
-def native_partner_workspace(*,enable_reviewed_launch=False):
+def native_partner_workspace(*,enable_reviewed_launch=False,clock=None):
     port, owner_port = free_port(), free_port()
     owner_origin = f'http://127.0.0.1:{owner_port}'
     shell_origin = f'http://127.0.0.1:{port}'
     container = '3dprint4me-partner-browser-' + uuid.uuid4().hex[:8]
+    clock_root=tempfile.TemporaryDirectory(prefix='3dprint4me-partner-clock-') if clock else None
+    clock_path=Path(clock_root.name)/'clock.json' if clock_root else None
+    def set_clock(value):
+        from datetime import datetime
+        instant=datetime.fromisoformat(value.replace('Z','+00:00'))
+        assert instant.tzinfo is not None and 2026<=instant.year<=2027
+        temporary=clock_path.with_suffix('.next');temporary.write_text(json.dumps(value),encoding='utf-8');temporary.replace(clock_path)
+    if clock:set_clock(clock)
     native = subprocess.Popen(['node', 'tests/support/partner-native-server.mjs'], cwd=ROOT,
-                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
+                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_CLOCK_FILE':str(clock_path) if clock_path else '', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=os.name != 'nt')
     lines = queue.Queue()
     threading.Thread(target=lambda: lines.put(native.stdout.readline()), daemon=True).start()
@@ -50,6 +60,7 @@ def native_partner_workspace(*,enable_reviewed_launch=False):
                 if request(owner_origin+'/api/config')[0]==200:break
             except OSError:time.sleep(.08)
         else:raise TimeoutError('Owner shell unavailable')
+        fixture['setClock']=set_clock if clock else None
         fixture['ownerOrigin']=owner_origin
         fixture['_process'] = native
         fixture['_container'] = container
@@ -87,6 +98,7 @@ def native_partner_workspace(*,enable_reviewed_launch=False):
             subprocess.run(['docker', 'rm', '--force', container], check=True, capture_output=True, timeout=15)
         elif not any(message in inspected.stderr.lower() for message in ['no such object', 'no such container']):
             raise RuntimeError('Could not verify disposable partner container cleanup')
+        if clock_root:clock_root.cleanup()
 
 
 def test_native_partner_browser_cookie_csrf_idor_and_logout():

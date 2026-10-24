@@ -230,3 +230,16 @@ its database/configuration archive passes isolated native restore and runtime
 privilege denial, and both object streams pass read-only hash/content validation.
 These address specific operational tests, not the nine complete feature scenarios,
 full replacement-host/object-provider restore or production rollout/activation.
+
+
+Budget authorization increment: all five budget-week scenarios map to eight native
+browser cases in `test_partner_budget_browser.py`. A new reviewed-program helper
+creates programs, initial invitation enrollment, exact issues/acknowledgments,
+campaign publication and offers through actual owner/partner HTTP/browser boundaries.
+Its accepted gigs and reservations are not seeded. Both concurrent accept transactions
+are observed blocked on the held program row before release; one commits and the
+other stays offered with no dangling reservation. Reduced caps preserve $200 payable;
+Dec 30 acceptance survives Jan 1 review/payment while new work is denied. Four native
+Monday/DST examples also verify the actual detail-page week. A missing detail-read
+week was reproduced and fixed after authorization, without changing command locks.
+This closes these budget scenarios, not production cookie/TLS or all financial rules.

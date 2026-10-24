@@ -793,3 +793,19 @@ A revision conflict leaves the current record visible and offers an explicit fre
 The worker/HTML static release is now `partner-shell-v2` so the new controls install
 with their matching shell. Native packet scenario mappings and limits are in
 [PARTNER-PORTAL-TRACEABILITY.md](PARTNER-PORTAL-TRACEABILITY.md).
+
+
+## Budget authorization acceptance
+
+The native browser suite now includes all five budget-week scenarios (eight cases,
+including four Monday/DST examples). Fresh owner commands create programs, synthetic
+reviewed sources, invitations, campaigns and offers; new partners enroll and acknowledge
+exact issues in independent browser contexts before accepting. Existing fixture history
+is not used to prove their reservations. Cap reductions and sunset preserve earned
+obligations. Production professional clearance is not implied by synthetic fixture data.
+
+Individual gig reads now include the persisted authorization week after authorized gig
+lookup, matching list/acceptance responses. This fixes the detail-page fallback; command
+locking and reservation arithmetic are unchanged. The new API image and remaining
+rollout/acceptance work are recorded in [VERIFICATION.md](VERIFICATION.md) and
+[PARTNER-ACCEPTANCE-GAPS.md](PARTNER-ACCEPTANCE-GAPS.md).

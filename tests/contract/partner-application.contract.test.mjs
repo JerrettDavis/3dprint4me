@@ -34,6 +34,8 @@ test('owner offers, partner negotiates and accepts once; pause preserves earned 
   assert.equal((await f.database.query`SELECT count(*)::int AS n FROM partner_budget_reservations`)[0].n,0);
   const acceptKey=randomUUID(),accepted=await run(f.actor,'gig.accept',{gigId:gig.id,expectedRevision:2},acceptKey);
   assert.equal(accepted.feeCents,5000);
+  assert.equal((await app.read(f.actor,'gig',{id:gig.id})).item.authorizationWeek,accepted.authorizationWeek);
+  assert.equal((await app.read(f.owner,'gig',{id:gig.id})).item.authorizationWeek,accepted.authorizationWeek);
   assert.deepEqual(await run(f.actor,'gig.accept',{gigId:gig.id,expectedRevision:2},acceptKey),accepted);
   await assert.rejects(app.read(f.otherActor,'gig',{id:gig.id}),{status:404});
   await assert.rejects(app.read(f.otherActor,'gig',{id:randomUUID()}),{status:404});
