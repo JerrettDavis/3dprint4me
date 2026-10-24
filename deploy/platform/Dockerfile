@@ -8,6 +8,7 @@ ENV NODE_ENV=production PORT=8080
 WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY package.json ./
+COPY contracts/partner ./contracts/partner
 COPY lib ./lib
 COPY api ./api
 COPY public/assets/js ./public/assets/js

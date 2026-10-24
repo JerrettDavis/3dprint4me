@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { closeDatabase, queryDatabase as sql } from '../lib/database.js';
+import { closeDatabase, getDatabase, queryDatabase as sql } from '../lib/database.js';
+import { purgeExpiredPartnerExports } from '../lib/partner-outreach/export-retention.js';
 import { createPlatformJobs } from '../lib/platform/jobs.js';
 import { createNeonWorkStore } from '../lib/work-store.js';
 import { createWebPushTransport, drainPushOutbox } from '../lib/push-delivery.js';
@@ -28,6 +29,8 @@ async function main() {
       await sql`DELETE FROM platform_proxy_nonces WHERE expires_at<now()`;
       await sql`DELETE FROM operator_login_flows WHERE expires_at<now()`;
       await sql`DELETE FROM operator_sessions WHERE expires_at<now()`;
+      const [partner]=await sql`SELECT to_regclass('public.partner_export_payloads') IS NOT NULL AS ready`;
+      if(partner.ready)await purgeExpiredPartnerExports(getDatabase());
     })),
     onError:name=>console.error(`Scheduled ${name} operation unavailable.`)
   });

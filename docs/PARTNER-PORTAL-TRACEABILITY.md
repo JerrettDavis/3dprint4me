@@ -1,0 +1,76 @@
+# Partner portal acceptance traceability
+
+This is a coverage map, not a release certificate. The private packet names nine
+Gherkin features. The implementations below have unit, contract or isolated native
+PostgreSQL evidence; none yet has the requested complete partner/owner browser flow.
+Existing storefront/operator browser regression is a separate compatibility check.
+The source packet stays private and the real professional approval gates stay off.
+
+- **budget-week.feature**: `tests/unit/partner-policy.test.mjs`,
+  `tests/contract/partner-repository.contract.test.mjs` and
+  `tests/integration/partner-postgres.test.mjs` cover Central Monday/DST boundaries,
+  integer-cent authorization ceilings, full maximum reservation, cap changes,
+  transaction races, retries and pilot sunset. Explicit frozen bonus criteria and
+  browser budget displays remain pending.
+- **partner-auth.feature**: `tests/contract/partner-auth.contract.test.mjs` and
+  `tests/contract/partner-http.contract.test.mjs` cover one-use invitation,
+  passphrase credentials, persistent rate limits, separate host cookies, CSRF,
+  exact origins, recovery/revocation, IDOR and safe failure output. Native tests
+  exercise the real GitHub owner binding and restricted backend role. Real-browser
+  subdomain cookie, sign-in/recovery and logout/offline-storage checks remain pending.
+- **gig-choice.feature**: `tests/unit/partner-domain.test.mjs` and
+  `tests/contract/partner-application.contract.test.mjs` cover voluntary offer
+  acceptance/decline, negotiation/reoffer, revision conflicts, submission/review,
+  safety/cancellation requests and frozen accepted terms. Ledger tests cover
+  reconciliation without erasing earned obligations. Partner and owner UI flows,
+  explanatory copy and browser acceptance receipts remain pending.
+- **visits-leads.feature**: `tests/contract/partner-outreach.contract.test.mjs`
+  covers business visits, permission for materials, specific contact consent,
+  duplicate contacts, owner qualification, correction/renewed consent, withdrawal
+  and deletion. `partner-materials.contract.test.mjs` covers issued/returned
+  supplies without pay deductions. Referral qualification evidence surviving later
+  contact changes, lead retention operations and browser forms remain pending.
+- **optional-activity.feature**: outreach/profile contract tests cover independent
+  optional timer start/pause/resume/stop/delete, ownership and data export. Timers
+  do not gate fees or acceptance. Browser offline drafts, accessible controls and
+  deletion from device storage remain pending.
+- **ledger-payments.feature**: `tests/contract/partner-ledger.contract.test.mjs`,
+  `tests/unit/partner-export.test.mjs` and native restore tests cover earned debt,
+  verified manual settlement, partial payments, immutable reversals, externally
+  evidenced adjustments, duplicate evidence, stable incremental cash/accrual
+  exports and source claims. Profile tests cover scoped earnings/statements/data
+  export and derived-copy expiry. Weekly generated statements, forecasts, owner
+  finance UI and account-specific CSV import validation remain pending.
+- **contract-review.feature**: `tests/contract/partner-legal.contract.test.mjs`,
+  `partner-template-seed.contract.test.mjs`, `partner-review-package.contract.test.mjs`
+  and `tests/unit/partner-legal-content.test.mjs` cover immutable typed/hash-bound
+  revisions, stale-save denial, any-revision/clause comparison, scoped comments,
+  review evidence, publication, frozen issues and read acknowledgment. Native
+  restore recomputes legal/snapshot/artifact hashes. Seven anonymized non-issuable
+  templates seed without overwriting owner revisions. Signed private Markdown/DOCX
+  bundles have audited owner-only expiring downloads, manifests and reviewer grants;
+  all nine rendered template pages were inspected. Simple table rendering, annotated
+  feedback attachment import, encrypted offline sharing, editorial UI and actual
+  professional review remain pending.
+- **referral.feature**: schema placeholders exist, but referral codes, customer
+  opt-in attribution, independently verified paid-sale conversion, immutable bonus
+  rules/awards and global source uniqueness are not implemented. No referral
+  acceptance scenario is marked covered by generic ledger or checkout tests.
+- **owner-control.feature**: application/auth/HTTP/native contract tests cover
+  owner-only commands, real GitHub owner identity, revocation, kill switches,
+  payable preservation and reconciliation after pause/sunset. Existing operator
+  and storefront regression checks compatibility. Partner owner screens, staging,
+  production-disabled smoke checks and the complete browser scenario remain pending.
+
+## Release evidence still required
+
+All nine feature flows must run through real browser contexts and the native API
+with disposable PostgreSQL, including two partners, owner/operator distinctions,
+320/390-pixel layouts, themes, keyboard/reduced motion and offline privacy behavior.
+Maintain explicit scenario assertions rather than counting unrelated regression
+checks as partner coverage. Complete OpenAPI/requirements mapping, secure retention
+and outbox operations, encrypted full-platform restore, clean reviewed PR/CI,
+staging, disabled production deployment and provider-issued DNS/TLS verification.
+
+See [implementation status](PARTNER-PORTAL.md) and the
+[implementation plan](superpowers/plans/2026-10-23-partner-portal.md).

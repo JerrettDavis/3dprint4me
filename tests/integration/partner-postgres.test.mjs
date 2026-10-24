@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
+import { randomUUID,generateKeyPairSync } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import pg from 'pg';
 import { createPartnerApplication } from '../../lib/partner-outreach/application.js';
 import { createOwnerAuthorizer } from '../../lib/partner-outreach/http.js';
+import { purgeExpiredPartnerExports } from '../../lib/partner-outreach/export-retention.js';
 import { storedLegalVersion,renderLegalVersion } from '../../lib/partner-outreach/legal-content.js';
 import { digest } from '../../lib/partner-outreach/postgres-repository.js';
 import { splitStatements,MIGRATIONS } from '../../scripts/migrate-neon.mjs';
@@ -42,7 +43,8 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   const pool=new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')));
   database=createNativeDatabase({pool});
   const repo=createPostgresPartnerRepository({database});
-  const ownerToken='o'.repeat(43),ownerEnv={OPERATOR_OWNER_SUBJECT:'2610199',PARTNER_PROGRAM_ENABLED:'1',PARTNER_CLASSIFICATION_APPROVED:'1',PARTNER_ACCOUNTING_APPROVED:'1'};
+  const reviewKey=generateKeyPairSync('ed25519').privateKey.export({type:'pkcs8',format:'pem'});
+  const ownerToken='o'.repeat(43),ownerEnv={PARTNER_REVIEW_SIGNING_PRIVATE_KEY:reviewKey,OPERATOR_OWNER_SUBJECT:'2610199',PARTNER_PROGRAM_ENABLED:'1',PARTNER_CLASSIFICATION_APPROVED:'1',PARTNER_ACCOUNTING_APPROVED:'1'};
   await admin.query("INSERT INTO operators(id,auth_user_id,display_name,role) VALUES('op_native','github:2610199','Synthetic owner','owner')");
   await admin.query("INSERT INTO operator_identity_bindings(issuer,subject,operator_id) VALUES('https://github.com/','2610199','op_native')");
   await admin.query("INSERT INTO operator_sessions(token_hash,operator_id,issuer,subject,expires_at) VALUES($1,'op_native','https://github.com/','2610199','2026-10-24T12:00Z')",[digest(ownerToken)]);
@@ -124,6 +126,22 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   expectedCommitted+=1000;expectedAccepts++;
   await financial('legal.save',{programId,templateKey:'independent-marketing-services',title:'Synthetic reviewed terms',markdown:'# DRAFT amendment\nNew unreviewed text.',variablesSchema:{},issuable:false,expectedRevision:2,changeReason:'Must not mutate old issue'});
   assert.equal((await app.approvals.status(database,programId,new Date('2026-10-23T12:00Z'))).allowed,false);
+  const own=(action,input)=>app.execute({actor:actualPartner,action,input,key:randomUUID()});
+  await own('profile.update',{expectedRevision:1,preferredContact:'email',email:'native-old-private@example.test'});
+  const derived=await own('profile.export',{});assert.equal(derived.data,undefined);
+  assert.ok(JSON.stringify(await app.read(actualPartner,'own-export',{id:derived.batchId})).includes('native-old-private@example.test'));
+  await own('profile.update',{expectedRevision:2,email:'native-new-private@example.test'});
+  await assert.rejects(app.read(actualPartner,'own-export',{id:derived.batchId}),{status:410});
+  const activeCopies=JSON.stringify((await admin.query('SELECT response_json FROM partner_command_keys')).rows)+JSON.stringify((await admin.query('SELECT manifest FROM partner_export_batches')).rows)+JSON.stringify((await admin.query('SELECT payload FROM partner_export_payloads')).rows);
+  assert.ok(!activeCopies.includes('native-old-private@example.test'));assert.ok(!activeCopies.includes('native-new-private@example.test'));
+  const expiring=await own('profile.export',{});
+  assert.equal((await purgeExpiredPartnerExports(database,{instant:new Date('2026-10-25T12:00Z')})).purged,1);
+  await assert.rejects(app.read(actualPartner,'own-export',{id:expiring.batchId}),{status:410});
+  assert.equal((await financial('legal.seed_templates',{programId})).created,6);
+  const artifact=await financial('legal.export_package',{programId,versionIds:[legal.versionId],reviewers:[{name:'Native synthetic counsel',role:'attorney',scopes:['agreement_language']}],expiresAt:'2026-10-30T12:00:00Z',redactionConfirmed:true,factualBrief:'Synthetic native test.'});
+  const packageDownload=await app.read(ownerSession.actor,'review-package',{id:artifact.id});
+  assert.equal(digest(Buffer.from(packageDownload.data,'base64')),artifact.sha256);
+  await assert.rejects(database.query`UPDATE partner_review_artifacts SET filename='review-changed.zip' WHERE package_id=${artifact.id}`);
   const expectedCommands=(await admin.query('SELECT count(*)::int AS n FROM partner_command_keys')).rows[0].n;
   await admin.query('CREATE DATABASE partner_restore');
   // Only this synthetic disposable container is touched. Stream the dump as
@@ -143,6 +161,7 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
    await assert.rejects(restored.query('DELETE FROM partner_payable_adjustments'),/immutable/i);
    assert.equal((await restored.query('SELECT snapshot_sha256 FROM partner_agreement_issues WHERE id=$1',[issue.id])).rows[0].snapshot_sha256,issue.snapshotHash);
    assert.equal((await restored.query('SELECT snapshot_sha256 FROM partner_agreement_acknowledgments WHERE issue_id=$1',[issue.id])).rows[0].snapshot_sha256,issue.snapshotHash);
+   assert.equal(digest((await restored.query('SELECT bytes FROM partner_review_artifacts WHERE package_id=$1',[artifact.id])).rows[0].bytes),artifact.sha256);
    const restoredVersion=(await restored.query('SELECT * FROM partner_legal_versions WHERE id=$1',[legal.versionId])).rows[0];
    assert.equal(storedLegalVersion(restoredVersion).hash,legal.hash);
    const restoredIssue=(await restored.query('SELECT * FROM partner_agreement_issues WHERE id=$1',[issue.id])).rows[0];

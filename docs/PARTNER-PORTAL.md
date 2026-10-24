@@ -34,7 +34,7 @@ implementations, then passed. Static and architecture validation passed after th
 changes. The baseline rerun passed 1,112 unit/contract tests; browser regression passed
 224 tests with one Linux-only fresh-host test skipped on Windows; the UX audit passed 241 checks. The first
 baseline attempt overlapped test-first module creation and did not complete.
-Deployment, legal review export and encrypted backup evidence remain outstanding.
+Deployment, annotated-feedback import and encrypted backup evidence remain outstanding.
 
 ## Operational state
 
@@ -237,7 +237,52 @@ new-work readiness while prior issued text, acknowledgment and earned obligation
 remain recoverable. Native PostgreSQL tests exercise this flow with synthetic review
 grants and recompute document/snapshot hashes after an isolated restore.
 
-The review-package generator, DOCX rendering/import, draft template seeding and
-editor UI are still pending. Current automated legal tests insert synthetic package
-metadata directly; they do not prove package generation or actual professional approval.
-No real counsel/CPA decision or live activation has been recorded.
+The owner-only `legal.seed_templates` command imports seven anonymized bundled
+sources from `contracts/partner/` as immutable, non-issuable drafts. It skips existing
+document keys, including owner revisions. Company and person identity defaults are
+absent; monetary defaults use integer cents. Private contextual material stays outside
+Git. The API image includes these sources; storefront output does not.
+
+`legal.export_package` freezes up to twenty selected versions with Markdown, editable
+DOCX, typed variable schemas, source and file hashes, author/revision provenance,
+prior-round clause/line comparison, factual brief and a formula-safe review worksheet.
+Export requires explicit redaction/share confirmation and named attorney/CPA grants
+with compatible scopes and expiry within thirty days. It works while work activation
+is off. Package creation grants no approval and does not send anything to reviewers.
+The source is canonical; editing a DOCX cannot change a stored legal version.
+
+Set `PARTNER_REVIEW_SIGNING_PRIVATE_KEY` privately on the native API to a persistent
+Ed25519 PKCS8 PEM key. Missing or invalid configuration fails closed. The ZIP includes
+an Ed25519 signature over canonical manifest JSON, its public key and a SHA-256 key
+fingerprint. Convey/verify that fingerprint through an independently trusted channel;
+the embedded key alone cannot establish identity. Preserve old keys/fingerprints with
+recovery records. This artifact signature is not a person's electronic signature.
+Only authenticated owners can download via `review-package`; downloads verify archive
+hash/signature, enforce expiry and append a minimal audit event. Bytes and manifest
+are immutable database evidence, excluded from command receipts and public output.
+Offline copies require an approved encrypted sharing channel; expiry cannot recall
+copies. In-browser encrypted packaging and reviewer access UI remain pending.
+
+The formatter currently handles text paragraphs, headings, bold/italic/code text and
+bullets. Clause IDs and unresolved placeholders remain visible. No remote images,
+hyperlinks, templates or macros are introduced. All seven synthetic drafts were rendered
+in offline LibreOffice and all nine pages inspected. Reproduce source samples with
+`node scripts/partner-review-docx-qa.mjs <private-output-outside-repository>`; run the
+bundled documents `render_docx.py` on every file and inspect every rendered page.
+Simple Markdown table formatting, annotated DOCX feedback import and the editor UI
+remain pending. Earlier review-lifecycle tests use synthetic grants; package tests now
+exercise actual generated signed ZIPs and native PostgreSQL/restore. No real counsel/CPA
+decision or live activation has been recorded.
+
+## Derived personal export retention
+
+Partner data exports store only identifiers, generation/expiry times and a checksum
+in immutable manifests. Downloadable snapshots live in a separate mutable private table
+for at most twenty-four hours. Profile changes, contact corrections/withdrawal/deletion,
+activity deletion, credential recovery and account revocation clear those snapshots.
+Expired downloads return 410 and clear payload bytes; the existing auth-expiry scheduled
+job also purges bounded batches. Account locks serialize owner contact changes with
+partner export creation. Profile update receipts contain only identity/revision metadata.
+This removes obsolete derived copies without rewriting agreement, consent or ledger
+evidence. Backup retention and legally required source-record retention are separate
+operational policies still requiring the deployment/recovery review.

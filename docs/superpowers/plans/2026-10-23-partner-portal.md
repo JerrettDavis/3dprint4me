@@ -150,3 +150,19 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
   and financial scenario facts. Never copy them wholesale into public Git. Anonymize
   reusable cover templates; supply factual context only in an explicitly approved,
   private reviewer package. Retain original packet sources privately for comparison.
+
+- Private export/package increment: derived own-data snapshots now expire after
+  twenty-four hours and are cleared after relevant personal-record changes or
+  credential/account recovery. Immutable export manifests and profile receipts
+  retain no derived personal snapshot. Native PostgreSQL expiry/restore passed.
+- Seven anonymized legal sources now seed as owner-only, non-issuable drafts without
+  overwriting existing keys. Signed immutable private Markdown/DOCX packages include
+  source/file hashes, typed schemas, provenance, prior-round comparison and a review
+  worksheet. Named role/scope grants expire within thirty days; downloads are audited,
+  authenticated and hash/signature checked. No automatic transmission or approval.
+- All seven DOCX samples rendered offline in isolated LibreOffice; nine page images
+  were visually inspected after fixing italic rendering. A production image build
+  and read-only/no-network in-memory DOCX smoke passed with dev dependencies omitted.
+- Feedback attachment import, simple tables, encrypted offline sharing and editor UI
+  remain open. The current nine-feature evidence/gap map is in
+  docs/PARTNER-PORTAL-TRACEABILITY.md; browser BDD coverage is explicitly still pending.

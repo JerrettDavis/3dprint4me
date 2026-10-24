@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "release": "draft-0.1.0",
+  "legallyApproved": false,
+  "templates": [
+    {
+      "key": "independent-marketing-services",
+      "file": "independent-marketing-services.md",
+      "reviewers": [
+        "attorney",
+        "cpa"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "gig-work-order",
+      "file": "gig-work-order.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "bicycle-gift-acknowledgment",
+      "file": "bicycle-gift-acknowledgment.md",
+      "reviewers": [
+        "attorney",
+        "cpa"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "field-marketing-policy",
+      "file": "field-marketing-policy.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "lead-privacy-consent",
+      "file": "lead-privacy-consent.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "review-cover-letter",
+      "file": "review-cover-letter.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": false
+    },
+    {
+      "key": "cpa-cover-letter",
+      "file": "cpa-cover-letter.md",
+      "reviewers": [
+        "cpa"
+      ],
+      "issueRequiresApproval": false
+    }
+  ],
+  "variables": {
+    "company_legal_name": {
+      "type": "string",
+      "required": true
+    },
+    "company_dba": {
+      "type": "string",
+      "required": true
+    },
+    "company_contact_email": {
+      "type": "email",
+      "required": true
+    },
+    "partner_full_name": {
+      "type": "private-person-name",
+      "required": false
+    },
+    "program_start_date": {
+      "type": "date",
+      "required": true
+    },
+    "program_end_date": {
+      "type": "date",
+      "required": true,
+      "default": "2026-12-31"
+    },
+    "weekly_authorization_default_usd": {
+      "type": "money",
+      "required": true,
+      "default": 20000
+    },
+    "weekly_authorization_max_usd": {
+      "type": "money",
+      "required": true,
+      "default": 40000
+    },
+    "weekly_payment_day": {
+      "type": "string",
+      "required": false
+    },
+    "gig_title": {
+      "type": "string",
+      "required": false
+    },
+    "gig_scope": {
+      "type": "multiline",
+      "required": false
+    },
+    "gig_fee_usd": {
+      "type": "money",
+      "required": false
+    },
+    "gig_deadline": {
+      "type": "date",
+      "required": false
+    },
+    "gift_amount_usd": {
+      "type": "money",
+      "required": false,
+      "default": 20000
+    },
+    "reviewer_name": {
+      "type": "string",
+      "required": false
+    },
+    "review_date": {
+      "type": "date",
+      "required": false
+    }
+  }
+}
