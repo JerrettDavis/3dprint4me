@@ -297,3 +297,38 @@ Remaining scope includes settlement/payment correction and exports, referrals an
 bonuses, legal editor/review exports/imports/issuance, partner PWA and owner console,
 retention/outbox/operational proof, reviewed PR and actual disabled staging/production
 release. See [the plan](superpowers/plans/2026-10-23-partner-portal.md).
+
+
+## Partner ledger and legal backend checkpoint 2026-10-24
+
+The ledger/profile/materials increment passed `npm test`: 1,131 unit/contract
+checks, 224 browser tests with one Linux-only fresh-host test skipped on Windows,
+and 241/241 UX checks. Later legal revision/issuance and funding-exception additions
+passed a fresh full unit/contract run with 1,136 tests, all 34 focused partner cases,
+and static/architecture validation. Existing browser checks predate those later
+private-backend additions; the final release suite still must run after the UI and
+remaining integration work are complete.
+
+`npm run test:partner:postgres` passed on pinned native PostgreSQL 18 under the
+restricted backend role. In addition to earlier auth/budget/retry races, it verifies
+concurrent partial settlements, duplicate settlement proof (including case variants),
+competing obligation adjustments, concurrent incremental export claims, and a real
+synthetic owner review/publish/issue/read-acknowledgment/acceptance lifecycle. A later
+draft blocks new readiness. After synthetic dump/restore, source and issued-copy
+hashes are recomputed and match; payments, reversals, adjustments, reviewer package
+provenance, acknowledgments and export claims remain intact. This is not the encrypted
+production recovery/host-replacement proof required before release.
+
+Implemented: manual ledger and immutable correction events; existing-obligation
+reconciliation independent of program pause; scoped earnings/statements/data exports;
+stable cash/accrual CSV batches; material issuance/return; typed/hash-bound legal
+revisions, comparison, comments/resolution, scoped review evidence, publication and
+frozen issuance/read acknowledgment. No payment provider write or e-signature exists.
+
+Still pending: anonymized seed import and actual Markdown/DOCX package generation,
+Word rendering and annotated-feedback import; referrals/bonuses and consented intake
+attribution; partner PWA and owner UI; full nine-feature browser BDD coverage;
+retention/outbox/monitoring and encrypted recovery; reviewed PR/CI, staging and actual
+disabled production deployment. Source packet, factual background and reviewer notes
+remain private. No real approval, invitation, payment, DNS or production migration
+has been performed.
