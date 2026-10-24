@@ -390,15 +390,17 @@ the shell origin. This server supplies static files/configuration only; it does 
 replace the native database/authentication runtime. Fixture browser tests explicitly
 mock API responses and do not prove real cookies or PostgreSQL-backed browser flows.
 
-Visit/contact forms, counteroffers, partner referral display, device-only drafts,
-safe service-worker lifecycle and the owner console remain under implementation.
+Visit/contact forms, business-only device drafts and partner counterproposals are
+implemented below. Partner referral display, safe service-worker lifecycle and the
+owner console remain under implementation.
 No deployment or complete PWA/browser acceptance is claimed by these views.
 
 
 The separate device draft-store primitive now has account-specific per-entry storage,
 strict business-field allowlisting and stable idempotent replay; contact and consent
 values are rejected before writing. Conflicts remain for manual review and blocked
-storage never reports a saved record. It is not wired to a form or service worker.
+storage never reports a saved record. It is wired to the visit form and manual
+draft replay; offline reload/service-worker behavior remains unfinished.
 
 `npm run test:partner:browser` runs the first actual native browser slice in a
 fresh pinned PostgreSQL container: two independent browser contexts, real cookie
@@ -441,3 +443,21 @@ remains open can work offline, and saved business records survive reload/restart
 storage. A completely offline reload cannot authenticate or load private server
 records. Full offline shell/reopen/upgrade behavior remains an explicit release gap;
 it is not proved by the successful open-page offline/draft replay tests.
+
+
+### Fee proposals on an unaccepted offer
+
+A partner can send a proposed USD fee and required message from an offered gig.
+The form converts up to two decimal places to integer cents and permits the same
+$0–$400 range as the command validator. Sending a proposal does not accept work,
+reserve money or change the currently offered fee. The owner must send a revised
+offer; the partner still chooses whether to accept it. Fee discussion messages
+are displayed as inert text, attributed to the partner or owner, and remain
+visible after the offer closes. The proposal form is absent after acceptance.
+
+Both gig decision forms are disabled during a request. An unchanged failed request
+retains its idempotency key for retry; editing after failure creates a new key.
+Responses from a view the partner has left cannot reroute or announce into the
+newer view. Native browser evidence verifies proposal persistence after reload,
+unchanged offered status/fee, and cross-partner read denial. The complete
+owner reoffer/acceptance/budget browser flow is still a release requirement.

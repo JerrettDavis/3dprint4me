@@ -122,3 +122,87 @@ def test_partner_delayed_auth_does_not_replace_help_or_touch_removed_form():
         assert page.locator('input[type=password]').count() == 0
         site.console = [e for e in site.console if 'status of 401 (Unauthorized)' not in e.text]
         site.assert_no_page_errors()
+
+
+GIG_ID = '30000000-1000-4000-8000-100000000001'
+
+
+def install_offer_fixture(page):
+    install_partner_fixture(page)
+    item = {'id': GIG_ID, 'status': 'offered', 'revision': 1, 'feeCents': 1000,
+            'maximumBonusCents': 0, 'terms': {'title': 'Synthetic introductions', 'area': 'Tulsa',
+            'deadline': '2026-12-01', 'tasks': ['Permitted business introductions'], 'materials': []}}
+    negotiations = [{'id': 'prior', 'proposed_fee_cents': 1250, 'actor_id': 'owner',
+                     'message': '<img src=x onerror=alert(1)>', 'created_at': '2026-10-24T12:00:00Z'}]
+    page.route('**/api/partner/v1/gig?*', lambda route: route.fulfill(status=200,
+               content_type='application/json', body=json.dumps({'item': item, 'events': [], 'negotiations': negotiations})))
+    return item, negotiations
+
+
+def test_partner_counteroffer_exact_retry_and_inert_history():
+    with running_partner_shell() as origin, SiteBrowser(viewport=(390, 844), color_scheme='dark', reduced_motion='reduce') as site:
+        page = site.page
+        item, negotiations = install_offer_fixture(page)
+        pending, commands = [], []
+        def command(route):
+            commands.append(route.request.post_data_json)
+            pending.append(route)
+        page.route('**/api/partner/v1/commands', command)
+        page.goto(origin + '/gigs/' + GIG_ID)
+        page.get_by_label('Proposed fee (USD)', exact=True).fill('12.34')
+        assert page.locator('main img').count() == 0
+        assert '<img src=x onerror=alert(1)>' in page.get_by_role('region', name='Fee discussion').inner_text()
+        page.get_by_label('Message to the owner', exact=True).fill('Can this cover the additional materials?')
+        page.get_by_role('button', name='Send counterproposal', exact=True).click()
+        page.wait_for_function('document.querySelector("#counteroffer button").disabled')
+        assert page.get_by_label('Proposed fee (USD)', exact=True).is_disabled()
+        assert page.get_by_role('button', name='Save decision', exact=True).is_disabled()
+        assert commands[0]['action'] == 'gig.counteroffer'
+        assert commands[0]['input'] == {'gigId': GIG_ID, 'expectedRevision': 1, 'proposedFeeCents': 1234,
+                                        'message': 'Can this cover the additional materials?'}
+        pending.pop(0).abort()
+        page.get_by_text('Unable to reach the partner service. Check your connection and try again.', exact=True).wait_for()
+        page.get_by_role('button', name='Send counterproposal', exact=True).click()
+        page.wait_for_function('document.querySelector("#counteroffer button").disabled')
+        assert len(commands) == 2 and commands[1] == commands[0]
+        item['revision'] = 2
+        negotiations.append({'id': 'new', 'proposed_fee_cents': 1234, 'actor_id': PARTNER['id'],
+                             'message': 'Can this cover the additional materials?', 'created_at': '2026-10-24T12:01:00Z'})
+        pending.pop(0).fulfill(status=200, content_type='application/json', body=json.dumps({'id': GIG_ID, 'revision': 2}))
+        page.get_by_text('Counterproposal recorded. The offered fee is unchanged until the owner sends a revised offer.', exact=True).wait_for()
+        assert '$10.00 offered fee' in page.locator('main').inner_text()
+        assert 'You proposed $12.34' in page.get_by_role('region', name='Fee discussion').inner_text()
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert not site.page_errors
+
+
+def test_partner_delayed_counteroffer_does_not_replace_current_page():
+    with running_partner_shell() as origin, SiteBrowser(viewport=(320, 844)) as site:
+        page = site.page
+        install_offer_fixture(page)
+        pending = []
+        page.route('**/api/partner/v1/commands', lambda route: pending.append(route))
+        page.goto(origin + '/gigs/' + GIG_ID)
+        page.get_by_label('Proposed fee (USD)', exact=True).fill('15.00')
+        page.get_by_label('Message to the owner', exact=True).fill('A different fee request')
+        page.get_by_role('button', name='Send counterproposal', exact=True).click()
+        page.get_by_role('navigation').get_by_role('link', name='Help', exact=True).click()
+        page.get_by_role('heading', name='Help & privacy').wait_for()
+        pending[0].fulfill(status=200, content_type='application/json', body=json.dumps({'id': GIG_ID, 'revision': 2}))
+        page.wait_for_timeout(100)
+        assert page.get_by_role('heading', name='Help & privacy').is_visible()
+        assert page.locator('#message').is_hidden()
+        assert not site.page_errors
+
+
+@pytest.mark.parametrize('gig_status', ['accepted', 'declined'])
+def test_partner_fee_history_survives_after_offer_closes(gig_status):
+    with running_partner_shell() as origin, SiteBrowser(viewport=(320,844)) as site:
+        item, _ = install_offer_fixture(site.page)
+        item['status'] = gig_status
+        site.page.goto(origin + '/gigs/' + GIG_ID)
+        site.page.get_by_role('region', name='Fee discussion').wait_for()
+        assert 'Owner proposed $12.50' in site.page.get_by_role('region', name='Fee discussion').inner_text()
+        assert site.page.get_by_role('button', name='Send counterproposal', exact=True).count() == 0
+        assert site.page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert not site.page_errors
