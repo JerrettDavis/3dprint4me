@@ -198,3 +198,25 @@ def test_owner_publication_context_never_borrows_another_program_clearance():
         assert page.locator('[data-publish-legal] [name=programId]').input_value()==other
         page.locator('[data-publish-legal] [name=programId]').select_option(PROGRAM)
         assert button.is_enabled() and page.get_by_role('combobox',name='Review context program',exact=True).input_value()==PROGRAM
+
+
+def install_missing_review_fixture(page):
+    commands=install_legal_fixture(page,issuable=True,concerns=False,clearance_by_program={PROGRAM:{'approved':True,'missing':[]}})
+    def changed_review(route):
+        if route.request.method=='POST' and route.request.post_data_json['action']=='legal.publish':
+            route.fulfill(status=409,content_type='application/json',body=json.dumps({'error':'This exact version is not approved.','missingGates':['classification','agreement_language']}))
+        else:route.fallback()
+    page.route('**/api/operator-partners*',changed_review)
+    return commands
+
+
+def test_owner_displays_exact_missing_review_gates_after_changed_clearance():
+    for viewport,scheme in [((390,844),'dark'),((320,844),'light')]:
+        with running_operator_workspace() as (_,origin,_),SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
+            page=site.page;install_missing_review_fixture(page)
+            page.goto(origin+'/partners#legal/version/'+VERSION)
+            page.get_by_role('button',name='Publish reviewed revision',exact=True).click()
+            page.get_by_text('This exact version is not approved. Missing requirements: Classification review; Agreement language review.',exact=True).wait_for()
+            assert page.locator('#owner-message').get_attribute('role')=='status'
+            assert page.get_by_role('button',name='Publish reviewed revision',exact=True).is_enabled()
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')

@@ -1447,3 +1447,73 @@ Restic, PostgreSQL, native browser, and validation/unit/E2E/UX steps. A later pu
 superseded the run during screenshots: final conclusion **cancelled**, artifact
 upload succeeded. It is not a full successful hosted run. Owner-control head
 3b6a3d7 has its own run `40123411458`; its conclusion remains pending.
+
+## Legal-review acceptance and readable gates (2026-10-24, based on 4b289ad)
+
+Three native journeys add signed private archive inspection, anonymous denial after
+positive owner download, unrelated private-record exclusions, exact missing review
+gates, and full independent version-B review/publication/binding/issue/acknowledgment
+without changing A. Native evidence uses synthetic professional decisions. Exclusion
+checks concern seeded markers and do not claim automatic redaction of arbitrary
+owner-authored content.
+
+The API already returned missing gates, but the owner client discarded them. A
+regression test failed with only the original generic conflict. The client now adds
+readable labels for known gates on 409 responses, ignores unknown values, and keeps
+server failures generic. All **9 focused client checks pass**. The native version-B
+journey changes a language review after the owner loads valid clearance, then proves
+the real publication denial is displayed. Shell cache advances to v24.
+
+Initial presentation runs exposed test fixture program selection mistakes: the native
+page defaulted to the seeded program and the static fixture program ID is a string.
+Corrected focused native plus owner-legal checks: **12 passed in 39.92 seconds**.
+Read-only review found no material blocker. Full regression, maintained native suite
+and screenshot capture are running sequentially against frozen source.
+
+The first full run passed **1,217 unit/contract tests** and reached **322 browser
+passes, one existing Windows skip and one failure in 563.23 seconds**. The sole
+failure was the installed-shell regression still expecting v23 after the v24 cache
+bump. The assertion now expects v24 and additionally checks that the installed cached
+owner client contains the readable-gate code. The isolated upgrade case passes.
+A final complete regression/native/screenshots sequence is running; the failed run
+is retained as evidence, not represented as a full passing check.
+
+Hosted run `40124260202` on ledger head `4b289ad` completed **successfully**:
+recovery, Restic, PostgreSQL, native browser, full validation/unit/E2E/UX, screenshots
+and artifact upload all passed. This proves that pushed head, not the uncommitted
+legal-review client changes. The preceding owner-control run was superseded/cancelled.
+
+The final full command again passed **1,217 unit/contract checks**, then reported
+**322 browser passes, one Windows skip and one failure in 587.50 seconds**. This
+failure was `ERR_NO_BUFFER_SPACE` during initial pumpkin page navigation, before
+any field edit or geometry build. The exact origin-isolation case passed unchanged
+in **2.65 seconds**. No customizer source change was made. A fresh complete browser
+phase followed by UX/native/screenshots is running; unit/validation results remain
+from the frozen successful phase. Neither failed full command is called passing.
+
+Clean browser rerun: **323 passed, one existing Windows skip in 551.94 seconds**.
+UX audit: **241/241 passed**. Together with the frozen validation/build and **1,217
+unit/contract passes**, all ordinary regression phases now pass. The full native
+suite and screenshots are running; the two failed full-command logs remain retained.
+
+Final maintained native suite: **55 passed in 386.57 seconds**, comprising 54 native
+browser cases and one socket check. Correct owner static build command is
+`npm --prefix operator run build`; all **34 output files match source bytes**, with
+v24 worker and readable-gate client present. The root `operator:build` only bundles
+authentication and does not refresh `operator/dist`; the verifier caught that stale
+output before the correct static build. Owner output remains undeployed.
+
+Screenshot capture completed: **147 captures plus preview-board.png**. The actual
+390-dark and 320-light missing-review viewport images were inspected, along with
+two exact-match crops from the actual board (rows y=44540 and y=45480). Gate names,
+wrapping and borders are readable without horizontal overflow. Board thumbnails
+retain the lower viewport containing the message. Generated timestamp/render noise
+was restored; new states and the board remain tracked.
+
+API candidate `3dprint4me-partner-api:20261024-legal-acceptance` passes network-none,
+read-only, all-capabilities-dropped, no-new-privileges import verification. All **210
+copied runtime files** match current source SHA-256. Image index
+`sha256:ac378945a0f767a179471395ac7274b690a6b79c6625e14d6b4432930cd46a91`;
+platform manifest `sha256:25d8eb577f0e849e31c8036f9fc09c6722647757c2a792dc4c193920c7d039ca`.
+Owner v24 and this API image remain undeployed. Partner static v4 is unchanged and
+needs no new upload. Final read-only review found no material blocker.

@@ -6,7 +6,8 @@ notes below when newer native journeys already cover part of them. The private p
 Gherkin features. The implementations below have unit, contract or isolated native
 PostgreSQL evidence. Optional activity, budget-week, partner-auth, gig-choice and visits/leads now have
 direct native mappings. Referral uses the staged attribution interpretation below.
-The remaining features still need their complete partner/owner flows.
+Owner-control, ledger and legal-review follow-ups below add direct native mappings;
+operational release evidence remains separate.
 Existing storefront/operator browser regression is a separate compatibility check.
 `test_partner_shell.py` adds synthetic API presentation/client checks for sign-in,
 maintenance, responsive navigation, inert issued text/exact acknowledgment, skip-link
@@ -302,3 +303,15 @@ actual runtime reports unconfigured after explicit fixture credential overrides;
 private payable/CSV persist through reload, invoice operation count stays zero and
 no fixture fetch occurs. These are not actual provider import, owner-books integration
 or prepared 1099 evidence; contractor classification still requires CPA review.
+
+Legal-review follow-up: `test_partner_legal_acceptance_browser.py` directly covers
+private owner ZIP download followed by anonymous denial, specific unrelated-record
+exclusions in all archive/nested DOCX entries, exact missing classification/language
+issuance gates, and independent version-B review/publication/program binding/issue/
+acknowledgment with unchanged version A. Existing native editor and stale-save cases
+cover immutable editing/conflict. A late language-review change is checked by the
+real publication endpoint and displayed by the actual owner client. Client unit
+checks restrict readable gate names to a known list on 409 responses and preserve
+generic server failures. Mobile fixture checks cover 390-dark/320-light display.
+The selected records and professional approvals are synthetic; this is not general
+content redaction or actual professional clearance.

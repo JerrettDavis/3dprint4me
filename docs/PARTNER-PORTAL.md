@@ -924,3 +924,18 @@ Job health writes bounded counts to `statements.json` when the existing health
 folder is configured. Failure remains unhealthy after an idle poll until actual
 processing succeeds. These are local implementation contracts; native/owner/partner
 production deployment and the remaining retention/delivery operations are separate.
+
+
+### Approval conflicts in the owner workspace
+
+A review or launch condition can change after a page loads. The server checks the
+current evidence again before publication or issuance. A conflict now names its
+recognized missing requirements in the owner status message, such as classification,
+agreement language or accounting review. Unknown gate values are omitted; internal
+server failures retain a generic unavailable message.
+
+Refresh the selected program/version and inspect its current scoped review records.
+A new revision needs its own exact-hash review, publication, program binding, issue
+and partner acknowledgment. Prior issued text and acknowledgments stay unchanged.
+Do not enable launch flags to bypass missing professional evidence. The software's
+recorded review controls do not establish actual attorney or CPA clearance.
