@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { observeJob, readJobHealth } from '../../lib/platform/job-health.js';
 import { collectPlatformStatus } from '../../lib/platform/status.js';
+import { generateWeeklyStatements } from '../../lib/partner-outreach/statements.js';
 
 for(const jobName of ['slicer','statements'])test(`${jobName} success/failure evidence is atomic, bounded and expires`,async()=>{
   const dir=await mkdtemp(join(tmpdir(),'3dp-health-'));
@@ -33,4 +34,29 @@ test('platform telemetry projects aggregate evidence and never serializes config
   assert.equal(failed.database,false);assert.equal(failed.jobs,false);
   const stalled=await collectPlatformStatus({query:async()=>[{healthy:false}],env:{},health:async()=>({ok:true})});
   assert.equal(stalled.jobs,false);
+});
+
+test('overall jobs health includes missing, failed, idle-after-failure and stale statement evidence',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'3dp-statement-status-'));
+  let now=1000000;
+  const env={PLATFORM_JOB_HEALTH_DIR:dir};
+  const otherJobs=['push','expiry','cleanup','slicer'];
+  const refreshOthers=async()=>{for(const name of otherJobs)await observeJob(name,async()=>({claimed:1,ready:1}),{env,now:()=>now});};
+  const collect=()=>collectPlatformStatus({query:async()=>[{healthy:true}],env:{DATABASE_DRIVER:'postgres'},health:(name,options)=>readJobHealth(name,{...options,directory:dir,now})});
+  try{
+    await refreshOthers();
+    assert.equal((await collect()).jobs,false,'Missing statement evidence must not report all jobs healthy');
+    await observeJob('statements',()=>generateWeeklyStatements({database:{query:async()=>[{ready:false}],withTransaction:async()=>{throw Error('Pre-migration idle must not write');}}}),{env,now:()=>now});
+    assert.equal((await collect()).jobs,true,'A fresh successful pre-migration idle poll preserves unconfigured operation');
+    await assert.rejects(observeJob('statements',async()=>{throw Error('PRIVATE-STATEMENT-ERROR');},{env,now:()=>now}));
+    assert.equal((await collect()).jobs,false);
+    await observeJob('statements',async()=>({claimed:0,generated:0}),{env,now:()=>now});
+    assert.equal((await collect()).jobs,false,'An idle poll cannot demonstrate recovery');
+    await observeJob('statements',async()=>({claimed:1,generated:1}),{env,now:()=>now});
+    assert.equal((await collect()).jobs,true);
+    now+=180001;await refreshOthers();
+    const stale=await collect();
+    assert.equal(stale.jobs,false,'Only statement evidence is stale');
+    assert.ok(!JSON.stringify(stale).includes('PRIVATE'));
+  }finally{await rm(dir,{recursive:true,force:true});}
 });

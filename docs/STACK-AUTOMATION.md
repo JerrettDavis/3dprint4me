@@ -171,6 +171,14 @@ policies restart already enabled services after Docker boots; the writers profil
 does not itself schedule work. `platform-jobs.mjs` owns push, expiry and retention
 with durable leases. Keep the retired Neon/GitHub cleanup schedule disabled.
 
+Keep the API collector and jobs worker on compatible releases. Overall jobs health
+now includes statements.json from the shared jobs health volume, with a three-minute
+freshness limit for its one-minute poll. An older worker that never writes that file
+will report jobs unhealthy after the collector upgrade; update/restart the worker
+and verify a fresh successful heartbeat before treating the rollout as healthy.
+No schedule or migration is required for a successful initial idle poll. Existing
+failed processing remains unhealthy through idle polls until actual work succeeds.
+
 Generate the host monitor's systemd units:
 
 ```sh

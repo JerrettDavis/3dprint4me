@@ -1706,3 +1706,40 @@ transport, command inputs/results and read/query models. Dynamic authorization a
 policy remain server checks; extensible private JSON is documented. Completion of
 this artifact does not close production identity, provider, retention/outbox, recovery
 or deployment gates, and does not constitute actual professional approval.
+
+### Weekly-statement health propagation (in progress)
+
+Investigation traced a false-healthy aggregate to collectPlatformStatus omitting
+statements.json, even though the one-minute worker records bounded statement
+health. A real-temporary-file regression first failed because missing statement
+evidence still returned jobs:true. The collector now includes a three-minute
+statements freshness check, preserving slicer position and the aggregate-only shape.
+Focused status/scheduler tests pass nine cases, including missing, failed, idle after
+failure, actual recovery and stale statement evidence. The test also exercises the
+real statement producer's pre-013 schema guard: a first successful idle poll remains
+healthy without migration or opted-in schedules. Fresh review found no blocker;
+API/jobs mixed-version rollout expectations are documented. Full checks/build remain
+in progress; this is not a deployment or complete monitoring/outbox claim.
+
+Statement-health full verification passed **1,225 unit/contract checks**, **335 E2E
+passes plus one existing Windows skip in 558.20 seconds**, and **241/241 UX checks**.
+Capture completed with **153 screenshots and preview-board.png**. Inspected the
+fresh status-mobile snapshot and owner/partner statement views plus two exact
+matching rows cropped from the actual preview board. The first private crop probe
+incorrectly assumed the E2E-only status-mobile file was included in the board; it
+failed, then the verified crop used actual included statement captures. Fresh board
+and status bytes/hashes are retained privately; unrelated generated timestamp noise
+was restored. No new frontend copy/layout/assets were introduced.
+
+Image `3dprint4me-partner-api:20261024-statement-health` matches all **210 runtime
+files** and passes restricted offline imports; manifest is
+`sha256:757a237af1305878fb683f91d3fc67d49511ea61a1daf4592f9a609c9726f731`.
+A separate bundled-code probe with network disabled, read-only root, no capabilities
+and bounded temporary filesystem reproduces missing/pre-013 idle/failure/idle after
+failure/recovery/stale heartbeat states. It uses a synthetic database probe, not a
+live production DB. No deployment occurred.
+
+Executed committed-source archive inspection also proves the inquiry-specific
+release helper omits required contracts/partner build inputs and applies only009.
+The dedicated partner release plan addresses the real archive/migration/staging gap;
+it does not claim an implemented helper, host rehearsal or production approval.

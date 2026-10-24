@@ -923,8 +923,11 @@ Migration `013_partner_weekly_statements.sql` is additive, native-only and repea
 It denies PUBLIC access and gives the existing backend only SELECT/INSERT on the
 new table. Owner scheduling is off unless explicitly enabled for that program.
 Job health writes bounded counts to `statements.json` when the existing health
-folder is configured. Failure remains unhealthy after an idle poll until actual
-processing succeeds. These are local implementation contracts; native/owner/partner
+folder is configured. Overall platform jobs health requires a successful statements
+heartbeat no older than three minutes, alongside the existing job checks. Missing,
+failed or stale evidence reports jobs unhealthy; no per-partner detail is exposed.
+A successful first idle poll before migration 013 or without schedules is healthy.
+Failure remains unhealthy after an idle poll until actual processing succeeds. These are local implementation contracts; native/owner/partner
 production deployment and the remaining retention/delivery operations are separate.
 
 
