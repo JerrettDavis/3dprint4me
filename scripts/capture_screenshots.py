@@ -430,6 +430,24 @@ def capture_spoolman_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_partner_states() -> list[tuple[str, Path]]:
+    from tests.support.partner_harness import running_partner_shell
+    from tests.e2e.test_partner_shell import install_partner_fixture
+    captured = []
+    with running_partner_shell() as origin:
+        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light")]:
+            path = OUTPUT / f"partner-{state}-{scheme}.png"
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
+                install_partner_fixture(site.page, signed_in=state != "sign-in")
+                site.page.goto(origin + ('/agreements' if state == 'agreement' else '/'))
+                site.page.get_by_role('heading', level=1).wait_for()
+                site.screenshot(path, full_page=False)
+                site.console = [e for e in site.console if 'status of 401 (Unauthorized)' not in e.text]
+                site.assert_no_page_errors()
+            captured.append((f"Partner {state} · {scheme}", path))
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -461,6 +479,7 @@ def main() -> int:
     cases.extend(capture_inquiry_workflow_states())
     cases.extend(capture_filament_states())
     cases.extend(capture_spoolman_states())
+    cases.extend(capture_partner_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
     print(f"Captured {len(cases) + 1} screenshots and {board.relative_to(ROOT)}")

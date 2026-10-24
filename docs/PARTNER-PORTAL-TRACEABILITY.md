@@ -4,6 +4,9 @@ This is a coverage map, not a release certificate. The private packet names nine
 Gherkin features. The implementations below have unit, contract or isolated native
 PostgreSQL evidence; none yet has the requested complete partner/owner browser flow.
 Existing storefront/operator browser regression is a separate compatibility check.
+`test_partner_shell.py` adds synthetic API presentation/client checks for sign-in,
+maintenance, responsive navigation, inert issued text/exact acknowledgment, skip-link
+form preservation and delayed authentication. They do not replace native browser BDD.
 The source packet stays private and the real professional approval gates stay off.
 
 - **budget-week.feature**: `tests/unit/partner-policy.test.mjs`,
@@ -16,8 +19,9 @@ The source packet stays private and the real professional approval gates stay of
   `tests/contract/partner-http.contract.test.mjs` cover one-use invitation,
   passphrase credentials, persistent rate limits, separate host cookies, CSRF,
   exact origins, recovery/revocation, IDOR and safe failure output. Native tests
-  exercise the real GitHub owner binding and restricted backend role. Real-browser
-  subdomain cookie, sign-in/recovery and logout/offline-storage checks remain pending.
+  exercise the real GitHub owner binding and restricted backend role. A first native Chromium/PostgreSQL slice proves two independent sessions, cookie
+  flags/reload, profile persistence, cross-partner read denial and logout. Production
+  subdomain/TLS, invitation/recovery and logout/offline-storage checks remain pending.
 - **gig-choice.feature**: `tests/unit/partner-domain.test.mjs` and
   `tests/contract/partner-application.contract.test.mjs` cover voluntary offer
   acceptance/decline, negotiation/reoffer, revision conflicts, submission/review,
