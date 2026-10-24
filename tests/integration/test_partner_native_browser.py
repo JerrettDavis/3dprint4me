@@ -289,3 +289,32 @@ def test_native_expired_visit_session_hides_the_private_form():
 
         assert 'expired-private@example.test' not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
         assert not site.page_errors
+
+
+def test_native_partner_counterproposal_persists_without_accepting_or_changing_fee():
+    with native_partner_workspace() as (origin, fixture), SiteBrowser(viewport=(390,844), color_scheme='dark', reduced_motion='reduce') as site:
+        page = site.page
+        page.goto(origin)
+        page.get_by_label('Account code', exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase', exact=True).fill(fixture['password'])
+        page.get_by_role('button', name='Sign in', exact=True).click()
+        page.get_by_role('heading', name='Hello, Synthetic Partner 1.').wait_for()
+        page.goto(origin + '/gigs/' + fixture['gigId'])
+        page.get_by_label('Proposed fee (USD)', exact=True).fill('12.34')
+        page.get_by_label('Message to the owner', exact=True).fill('Synthetic fee discussion <script>alert(1)</script>')
+        page.get_by_role('button', name='Send counterproposal', exact=True).click()
+        page.get_by_text('Counterproposal recorded. The offered fee is unchanged until the owner sends a revised offer.', exact=True).wait_for()
+        page.reload()
+        page.get_by_text('You proposed $12.34', exact=True).wait_for()
+        assert '$10.00 offered fee' in page.locator('main').inner_text()
+        assert page.locator('main script').count() == 0
+        data = page.evaluate("async ({api,id})=>(await fetch(api+'/api/partner/v1/gig?id='+id,{credentials:'include'})).json()", {'api':fixture['apiOrigin'],'id':fixture['gigId']})
+        assert data['item']['status'] == 'offered' and data['item']['acceptedAt'] is None
+        assert data['item']['feeCents'] == 1000 and data['item']['revision'] == 2
+        assert len(data['negotiations']) == 1 and data['negotiations'][0]['proposed_fee_cents'] == 1234
+        denied = page.evaluate("async ({api,id})=>(await fetch(api+'/api/partner/v1/gig?id='+id,{credentials:'include'})).status", {'api':fixture['apiOrigin'],'id':fixture['otherGigId']})
+        assert denied == 404
+        page.goto(origin + '/gigs/' + fixture['acceptedGigId'])
+        page.get_by_role('heading', name='Synthetic business visits', exact=True).wait_for()
+        assert page.get_by_role('button', name='Send counterproposal', exact=True).count() == 0
+        assert not site.page_errors

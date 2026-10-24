@@ -532,3 +532,24 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
 [Undici response stream](https://github.com/advisories/GHSA-xjj6-f33q-929c),
 [Vite advisory](https://github.com/advisories/GHSA-587h-7wmj-h5pm), and
 [Node security release](https://nodejs.org/en/blog/release/v22.23.4).
+
+
+### Partner counterproposal UI (2026-10-24)
+
+- Red browser test first failed on the missing proposed-fee control. The offered-only
+  form now sends exact integer cents/message/revision to the existing command.
+  Negotiation messages remain inert and history remains visible after closing.
+- Fifteen focused partner UI cases passed, including unchanged failed-response retry
+  with the same key, both gig forms disabled while pending, delayed-response
+  navigation, 320/390-pixel layouts and history after accepted/declined statuses.
+- All six native partner browser tests passed against disposable PostgreSQL. The
+  new case reloads a saved proposal, verifies the original offered fee/status and
+  lack of acceptance, checks cross-partner denial and hides the proposal form on
+  accepted work. It does not prove the full owner reoffer/acceptance/budget journey.
+- Full `npm test` passed: 1,162 unit/contract tests, 239 browser tests with the existing
+  single Windows skip, and 241/241 UX audit checks. `git diff --check` passed.
+- `npm run screenshots` captured 85 views. Inspected both full counterproposal images
+  (320 light/390 dark) and the preview board's partner section. No clipping found.
+  Own unrelated nondeterministic screenshot/audit rewrites are restored.
+- Independent read-only review found no concrete security/retry/navigation defect.
+  No server behavior, database schema, production migration or deployment changed.

@@ -432,19 +432,22 @@ def capture_spoolman_states() -> list[tuple[str, Path]]:
 
 def capture_partner_states() -> list[tuple[str, Path]]:
     from tests.support.partner_harness import running_partner_shell
-    from tests.e2e.test_partner_shell import install_partner_fixture
+    from tests.e2e.test_partner_shell import install_partner_fixture, install_offer_fixture, GIG_ID
     from tests.e2e.test_partner_visits import visit_fixture, GIG
     captured = []
     with running_partner_shell() as origin:
-        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark")]:
+        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark"), ("counteroffer", (390, 844), "dark"), ("counteroffer", (320, 844), "light")]:
             path = OUTPUT / f"partner-{state}-{scheme}.png"
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
                 visit_state = state in ["visit", "visit-contact", "drafts"]
-                if visit_state:
+                if state == "counteroffer":
+                    _, negotiation = install_offer_fixture(site.page)
+                    negotiation[0]["message"] = "Revised fee for the additional materials; please review before accepting."
+                elif visit_state:
                     visit_fixture(site.page)
                 else:
                     install_partner_fixture(site.page, signed_in=state != "sign-in")
-                site.page.goto(origin + ('/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
+                site.page.goto(origin + ('/gigs/' + GIG_ID if state == 'counteroffer' else '/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
                 site.page.get_by_role('heading', level=1).wait_for()
                 if visit_state:
                     site.page.get_by_label('Business name', exact=True).fill('Synthetic Coffee')
@@ -457,9 +460,12 @@ def capture_partner_states() -> list[tuple[str, Path]]:
                         site.page.get_by_role('button', name='Save business draft on this device', exact=True).click()
                         site.page.get_by_role('link', name='Device drafts', exact=True).click()
                         site.page.get_by_role('heading', name='Device drafts').wait_for()
-                if visit_state:
+                if state == 'counteroffer':
+                    site.page.get_by_label('Proposed fee (USD)', exact=True).fill('12.34')
+                    site.page.get_by_label('Message to the owner', exact=True).fill('Could this fee cover the additional materials?')
+                if visit_state or state == 'counteroffer':
                     site.page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
-                site.screenshot(path, full_page=visit_state)
+                site.screenshot(path, full_page=visit_state or state == "counteroffer")
                 site.console = [e for e in site.console if 'status of 401 (Unauthorized)' not in e.text]
                 site.assert_no_page_errors()
             captured.append((f"Partner {state} · {scheme}", path))

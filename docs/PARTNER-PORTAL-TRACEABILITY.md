@@ -6,7 +6,8 @@ PostgreSQL evidence; none yet has the requested complete partner/owner browser f
 Existing storefront/operator browser regression is a separate compatibility check.
 `test_partner_shell.py` adds synthetic API presentation/client checks for sign-in,
 maintenance, responsive navigation, inert issued text/exact acknowledgment, skip-link
-form preservation and delayed authentication. They do not replace native browser BDD.
+form preservation, delayed authentication and fee-proposal retry/history/navigation.
+They do not replace complete native browser BDD.
 The source packet stays private and the real professional approval gates stay off.
 
 - **budget-week.feature**: `tests/unit/partner-policy.test.mjs`,
@@ -26,8 +27,12 @@ The source packet stays private and the real professional approval gates stay of
   `tests/contract/partner-application.contract.test.mjs` cover voluntary offer
   acceptance/decline, negotiation/reoffer, revision conflicts, submission/review,
   safety/cancellation requests and frozen accepted terms. Ledger tests cover
-  reconciliation without erasing earned obligations. Partner and owner UI flows,
-  explanatory copy and browser acceptance receipts remain pending.
+  reconciliation without erasing earned obligations. Partner counterproposal UI and
+  inert negotiation history are implemented. Native browser evidence verifies a
+  persisted proposal without acceptance or a changed offered fee; fixture tests cover
+  exact retries, pending form locks, closed-offer history, 320/390 layouts and delayed
+  response navigation. Complete owner reoffer/acceptance/budget UI flows and browser
+  acceptance receipts remain pending.
 - **visits-leads.feature**: `tests/contract/partner-outreach.contract.test.mjs`
   covers business visits, permission for materials, specific contact consent,
   duplicate contacts, owner qualification, correction/renewed consent, withdrawal

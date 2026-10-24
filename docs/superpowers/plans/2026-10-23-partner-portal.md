@@ -211,8 +211,9 @@ hero, sample offers, gradients or financial balance counters. Keep actions at le
 The design-skill search returned generic marketing patterns even after narrowing
 to an internal operations dashboard. Those patterns/fonts/palette were not adopted;
 packet requirements and existing product tokens determine this direction. First
-online shell/client fixtures are implemented; complete visits/referrals, counteroffers,
-offline drafts/service worker, owner console and native nine-feature browser BDD
+online shell/client fixtures, visits/business drafts and counterproposal UI are
+implemented; referrals, offline reload/service worker, owner console and native
+nine-feature browser BDD
 remain required before release. Presentation fixtures are not cookie/persistence proof.
 
 
@@ -226,7 +227,12 @@ remain required before release. Presentation fixtures are not cookie/persistence
   response, reload and retry: 101 requests produce 100 visits and no personal leads.
   Session-expired drafts remain private in the UI until same-account reauthentication.
   Offline reload/service-worker lifecycle still remains open; do not claim full PWA.
-- Before deployment, address the observed dependency audit. An isolated private
-  candidate with Zod 4.6.6/Undici 6.29.1 overrides and Vite 8.3.5 audits clean, but has
-  not yet been applied or compatibility-tested. Then continue counteroffers/referral
-  intake, full offline behavior, owner/legal console and all remaining release gates.
+- Security checkpoint `4f9c284`: Zod 4.6.6/Undici 6.29.1 overrides, Vite 8.3.5,
+  regenerated operator auth bundle and Node 22.23.4 pinned image are applied.
+  Full regression/native/container checks passed; npm audit reports zero findings.
+- Counterproposal UI: offered-only USD/message form, unchanged offered fee,
+  persisted inert negotiation history, exact retry key and pending form locks.
+  Native browser verifies persistence without acceptance; complete owner
+  reoffer/acceptance/budget browser flow remains required.
+- Continue partner referral display/customer intake, full offline behavior,
+  owner/legal console and all remaining release gates.
