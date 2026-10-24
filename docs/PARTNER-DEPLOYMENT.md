@@ -10,10 +10,10 @@ The existing storefront, operator, public status and operations projects were no
 modified. No new project was connected to automatic Git deployments.
 
 Current verified Preview:
-<https://3dprint4me-partners-fr1qrhv6b-jerrettdavis-projects.vercel.app>
+<https://3dprint4me-partners-39l866vqm-jerrettdavis-projects.vercel.app>
 
-The public application bytes include the reviewed optional-activity increment based
-on `b39fe73`, with matching worker/HTML release `partner-shell-v2`. Provider output is
+The public application bytes include the reviewed authentication/error-notice increment
+based on `60584f3`, with matching worker/HTML release `partner-shell-v3`. Provider output is
 Ready / Preview. Authenticated verification used the official CLI's protection
 bypass handling, without printing or copying its managed credential. It proved:
 
@@ -100,3 +100,13 @@ tests (one Windows skip), 241 UX checks and 133-image screenshot capture are
 recorded in [VERIFICATION.md](VERIFICATION.md). Only the two new activity views and
 updated preview board are new visual baselines. The exact remaining scenario audit
 is [PARTNER-ACCEPTANCE-GAPS.md](PARTNER-ACCEPTANCE-GAPS.md).
+
+## Authentication preview refresh
+
+The current protected URL supersedes the activity preview
+`3dprint4me-partners-fr1qrhv6b-jerrettdavis-projects.vercel.app`. All 14 v3 static files
+match local bytes/SHA-256; all hosting headers, eight route checks and anonymous
+302 protection pass. Enrollment errors remain visible after form reset without
+covering retry controls. Export expiry removes the private view; delayed export
+failures do not interrupt a later page. This upload changes only the dedicated
+static preview. The native API, same-site staging and production domain remain pending.

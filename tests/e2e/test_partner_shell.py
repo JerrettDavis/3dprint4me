@@ -301,3 +301,56 @@ def test_partner_activity_revision_conflict_requires_explicit_refresh():
         page.get_by_role('button',name='Refresh activity records',exact=True).click()
         page.get_by_role('button',name='Resume',exact=True).wait_for()
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+
+
+@pytest.mark.parametrize('width',[320,390])
+def test_partner_failed_enrollment_keeps_safe_error_visible_after_auth_form_reset(width):
+    with running_partner_shell() as origin,SiteBrowser(viewport=(width,844),color_scheme='dark') as site:
+        page=site.page;install_partner_fixture(page,signed_in=False)
+        page.route('**/api/partner/v1/invite/redeem',lambda route:route.fulfill(status=401,content_type='application/json',body='{"error":"private credential detail"}'))
+        page.goto(origin+'/join');page.get_by_label('Invitation or recovery code',exact=True).fill('synthetic used code')
+        page.get_by_label('Choose a passphrase',exact=True).fill('Synthetic private passphrase')
+        page.get_by_role('button',name='Set passphrase and continue',exact=True).click()
+        page.get_by_text('Sign-in could not be completed. Check your details or contact the owner.',exact=True).wait_for(timeout=3000)
+        assert page.get_by_role('heading',name='Set up your private access',exact=True).count()==1
+        assert page.get_by_label('Choose a passphrase',exact=True).input_value()==''
+        assert 'private credential detail' not in page.locator('body').inner_text()
+        assert page.evaluate('document.activeElement.id')=='message'
+        page.keyboard.press('Tab')
+        assert page.evaluate('document.activeElement.name')=='account'
+        assert page.evaluate("()=>{const m=document.querySelector('#message').getBoundingClientRect(),b=document.querySelector('main form button').getBoundingClientRect();return m.bottom<=b.top||m.top>=b.bottom||m.right<=b.left||m.left>=b.right;}"),'Error notice must not cover the retry control'
+
+
+@pytest.mark.parametrize('view,button',[('profile','Download data copy'),('earnings','Download statement CSV')])
+def test_partner_late_export_failure_preserves_current_page_and_focus(view,button):
+    with running_partner_shell() as origin,SiteBrowser(viewport=(390,844)) as site:
+        page=site.page;install_partner_fixture(page);pending=[]
+        totals={key:0 for key in ['committedCents','submittedCents','earnedBonusCents','contingentBonusCents','outstandingCents','paidCents','disputedCents']}
+        page.route('**/api/partner/v1/earnings',lambda route:route.fulfill(status=200,content_type='application/json',body=json.dumps({'items':[],'totals':totals})))
+        page.route('**/api/partner/v1/commands',lambda route:pending.append(route))
+        page.goto(origin+'/'+view)
+        control=page.get_by_role('button',name=button,exact=True)
+        control.evaluate('(element)=>window.__heldExportControl=element')
+        control.click();held=take_activity_request(page,pending)
+        page.get_by_role('navigation').get_by_role('link',name='Help',exact=True).click()
+        page.get_by_role('heading',name='Help & privacy',exact=True).wait_for()
+        held.fulfill(status=503,content_type='application/json',body='{"error":"Temporarily unavailable"}')
+        page.wait_for_function('()=>!window.__heldExportControl.disabled')
+        assert page.get_by_role('heading',name='Help & privacy',exact=True).count()==1
+        assert page.locator('#message').is_hidden()
+        assert page.evaluate('document.activeElement.id')=='main'
+
+@pytest.mark.parametrize('view,button',[('profile','Download data copy'),('earnings','Download statement CSV')])
+def test_partner_export_expired_session_removes_private_view(view,button):
+    with running_partner_shell() as origin,SiteBrowser(viewport=(390,844)) as site:
+        page=site.page;install_partner_fixture(page)
+        totals={key:0 for key in ['committedCents','submittedCents','earnedBonusCents','contingentBonusCents','outstandingCents','paidCents','disputedCents']}
+        page.route('**/api/partner/v1/earnings',lambda route:route.fulfill(status=200,content_type='application/json',body=json.dumps({'items':[],'totals':totals})))
+        page.route('**/api/partner/v1/commands',lambda route:route.fulfill(status=401,content_type='application/json',body='{"error":"Sign in required"}'))
+        page.goto(origin+'/'+view);page.get_by_role('button',name=button,exact=True).click()
+        page.get_by_text('Your session has ended. Sign in again.',exact=True).wait_for()
+        assert page.get_by_role('heading',name='Your work. Your records.',exact=True).count()==1
+        assert page.get_by_role('navigation').is_hidden()
+        assert page.get_by_role('button',name=button,exact=True).count()==0
+        assert 'Synthetic Partner' not in page.locator('main').inner_text()
+        assert page.evaluate('document.activeElement.id')=='message'

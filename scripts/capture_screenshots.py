@@ -446,11 +446,14 @@ def capture_partner_states() -> list[tuple[str, Path]]:
     from tests.e2e.test_partner_visits import visit_fixture, GIG
     captured = []
     with running_partner_shell() as origin:
-        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark"), ("counteroffer", (390, 844), "dark"), ("counteroffer", (320, 844), "light"), ("referrals", (390, 844), "dark"), ("referrals", (320, 844), "light"), ("activity", (390, 844), "dark"), ("activity", (320, 844), "light"), ("accepted-gig", (390, 844), "dark"), ("accepted-gig", (320, 844), "light")]:
+        for state, viewport, scheme in [("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark"), ("counteroffer", (390, 844), "dark"), ("counteroffer", (320, 844), "light"), ("referrals", (390, 844), "dark"), ("referrals", (320, 844), "light"), ("activity", (390, 844), "dark"), ("activity", (320, 844), "light"), ("accepted-gig", (390, 844), "dark"), ("accepted-gig", (320, 844), "light"), ("enroll-error", (390, 844), "dark"), ("enroll-error", (320, 844), "light")]:
             path = OUTPUT / f"partner-{state}-{scheme}.png"
             with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
                 visit_state = state in ["visit", "visit-contact", "drafts"]
-                if state == "activity":
+                if state == "enroll-error":
+                    install_partner_fixture(site.page,signed_in=False)
+                    site.page.route('**/api/partner/v1/invite/redeem',lambda route:route.fulfill(status=401,content_type='application/json',body=json.dumps({'error':'Sign-in could not be completed. Check your details or contact the owner.'})))
+                elif state == "activity":
                     record=activity_fixture(site.page)
                     saved={**record,'id':'70000000-1000-4000-8000-100000000002','runningSince':None,'endedAt':'2026-10-24T12:05:00Z','elapsedSeconds':95}
                     site.page.route('**/api/partner/v1/activity',lambda route:route.fulfill(status=200,content_type='application/json',body=json.dumps({'items':[record,saved]})))
@@ -468,8 +471,13 @@ def capture_partner_states() -> list[tuple[str, Path]]:
                     visit_fixture(site.page)
                 else:
                     install_partner_fixture(site.page, signed_in=state != "sign-in")
-                site.page.goto(origin + ('/activity' if state == 'activity' else '/referrals' if state == 'referrals' else '/gigs/' + GIG_ID if state in ['counteroffer','accepted-gig'] else '/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
+                site.page.goto(origin + ('/join' if state == 'enroll-error' else '/activity' if state == 'activity' else '/referrals' if state == 'referrals' else '/gigs/' + GIG_ID if state in ['counteroffer','accepted-gig'] else '/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
                 site.page.get_by_role('heading', level=1).wait_for()
+                if state == 'enroll-error':
+                    site.page.get_by_label('Invitation or recovery code',exact=True).fill('Example used invitation')
+                    site.page.get_by_label('Choose a passphrase',exact=True).fill('Example private passphrase')
+                    site.page.get_by_role('button',name='Set passphrase and continue',exact=True).click()
+                    site.page.get_by_text('Sign-in could not be completed. Check your details or contact the owner.',exact=True).wait_for()
                 if visit_state:
                     site.page.get_by_label('Business name', exact=True).fill('Synthetic Coffee')
                     if state == 'visit-contact':
@@ -484,9 +492,9 @@ def capture_partner_states() -> list[tuple[str, Path]]:
                 if state == 'counteroffer':
                     site.page.get_by_label('Proposed fee (USD)', exact=True).fill('12.34')
                     site.page.get_by_label('Message to the owner', exact=True).fill('Could this fee cover the additional materials?')
-                if visit_state or state in ['counteroffer', 'referrals', 'activity', 'accepted-gig']:
+                if visit_state or state in ['counteroffer', 'referrals', 'activity', 'accepted-gig', 'enroll-error']:
                     site.page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
-                site.screenshot(path, full_page=visit_state or state in ["counteroffer", "referrals", "activity", "accepted-gig"])
+                site.screenshot(path, full_page=visit_state or state in ["counteroffer", "referrals", "activity", "accepted-gig", "enroll-error"])
                 site.console = [e for e in site.console if 'status of 401 (Unauthorized)' not in e.text]
                 site.assert_no_page_errors()
             captured.append((f"Partner {state} · {scheme}", path))

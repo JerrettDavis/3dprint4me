@@ -809,3 +809,24 @@ lookup, matching list/acceptance responses. This fixes the detail-page fallback;
 locking and reservation arithmetic are unchanged. The new API image and remaining
 rollout/acceptance work are recorded in [VERIFICATION.md](VERIFICATION.md) and
 [PARTNER-ACCEPTANCE-GAPS.md](PARTNER-ACCEPTANCE-GAPS.md).
+
+
+## Enrollment and realm acceptance
+
+All five packet authentication scenarios have direct native mappings, including
+initial enrollment/replay, live revocation, actual other-partner earnings isolation,
+real owner-work API denial and environment-disabled enrollment. Tests establish
+positive owner/private-record controls and retry the same invitation after reenabling
+so missing setup cannot count as a denial. Synthetic GitHub-bound sessions and scoped
+professional reviews remain fixture evidence, not actual provider/professional approval.
+
+Failed login or invitation redemption now shows generic sign-in/support help instead
+of calling an initial attempt an expired session. The shared 401 form-reset path renders
+the signed-out view before announcing the error; generation checks suppress stale
+messages after navigation. Private server details remain hidden. Worker/HTML release
+is `partner-shell-v3`; the static-only cache boundary is unchanged.
+
+Error notices occupy document flow before the page layout, receive focus and remain
+clear of mobile retry controls. Success notices leave focus alone. Private export
+expiry removes the signed-in view before displaying session-ended help; delayed
+export failures do not interrupt navigation to another page.

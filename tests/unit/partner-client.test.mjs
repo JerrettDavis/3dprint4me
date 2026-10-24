@@ -53,3 +53,11 @@ for(const failure of ['body','network'])test('superseded authentication '+failur
  const pending=client.login('synthetic','synthetic passphrase');await new Promise(resolve=>setTimeout(resolve,0));client.forget();complete();
  await assert.rejects(pending,error=>error.status===(failure==='body'?503:0)&&!error.message.includes('private'));assert.equal(warnings,1);assert.equal(client.signedIn,false);
 });
+
+
+test('failed enrollment and login offer safe access help rather than claim an expired session',async()=>{
+ const client=createPartnerClient({fetch:async()=>({ok:false,status:401,json:async()=>({error:'private authentication detail'})})});
+ for(const attempt of [()=>client.login('synthetic-account','synthetic-passphrase'),()=>client.redeem('synthetic-code','synthetic-passphrase')])await assert.rejects(attempt(),error=>error.status===401&&error.message==='Sign-in could not be completed. Check your details or contact the owner.');
+ await assert.rejects(client.session(),error=>error.status===401&&error.message==='Your session has ended. Sign in again.');
+ assert.equal(client.signedIn,false);
+});

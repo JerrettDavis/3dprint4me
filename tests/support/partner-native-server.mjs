@@ -14,6 +14,10 @@ import {createRequestRecord,completeRequestRecord} from '../../lib/neon.js';
 import {issueReferral} from '../../lib/partner-outreach/referrals.js';
 import {hashPassword} from '../../lib/partner-outreach/auth.js';
 import {createPartnerHandlers} from '../../lib/partner-outreach/http.js';
+import {createWorkHandler} from '../../api/operator-work.js';
+import {createNeonWorkManagementRuntime} from '../../lib/work-management/runtime.js';
+import {createConfiguredIdentityProvider} from '../../lib/operator-auth.js';
+import {createSessionStore} from '../../lib/operator-identity/store.js';
 import {createPlatformServer} from '../../lib/platform/api-server.js';
 if(process.env.PARTNER_NATIVE_BROWSER_TEST!=='1')throw new Error('Explicit disposable fixture flag required.');
 const shell=new URL(process.env.PARTNER_TEST_SHELL_ORIGIN);
@@ -52,6 +56,7 @@ try{
  await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1000)",[randomUUID(),weekId,acceptedGigId]);
  pool=new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')));const database=createNativeDatabase({pool}),env={PARTNER_WEB_ORIGIN:shell.origin,OPERATOR_WEB_ORIGIN:ownerOrigin,OPERATOR_OWNER_SUBJECT:'2610199',PARTNER_REVIEW_SIGNING_PRIVATE_KEY:generateKeyPairSync('ed25519').privateKey.export({type:'pkcs8',format:'pem'})};
  if(process.env.PARTNER_TEST_REVIEWED_LAUNCH==='1')Object.assign(env,{PARTNER_PROGRAM_ENABLED:'1',PARTNER_CLASSIFICATION_APPROVED:'1',PARTNER_ACCOUNTING_APPROVED:'1'});
+ if(process.env.PARTNER_TEST_PROGRAM_FLAG_FILE)Object.defineProperty(env,'PARTNER_PROGRAM_ENABLED',{get(){const value=JSON.parse(readFileSync(process.env.PARTNER_TEST_PROGRAM_FLAG_FILE,'utf8'));if(typeof value!=='boolean')throw Error('Invalid fixture flag');return value?'1':'0';}});
  process.env.DATABASE_DRIVER='postgres';process.env.DATABASE_URL=url.replace('postgres@','platform_app@');
  const ownerToken=randomBytes(32).toString('base64url'),operatorToken=randomBytes(32).toString('base64url');
  for(const [id,subject,role,token]of [['op_browser_owner','2610199','owner',ownerToken],['op_browser_operator','2610200','operator',operatorToken]]){
@@ -61,13 +66,20 @@ try{
  }
  const runtime=createPartnerRuntime({database,env,now});
  const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});
+ const workRuntime=createNeonWorkManagementRuntime({query:database.query});
+ const ownerWork=createWorkHandler({runtime:workRuntime,allowedOrigins:[ownerOrigin],identityProvider:createConfiguredIdentityProvider({env:{OPERATOR_AUTH_PROVIDER:'github'},store:createSessionStore({query:database.query})})});
+ let privateWorkId=null;
+ if(process.env.PARTNER_TEST_WORK_SEED==='1'){
+  const requestId='3DP-NATIVE-AUTH-'+randomUUID().replaceAll('-','').slice(0,12),request={service:'consult',projectTitle:'Synthetic owner-only project',description:'Synthetic confidential project marker.',contact:{name:'Synthetic private customer',email:'private-customer@example.test'},consent:true};
+  await createRequestRecord(requestId,request);privateWorkId=(await workRuntime.repository.completeRequestWithWork(requestId,request,[])).workItem.id;
+ }
  const requestHandler=createProjectRequestHandler({getRuntime:()=>({mode:'neon',requestRepository:{createDraft:createRequestRecord,completeDraft:completeRequestRecord}}),issueCheckoutProof:()=>null});
  // Explicit loopback fixture admission only; production public intake uses its signed proxy.
- server=createPlatformServer({routes:{...handlers.routes,'/api/request':requestHandler},directPaths:[...handlers.directPaths,'/api/request'],env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');
+ server=createPlatformServer({routes:{...handlers.routes,'/api/request':requestHandler,'/api/operator-work':ownerWork},directPaths:[...handlers.directPaths,'/api/request'],env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');
  const bonusTerms={...terms,maximumBonusCents:500,bonusRules:[{id:'sale',trigger:'verified_sale',amountCents:500,maximumAwards:1,criteria:'Independent fully settled purchase.',refundTreatment:'Owner reviews refunds separately.',qualifiesBy:'2026-12-31'}]},refGigId=randomUUID();
  await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,program_week_id,terms_snapshot,status,accepted_fee_cents,maximum_bonus_cents,accepted_at,revision) VALUES($1,$2,$3,$4,$5,$6,'accepted',1000,500,'2026-10-23T12:00:00Z',2)",[refGigId,programId,partnerId,campaignId,weekId,JSON.stringify(bonusTerms)]);
  await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1500)",[randomUUID(),weekId,refGigId]);
  await admin.query("UPDATE partner_program_weeks SET committed_cents=2500 WHERE id=$1",[weekId]);
  const referral=await issueReferral(database,{id:refGigId,partner_id:partnerId,program_id:programId,terms_snapshot:bonusTerms},new Date('2026-10-23T12:00:00Z'));
- process.stdout.write(JSON.stringify({ownerToken,operatorToken,referralCode:referral.code,apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
+ process.stdout.write(JSON.stringify({privateWorkId,ownerToken,operatorToken,referralCode:referral.code,apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
 }catch{await stop();process.stderr.write('Disposable native partner fixture failed.\n');process.exitCode=1;}
