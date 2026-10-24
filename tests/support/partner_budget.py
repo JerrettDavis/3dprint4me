@@ -6,8 +6,8 @@ from tests.support.browser_harness import SiteBrowser
 
 
 @contextmanager
-def reviewed_budget_workspace(clock='2026-10-26T12:00:00Z',*,work_seed=False,program_flag_control=False,observe_outbound=False):
-    with native_partner_workspace(enable_reviewed_launch=True,clock=clock,work_seed=work_seed,program_flag_control=program_flag_control,observe_outbound=observe_outbound) as (origin,fixture),SiteBrowser(viewport=(390,844),reduced_motion='reduce') as site,ExitStack() as stack:
+def reviewed_budget_workspace(clock='2026-10-26T12:00:00Z',*,work_seed=False,program_flag_control=False,observe_outbound=False,statement_jobs=False):
+    with native_partner_workspace(enable_reviewed_launch=True,clock=clock,work_seed=work_seed,program_flag_control=program_flag_control,observe_outbound=observe_outbound,statement_jobs=statement_jobs) as (origin,fixture),SiteBrowser(viewport=(390,844),reduced_motion='reduce') as site,ExitStack() as stack:
         api=fixture['apiOrigin'];owner=site.page
         site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
         owner.goto(fixture['ownerOrigin']+'/partners')

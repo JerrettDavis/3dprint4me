@@ -1,3 +1,5 @@
+import {generateWeeklyStatements} from '../../lib/partner-outreach/statements.js';
+import {createPlatformJobs} from '../../lib/platform/jobs.js';
 // Disposable native browser fixture. Never connects to an existing database.
 import {execFileSync} from 'node:child_process';
 import {randomUUID,randomBytes,generateKeyPairSync} from 'node:crypto';
@@ -32,10 +34,10 @@ const IMAGE='postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b4
 const docker=(...args)=>execFileSync('docker',args,{encoding:'utf8',timeout:90000,stdio:['pipe','pipe','pipe']}).trim();
 const name=process.env.PARTNER_TEST_CONTAINER_NAME??'3dprint4me-partner-browser-'+randomUUID().slice(0,8);
 if(!/^3dprint4me-partner-browser-[a-f0-9]{8}$/.test(name))throw new Error('Invalid disposable container name.');
-let started=false,admin,pool,server,stopping=false;
+let started=false,admin,pool,server,stopping=false,runStatementJob;
 async function stop(){if(stopping)return;stopping=true;if(server)await new Promise(resolve=>server.close(resolve));await closeDatabase();await pool?.end();await admin?.end();if(started)docker('stop',name);}
 for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>stop().finally(()=>process.exit(0)));
-process.stdin.on('data',data=>{if(data.toString().trim()==='stop')stop().finally(()=>process.exit(0));});
+process.stdin.on('data',data=>{const command=data.toString().trim();if(command==='stop')stop().finally(()=>process.exit(0));else if(command==='statements'&&process.env.PARTNER_TEST_STATEMENT_JOBS==='1'&&runStatementJob)runStatementJob().then(result=>process.stdout.write(JSON.stringify({ok:true,result})+'\n')).catch(()=>process.stdout.write(JSON.stringify({ok:false})+'\n'));});
 try{
  docker('run','--detach','--rm','--name',name,'--label','3dprint4me.purpose=partner-browser','--publish','127.0.0.1::5432','--env','POSTGRES_HOST_AUTH_METHOD=trust',IMAGE);started=true;
  const port=JSON.parse(docker('inspect',name))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort;
@@ -65,6 +67,11 @@ try{
   await admin.query("INSERT INTO operators(id,auth_user_id,display_name,role) VALUES($1,$2,$3,$4)",[id,'github:'+subject,'Synthetic '+role,role]);
   await admin.query("INSERT INTO operator_identity_bindings(issuer,subject,operator_id) VALUES('https://github.com/',$1,$2)",[subject,id]);
   await admin.query("INSERT INTO operator_sessions(token_hash,operator_id,issuer,subject,expires_at) VALUES($1,$2,'https://github.com/',$3,$4)",[digest(token),id,subject,new Date(Math.max(Date.now(),now().getTime())+(clockFile?366:1)*86400000).toISOString()]);
+ }
+ if(process.env.PARTNER_TEST_STATEMENT_JOBS==='1'){
+  let last=null,failed=false;
+  const jobs=createPlatformJobs({env:{PLATFORM_JOBS_ENABLED:'1'},now:()=>now().getTime(),drain:async()=>{},cleanup:async()=>{},expire:async()=>{},statements:async()=>{last=await generateWeeklyStatements({database,now});},onError:()=>{failed=true;}});
+  runStatementJob=async()=>{last=null;failed=false;await jobs.tick();if(failed)throw Error('Fixture statement job failed');return last??{claimed:0,generated:0,skipped:0};};
  }
  const runtime=createPartnerRuntime({database,env,now});
  const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});

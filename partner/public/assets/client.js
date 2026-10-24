@@ -1,4 +1,4 @@
-const resources=new Set(['gigs','gig','earnings','agreements','profile','visits','leads','activity','referrals','statement','own-export']);
+const resources=new Set(['gigs','gig','earnings','agreements','profile','visits','leads','activity','referrals','statement','statements','own-export']);
 export class PartnerError extends Error {
  constructor(status,message){super(message);this.status=status;}
 }

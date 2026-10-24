@@ -10,18 +10,18 @@ The existing storefront, operator, public status and operations projects were no
 modified. No new project was connected to automatic Git deployments.
 
 Current verified Preview:
-<https://3dprint4me-partners-39l866vqm-jerrettdavis-projects.vercel.app>
+<https://3dprint4me-partners-1hrcyiq8h-jerrettdavis-projects.vercel.app>
 
-The public application bytes include the reviewed authentication/error-notice increment
-based on `60584f3`, with matching worker/HTML release `partner-shell-v3`. Provider output is
+The public application bytes include the reviewed weekly-statement history increment,
+with matching worker/HTML release `partner-shell-v4`. Provider output is
 Ready / Preview. Authenticated verification used the official CLI's protection
 bypass handling, without printing or copying its managed credential. It proved:
 
-- All 14 static files match their local source bytes and SHA-256 exactly, including
+- All 15 static files match their local source bytes and SHA-256 exactly, including
   the HTML, worker, manifest, icons and complete JavaScript graph.
 - CSP, no-store, noindex/nofollow, no-referrer, nosniff and frame denial match the
   tracked hosting configuration on the actual served assets.
-- Activity/draft/gig deep links return the generic shell; `/index.html` redirects to `/`.
+- Earnings/activity/draft/gig deep links return the generic shell; `/index.html` redirects to `/`.
   Package metadata, `.env`, server source and an API path return 404.
 - Anonymous access receives a 302 Vercel authentication redirect. This is preview
   protection, not partner authentication or proof that the application API works.
@@ -85,7 +85,7 @@ DNS mutation, real invitation, payment or professional review occurred in this
 preview increment. The overall partner portal goal remains active.
 
 
-## Optional activity preview refresh
+## Earlier activity preview refresh
 
 The current URL above supersedes the original protected static preview, whose source
 was `8608e18`. All 14 current static files match local bytes/SHA-256 and all configured
@@ -101,7 +101,7 @@ recorded in [VERIFICATION.md](VERIFICATION.md). Only the two new activity views 
 updated preview board are new visual baselines. The exact remaining scenario audit
 is [PARTNER-ACCEPTANCE-GAPS.md](PARTNER-ACCEPTANCE-GAPS.md).
 
-## Authentication preview refresh
+## Earlier authentication preview refresh
 
 The current protected URL supersedes the activity preview
 `3dprint4me-partners-fr1qrhv6b-jerrettdavis-projects.vercel.app`. All 14 v3 static files
@@ -110,3 +110,22 @@ match local bytes/SHA-256; all hosting headers, eight route checks and anonymous
 covering retry controls. Export expiry removes the private view; delayed export
 failures do not interrupt a later page. This upload changes only the dedicated
 static preview. The native API, same-site staging and production domain remain pending.
+
+
+## Weekly statement release preparation
+
+The local candidate adds opt-in weekly statement scheduling and private paged history.
+It requires additive native migration `013_partner_weekly_statements.sql` after 012.
+No deployed production schema or backend has been changed for this candidate. Both
+migrations keep public database access denied; 013 grants only backend SELECT/INSERT
+for immutable statement rows. Existing per-program settings remain unchanged until
+an authenticated owner explicitly schedules statements. Neither migration enables
+invitations, payments, email or new work.
+
+Partner shell v4 is now uploaded at the protected remote URL above: all 15 static
+files match source/SHA-256 and every configured hosting header. Nine route checks,
+including Earnings, pass; anonymous access remains an authentication 302. Exact HTML
+matching excludes a provider toolbar. Operator shell v23 remains a local build.
+The earlier v3 preview was https://3dprint4me-partners-39l866vqm-jerrettdavis-projects.vercel.app. Native same-site staging, API rollout, DNS and actual launch gates
+remain open. A read-only DNS query now reports NAME_ERROR for partners.3dprint4.me;
+the credential-source clarification remains pending and no DNS record was changed.
