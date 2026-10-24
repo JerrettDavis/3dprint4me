@@ -4,7 +4,10 @@ import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import pg from 'pg';
-import { splitStatements } from '../../scripts/migrate-neon.mjs';
+import { createPartnerApplication } from '../../lib/partner-outreach/application.js';
+import { createOwnerAuthorizer } from '../../lib/partner-outreach/http.js';
+import { digest } from '../../lib/partner-outreach/postgres-repository.js';
+import { splitStatements,MIGRATIONS } from '../../scripts/migrate-neon.mjs';
 import { createNativeDatabase, nativePoolOptions } from '../../lib/database.js';
 import { createPostgresPartnerRepository } from '../../lib/partner-outreach/postgres-repository.js';
 
@@ -25,8 +28,8 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   for(let i=0;i<80;i++){try {await admin.query('SELECT 1');ready=true;break;}catch{await new Promise(r=>setTimeout(r,250));}}
   assert.equal(ready,true,'isolated database becomes ready');
   await admin.query('REVOKE CREATE ON SCHEMA public FROM PUBLIC; CREATE ROLE platform_backend NOLOGIN; CREATE ROLE platform_app LOGIN IN ROLE platform_backend; CREATE ROLE partner_visitor LOGIN; GRANT USAGE ON SCHEMA public TO platform_backend');
-  const sql=await readFile(new URL('../../neon/migrations/012_partner_outreach.sql',import.meta.url),'utf8');
-  for(let i=0;i<2;i++)for(const statement of splitStatements(sql))await admin.query(statement);
+  for(const file of MIGRATIONS)for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/'+file,import.meta.url),'utf8')))await admin.query(statement);
+  for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/012_partner_outreach.sql',import.meta.url),'utf8')))await admin.query(statement);
   const programId=randomUUID(),campaignId=randomUUID(),partners=[randomUUID(),randomUUID()],gigs=[randomUUID(),randomUUID()];
   await admin.query("INSERT INTO partner_programs(id,label,starts_on,enabled,synthetic) VALUES($1,'Synthetic','2026-10-01',true,true)",[programId]);
   await admin.query("INSERT INTO partner_campaigns(id,program_id,title,terms,status) VALUES($1,$2,'Visits','{}','published')",[campaignId,programId]);
@@ -38,6 +41,17 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   const pool=new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')));
   database=createNativeDatabase({pool});
   const repo=createPostgresPartnerRepository({database});
+  const ownerToken='o'.repeat(43),ownerEnv={OPERATOR_OWNER_SUBJECT:'2610199'};
+  await admin.query("INSERT INTO operators(id,auth_user_id,display_name,role) VALUES('op_native','github:2610199','Synthetic owner','owner')");
+  await admin.query("INSERT INTO operator_identity_bindings(issuer,subject,operator_id) VALUES('https://github.com/','2610199','op_native')");
+  await admin.query("INSERT INTO operator_sessions(token_hash,operator_id,issuer,subject,expires_at) VALUES($1,'op_native','https://github.com/','2610199','2026-10-24T12:00Z')",[digest(ownerToken)]);
+  const ownerSession=await createOwnerAuthorizer({query:database.query,env:ownerEnv,now:()=>new Date('2026-10-23T12:00Z')})({headers:{cookie:'__Host-3dp-session='+ownerToken}});
+  const app=createPartnerApplication({database,env:ownerEnv,now:()=>new Date('2026-10-23T12:00Z')});
+  const created=await app.execute({actor:ownerSession.actor,action:'partner.create',input:{programId,displayName:'Synthetic invited'},key:randomUUID()});
+  assert.equal(created.status,'invited');
+  await admin.query("UPDATE operators SET role='operator' WHERE id='op_native'");
+  await assert.rejects(app.execute({actor:ownerSession.actor,action:'partner.create',input:{programId,displayName:'Denied'},key:randomUUID()}),{status:403});
+  await admin.query("UPDATE operators SET role='owner' WHERE id='op_native'");
   const accept=(index,key=randomUUID())=>{
    const actor={role:'PARTNER',id:partners[index]};
    return repo.withCommand({actor,operation:'accept',key,payload:{gigId:gigs[index],revision:1}},tx=>repo.reserveGig(tx,{actor,gigId:gigs[index],expectedRevision:1,instant:'2026-10-23T12:00:00Z',authorizationApproved:true}));
@@ -56,6 +70,17 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   assert.deepEqual(one,two);
   assert.equal((await admin.query('SELECT count(*)::int AS n FROM partner_budget_reservations')).rows[0].n,2);
   assert.equal((await admin.query('SELECT committed_cents FROM partner_program_weeks')).rows[0].committed_cents,30000);
+  const raceGig=randomUUID(),raceTerms={...terms,feeCents:5000};
+  await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,terms_snapshot,status) VALUES($1,$2,$3,$4,$5,'offered')",[raceGig,programId,partners[0],campaignId,JSON.stringify(raceTerms)]);
+  const raceActor={role:'PARTNER',id:partners[0]};
+  const race=await Promise.allSettled([
+   app.execute({actor:ownerSession.actor,action:'gig.withdraw',input:{gigId:raceGig,expectedRevision:1},key:randomUUID()}),
+   repo.withCommand({actor:raceActor,operation:'accept',key:randomUUID(),payload:{gigId:raceGig,revision:1}},tx=>repo.reserveGig(tx,{actor:raceActor,gigId:raceGig,expectedRevision:1,instant:'2026-10-23T12:00:00Z',authorizationApproved:true}))
+  ]);
+  assert.equal(race.filter(result=>result.status==='fulfilled').length,1);
+  assert.equal(race.find(result=>result.status==='rejected').reason.status,409);
+  const expectedCommitted=30000+(race[1].status==='fulfilled'?5000:0);
+  const expectedAccepts=2+(race[1].status==='fulfilled'?1:0);
   await assert.rejects(pool.query('DELETE FROM partner_accounts'),e=>e.code==='42501');
   await assert.rejects(pool.query('UPDATE partner_budget_reservations SET amount_cents=0'),e=>e.code==='42501');
   const visitor=new pg.Pool(nativePoolOptions(url.replace('postgres@','partner_visitor@')));
@@ -68,9 +93,9 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   const restoreUrl=new URL(url);restoreUrl.pathname='/partner_restore';
   const restored=new pg.Pool(nativePoolOptions(restoreUrl.toString()));
   try{
-   assert.equal((await restored.query('SELECT committed_cents FROM partner_program_weeks')).rows[0].committed_cents,30000);
-   assert.equal((await restored.query('SELECT count(*)::int AS n FROM partner_command_keys')).rows[0].n,2);
-   assert.equal((await restored.query('SELECT count(*)::int AS n FROM partner_audit_events')).rows[0].n,2);
+   assert.equal((await restored.query('SELECT committed_cents FROM partner_program_weeks')).rows[0].committed_cents,expectedCommitted);
+   assert.equal((await restored.query('SELECT count(*)::int AS n FROM partner_command_keys')).rows[0].n,4);
+   assert.equal((await restored.query("SELECT count(*)::int AS n FROM partner_audit_events WHERE action='gig.accepted'")).rows[0].n,expectedAccepts);
    await assert.rejects(restored.query('UPDATE partner_budget_reservations SET amount_cents=0'),/immutable/i);
   }finally{await restored.end();}
  }finally{
