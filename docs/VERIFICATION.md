@@ -1399,3 +1399,25 @@ route checks** and anonymous authentication **302** pass. Worker/HTML release is
 with no provider-injected HTML. This uploads only the dedicated static Preview;
 native API, owner output, migrations, DNS and same-site production verification
 remain pending. Private proof is retained outside Git in statements-preview-proof.
+
+## Owner-control acceptance (2026-10-24, based on eb4d418)
+
+Four direct packet journeys now exercise actual campaign publication and a $40 offer,
+suspension with preserved debt and partial settlement, paused acceptance with unchanged
+commitments, and existing private work-inbox updates alongside unchanged public routes.
+The fixture mounts the existing owner session and work-update handlers; application
+runtime and static output are unchanged. Synthetic GitHub-bound authentication does
+not establish real OAuth, same-site TLS or live status-provider health.
+
+Initial focused runs exposed missing fixture handlers, an incorrect assertion that
+nested contact email appears in inbox text, and an actual EADDRINUSE startup failure.
+Handlers now match the existing application; contact privacy is asserted via the
+native API. Both shell ports are held as distinct OS reservations until each shell
+starts, with cleanup on failure. A small release-to-bind race remains. A separate
+socket test verifies competing binds are denied until release.
+
+Focused verification: **5 passed in 33.57 seconds**, comprising four browser journeys
+and one fixture socket check. The complete maintained native command passed: **50 checks in 388.51 seconds**
+(**49 native browser cases and one socket check**). Previous 1,215 unit/contract, 322 browser,
+241 UX and 145 capture checks describe the unchanged application at eb4d418. This
+increment does not require a new static deployment or new visual baselines.

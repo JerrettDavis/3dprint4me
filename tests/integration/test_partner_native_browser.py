@@ -15,114 +15,118 @@ import uuid
 from contextlib import contextmanager
 from tests.support.server import ROOT, free_port, request
 from tests.support.browser_harness import SiteBrowser
+from tests.support.ports import reserved_loopback_ports
 
 
 @contextmanager
 def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed=False,program_flag_control=False,observe_outbound=False,statement_jobs=False):
-    port, owner_port = free_port(), free_port()
-    owner_origin = f'http://127.0.0.1:{owner_port}'
-    shell_origin = f'http://127.0.0.1:{port}'
-    container = '3dprint4me-partner-browser-' + uuid.uuid4().hex[:8]
-    clock_root=tempfile.TemporaryDirectory(prefix='3dprint4me-partner-clock-') if clock or program_flag_control or observe_outbound else None
-    clock_path=Path(clock_root.name)/'clock.json' if clock_root else None
-    def set_clock(value):
-        from datetime import datetime
-        instant=datetime.fromisoformat(value.replace('Z','+00:00'))
-        assert instant.tzinfo is not None and 2026<=instant.year<=2027
-        temporary=clock_path.with_suffix('.next');temporary.write_text(json.dumps(value),encoding='utf-8');temporary.replace(clock_path)
-    flag_path=Path(clock_root.name)/'program-flag.json' if program_flag_control else None
-    def set_program_enabled(value):
-        assert type(value) is bool
-        temporary=flag_path.with_suffix('.next');temporary.write_text(json.dumps(value),encoding='utf-8');temporary.replace(flag_path)
-    outbound_path=Path(clock_root.name)/'outbound-count.txt' if observe_outbound else None
-    if clock:set_clock(clock)
-    if program_flag_control:set_program_enabled(enable_reviewed_launch)
-    native = subprocess.Popen(['node', 'tests/support/partner-native-server.mjs'], cwd=ROOT,
-                              env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_STATEMENT_JOBS':'1' if statement_jobs else '0', 'PARTNER_TEST_CLOCK_FILE':str(clock_path) if clock else '', 'PARTNER_TEST_PROGRAM_FLAG_FILE':str(flag_path) if flag_path else '', 'PARTNER_TEST_WORK_SEED':'1' if work_seed else '0', 'PARTNER_TEST_OUTBOUND_FILE':str(outbound_path) if outbound_path else '', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=os.name != 'nt')
-    lines = queue.Queue()
-    threading.Thread(target=lambda: lines.put(native.stdout.readline()), daemon=True).start()
-    shell = owner_shell = None
-    try:
-        first = lines.get(timeout=150)
-        fixture = json.loads(first)
-        shell = subprocess.Popen(['node', 'scripts/partner-server.mjs'], cwd=ROOT,
-                                 env={**os.environ, 'PARTNER_PORT': str(port), 'PARTNER_API_ORIGIN': fixture['apiOrigin']},
-                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        deadline = time.monotonic() + 10
-        while time.monotonic() < deadline:
-            if shell.poll() is not None:
-                detail=shell.stdout.read()
-                reason='port already in use' if 'EADDRINUSE' in detail else 'startup process exited'
-                raise RuntimeError(f'Partner static shell unavailable ({reason}; exit {shell.returncode})')
-            try:
-                if request(shell_origin)[0] == 200:
-                    break
-            except OSError:
-                time.sleep(.08)
-        else:
-            raise TimeoutError('Partner static shell unavailable')
-        owner_shell = subprocess.Popen(['node','scripts/operator-server.mjs'],cwd=ROOT,
-            env={**os.environ,'OPERATOR_PORT':str(owner_port),'OPERATOR_API_BASE':fixture['apiOrigin']},stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
-        deadline=time.monotonic()+10
-        while time.monotonic()<deadline:
-            if owner_shell.poll() is not None:
-                detail=owner_shell.stdout.read()
-                reason='port already in use' if 'EADDRINUSE' in detail else 'startup process exited'
-                raise RuntimeError(f'Owner static shell unavailable ({reason}; exit {owner_shell.returncode})')
-            try:
-                if request(owner_origin+'/api/config')[0]==200:break
-            except OSError:time.sleep(.08)
-        else:raise TimeoutError('Owner shell unavailable')
-        fixture['setClock']=set_clock if clock else None
-        fixture['setProgramEnabled']=set_program_enabled if program_flag_control else None
-        fixture['outboundAttempts']=(lambda:int(outbound_path.read_text(encoding='utf-8'))) if observe_outbound else None
-        def run_statement_job():
-            assert statement_jobs
-            response=queue.Queue()
-            threading.Thread(target=lambda:response.put(native.stdout.readline()),daemon=True).start()
-            native.stdin.write('statements\n');native.stdin.flush()
-            result=json.loads(response.get(timeout=30));assert result['ok'],result
-            return result['result']
-        fixture['runStatementJob']=run_statement_job if statement_jobs else None
-        fixture['ownerOrigin']=owner_origin
-        fixture['_process'] = native
-        fixture['_container'] = container
-        yield shell_origin, fixture
-    finally:
-        if owner_shell:
-            owner_shell.terminate()
-            try:owner_shell.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                owner_shell.kill();owner_shell.wait(timeout=5)
-        if shell:
-            shell.terminate()
-            try:
-                shell.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                shell.kill()
-                shell.wait(timeout=5)
-        if native.poll() is None:
-            try:
-                native.stdin.write('stop\n')
-                native.stdin.flush()
-                native.wait(timeout=15)
-            except (BrokenPipeError, OSError, subprocess.TimeoutExpired):
-                if os.name == 'nt':
-                    subprocess.run(['taskkill', '/PID', str(native.pid), '/T', '/F'], capture_output=True, timeout=10)
-                else:
-                    os.killpg(native.pid, signal.SIGKILL)
-                native.wait(timeout=5)
-        # Verify exact name and label before fallback cleanup; never stop unrelated containers.
-        inspected = subprocess.run(['docker', 'inspect', container], capture_output=True, text=True, timeout=15)
-        if inspected.returncode == 0:
-            details = json.loads(inspected.stdout)[0]
-            assert details['Name'] == '/' + container
-            assert details['Config']['Labels']['3dprint4me.purpose'] == 'partner-browser'
-            subprocess.run(['docker', 'rm', '--force', container], check=True, capture_output=True, timeout=15)
-        elif not any(message in inspected.stderr.lower() for message in ['no such object', 'no such container']):
-            raise RuntimeError('Could not verify disposable partner container cleanup')
-        if clock_root:clock_root.cleanup()
+    with reserved_loopback_ports(2) as reservations:
+        port, owner_port = [held.getsockname()[1] for held in reservations]
+        owner_origin = f'http://127.0.0.1:{owner_port}'
+        shell_origin = f'http://127.0.0.1:{port}'
+        container = '3dprint4me-partner-browser-' + uuid.uuid4().hex[:8]
+        clock_root=tempfile.TemporaryDirectory(prefix='3dprint4me-partner-clock-') if clock or program_flag_control or observe_outbound else None
+        clock_path=Path(clock_root.name)/'clock.json' if clock_root else None
+        def set_clock(value):
+            from datetime import datetime
+            instant=datetime.fromisoformat(value.replace('Z','+00:00'))
+            assert instant.tzinfo is not None and 2026<=instant.year<=2027
+            temporary=clock_path.with_suffix('.next');temporary.write_text(json.dumps(value),encoding='utf-8');temporary.replace(clock_path)
+        flag_path=Path(clock_root.name)/'program-flag.json' if program_flag_control else None
+        def set_program_enabled(value):
+            assert type(value) is bool
+            temporary=flag_path.with_suffix('.next');temporary.write_text(json.dumps(value),encoding='utf-8');temporary.replace(flag_path)
+        outbound_path=Path(clock_root.name)/'outbound-count.txt' if observe_outbound else None
+        if clock:set_clock(clock)
+        if program_flag_control:set_program_enabled(enable_reviewed_launch)
+        native = subprocess.Popen(['node', 'tests/support/partner-native-server.mjs'], cwd=ROOT,
+                                  env={**os.environ, 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_STATEMENT_JOBS':'1' if statement_jobs else '0', 'PARTNER_TEST_CLOCK_FILE':str(clock_path) if clock else '', 'PARTNER_TEST_PROGRAM_FLAG_FILE':str(flag_path) if flag_path else '', 'PARTNER_TEST_WORK_SEED':'1' if work_seed else '0', 'PARTNER_TEST_OUTBOUND_FILE':str(outbound_path) if outbound_path else '', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
+                                  stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=os.name != 'nt')
+        lines = queue.Queue()
+        threading.Thread(target=lambda: lines.put(native.stdout.readline()), daemon=True).start()
+        shell = owner_shell = None
+        try:
+            first = lines.get(timeout=150)
+            fixture = json.loads(first)
+            reservations[0].close()
+            shell = subprocess.Popen(['node', 'scripts/partner-server.mjs'], cwd=ROOT,
+                                     env={**os.environ, 'PARTNER_PORT': str(port), 'PARTNER_API_ORIGIN': fixture['apiOrigin']},
+                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            deadline = time.monotonic() + 10
+            while time.monotonic() < deadline:
+                if shell.poll() is not None:
+                    detail=shell.stdout.read()
+                    reason='port already in use' if 'EADDRINUSE' in detail else 'startup process exited'
+                    raise RuntimeError(f'Partner static shell unavailable ({reason}; exit {shell.returncode})')
+                try:
+                    if request(shell_origin)[0] == 200:
+                        break
+                except OSError:
+                    time.sleep(.08)
+            else:
+                raise TimeoutError('Partner static shell unavailable')
+            reservations[1].close()
+            owner_shell = subprocess.Popen(['node','scripts/operator-server.mjs'],cwd=ROOT,
+                env={**os.environ,'OPERATOR_PORT':str(owner_port),'OPERATOR_API_BASE':fixture['apiOrigin']},stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+            deadline=time.monotonic()+10
+            while time.monotonic()<deadline:
+                if owner_shell.poll() is not None:
+                    detail=owner_shell.stdout.read()
+                    reason='port already in use' if 'EADDRINUSE' in detail else 'startup process exited'
+                    raise RuntimeError(f'Owner static shell unavailable ({reason}; exit {owner_shell.returncode})')
+                try:
+                    if request(owner_origin+'/api/config')[0]==200:break
+                except OSError:time.sleep(.08)
+            else:raise TimeoutError('Owner shell unavailable')
+            fixture['setClock']=set_clock if clock else None
+            fixture['setProgramEnabled']=set_program_enabled if program_flag_control else None
+            fixture['outboundAttempts']=(lambda:int(outbound_path.read_text(encoding='utf-8'))) if observe_outbound else None
+            def run_statement_job():
+                assert statement_jobs
+                response=queue.Queue()
+                threading.Thread(target=lambda:response.put(native.stdout.readline()),daemon=True).start()
+                native.stdin.write('statements\n');native.stdin.flush()
+                result=json.loads(response.get(timeout=30));assert result['ok'],result
+                return result['result']
+            fixture['runStatementJob']=run_statement_job if statement_jobs else None
+            fixture['ownerOrigin']=owner_origin
+            fixture['_process'] = native
+            fixture['_container'] = container
+            yield shell_origin, fixture
+        finally:
+            if owner_shell:
+                owner_shell.terminate()
+                try:owner_shell.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    owner_shell.kill();owner_shell.wait(timeout=5)
+            if shell:
+                shell.terminate()
+                try:
+                    shell.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    shell.kill()
+                    shell.wait(timeout=5)
+            if native.poll() is None:
+                try:
+                    native.stdin.write('stop\n')
+                    native.stdin.flush()
+                    native.wait(timeout=15)
+                except (BrokenPipeError, OSError, subprocess.TimeoutExpired):
+                    if os.name == 'nt':
+                        subprocess.run(['taskkill', '/PID', str(native.pid), '/T', '/F'], capture_output=True, timeout=10)
+                    else:
+                        os.killpg(native.pid, signal.SIGKILL)
+                    native.wait(timeout=5)
+            # Verify exact name and label before fallback cleanup; never stop unrelated containers.
+            inspected = subprocess.run(['docker', 'inspect', container], capture_output=True, text=True, timeout=15)
+            if inspected.returncode == 0:
+                details = json.loads(inspected.stdout)[0]
+                assert details['Name'] == '/' + container
+                assert details['Config']['Labels']['3dprint4me.purpose'] == 'partner-browser'
+                subprocess.run(['docker', 'rm', '--force', container], check=True, capture_output=True, timeout=15)
+            elif not any(message in inspected.stderr.lower() for message in ['no such object', 'no such container']):
+                raise RuntimeError('Could not verify disposable partner container cleanup')
+            if clock_root:clock_root.cleanup()
 
 
 def test_native_partner_browser_cookie_csrf_idor_and_logout():

@@ -1,3 +1,5 @@
+import {createSessionHandler} from '../../api/operator-session.js';
+import {createWorkUpdateHandler} from '../../api/operator-work-update.js';
 import {generateWeeklyStatements} from '../../lib/partner-outreach/statements.js';
 import {createPlatformJobs} from '../../lib/platform/jobs.js';
 // Disposable native browser fixture. Never connects to an existing database.
@@ -76,7 +78,10 @@ try{
  const runtime=createPartnerRuntime({database,env,now});
  const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});
  const workRuntime=createNeonWorkManagementRuntime({query:database.query});
- const ownerWork=createWorkHandler({runtime:workRuntime,allowedOrigins:[ownerOrigin],identityProvider:createConfiguredIdentityProvider({env:{OPERATOR_AUTH_PROVIDER:'github'},store:createSessionStore({query:database.query})})});
+ const workIdentity=createConfiguredIdentityProvider({env:{OPERATOR_AUTH_PROVIDER:'github'},store:createSessionStore({query:database.query})});
+ const ownerWork=createWorkHandler({runtime:workRuntime,allowedOrigins:[ownerOrigin],identityProvider:workIdentity});
+ const ownerSession=createSessionHandler({runtime:workRuntime,allowedOrigins:[ownerOrigin],identityProvider:workIdentity});
+ const ownerUpdate=createWorkUpdateHandler({runtime:workRuntime,allowedOrigins:[ownerOrigin],identityProvider:workIdentity});
  let privateWorkId=null;
  if(process.env.PARTNER_TEST_WORK_SEED==='1'){
   const requestId='3DP-NATIVE-AUTH-'+randomUUID().replaceAll('-','').slice(0,12),request={service:'consult',projectTitle:'Synthetic owner-only project',description:'Synthetic confidential project marker.',contact:{name:'Synthetic private customer',email:'private-customer@example.test'},consent:true};
@@ -84,7 +89,7 @@ try{
  }
  const requestHandler=createProjectRequestHandler({getRuntime:()=>({mode:'neon',requestRepository:{createDraft:createRequestRecord,completeDraft:completeRequestRecord}}),issueCheckoutProof:()=>null});
  // Explicit loopback fixture admission only; production public intake uses its signed proxy.
- server=createPlatformServer({routes:{...handlers.routes,'/api/request':requestHandler,'/api/operator-work':ownerWork},directPaths:[...handlers.directPaths,'/api/request'],env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');
+ server=createPlatformServer({routes:{...handlers.routes,'/api/request':requestHandler,'/api/operator-work':ownerWork,'/api/operator-session':ownerSession,'/api/operator-work-update':ownerUpdate},directPaths:[...handlers.directPaths,'/api/request'],env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');
  const bonusTerms={...terms,maximumBonusCents:500,bonusRules:[{id:'sale',trigger:'verified_sale',amountCents:500,maximumAwards:1,criteria:'Independent fully settled purchase.',refundTreatment:'Owner reviews refunds separately.',qualifiesBy:'2026-12-31'}]},refGigId=randomUUID();
  await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,program_week_id,terms_snapshot,status,accepted_fee_cents,maximum_bonus_cents,accepted_at,revision) VALUES($1,$2,$3,$4,$5,$6,'accepted',1000,500,'2026-10-23T12:00:00Z',2)",[refGigId,programId,partnerId,campaignId,weekId,JSON.stringify(bonusTerms)]);
  await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1500)",[randomUUID(),weekId,refGigId]);
