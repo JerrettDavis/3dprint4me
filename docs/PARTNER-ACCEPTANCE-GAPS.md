@@ -2,7 +2,8 @@
 
 This 2026-10-24 audit, updated after the budget and authentication increments, compares the private
 packet's nine feature files with native cases across `test_partner_native_browser.py`,
-`test_partner_budget_browser.py` and `test_partner_auth_browser.py` and their fixtures. It identifies missing evidence, not automatic product defects.
+`test_partner_budget_browser.py`, `test_partner_auth_browser.py` and
+`test_partner_gig_browser.py` and their fixtures. It identifies missing evidence, not automatic product defects.
 Synthetic owner sessions are bound to real numeric-identity rules but do not exercise
 GitHub OAuth. Synthetic review decisions never establish actual professional clearance.
 Production flags remain off. This list supplements, rather than replaces, the full
@@ -24,10 +25,13 @@ numbered packet requirements and operational release gates.
   work record has positive owner access before/after denial. Environment-off enrollment
   isolates the sole missing program flag, preserves invited state and proves the same
   code succeeds after reenabling. This does not prove actual OAuth or production TLS.
-- **Gig choice:** one complete offered-to-accepted-to-ten-unique-visits-to-submission/
-  owner-review journey with reservation and unpaid assertions; decline without penalty;
-  unsafe-work refusal with preserved future-offer eligibility. Existing offline replay
-  and cold-reopen/lost-response evidence is substantial.
+- **Gig choice:** all four named scenarios map directly to `test_partner_gig_browser.py`:
+  a fresh $50 offer accepted, ten unique permitted UI visits, actual owner review and
+  unpaid status; decline without reservation/account penalty followed by future acceptance
+  under unchanged policy; unsafe-work escalation visible to the owner without GPS and
+  with future acceptance; offline save plus lost committed responses for both visit and
+  gig submission, identical retries and one resulting visit/submission event. Previous
+  cold-reopen and 100-draft replay evidence remains separate useful coverage.
 - **Visits/leads:** qualified-lead (not sale) bonus qualification/award followed by a
   different-device duplicate replay; exact consent-version evidence and explicit absence
   of marketing notifications. Consent, correction, suppression/deletion and owner review
@@ -57,7 +61,8 @@ numbered packet requirements and operational release gates.
 
 The budget spine is now implemented in `tests/support/partner_budget.py`, including
 fresh two-partner enrollment and exact acknowledgment. Authentication now adds positive owner-work controls and explicit environment-off
-enrollment. Reuse these helpers for complete gig acceptance/decline/unsafe-work journeys. Add accepted-policy referral and qualified-lead duplicate-award scenarios.
+enrollment. The gig-choice journeys now reuse them as well. Next add accepted-policy
+referral and qualified-lead duplicate-award scenarios.
 Do not rebuild synthetic approval plumbing or substitute seeded accepted work for
 an actual authorization transition. The remaining numbered operations/product work
 above and below still needs its own evidence.
