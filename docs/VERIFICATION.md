@@ -325,10 +325,46 @@ stable cash/accrual CSV batches; material issuance/return; typed/hash-bound lega
 revisions, comparison, comments/resolution, scoped review evidence, publication and
 frozen issuance/read acknowledgment. No payment provider write or e-signature exists.
 
-Still pending: anonymized seed import and actual Markdown/DOCX package generation,
-Word rendering and annotated-feedback import; referrals/bonuses and consented intake
-attribution; partner PWA and owner UI; full nine-feature browser BDD coverage;
+Still pending: annotated-feedback import, simple DOCX tables and encrypted offline
+sharing; referrals/bonuses and consented intake attribution; partner PWA and owner UI; full nine-feature browser BDD coverage;
 retention/outbox/monitoring and encrypted recovery; reviewed PR/CI, staging and actual
 disabled production deployment. Source packet, factual background and reviewer notes
 remain private. No real approval, invitation, payment, DNS or production migration
 has been performed.
+
+
+## Partner private exports and signed review packages checkpoint
+
+Observed 2026-10-24 in the isolated `feat/partner-portal` worktree:
+
+- Full unit/contract runner: **1,141 passed**, no failures/skips. Static asset,
+  architecture and source validation passed as part of `npm test`.
+- Native PostgreSQL 18 integration passed with restricted runtime grants, atomic
+  personal-export invalidation/expiry, template seeding, actual signed ZIP generation,
+  owner-only downloads, immutable artifact bytes and hash verification after restore.
+  The disposable synthetic database/container was removed by the harness.
+- Seven anonymized drafts seeded as non-issuable private legal revisions; reseeding
+  preserves owner edits and partners cannot invoke the owner command.
+- Signed packages verified every file hash and the exact canonical manifest signature;
+  incompatible/oversized expiry grants and missing redaction confirmation were denied.
+  Partner downloads and post-expiry downloads were denied. Command receipts contain
+  metadata rather than package bytes, factual brief or reviewer names.
+- All seven generated DOCX samples rendered in an offline isolated LibreOffice image;
+  all nine page PNGs inspected after fixing italic rendering. No remote document
+  relationships, macros or images are generated. Synthetic samples/render hashes remain
+  in the private QA directory, outside Git/static outputs.
+- Production API Docker build passed with `npm ci --omit=dev --ignore-scripts`.
+  Read-only/no-network image smoke imported the actual production review modules and
+  generated all seven DOCX files in memory, proving pinned fflate and fixed template
+  assets are present without dev dependencies. Only anonymized template sources were
+  added to the existing Docker allowlist.
+
+This checkpoint adds no portal UI or storefront visual changes. It does not establish
+real counsel/CPA approval, production migration, deployment or encrypted production
+recovery. Full browser regression passed **224 tests**, with one Linux-only fresh-host
+test skipped on Windows; UX audit passed **241/241**. After independent code review,
+the CPA cover checklist was corrected to require accounting as well as language
+review. Eight focused legal/package/seed/DOCX/native tests passed after that change,
+including invalid signing configuration, incompatible grants and simulated archive,
+manifest and signature corruption rejection. No Critical/Important review findings
+remained. The production image was rebuilt after the scope correction.

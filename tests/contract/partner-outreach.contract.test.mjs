@@ -30,8 +30,11 @@ test('visits reject unconsented identity, duplicates and unsafe placement; conta
   assert.equal(correction.version,'follow-up-permission-v1');assert.equal(correction.renewedPermission,true);assert.match(correction.consentText,/withdraw/);
   await run(f.owner,'lead.review',{leadId:lead.leadId,expectedRevision:2,decision:'qualified',reason:'Permission and business interest confirmed'});
   assert.equal((await app.read(f.owner,'leads')).items[0].followUpAllowed,true);
+  const exportReference=await run(f.actor,'profile.export',{});
+  assert.ok(JSON.stringify(await app.read(f.actor,'own-export',{id:exportReference.batchId})).includes('corrected@example.test'));
   await run(f.actor,'lead.withdraw',{leadId:lead.leadId,expectedRevision:3});
   rows=(await app.read(f.owner,'leads')).items;assert.equal(rows[0].followUpAllowed,false);
+  await assert.rejects(app.read(f.actor,'own-export',{id:exportReference.batchId}),{status:410});
   await run(f.actor,'lead.delete',{leadId:lead.leadId,expectedRevision:4});
   assert.deepEqual((await app.read(f.owner,'leads')).items[0].contact,{});
   const audit=JSON.stringify(await f.database.query`SELECT minimal_diff FROM partner_audit_events`);assert.ok(!audit.includes('contact@example.test'));

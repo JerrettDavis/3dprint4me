@@ -177,6 +177,13 @@ CREATE TABLE IF NOT EXISTS partner_review_packages (
  manifest jsonb NOT NULL CHECK(jsonb_typeof(manifest)='object'), created_by text NOT NULL,
  created_at timestamptz NOT NULL DEFAULT now(), expires_at timestamptz NOT NULL
 );
+CREATE TABLE IF NOT EXISTS partner_review_artifacts (
+ package_id uuid PRIMARY KEY REFERENCES partner_review_packages(id),
+ bytes bytea NOT NULL CHECK(octet_length(bytes) BETWEEN 1 AND 8388608),
+ sha256 text NOT NULL CHECK(sha256 ~ '^[a-f0-9]{64}$'),
+ filename text NOT NULL CHECK(filename ~ '^review-[a-f0-9-]+[.]zip$'),
+ manifest_signature text NOT NULL, public_key text NOT NULL
+);
 CREATE TABLE IF NOT EXISTS partner_agreement_issues (
  id uuid PRIMARY KEY, version_id uuid NOT NULL REFERENCES partner_legal_versions(id), partner_id uuid NOT NULL REFERENCES partner_accounts(id),
  snapshot_markdown text NOT NULL, bindings jsonb NOT NULL CHECK(jsonb_typeof(bindings)='object'),
@@ -235,6 +242,13 @@ CREATE TABLE IF NOT EXISTS partner_export_entries (
  basis text NOT NULL CHECK(basis IN ('cash','accrual')), source_kind text NOT NULL CHECK(source_kind IN ('payable','adjustment','payment')),
  source_id uuid NOT NULL, UNIQUE(program_id,basis,source_kind,source_id)
 );
+CREATE TABLE IF NOT EXISTS partner_export_payloads (
+ batch_id uuid PRIMARY KEY REFERENCES partner_export_batches(id), partner_id uuid NOT NULL REFERENCES partner_accounts(id),
+ payload jsonb NOT NULL CHECK(jsonb_typeof(payload)='object'), expires_at timestamptz NOT NULL,
+ invalidated_at timestamptz, created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS partner_export_payloads_expiry ON partner_export_payloads(expires_at,batch_id) WHERE invalidated_at IS NULL;
+CREATE INDEX IF NOT EXISTS partner_export_payloads_partner ON partner_export_payloads(partner_id) WHERE invalidated_at IS NULL;
 -- Immutable evidence is corrected by new records, never overwritten or deleted.
 CREATE OR REPLACE FUNCTION partner_reject_evidence_mutation() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN RAISE EXCEPTION 'Partner evidence is immutable'; END;
@@ -242,8 +256,8 @@ $$;
 DO $$
 DECLARE table_name text; immutable boolean;
 BEGIN
- FOREACH table_name IN ARRAY ARRAY['partner_programs','partner_accounts','partner_invites','partner_sessions','partner_rate_limits','partner_program_weeks','partner_campaigns','partner_gigs','partner_budget_reservations','partner_negotiations','partner_visits','partner_leads','partner_consent_events','partner_referrals','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_documents','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_agreement_issues','partner_agreement_acknowledgments','partner_activity_sessions','partner_command_keys','partner_audit_events','partner_outbox','partner_export_batches','partner_work_events','partner_payable_adjustments','partner_export_entries'] LOOP
-  immutable := table_name=ANY(ARRAY['partner_budget_reservations','partner_negotiations','partner_consent_events','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_agreement_issues','partner_agreement_acknowledgments','partner_audit_events','partner_export_batches','partner_work_events','partner_payable_adjustments','partner_export_entries']);
+ FOREACH table_name IN ARRAY ARRAY['partner_programs','partner_accounts','partner_invites','partner_sessions','partner_rate_limits','partner_program_weeks','partner_campaigns','partner_gigs','partner_budget_reservations','partner_negotiations','partner_visits','partner_leads','partner_consent_events','partner_referrals','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_documents','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_review_artifacts','partner_agreement_issues','partner_agreement_acknowledgments','partner_activity_sessions','partner_command_keys','partner_audit_events','partner_outbox','partner_export_batches','partner_work_events','partner_payable_adjustments','partner_export_entries','partner_export_payloads'] LOOP
+  immutable := table_name=ANY(ARRAY['partner_budget_reservations','partner_negotiations','partner_consent_events','partner_referral_events','partner_payables','partner_payment_events','partner_material_events','partner_legal_versions','partner_legal_reviews','partner_legal_comments','partner_review_packages','partner_review_artifacts','partner_agreement_issues','partner_agreement_acknowledgments','partner_audit_events','partner_export_batches','partner_work_events','partner_payable_adjustments','partner_export_entries']);
   EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY',table_name);
   EXECUTE format('REVOKE ALL ON %I FROM PUBLIC',table_name);
   IF immutable THEN
