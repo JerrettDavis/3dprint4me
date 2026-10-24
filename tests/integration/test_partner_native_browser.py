@@ -1013,3 +1013,76 @@ def test_native_owner_scoped_bindings_typed_issue_ack_and_immutable_history():
         assert len(read('agreements')['items'])==1 and 'Synthetic typed partner' not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
         state=subprocess.run(['docker','exec',fixture['_container'],'psql','-U','postgres','-Atc',"SELECT agreement_issue_id::text FROM partner_gigs WHERE id='"+fixture['gigId']+"'"],check=True,capture_output=True,text=True,timeout=15)
         assert state.stdout.strip()==issue_id and not site.page_errors
+
+
+def test_native_prepared_visit_survives_offline_cold_reopen_and_manual_replay():
+    with native_partner_workspace() as (origin,fixture),SiteBrowser(viewport=(390,844),color_scheme='dark') as site:
+        page=site.page;page.goto(origin)
+        page.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        page.get_by_role('button',name='Sign in',exact=True).click()
+        page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        page.wait_for_function('()=>!!navigator.serviceWorker.controller')
+        page.goto(origin+'/visits/new?gig='+fixture['acceptedGigId'])
+        page.get_by_role('button',name='Prepare this gig for offline business drafts',exact=True).click()
+        page.get_by_text('Offline visit form prepared on this device. Current gig status still requires a connection.',exact=True).wait_for()
+        site.context.set_offline(True)
+        page.close();page=site.context.new_page()
+        page.goto(origin+'/drafts')
+        page.get_by_label('Account code for device drafts',exact=True).fill(fixture['partnerId'])
+        page.get_by_role('button',name='Open device drafts',exact=True).click()
+        page.get_by_role('button',name='Record another business visit',exact=True).click()
+        page.get_by_label('Business name',exact=True).fill('Native cold offline business')
+        page.locator('#device-permission').check()
+        page.get_by_role('button',name='Save business draft on this device',exact=True).click()
+        page.get_by_text('Saved on this device. Not submitted yet.',exact=True).wait_for()
+        page.reload()
+        page.get_by_label('Account code for device drafts',exact=True).fill(fixture['partnerId'])
+        page.get_by_role('button',name='Open device drafts',exact=True).click()
+        page.get_by_text('Native cold offline business',exact=True).wait_for()
+        assert page.get_by_role('button',name='Send pending business drafts',exact=True).is_disabled()
+        site.context.set_offline(False)
+        page.goto(origin+'/drafts')
+        page.get_by_role('button',name='Send pending business drafts',exact=True).click()
+        page.get_by_text('1 draft submitted. 0 remain on this device.',exact=True).wait_for()
+        page.reload()
+        assert page.get_by_role('button',name='Remove device draft',exact=True).count()==0
+        rows=page.evaluate("async api=>(await(await fetch(api+'/api/partner/v1/visits',{credentials:'include'})).json()).items",fixture['apiOrigin'])
+        assert len(rows)==1 and rows[0]['business_name']=='Native cold offline business'
+        assert page.evaluate("async()=>{const c=await caches.open('partner-shell-v1');return(await c.keys()).every(r=>!r.url.includes('/api/'));}")
+
+
+def test_native_late_login_cookie_after_other_tab_logout_is_revoked():
+    from tests.support.server import json_request
+    with native_partner_workspace() as (origin,fixture),SiteBrowser() as site:
+        first=site.page;first.goto(origin)
+        first.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        first.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        first.get_by_role('button',name='Sign in',exact=True).click()
+        first.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        second=site.context.new_page()
+        session_url=fixture['apiOrigin']+'/api/partner/v1/session'
+        second.route(session_url,lambda route:route.fulfill(status=401,content_type='application/json',body='{"error":"Synthetic local signed-out view"}'))
+        second.goto(origin)
+        second.get_by_role('heading',name='Your work. Your records.',exact=True).wait_for()
+        second.unroute(session_url)
+        held=[]
+        def hold_login(route):
+            code,headers,body=json_request(route.request.url,method='POST',headers={'Origin':origin},payload=route.request.post_data_json)
+            assert code==200 and 'set-cookie' in {k.lower() for k in headers}
+            held.append((route,code,headers,body))
+        second.route('**/api/partner/v1/login',hold_login)
+        second.get_by_label('Account code',exact=True).fill(fixture['partnerId'])
+        second.get_by_label('Passphrase',exact=True).fill(fixture['password'])
+        second.get_by_role('button',name='Sign in',exact=True).click()
+        second.wait_for_timeout(50);assert held
+        first.get_by_role('button',name='Sign out',exact=True).click()
+        first.get_by_text('Signed out.',exact=True).wait_for()
+        second.get_by_text('Signed out in another tab.',exact=True).wait_for()
+        route,code,headers,body=held.pop()
+        with second.expect_response(lambda response:response.url==fixture['apiOrigin']+'/api/partner/v1/logout' and response.request.method=='POST',timeout=5000) as cleanup:
+            route.fulfill(status=code,headers=headers,body=json.dumps(body))
+        assert cleanup.value.status==200
+        second.reload()
+        second.get_by_role('heading',name='Your work. Your records.',exact=True).wait_for(timeout=5000)
+        assert second.get_by_role('heading',name='Hello, Synthetic Partner 1.').count()==0

@@ -1,5 +1,6 @@
 // Device drafts are explicitly opt-in, non-authoritative business records. Never
 // persist contact fields, permission evidence, auth state or server error text.
+const PREPARE_PREFIX='3dp-partner-preparation-v1:';
 const PREFIX='3dp-partner-visit-v1:',UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FIELDS=['gigId','expectedGigRevision','businessName','approximateArea','outcome','placement','sampleCount','visitedAt'];
 function payload(input){
@@ -10,7 +11,7 @@ function payload(input){
  return Object.fromEntries(FIELDS.map(k=>[k,input[k]]));
 }
 export function clearVisitDrafts(storage){
- const keys=[];for(let n=0;n<storage.length;n++){const key=storage.key(n);if(key?.startsWith(PREFIX))keys.push(key);}for(const key of keys)storage.removeItem(key);
+ const keys=[];for(let n=0;n<storage.length;n++){const key=storage.key(n);if(key?.startsWith(PREFIX)||key?.startsWith(PREPARE_PREFIX))keys.push(key);}for(const key of keys)storage.removeItem(key);
 }
 export function createVisitDraftStore({storage,accountId}={}){
  if(!UUID.test(accountId))throw new Error('Sign in before accessing device drafts.');
@@ -36,5 +37,8 @@ export function createVisitDraftStore({storage,accountId}={}){
   return {sent,remaining:list().length};
  }
  function sync(send){return syncing??=(runSync(send).finally(()=>{syncing=null;}));}
- return {save,list,remove,clear,sync};
+ function preparation(value){if(!value||Object.keys(value).some(k=>!['gigId','expectedGigRevision'].includes(k))||!UUID.test(value.gigId)||!Number.isSafeInteger(value.expectedGigRevision)||value.expectedGigRevision<1||value.expectedGigRevision>2147483647)throw new Error('Invalid offline preparation fields or revision.');return {gigId:value.gigId,expectedGigRevision:value.expectedGigRevision};}
+ function prepared(){const raw=storage.getItem(PREPARE_PREFIX+accountId);if(raw===null)return [];let rows;try{rows=JSON.parse(raw);}catch{throw new Error('Offline preparation is unreadable. Reconnect and prepare the gig again.');}if(!Array.isArray(rows)||rows.length>20)throw new Error('Offline preparation needs review.');return rows.map(preparation);}
+ function prepare(input){const value=preparation(input),rows=prepared().filter(r=>r.gigId!==value.gigId);if(rows.length>=20)throw new Error('Offline preparation limit is 20 gigs.');try{storage.setItem(PREPARE_PREFIX+accountId,JSON.stringify([...rows,value]));}catch{throw new Error('Offline preparation was not saved. Keep the form open.');}}
+ return {save,list,remove,clear,sync,prepare,prepared};
 }

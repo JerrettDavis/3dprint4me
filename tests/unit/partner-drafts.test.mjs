@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {createVisitDraftStore} from '../../partner/public/assets/drafts.js';
+import {createVisitDraftStore,clearVisitDrafts} from '../../partner/public/assets/drafts.js';
 const storage=()=>{const values=new Map();return {getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k),key:n=>[...values.keys()][n]??null,get length(){return values.size;},values};};
 const visit=()=>({gigId:randomUUID(),expectedGigRevision:2,businessName:'Synthetic business',approximateArea:'Tulsa',outcome:'unavailable',placement:'none',sampleCount:0,visitedAt:'2026-10-24T12:00:00Z'});
 
@@ -35,4 +35,16 @@ test('conflicts retain device records for review; storage failure never claims a
  drafts.remove(entry.id);assert.equal(drafts.list().length,0);
  const broken=createVisitDraftStore({storage:{getItem:()=>null,setItem:()=>{throw Error('blocked');}},accountId:randomUUID()});
  assert.throws(()=>broken.save(visit()),/not saved/);
+});
+
+
+test('explicit minimal offline preparation survives restart, is account-scoped and clears on sign-out',()=>{
+ const disk=storage(),accountId=randomUUID(),store=createVisitDraftStore({storage:disk,accountId}),gig={gigId:randomUUID(),expectedGigRevision:2};
+ assert.deepEqual(store.prepared(),[]);store.prepare(gig);
+ assert.deepEqual(createVisitDraftStore({storage:disk,accountId}).prepared(),[gig]);
+ assert.deepEqual(createVisitDraftStore({storage:disk,accountId:randomUUID()}).prepared(),[]);
+ assert.throws(()=>store.prepare({...gig,title:'Private title'}),/field|preparation/);
+ assert.throws(()=>store.prepare({...gig,expectedGigRevision:0}),/revision|preparation/);
+ assert.equal(store.list().length,0);
+ clearVisitDrafts(disk);assert.deepEqual(store.prepared(),[]);
 });
