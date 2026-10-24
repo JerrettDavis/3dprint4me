@@ -87,3 +87,28 @@ test('participant identities, accepted award counts and qualification deadlines 
   assert.equal((await f.database.query`SELECT count(*)::int AS n FROM partner_referral_events`)[0].n,1);
  }finally{await f.close();}
 });
+
+
+test('web referral permission binds the selected code and server receipt time without creating a bonus',async()=>{
+ const f=await partnerFixture();try{
+  let instant=new Date(TEST_NOW);const app=createPartnerApplication({database:f.database,env:ACTIVE_ENV,allowSyntheticOwner:true,now:()=>instant});
+  const run=(actor,action,input)=>app.execute({actor,action,input,key:randomUUID()});
+  const terms={title:'Web referrals',feeCents:1000,maximumBonusCents:500,bonusRules:[{id:'sale',trigger:'verified_sale',amountCents:500,maximumAwards:1,criteria:'Independent settled sale.',qualifiesBy:'2026-12-31',refundTreatment:'Owner reviews refunds separately.'}],tasks:['Permitted introductions'],materials:[],area:'Tulsa',deadline:'2026-12-01'};
+  const campaign=await run(f.owner,'campaign.create',{programId:f.programId,terms});await run(f.owner,'campaign.publish',{campaignId:campaign.id,expectedRevision:1});
+  const gig=await run(f.owner,'gig.offer',{campaignId:campaign.id,partnerId:f.partnerId});const accepted=await run(f.actor,'gig.accept',{gigId:gig.id,expectedRevision:1});
+  instant=new Date(new Date(TEST_NOW).getTime()+30000);const received=instant.toISOString(),requestId='rq_'+randomUUID();
+  const input={referralId:accepted.referral.id,requestId,consentedAt:TEST_NOW,consentVerified:true,independentCustomerConfirmed:true,evidenceReference:'Private web request permission'};
+  const payload={source:'3dprint4.me',submittedAt:received,referral:{code:'notTheChosenCode',consent:true,consentVersion:'referral-v1'}};
+  await f.database.query`INSERT INTO service_requests(id,service,project_title,contact_name,contact_email,status,payload,created_at) VALUES(${requestId},'consult','Synthetic','Customer','web@example.test','quoted',${JSON.stringify(payload)}::jsonb,${TEST_NOW})`;
+  await assert.rejects(run(f.owner,'referral.attribute',input),{status:409});
+  const chosen=payload.referral;delete payload.referral;
+  await f.database.query`UPDATE service_requests SET payload=${JSON.stringify(payload)}::jsonb WHERE id=${requestId}`;
+  await assert.rejects(run(f.owner,'referral.attribute',input),{status:409});
+  payload.referral=chosen;
+  payload.referral.code=accepted.referral.code;
+  await f.database.query`UPDATE service_requests SET payload=${JSON.stringify(payload)}::jsonb WHERE id=${requestId}`;
+  await assert.rejects(run(f.owner,'referral.attribute',input),{status:400});
+  const result=await run(f.owner,'referral.attribute',{...input,consentedAt:received});assert.equal(result.status,'attributed_not_paid');
+  assert.equal((await app.read(f.actor,'referrals')).awards.length,0);
+ }finally{await f.close();}
+});

@@ -337,8 +337,8 @@ No award is inferred from a quote, a checkout return URL or referral attribution
 
 Owner-only commands record opt-in evidence against an actual customer request,
 independently verified full settlement and a separately reviewed award. These manual
-attestations are the current fallback; public customer opt-in intake and browser flows
-remain unfinished. Settlement references must be unique, qualified external receipt
+attestations remain separate from the optional web instruction implemented below.
+The complete owner attribution/settlement browser flow remains unfinished. Settlement references must be unique, qualified external receipt
 identifiers; normalized case-insensitive reuse is denied across payment methods.
 These commands do not contact payment providers or establish external payment truth.
 
@@ -357,7 +357,8 @@ qualified within the accepted period remain payable after pause, cap reduction o
 sunset. Earnings distinguish earned bonuses from the remaining contingent maximum.
 Scoped referral reads expose codes, accepted criteria and awards, excluding customer
 identities and bank evidence. Excessive export volume fails explicitly rather than
-silently truncating records. No public customer referral integration is claimed complete.
+silently truncating records. The optional public instruction and partner display are
+implemented below; complete owner attribution/payment browser acceptance remains open.
 
 
 ## Online partner shell (first increment)
@@ -391,8 +392,8 @@ replace the native database/authentication runtime. Fixture browser tests explic
 mock API responses and do not prove real cookies or PostgreSQL-backed browser flows.
 
 Visit/contact forms, business-only device drafts and partner counterproposals are
-implemented below. Partner referral display, safe service-worker lifecycle and the
-owner console remain under implementation.
+implemented below. Partner referral display and customer opt-in intake are implemented below. Safe
+service-worker lifecycle and the owner console remain under implementation.
 No deployment or complete PWA/browser acceptance is claimed by these views.
 
 
@@ -461,3 +462,39 @@ Responses from a view the partner has left cannot reroute or announce into the
 newer view. Native browser evidence verifies proposal persistence after reload,
 unchanged offered status/fee, and cross-partner read denial. The complete
 owner reoffer/acceptance/budget browser flow is still a release requirement.
+
+
+### Optional customer referral credit
+
+Every detailed service path has a separate unchecked referral permission choice on
+its contact step. A customer can enter an exact, case-sensitive, 16-character opaque
+code after opting in. The versioned copy discloses possible partner compensation
+and that contact details/files are not shared through partner referral records.
+Disabling permission clears/disables the code. No URL parameters, public code lookup
+or public customer-identification endpoint are added. Unknown well-shaped codes are
+privately retained for owner reconciliation without exposing whether a code exists.
+
+The browser sends only an opted-in `{code, consent: true, consentVersion}` object,
+outside service specifications. The server rejects malformed codes, false/string
+permission, unknown versions and additional fields. Pending device drafts strip
+both code and permission, including legacy/tampered saved drafts. Customers must
+make a fresh choice after reload. Completed recovery JSON and email fallback retain
+the opted-in instruction; owner receipt emails include it for email-only delivery.
+The privacy notice documents this processing. No estimate or service selection
+changes because of a code, and the customer can continue with permission off.
+
+An opted-in request is an instruction awaiting verification, not an automatic
+attribution, earned bonus or paid sale. Owner attribution must match the stored web
+code and use the request payload's server-generated `submittedAt` receipt time
+(which may follow draft creation). A web request with no stored referral choice
+cannot fall back to owner paper attestation. Genuine manual/paper records without
+web provenance still require the existing explicit owner evidence. Do not reinterpret
+an unchecked web request as consent; arrange a fresh customer instruction. Known
+participant checks, verified full settlement and separate award commands still apply.
+
+The partner `/referrals` page shows only their own codes, frozen policy rules/hash,
+originating gig and earned awards. Earned awards are distinguished from actual
+payments, and customer identity, project and settlement evidence are absent. Native
+HTTP/PostgreSQL proof covers persisted completed request permission with zero
+attributions/awards, and browser proof covers the two partners' scoped code views.
+The complete owner attribution/settlement/award browser scenario is still pending.

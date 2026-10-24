@@ -451,3 +451,56 @@ def test_saved_draft_with_file_field_does_not_break_page_init() -> None:
         site.assert_no_page_errors(allow_console_warnings=(
             "Backend unavailable; preserving a local request copy.",
         ))
+
+
+@pytest.mark.parametrize('service', ['print', 'design', 'repair', 'consult'])
+def test_optional_referral_permission_is_fresh_and_recoverable_for_every_service(service):
+    with SiteBrowser(viewport=(390,844), color_scheme='dark', reduced_motion='reduce') as site:
+        page = site.load('/order.html?service=' + service)
+        page.locator('#next-button').click()
+        page.locator('#project-title').fill('Synthetic referred project')
+        page.locator('#description').fill('Please review the described project and prepare a quote.')
+        if service == 'print':
+            page.locator('#model-url').fill('https://example.test/model.stl')
+        if service == 'repair':
+            page.locator('#printer-model').fill('Synthetic printer')
+        page.locator('#next-button').click()
+        page.locator('#name').fill('Synthetic Customer')
+        page.locator('#email').fill('synthetic@example.test')
+        assert not page.locator('#referral-consent').is_checked()
+        assert page.locator('#referral-code').is_disabled()
+        page.locator('#referral-consent').check()
+        page.locator('#referral-code').fill('bad')
+        page.locator('#next-button').click()
+        assert page.locator('#referral-code').get_attribute('aria-invalid') == 'true'
+        page.locator('#referral-code').fill('AbCdEfGh1234_-xy')
+        draft = json.loads(page.evaluate("localStorage.getItem('3dp-project-draft-v1')"))
+        assert 'referralConsent' not in draft and 'referralCode' not in draft
+        page.locator('#referral-consent').uncheck()
+        assert page.locator('#referral-code').input_value() == '' and page.locator('#referral-code').is_disabled()
+        page.locator('#referral-consent').check()
+        page.locator('#referral-code').fill('AbCdEfGh1234_-xy')
+        page.locator('#next-button').click()
+        assert 'AbCdEfGh1234_-xy' in page.locator('#review-card').inner_text()
+        page.locator('#terms').check()
+        page.locator('#submit-button').click()
+        page.locator('#submission-state.visible').wait_for()
+        saved = json.loads(page.evaluate("localStorage.getItem('3dp-submitted-requests')"))[0]
+        assert saved['referral'] == {'code':'AbCdEfGh1234_-xy','consent':True,'consentVersion':'referral-v1'}
+        assert 'referralCode' not in saved['specifications'] and 'referralConsent' not in saved['specifications']
+        from urllib.parse import unquote
+        assert 'Referral credit requested: AbCdEfGh1234_-xy' in unquote(page.locator('#email-request').get_attribute('href'))
+        with page.expect_download() as download:
+            page.locator('#download-request').click()
+        assert json.loads(download.value.path().read_text())['referral'] == saved['referral']
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert not site.page_errors
+
+
+def test_referral_permission_does_not_restore_from_browser_draft():
+    with SiteBrowser(viewport=(320,844)) as site:
+        page = site.load('/order.html?service=consult')
+        page = site.load('/order.html?service=consult', storage={'3dp-project-draft-v1':json.dumps({'service':'consult','referralCode':'AbCdEfGh1234_-xy','referralConsent':True})})
+        assert not page.locator('#referral-consent').is_checked()
+        assert page.locator('#referral-code').input_value() == ''
+        assert not site.page_errors

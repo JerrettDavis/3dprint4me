@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {resolve,sep,extname} from 'node:path';
 const root=resolve(import.meta.dirname,'../partner/public'),host='127.0.0.1',port=Number(process.env.PARTNER_PORT??4190),apiOrigin=process.env.PARTNER_API_ORIGIN??'http://127.0.0.1:4173';
 const api=new URL(apiOrigin);if(api.origin!==apiOrigin||api.protocol!=='http:'||!['localhost','127.0.0.1','[::1]'].includes(api.hostname))throw new Error('Development API must be loopback.');
-const routes=new Set(['/','/join','/gigs','/activity','/earnings','/agreements','/profile','/help','/visits','/visits/new','/drafts']);
+const routes=new Set(['/','/join','/gigs','/activity','/earnings','/referrals','/agreements','/profile','/help','/visits','/visits/new','/drafts']);
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8'};
 const server=createServer(async(req,res)=>{
  res.setHeader('Cache-Control','no-store');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('X-Frame-Options','DENY');res.setHeader('X-Robots-Tag','noindex, nofollow');

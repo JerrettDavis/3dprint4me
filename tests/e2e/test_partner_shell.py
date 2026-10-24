@@ -206,3 +206,31 @@ def test_partner_fee_history_survives_after_offer_closes(gig_status):
         assert site.page.get_by_role('button', name='Send counterproposal', exact=True).count() == 0
         assert site.page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         assert not site.page_errors
+
+
+def install_referral_fixture(page):
+    install_partner_fixture(page)
+    data={'items':[{'id':'private-referral','gigId':GIG_ID,'code':'AbCdEfGh1234_-xy','policyHash':'b'*64,
+                   'bonusRules':[{'id':'sale','trigger':'verified_sale','amountCents':2000,'maximumAwards':1,
+                   'criteria':'Independent settled purchase <img src=x onerror=alert(1)>','qualifiesBy':'2026-12-31',
+                   'refundTreatment':'Owner reviews refunds separately.'}]}],
+          'awards':[{'id':'earned-award','referralId':'private-referral','ruleId':'sale','kind':'verified_sale',
+                     'amountCents':2000,'earnedAt':'2026-10-24T12:00:00Z'}], 'customerEmail':'DO-NOT-DISPLAY@example.test'}
+    page.route('**/api/partner/v1/referrals',lambda route:route.fulfill(status=200,content_type='application/json',body=json.dumps(data)))
+    return data
+
+
+@pytest.mark.parametrize('width,theme',[(320,'light'),(390,'dark')])
+def test_partner_referral_codes_policy_and_earned_awards_do_not_expose_customers_or_claim_payment(width,theme):
+    with running_partner_shell() as origin, SiteBrowser(viewport=(width,844),color_scheme=theme,reduced_motion='reduce') as site:
+        page=site.page
+        install_referral_fixture(page)
+        page.goto(origin+'/referrals')
+        page.get_by_role('heading',name='Your referrals',exact=True).wait_for()
+        text=page.locator('main').inner_text()
+        assert 'AbCdEfGh1234_-xy' in text and 'b'*64 in text
+        assert '$20.00 earned' in text and 'An earned award is an amount owed, not confirmation of payment.' in text
+        assert 'Independent settled purchase <img src=x onerror=alert(1)>' in text
+        assert 'DO-NOT-DISPLAY' not in text and page.locator('main img').count()==0
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert not site.page_errors

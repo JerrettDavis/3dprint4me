@@ -6,7 +6,7 @@ const root=resolve('partner/public');
 async function files(dir=root){const rows=[];for(const entry of await readdir(dir,{withFileTypes:true})){const path=resolve(dir,entry.name);if(entry.isDirectory())rows.push(...await files(path));else rows.push(path);}return rows;}
 
 test('partner hosting emits only explicit static shell assets and restrictive headers',async()=>{
- const config=JSON.parse(await readFile('partner/vercel.json','utf8'));assert.equal(config.outputDirectory,'public');
+ const config=JSON.parse(await readFile('partner/vercel.json','utf8'));assert.equal(config.outputDirectory,'public');assert.ok(config.rewrites.some(route=>route.source==='/referrals'&&route.destination==='/index.html'),'referral deep links load the shell');
  const headers=Object.fromEntries(config.headers[0].headers.map(h=>[h.key,h.value]));
  assert.equal(headers['Cache-Control'],'no-store');assert.equal(headers['Referrer-Policy'],'no-referrer');assert.equal(headers['X-Robots-Tag'],'noindex, nofollow');
  assert.match(headers['Content-Security-Policy'],/connect-src 'self' https:\/\/api\.3dprint4\.me;/);assert.ok(!headers['Content-Security-Policy'].includes('unsafe-inline'));assert.match(headers['Content-Security-Policy'],/frame-ancestors 'none'/);

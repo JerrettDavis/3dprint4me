@@ -5,8 +5,11 @@ import {readFile} from 'node:fs/promises';
 import {once} from 'node:events';
 import pg from 'pg';
 import {MIGRATIONS,splitStatements} from '../../scripts/migrate-neon.mjs';
-import {createNativeDatabase,nativePoolOptions} from '../../lib/database.js';
+import {createNativeDatabase,nativePoolOptions,closeDatabase} from '../../lib/database.js';
 import {createPartnerApplication} from '../../lib/partner-outreach/application.js';
+import {createProjectRequestHandler} from '../../lib/project-request/handler.js';
+import {createRequestRecord,completeRequestRecord} from '../../lib/neon.js';
+import {issueReferral} from '../../lib/partner-outreach/referrals.js';
 import {createPartnerAuth,hashPassword} from '../../lib/partner-outreach/auth.js';
 import {createPartnerHandlers} from '../../lib/partner-outreach/http.js';
 import {createPlatformServer} from '../../lib/platform/api-server.js';
@@ -18,7 +21,7 @@ const docker=(...args)=>execFileSync('docker',args,{encoding:'utf8',timeout:9000
 const name=process.env.PARTNER_TEST_CONTAINER_NAME??'3dprint4me-partner-browser-'+randomUUID().slice(0,8);
 if(!/^3dprint4me-partner-browser-[a-f0-9]{8}$/.test(name))throw new Error('Invalid disposable container name.');
 let started=false,admin,pool,server,stopping=false;
-async function stop(){if(stopping)return;stopping=true;if(server)await new Promise(resolve=>server.close(resolve));await pool?.end();await admin?.end();if(started)docker('stop',name);}
+async function stop(){if(stopping)return;stopping=true;if(server)await new Promise(resolve=>server.close(resolve));await closeDatabase();await pool?.end();await admin?.end();if(started)docker('stop',name);}
 for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>stop().finally(()=>process.exit(0)));
 process.stdin.on('data',data=>{if(data.toString().trim()==='stop')stop().finally(()=>process.exit(0));});
 try{
@@ -42,7 +45,16 @@ try{
  await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,program_week_id,terms_snapshot,status,accepted_fee_cents,accepted_at,revision) VALUES($1,$2,$3,$4,$5,$6,'accepted',1000,'2026-10-23T12:00:00Z',2)",[acceptedGigId,programId,partnerId,campaignId,weekId,JSON.stringify(terms)]);
  await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1000)",[randomUUID(),weekId,acceptedGigId]);
  pool=new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')));const database=createNativeDatabase({pool}),env={PARTNER_WEB_ORIGIN:shell.origin,OPERATOR_WEB_ORIGIN:'https://work.3dprint4.me'};
+ process.env.DATABASE_DRIVER='postgres';process.env.DATABASE_URL=url.replace('postgres@','platform_app@');
  const app=createPartnerApplication({database,env}),auth=createPartnerAuth({database}),runtime={database,app,auth};
- const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});server=createPlatformServer({routes:handlers.routes,directPaths:handlers.directPaths,env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');
- process.stdout.write(JSON.stringify({apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
+ const handlers=createPartnerHandlers({getRuntime:()=>runtime,env});
+ const requestHandler=createProjectRequestHandler({getRuntime:()=>({mode:'neon',requestRepository:{createDraft:createRequestRecord,completeDraft:completeRequestRecord}}),issueCheckoutProof:()=>null});
+ // Explicit loopback fixture admission only; production public intake uses its signed proxy.
+ server=createPlatformServer({routes:{...handlers.routes,'/api/request':requestHandler},directPaths:[...handlers.directPaths,'/api/request'],env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');
+ const bonusTerms={...terms,maximumBonusCents:500,bonusRules:[{id:'sale',trigger:'verified_sale',amountCents:500,maximumAwards:1,criteria:'Independent fully settled purchase.',refundTreatment:'Owner reviews refunds separately.',qualifiesBy:'2026-12-31'}]},refGigId=randomUUID();
+ await admin.query("INSERT INTO partner_gigs(id,program_id,partner_id,campaign_id,program_week_id,terms_snapshot,status,accepted_fee_cents,maximum_bonus_cents,accepted_at,revision) VALUES($1,$2,$3,$4,$5,$6,'accepted',1000,500,'2026-10-23T12:00:00Z',2)",[refGigId,programId,partnerId,campaignId,weekId,JSON.stringify(bonusTerms)]);
+ await admin.query("INSERT INTO partner_budget_reservations(id,program_week_id,gig_id,amount_cents) VALUES($1,$2,$3,1500)",[randomUUID(),weekId,refGigId]);
+ await admin.query("UPDATE partner_program_weeks SET committed_cents=2500 WHERE id=$1",[weekId]);
+ const referral=await issueReferral(database,{id:refGigId,partner_id:partnerId,program_id:programId,terms_snapshot:bonusTerms},new Date('2026-10-23T12:00:00Z'));
+ process.stdout.write(JSON.stringify({referralCode:referral.code,apiOrigin:'http://127.0.0.1:'+server.address().port,partnerId,otherPartnerId,gigId:gigs[0],otherGigId:gigs[1],acceptedGigId,password})+'\n');
 }catch{await stop();process.stderr.write('Disposable native partner fixture failed.\n');process.exitCode=1;}
