@@ -994,3 +994,48 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
   external message, staging/production deployment or DNS change occurred. Launch
   flags remain off. Optional timer lifecycle and remaining packet operations, full
   feature acceptance and disabled production rollout remain required.
+
+
+## Partner isolated cloud preview and recovery checkpoint (2026-10-24)
+
+- Created only the dedicated `3dprint4me-partners` Vercel project. The verified
+  Ready/Preview deployment and its exact scope are recorded in
+  [PARTNER-DEPLOYMENT.md](PARTNER-DEPLOYMENT.md). This supersedes the previous
+  increment's account-readiness-only observation; existing projects remain unchanged.
+- Actual protected-provider checks match all 14 public files byte for byte, verify
+  seven route responses and hosting headers, and observe anonymous authentication
+  redirection. Explicit preview/config flags prevent inherited storefront functions.
+  Project-scoped toolbar settings remove injected remote scripts; the strict CSP
+  stays intact. Preview protection is still enabled.
+- Focused release automation contracts pass: four tests, one existing Windows skip.
+  Tests assert command/environment/configuration, exact project boundary, scoped
+  settings PATCH fields and failure-before-upload behavior. Final frozen-source
+  `npm test` exits zero: build/static validation, 1,194 unit/contract tests, 301 browser
+  tests plus one existing Windows skip (505.77 seconds), and 241/241 UX checks. Only
+  documentation and trailing test whitespace changed afterward. No visible application
+  changes: deployed bytes match the prior inspected 131-screenshot build.
+- Pinned-trust, read-only SSH inventory confirms existing production API/PostgreSQL/
+  slicer containers healthy, with jobs and tunnel running. No native rollout occurs.
+- A new complete encrypted checkpoint at `20261024T143246Z` includes both production
+  databases, 14 hashed configuration/archive members, three private objects and
+  linking receipts in both existing repositories. Database/configuration and object
+  streams round-trip with matching SHA-256; no plaintext recovery file is written.
+- The exact checkpoint restores into disposable PostgreSQL 18 with no network,
+  published port or persistent restore volume. Control/live databases contain 25/29
+  tables; runtime DDL, role-change and identity-binding deletion are denied. Both
+  repositories' object streams independently validate all three objects and the
+  receipt hash without writing objects to a provider. Private logs retain exact
+  snapshot identities; no customer records or private paths are published here.
+- Preserved the old private recovery scripts, installed the three verified current
+  scripts under the existing task action and ran `3dprint4me-encrypted-backup`.
+  Existing registration, Windows-managed credentials and hourly trigger stay intact.
+  The task exits with result `0`; both repositories contain new complete-checkpoint
+  receipts at `20261024T143605Z`, including verified private-object snapshots. The
+  task's successful exit also requires its authenticated backup heartbeat to succeed.
+- A separate public status observation reports storefront, operator, API and requests
+  operational, private uploads/email unknown, and estimates unavailable. Container
+  health alone does not establish those application services are operational. This
+  existing status is retained as a rollout limitation, not silently cleared.
+- Full host/config/provider/object restore, independent offsite custody, production
+  origins/cookies/CORS and packet acceptance remain gates. No DNS, native migration,
+  invitation, payment or launch activation.

@@ -209,3 +209,12 @@ with cleanUrls-style 308 redirects. Unsupported workers cannot claim preparation
 Chromium installability/manifest inspection reports no errors. This covers offline
 visit continuity; optional timer lifecycle, the remaining complete named packet
 scenarios and operational/disabled deployment gates still need their own evidence.
+
+
+Release increment: the isolated protected static Vercel preview has exact-byte and
+route/header evidence in [PARTNER-DEPLOYMENT.md](PARTNER-DEPLOYMENT.md). A fresh
+complete two-repository encrypted platform checkpoint includes private objects;
+its database/configuration archive passes isolated native restore and runtime
+privilege denial, and both object streams pass read-only hash/content validation.
+These address specific operational tests, not the nine complete feature scenarios,
+full replacement-host/object-provider restore or production rollout/activation.
