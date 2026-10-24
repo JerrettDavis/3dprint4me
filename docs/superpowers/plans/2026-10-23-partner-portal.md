@@ -119,7 +119,7 @@ Files: docs/PARTNER-PORTAL.md, docs/VERIFICATION.md, partner API schema, release
 - Native PostgreSQL 18 concurrency/role/restore test passed with a pinned disposable Docker
   image. It is in CI and npm run test:partner:postgres. This does not substitute for the
   encrypted full-platform recovery drill required before release.
-- Existing baseline browser suite: 224 passed, one optional skip. UX audit: 241/241.
+- Existing baseline browser suite: 224 passed, one Linux-only fresh-host test skipped on Windows. UX audit: 241/241.
   Generated artifacts with timestamp-only or nondeterministic changes were not retained
   because this increment makes no visual changes. Partner UI screenshots remain pending.
 

@@ -283,7 +283,7 @@ work reasons, consented visits/leads and optional activity records are implement
 No production migration, DNS record, real invitation or payment has been changed.
 
 Verification run: `npm test` passed build/static/architecture validation, 1,123
-unit/contract tests, 224 browser tests with one optional skip, and 241/241 UX checks.
+unit/contract tests, 224 browser tests with one Linux-only fresh-host test skipped on Windows, and 241/241 UX checks.
 Subsequent focused tests passed all 22 partner cases after adding consent-language
 provenance and owner lock-order regressions. `npm run validate` passed again.
 `npm run test:partner:postgres` passed against pinned native PostgreSQL 18 with
