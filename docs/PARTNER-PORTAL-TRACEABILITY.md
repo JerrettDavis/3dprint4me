@@ -15,7 +15,9 @@ The source packet stays private and the real professional approval gates stay of
   `tests/integration/partner-postgres.test.mjs` cover Central Monday/DST boundaries,
   integer-cent authorization ceilings, full maximum reservation, cap changes,
   transaction races, retries and pilot sunset. Explicit frozen bonus criteria and
-  browser budget displays remain pending.
+  complete multi-partner browser authorization/race scenarios remain pending. The
+  owner default/week cap controls are implemented; native browser evidence currently
+  verifies default-cap persistence with new work disabled.
 - **partner-auth.feature**: `tests/contract/partner-auth.contract.test.mjs` and
   `tests/contract/partner-http.contract.test.mjs` cover one-use invitation,
   passphrase credentials, persistent rate limits, separate host cookies, CSRF,
@@ -87,8 +89,15 @@ The source packet stays private and the real professional approval gates stay of
 - **owner-control.feature**: application/auth/HTTP/native contract tests cover
   owner-only commands, real GitHub owner identity, revocation, kill switches,
   payable preservation and reconciliation after pause/sunset. Existing operator
-  and storefront regression checks compatibility. Partner owner screens, staging,
-  production-disabled smoke checks and the complete browser scenario remain pending.
+  and storefront regression checks compatibility. The owner Partners area now exposes
+  real clearance/pause/default caps, disabled program and account creation, campaigns
+  with full bonus maxima, offers, review/reoffer, week caps and audit. Fixtures test
+  320/390 themes, exact command retries, form locks, stale navigation, lost access and
+  skip-link input preservation. Native browser evidence uses a bound synthetic GitHub
+  owner session, denies an ordinary operator, persists cap changes and creates an
+  approved payable from existing work while the program remains disabled. Full owner
+  invitations/revocation, leads/referrals, finance/legal UI and complete scenarios,
+  staging and disabled-production smoke checks remain pending.
 
 ## Release evidence still required
 

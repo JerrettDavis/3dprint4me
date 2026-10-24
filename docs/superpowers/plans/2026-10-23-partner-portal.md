@@ -269,3 +269,25 @@ separate. Update privacy, four-path tests, native proof and screenshots.
   information or a payment claim. Native request-handler/repository proof persists
   permission without automatic attribution/award; two-account browser views stay scoped.
   Full owner attribution/settlement/award browser coverage remains required.
+
+
+### Owner console implementation sequence
+
+Add `/partners` to the existing private operator project, linked only for owner
+sessions. Keep its static shell separate from the work-inbox controller. Reuse
+operator typography/colors and accessible 320/390 layouts. Native GitHub cookie
+and owner-bound memory-only CSRF are required; no partner session or synthetic
+production owner shortcut. Errors and session expiry remove private forms/records.
+API reads remain no-store and are never placed in service-worker caches.
+
+First implement program clearance/pause/cap controls, program/account creation,
+campaign terms with bounded conditional bonus rows and complete reservation,
+campaign publish/pause, offers, owner gig review/reoffer, week caps and audit.
+Use existing revisioned/idempotent commands, freeze forms while sending, preserve
+unchanged uncertain retries and suppress stale responses after navigation/logout.
+Then add invitations/revocation, lead/referral review, ledger/settlements and full
+legal editorial/review/feedback/encrypted sharing in the same owner area. The
+initial screens must not claim these later flows or complete BDD/deployment.
+Verify owner/operator distinction through the native HTTP authorizer and an actual
+bound synthetic GitHub session in disposable PostgreSQL, plus compatibility of the
+existing inbox. Capture and inspect the new operator views before completion.

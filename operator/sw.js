@@ -1,5 +1,5 @@
-const CACHE_NAME = "operator-shell-v12";
-const SHELL_ASSETS = ["/", "/index.html", "/manifest.webmanifest", "/assets/operator.css", "/assets/operator.js", "/assets/api-client.js", "/assets/auth-client.js", "/assets/push-client.js", "/assets/work-state.js", "/assets/print-detail.js", "/assets/customization-detail.js", "/assets/invoice-detail.js", "/assets/filament-ui.js", "/assets/spoolman-status.js", "/assets/filament-inventory.js", "/assets/filament-detail.js", "/assets/icon.svg"];
+const CACHE_NAME = "operator-shell-v13";
+const SHELL_ASSETS = ["/", "/index.html", "/partners.html", "/partners", "/assets/partner-owner.css", "/assets/partner-owner.js", "/assets/partner-owner-client.js", "/manifest.webmanifest", "/assets/operator.css", "/assets/operator.js", "/assets/api-client.js", "/assets/auth-client.js", "/assets/push-client.js", "/assets/work-state.js", "/assets/print-detail.js", "/assets/customization-detail.js", "/assets/invoice-detail.js", "/assets/filament-ui.js", "/assets/spoolman-status.js", "/assets/filament-inventory.js", "/assets/filament-detail.js", "/assets/icon.svg"];
 self.addEventListener("install", event => event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL_ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener("activate", event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("operator-shell-") && key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener("fetch", event => {

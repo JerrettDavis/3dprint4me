@@ -594,3 +594,46 @@ Official references: [Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc
 - No production migration, deployment, payment, actual legal approval or external
   message was performed. Full owner console, offline lifecycle and release gates
   remain unfinished.
+
+
+### Owner Partners core operations (2026-10-24)
+
+- Initial owner-client tests failed before implementation, and the first browser case
+  failed on the absent owner page. `/partners` now uses the native owner endpoint,
+  fixed API origins, memory-only CSRF and credentialed no-store/redirect-safe fetch.
+  Unreadable forbidden responses and delayed JSON logout races were reproduced by
+  failing unit tests and fixed. Final owner client/hosting focused checks: seven passed.
+- Core screens expose real clearance/default caps/pause, disabled program/account
+  creation, campaign terms/full conditional bonus maxima, offer creation, review and
+  reoffer, weekly authorizations and latest audit events. They call existing revisioned,
+  idempotent commands; no approval flags, arbitrary paid state or fake provider action.
+- Six owner UI cases passed, including 320/390 light/dark, exact $175.25 cap input,
+  $40 fee + two $20 bonuses = $80 maximum reservation, pending form locks, exact
+  lost-response retry, delayed-response navigation, denied access clearing and skip-link
+  input preservation. Review found the skip fragment was routed; a strengthened hash
+  regression failed before the focus-only fix. Independent re-review confirmed it.
+- Fifteen focused owner/operator cases passed before final visual adjustment; final
+  six owner cases passed after sign-out contrast was corrected. Full `npm test` passed:
+  1,178 unit/contract tests, 252 browser tests with one existing Windows skip and
+  241/241 UX checks. Seven client/hosting tests were rerun after the final session
+  guard. The first full run stopped at static validation's extensionless source link;
+  the source now links its real HTML file, while clean hosting retains `/partners`.
+- All eight native browser cases passed against restricted-role disposable PostgreSQL.
+  New proof uses the actual numeric GitHub identity binding and an installed synthetic
+  host cookie, persists owner cap changes across reload, denies a regular operator,
+  then submits existing accepted work and owner-approves/makes it payable while new
+  work is disabled. The partner sees the outstanding fee, not a false paid amount.
+  This is not evidence of live GitHub OAuth, production subdomain/TLS or full packet BDD.
+- Operator static build passed and its output matches final source. Owner page is copied
+  explicitly. The owner hosting path has no-store/restrictive native-origin CSP. Shell
+  cache increments to v13 for new static files; API responses remain uncached. Existing
+  inbox/PWA regressions pass. The new dock link wraps within narrow layouts.
+- Final screenshot run captured 94 views. Inspected full 320-light/390-dark programs,
+  campaign bonus form and desktop review; a low-contrast sign-out button found in the
+  first capture was fixed and recaptured. Inspected the new preview-board owner section
+  and existing mobile inbox dock. Keep operator baselines reflecting the owner link;
+  restore unrelated own nondeterministic storefront/partner/audit rewrites.
+- Full legal editorial/review/feedback/encrypted sharing, invitations/revocation,
+  lead/referral verification and finance/settlement screens remain required. No
+  production migration, deployment, real invite, actual approval, payment or external
+  message occurred. Existing backend/provider behavior and runtime image are unchanged.

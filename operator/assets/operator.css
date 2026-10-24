@@ -53,3 +53,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985);filter:bright
 @media(max-width:600px){.utility-dock{left:.5rem;right:.5rem;bottom:.5rem;justify-content:space-between;gap:0}.utility-dock button{font-size:.78rem;padding:.4rem}.filament-proposal{padding:.75rem}.filament-grid{grid-template-columns:minmax(0,1fr)}.filament-sheet,.filament-inventory{padding-bottom:2rem}}
 
 .inventory-source-link{display:block;min-height:44px;padding:.5rem 0;width:fit-content;max-width:100%}
+
+.utility-dock #partners-owner{display:inline-flex;align-items:center;min-height:44px;padding:.45rem .7rem;color:var(--teal)}
+
+.utility-dock{flex-wrap:wrap;max-width:calc(100vw - 1.5rem)}
