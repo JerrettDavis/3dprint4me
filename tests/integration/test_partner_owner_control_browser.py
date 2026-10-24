@@ -136,3 +136,18 @@ def test_native_shell_port_reservations_are_distinct_and_exclude_other_binds_unt
         with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as successor:successor.bind(addresses[0])
         with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as contender:
             with pytest.raises(OSError):contender.bind(addresses[1])
+
+
+def test_workspace_harness_allocates_distinct_ports_even_when_legacy_probe_reuses_one(monkeypatch):
+    from tests.support import operator_harness as harness
+    from tests.support.server import free_port
+    port=free_port();monkeypatch.setattr(harness,'free_port',lambda:port,raising=False)
+    class Process:
+        stdout=None
+        def poll(self):return None
+        def terminate(self):pass
+        def wait(self,timeout):return 0
+    monkeypatch.setattr(harness.subprocess,'Popen',lambda *a,**k:Process())
+    monkeypatch.setattr(harness,'request',lambda url:(200,{},b'<section id="workspace"></section>'))
+    with harness.running_operator_workspace() as (storefront,operator,_):
+        assert storefront!=operator
