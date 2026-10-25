@@ -1,5 +1,11 @@
 # Remaining partner acceptance work
 
+> Current production status: the owner-approved disabled rollout is deployed and
+> verified. See [production release evidence](PARTNER-PRODUCTION-RELEASE.md).
+> Production-pending statements below are historical checkpoints; actual
+> professional clearance, activation and provider/recovery limits remain separate.
+
+
 This 2026-10-24 audit, updated through legal-review acceptance, compares
 nine private-packet feature files with the maintained native browser modules and
 their disposable fixtures. It identifies missing evidence, not automatic product defects.

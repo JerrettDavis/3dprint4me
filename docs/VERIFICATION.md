@@ -1,5 +1,11 @@
 # Release Verification
 
+> Current production status: the owner-approved disabled rollout is deployed and
+> verified. See [production release evidence](PARTNER-PRODUCTION-RELEASE.md).
+> Production-pending statements below are historical checkpoints; actual
+> professional clearance, activation and provider/recovery limits remain separate.
+
+
 ## Filament matching coverage (2026-10-21)
 
 Final local evidence on `feat/filament-inventory-matching`, rebased onto `origin/main` at `418f1fd`: 1,081 unit/contract tests passed; the full browser rerun passed 223 tests with one optional test skipped; UX audit passed 241/241. The changed brand/extraction/email paths also passed their nine focused tests. `npm run screenshots` produced 75 captures; the preview-board filament section and focused mobile light/dark, candidate, inventory, and approval-message captures were inspected. The operator static build and asset validation passed without changing the storefront release key.
