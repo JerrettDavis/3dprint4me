@@ -9,3 +9,11 @@
 .owner-shell textarea[name="markdown"]{min-height:22rem;font-family:ui-monospace,monospace}.owner-shell [data-unsaved-comparison] pre,.owner-shell [data-saved-comparison] pre{padding:1rem;border:1px solid var(--line);border-radius:6px}.owner-shell [data-variables]{display:grid;gap:1rem}
 
 .owner-shell{overflow-wrap:anywhere}
+
+/* A persistent desktop index and a compact, keyboard-scrollable mobile index. */
+.owner-shell nav a{scroll-margin-inline:1rem}
+.owner-shell nav a:focus-visible{outline-offset:-3px}
+@media(min-width:1000px){.owner-shell nav{max-height:calc(100dvh - 2rem);overflow-y:auto;scrollbar-width:thin}}
+.owner-shell h1,.owner-shell h2,.owner-shell h3{text-wrap:balance}.owner-shell h1{margin:0 0 1rem;max-width:26ch}.owner-card,.owner-clearance{border-radius:12px}.owner-card>h2:first-child{margin-top:0}.owner-shell nav a{text-decoration:none;border:1px solid transparent;border-radius:7px}.owner-shell nav a:hover{background:var(--teal-soft)}.owner-shell nav a[aria-current=page]{border-color:var(--line)}.owner-money{font-variant-numeric:tabular-nums}
+@media(min-width:1000px){.owner-shell{display:grid;grid-template-columns:13rem minmax(0,1fr);column-gap:2.5rem;padding:2rem}.owner-shell nav{grid-column:1;grid-row:1/5;flex-direction:column;flex-wrap:nowrap;align-self:start;position:sticky;top:1rem;margin:0;padding-right:1rem;border-right:1px solid var(--line);gap:.25rem}.owner-shell nav a{display:flex;align-items:center}.owner-clearance,.owner-shell main,.owner-shell>.owner-message,.owner-shell footer{grid-column:2;min-width:0}.owner-clearance{margin-top:0}.owner-shell main{min-height:45vh}.owner-shell:has(nav[hidden]){display:block;max-width:850px}}
+@media(max-width:999px){.owner-shell nav{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-inline:contain;scroll-padding-inline:.25rem;scrollbar-width:thin;gap:.35rem;padding:.25rem 0 .65rem;margin:0 0 1rem;border-bottom:1px solid var(--line)}.owner-shell nav a{flex:0 0 auto;white-space:nowrap;display:flex;align-items:center}.owner-shell main{padding-top:.5rem}}

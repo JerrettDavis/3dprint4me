@@ -8,3 +8,12 @@
 fieldset{min-width:0;margin:0;padding:1rem;border:1px solid var(--line);border-radius:6px;display:grid;gap:1rem}legend{font-weight:700;padding:0 .4rem}
 
 [data-material-history]{overflow-wrap:anywhere}
+
+/* Keep destinations together without pushing the workspace below a mobile menu. */
+nav a{scroll-margin-inline:1rem}
+nav a:focus-visible{outline-offset:-3px}
+@media(min-width:701px){nav{max-height:calc(100dvh - 2rem);overflow-y:auto;scrollbar-width:thin}}
+nav{align-self:start}nav a{border:1px solid transparent}nav a:hover{background:var(--soft)}
+main>h1{max-width:24ch}h1,h2,h3{text-wrap:balance}.sheet{border-radius:12px}.fee{letter-spacing:-.025em}
+@media(min-width:701px){nav{position:sticky;top:1rem;margin-top:1rem;border-right:1px solid var(--line)}nav a[aria-current=page]{border-color:var(--line)}}
+@media(max-width:700px){nav{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-inline:contain;scroll-padding-inline:1rem;gap:.35rem;padding:.65rem 1rem;background:var(--panel);scrollbar-width:thin}nav a{flex:0 0 auto;white-space:nowrap;display:flex;align-items:center}nav a[aria-current=page]{border-color:var(--line)}main{padding-block:1.75rem}.sheet{padding:1.25rem}.layout{min-width:0}}
