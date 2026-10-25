@@ -1,5 +1,10 @@
 # Partner production release — 2026-10-24
 
+The later responsive UI release is deployed as partner shell v6 and owner shell
+v27 from `75e9f0f`. See [UI polish and production verification](PARTNER-UI-POLISH.md)
+for its current static deployment IDs, exact-file checks and rollback identities.
+The v5/v26 identities below document the original disabled technical rollout.
+
 The owner approved the prepared DNS record and disabled portal/API/owner deployment
 in the captured browser session at 20:56 CDT. This supersedes the historical
 production-pending notes in the deployment, verification and acceptance journals.

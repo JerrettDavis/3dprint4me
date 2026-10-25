@@ -36,4 +36,43 @@ was inspected along with dedicated phone and desktop portal renders. The final
 capture after selected-navigation visibility changes timed out acquiring a
 service worker while the broad browser run was active; the serial repeat captured
 all 153 views and the final preview board successfully.
-Release evidence remains pending; these UI changes are not yet deployed.
+
+## Production release
+
+Committed source `75e9f0f002164e99303b32e588296a54df6f0398` is deployed to
+[Partners](https://partners.3dprint4.me) and
+[Partner administration](https://work.3dprint4.me/partners). Uploads used an
+isolated archive of the committed operator/partner source and the exact existing
+project links. Vercel reports both deployments Ready / Production:
+
+- Partner v6: `dpl_FQUrXT9PgPtnhMEwbvpwVC76QBvQ`.
+- Owner v27: `dpl_8Zrh7UCHkUria5VMiC134hT9UH3V`.
+
+All 15 partner and 35 owner static files match the committed archive bytes and
+SHA-256, including HTML, CSS, JavaScript and workers. The local Windows checkout
+uses different line endings in some files; the committed archive is the deployed
+byte authority. Custom-domain TLS, CSP, no-store, frame denial, no-referrer and
+nosniff pass. Source/private paths return 404. Partner session/profile and owner
+session reject anonymous requests with application JSON, and public partner
+status remains invitation-only. Python's default user agent encountered the
+existing Cloudflare protection; a browser user agent passes the public checks.
+No Cloudflare setting was changed. Storefront and status remain HTTP 200.
+
+Four live anonymous Chromium checks cover each frontend at 390-pixel dark and
+1440-pixel light widths: expected sign-in screens, no horizontal document overflow
+and no JavaScript page errors. Expected anonymous 401/403 resource messages are
+not counted as application crashes. The live phone sign-in and desktop owner
+sign-in renders were inspected. Authenticated workflow/layout evidence comes from
+the local synthetic fixtures and full browser regression; this pass did not create
+a production partner account or claim a new real-owner OAuth acceptance.
+
+Production API/services, program switches, approvals and financial records were
+not modified. The existing disabled rollout and operational boundaries remain in
+[PARTNER-PRODUCTION-RELEASE.md](PARTNER-PRODUCTION-RELEASE.md).
+
+Static rollback selects the prior deployment in its same existing project:
+partner `dpl_52pR4hqKw3SUAcorMJbNWj4Fivzu`, owner
+`dpl_EShS85z7kbpza5j6yUWcADCaFqvb`. No database rollback is needed for this UI pass.
+Private local proofs are `partner-polish-live-proof.json`,
+`partner-polish-live-browser-proof.json` and the named test/capture/deployment logs
+in the session temporary directory. They contain no authentication credentials.
