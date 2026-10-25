@@ -62,4 +62,4 @@
 - [x] Exercise injected failure boundaries and rollback instructions; preserve partner tables, accepted obligations and immutable documents on every path.
 - [x] Add feature-off live smoke commands, existing-service checks and exact owner/source/DNS approval handoff. Do not claim the real production phase occurred from rehearsal or mocks.
 - [x] Fresh final review and required checks; record CI/source/build evidence.
-- [ ] Execute the reviewed disabled production phase after the packet's applicable owner approval/access gates; verify same-site TLS/authentication and existing workloads. Staging and source CI pass; approval/access and production acceptance remain pending.
+- [x] Execute the reviewed disabled production phase after owner approval; same-site TLS, actual existing GitHub owner authentication, exact static artifacts, API denials/CORS and existing workloads verified. See docs/PARTNER-PRODUCTION-RELEASE.md for identities, navigation fix and remaining independent operational boundaries.

@@ -1,5 +1,11 @@
 # Partner release evidence and remaining gates
 
+> Current production status: the owner-approved disabled rollout is deployed and
+> verified. See [production release evidence](PARTNER-PRODUCTION-RELEASE.md).
+> Production-pending statements below are historical checkpoints; actual
+> professional clearance, activation and provider/recovery limits remain separate.
+
+
 ## Verified isolated static preview, 2026-10-24
 
 The dedicated `3dprint4me-partners` project now exists in the existing
