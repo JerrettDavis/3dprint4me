@@ -157,9 +157,8 @@ python deploy/platform/release-partner.py --release <full-reviewed-40-character-
 
 The default phase is rehearsal. Explicit deploy requires `--backup-config`; a
 missing, stale, incomplete or mismatched checkpoint stops before selected-schema
-or service changes. No invocation of this new helper has occurred on the native
-host yet. The current local implementation still needs final full verification,
-fresh release review and a committed-source host rehearsal before any rollout.
+or service changes. The reviewed committed-source host rehearsal below now passes. Actual production
+rollout still waits for the applicable owner/access gates.
 
 The local builder includes the partner contracts and both Docker build inputs
 from the specified commit, excludes uncommitted files, validates the SHA/phase/SSH
@@ -274,3 +273,73 @@ Owner acceptance must identify the exact reviewed SHA and these source/auth/draf
 boundaries. DNS authorization is separate: provide the approved Cloudflare access
 reference through private custody, capture existing records, and use only the new
 domain's provider-verified target. No approval is inferred from staging success.
+
+
+### Verified committed-source native-host rehearsal
+
+On 2026-10-24, `116f3de49699d225112a08356ef83fbeb37b9b43` completed the actual
+pinned-SSH `--phase rehearse` protocol. Archive SHA256 was
+`39d1fbf2c9684ff77309b97ddce129830df0f1c51766b80dd16a8ef785b76397`.
+Host-built API image was
+`sha256:2c6094d611bff10856411c902d583593af97402b37f24388a618ddeb5dde4d64`;
+companion slicer was
+`sha256:061e885dffbada23b0ee2e898f376bed7fad8ab9a723d5e00f1cda40b67ff2de`.
+All eight aggregate checks passed: schema, least privilege, disabled program,
+session denials, no messages, isolated API overlap, scratch cleanup and unchanged
+live state. A separate read-only postcheck confirmed the same production API/jobs/
+slicer/tunnel identities, old source selection, all partner flags off, no guard,
+and absence of partner migrations012/013 in the selected production database.
+
+This proves the real native-host build/rehearsal boundary. It does not deploy the
+candidate or establish production same-site sessions, DNS/TLS, owner-shell rollout,
+provider recovery or professional approval. Hosted Verify 40143732348 passed every step on that exact SHA, including
+59 native browser checks, 1,231 unit checks, 336 Linux E2E cases, 241 UX checks,
+153 screenshots and uploaded artifacts. Owner source/auth acceptance has been requested against
+this concrete reviewed release; unanswered approval and DNS access remain pending.
+
+
+### Verified protected owner preview
+
+Owner shell v25 from the same reviewed commit, `116f3de`, is now staged at
+<https://3dprint4me-operator-8j5tsbnfu-jerrettdavis-projects.vercel.app>.
+The existing `3dprint4me-operator` project retains root `operator`, production
+custom domain and deployment protection. An isolated committed-source upload
+avoids storefront configuration; the CLI explicitly targeted Preview. All 35
+static output files match source, seven routing/source-denial checks pass,
+configured security headers match, and anonymous HEAD redirects 302 to protection.
+No provider toolbar is present in the exact HTML. Only preview feedback is now
+disabled; an incidental production feedback normalization was restored to its
+exact prior null/default value and checked before deploying. No production owner
+alias was requested. Provider commands follow the official
+[Vercel deploy contract](https://vercel.com/docs/cli/deploy) and
+[project settings API](https://vercel.com/docs/rest-api/projects/update-an-existing-project).
+
+This closes the owner static-preview hosting gap, not actual owner OAuth,
+same-site API cookies, offline behavior behind deployment protection or production
+rollout. Private proof `owner-preview-proof/proof.json` contains exact hashes,
+release/deployment identity and observations without credentials.
+
+A read-only public postcheck returned HTTP200 for storefront, owner and status
+origins. The partner production hostname still does not resolve; this is not a
+DNS rollout. No record was changed. Existing public availability does not attest
+to jobs health, private workflows or payment/provider correctness.
+
+
+### Provider-issued DNS target, still unapplied
+
+A read-only Vercel domain-configuration query for `partners.3dprint4.me` with
+`projectIdOrName=prj_elQE7YqpErS2aRtZK5UjSQdmhZoY` returned preferred rank1 CNAME
+`e0db4d51d540ec73.vercel-dns-017.com.`. Its current response is `configuredBy:null`,
+`misconfigured:true`, with no accepted certificate challenges. The generic query
+without project context gives a different preferred value; use the project-specific
+answer, not nameserver guidance or a guessed address. The official
+[domain configuration contract](https://vercel.com/docs/rest-api/domains/get-a-domain-s-configuration)
+defines project context for an unassociated domain and rank1 as preferred.
+
+After authorized Cloudflare access and DNS approval, capture current record IDs,
+values, TTL and proxy state, associate only this new domain with the partner
+project, and refresh this query before applying a `partners` CNAME. Preserve all
+storefront/work/api/status records. Choose and record proxy/TTL behavior for the
+actual TLS design, verify Vercel certificate readiness and real HTTPS, and retain
+exact rollback data. No record/domain association or certificate deployment has
+been performed by this read-only query.

@@ -49,7 +49,7 @@
 - [x] Build candidate API and necessary companion image tags without changing running services or global selection. Record immutable IDs.
 - [x] Create scratch native DB, apply the migration set and prove private partner tables/grants, disabled enrollment/new work, scoped session denials and current HTTP paths against actual candidate code. Rehearse healthy-origin overlap/drain in an isolated network.
 - [x] Verify cleanup after success/failure, sanitized failures and no outgoing customer/provider messages. Test command shapes and actual local/disposable protocols.
-- [ ] Run appropriate full checks and image proof; commit a reviewed rehearsal-capable release source. Execute host rehearsal only after its committed inputs/tests are verified; retain redacted proof outside Git.
+- [x] Run appropriate full checks and image proof; commit a reviewed rehearsal-capable release source. Execute host rehearsal only after its committed inputs/tests are verified; retain redacted proof outside Git.
 
 ## Task 2: Disabled production rollout and executable owner handoff
 
@@ -60,5 +60,6 @@
 - [x] Implement explicit deploy phase with fresh verified backup/checkpoint precondition, exact selected-native database and all partner switches off. Preserve other env keys.
 - [x] Apply012+013 atomically; stage guarded API readiness before draining old API; update/restart only previously enabled jobs with the same candidate. Preserve slicer/tunnel state.
 - [x] Exercise injected failure boundaries and rollback instructions; preserve partner tables, accepted obligations and immutable documents on every path.
-- [ ] Add feature-off live smoke commands, existing-service checks and exact owner/source/DNS approval handoff. Do not claim the real production phase occurred from rehearsal or mocks.
-- [ ] Fresh final review and required checks; record CI/source/build evidence. Production execution waits for the packet's applicable approval/access gates and prior staging acceptance.
+- [x] Add feature-off live smoke commands, existing-service checks and exact owner/source/DNS approval handoff. Do not claim the real production phase occurred from rehearsal or mocks.
+- [x] Fresh final review and required checks; record CI/source/build evidence.
+- [ ] Execute the reviewed disabled production phase after the packet's applicable owner approval/access gates; verify same-site TLS/authentication and existing workloads. Staging and source CI pass; approval/access and production acceptance remain pending.
