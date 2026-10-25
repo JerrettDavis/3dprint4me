@@ -1844,4 +1844,10 @@ passed 1,231 unit checks, 335 E2E tests plus one existing Windows skip in 618.30
 and 241 UX checks. Six focused Node groups cover 25 release and 11 rollout Python
 cases. All 18 frozen candidate hashes matched at terminal success. This increment
 changes no visible application behavior; no new screenshot baseline is required.
-Actual native-host rehearsal and new hosted CI remain pending.
+Actual native-host rehearsal on reviewed commit `116f3de` now passes all eight checks;
+see [PARTNER-DEPLOYMENT.md](PARTNER-DEPLOYMENT.md) for exact source/archive/image
+identities and independent live-unchanged postcheck. Hosted CI 40143732348 passed every step on exact source116f3de:59native
+browser checks (447.66s),1,231unit checks,336LinuxE2E (700.76s),241UX,153captures
+and uploaded artifacts. Its isolated archive-built rollout checked68requests with
+zero failures; both companion images and all fixture cleanup passed. These are
+separate scoped runs, not aggregated request counts. No production candidate rollout or migration has occurred.
