@@ -1,4 +1,4 @@
-const CACHE_NAME = "operator-shell-v26";
+const CACHE_NAME = "operator-shell-v27";
 const SHELL_ASSETS = ["/", "/index.html", "/partners.html", "/partners", "/assets/partner-owner.css", "/assets/partner-owner.js", "/assets/partner-owner-client.js", "/assets/partner-owner-materials.js", "/assets/partner-owner-access.js",
   "/assets/partner-owner-leads.js",
   "/assets/partner-owner-referrals.js", "/assets/partner-owner-finance.js", "/assets/partner-owner-forecasts.js", "/assets/partner-owner-statements.js", "/assets/partner-owner-legal.js", "/assets/partner-owner-review.js", "/assets/partner-owner-agreements.js", "/assets/partner-review-encryption.js", "/assets/review-envelope.js", "/review-reader.html", "/manifest.webmanifest", "/assets/operator.css", "/assets/operator.js", "/assets/api-client.js", "/assets/auth-client.js", "/assets/push-client.js", "/assets/work-state.js", "/assets/print-detail.js", "/assets/customization-detail.js", "/assets/invoice-detail.js", "/assets/filament-ui.js", "/assets/spoolman-status.js", "/assets/filament-inventory.js", "/assets/filament-detail.js", "/assets/icon.svg"];

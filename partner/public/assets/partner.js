@@ -5,6 +5,8 @@ import {createPartnerClient} from './client.js';
 import {clearVisitDrafts} from './drafts.js';
 import {renderVisitForm,renderDeviceDrafts,renderVisitHistory} from './visits.js';
 const main=document.querySelector('main'),nav=document.querySelector('nav'),message=document.querySelector('#message'),signOut=document.querySelector('#sign-out');
+nav.addEventListener('focusin',event=>{if(event.target.matches('a'))event.target.scrollIntoView({block:'nearest',inline:'nearest'});});
+function revealNavigation(){const current=nav.querySelector('[aria-current=page]');if(current&&nav.scrollWidth>nav.clientWidth)nav.scrollLeft+=current.getBoundingClientRect().left-nav.getBoundingClientRect().left-16;}
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=cents=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(cents/100);
 const date=value=>value?new Date(value).toLocaleString():'—';
@@ -24,7 +26,7 @@ document.documentElement.dataset.theme=theme.value;
 theme.addEventListener('change',()=>{document.documentElement.dataset.theme=theme.value;try{localStorage.setItem('partner-theme',theme.value);}catch{}});
 function signedOut(){partner=null;nav.hidden=true;nav.replaceChildren();signOut.hidden=true;}
 async function expired(){signedOut();history.replaceState({},'','/');await route();}
-function navigation(){nav.innerHTML=paths.map(([url,label])=>`<a href="${url}"${location.pathname===url?' aria-current="page"':''}>${label}</a>`).join('');nav.hidden=false;signOut.hidden=false;}
+function navigation(){nav.innerHTML=paths.map(([url,label])=>`<a href="${url}"${location.pathname===url?' aria-current="page"':''}>${label}</a>`).join('');nav.hidden=false;revealNavigation();signOut.hidden=false;}
 function download(filename,content,type='application/json'){const url=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function formSubmit(form,callback){let retryKey=crypto.randomUUID();form.addEventListener('input',()=>{retryKey=crypto.randomUUID();});form.addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter??form.querySelector('button');button.disabled=true;const current=generation;try{await callback(new FormData(form),retryKey);retryKey=crypto.randomUUID();}catch(error){if(current===generation){if(error.status===401){signedOut();await route();if(generation!==current+1)return;}announce(error.message,true);}}finally{button.disabled=false;}});}
 const facts=entries=>`<dl class="facts">${entries.map(([label,value])=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>`;
