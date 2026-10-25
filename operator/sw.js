@@ -1,4 +1,4 @@
-const CACHE_NAME = "operator-shell-v25";
+const CACHE_NAME = "operator-shell-v26";
 const SHELL_ASSETS = ["/", "/index.html", "/partners.html", "/partners", "/assets/partner-owner.css", "/assets/partner-owner.js", "/assets/partner-owner-client.js", "/assets/partner-owner-materials.js", "/assets/partner-owner-access.js",
   "/assets/partner-owner-leads.js",
   "/assets/partner-owner-referrals.js", "/assets/partner-owner-finance.js", "/assets/partner-owner-forecasts.js", "/assets/partner-owner-statements.js", "/assets/partner-owner-legal.js", "/assets/partner-owner-review.js", "/assets/partner-owner-agreements.js", "/assets/partner-review-encryption.js", "/assets/review-envelope.js", "/review-reader.html", "/manifest.webmanifest", "/assets/operator.css", "/assets/operator.js", "/assets/api-client.js", "/assets/auth-client.js", "/assets/push-client.js", "/assets/work-state.js", "/assets/print-detail.js", "/assets/customization-detail.js", "/assets/invoice-detail.js", "/assets/filament-ui.js", "/assets/spoolman-status.js", "/assets/filament-inventory.js", "/assets/filament-detail.js", "/assets/icon.svg"];
@@ -7,7 +7,15 @@ self.addEventListener("activate", event => event.waitUntil(caches.keys().then(ke
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || url.pathname.startsWith("/api/") || event.request.method !== "GET") { event.respondWith(fetch(event.request)); return; }
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
+  event.respondWith(caches.match(event.request).then(async cached => {
+    const response = cached || await fetch(event.request);
+    // Clean-URL hosting redirects .html paths. A redirected cached response
+    // cannot satisfy a navigation's manual redirect mode, even while offline.
+    if (event.request.mode === "navigate" && response.redirected) {
+      return new Response(response.body, { status: response.status, statusText: response.statusText, headers: response.headers });
+    }
+    return response;
+  }));
 });
 self.addEventListener("push", event => {
   let data = {}; try { data = event.data?.json() ?? {}; } catch { data = {}; }
