@@ -87,7 +87,7 @@ def test_designed_and_published_work_is_readable_without_decorative_images() -> 
 def test_approved_original_projects_lead_the_portfolio() -> None:
     with SiteBrowser(viewport=(1440, 1000), color_scheme="light") as site:
         home = site.load("/")
-        featured = home.locator(".hero-project img.project-image")
+        featured = home.locator("#project-grid [data-project='ioniq-console-organizer'] img.project-image")
         assert featured.count() == 1
         assert "ioniq" in featured.get_attribute("alt").lower()
         assert home.locator("a[href='/portfolio.html']").count() >= 1

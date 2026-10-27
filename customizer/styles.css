@@ -302,3 +302,10 @@
 @media (prefers-reduced-motion:no-preference){.cz-dialog[open]{animation:cz-dl-in 160ms ease-out}@keyframes cz-dl-in{from{opacity:0;transform:translateY(8px)}}}
 
 .cz-dl-stl{margin:.8rem 0 0;font-size:.82rem;color:var(--muted)}.cz-link-button{padding:0;border:0;background:none;color:var(--ink);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}.cz-link-button:focus-visible{outline:3px solid var(--focus-color);outline-offset:2px}
+
+/* The generator is the shop workbench. Keep preview contrast and simplify the shell. */
+.cz-card,.cz-back,.cz-tabs,.cz-tab,.cz-bar-button,.cz-tip,.cz-window,.cz-panel{border-radius:0;box-shadow:none}
+.cz-stage{background:#193447;background-image:none}
+.cz-card-category{letter-spacing:0;text-transform:none}
+.cz-bar{border-top:3px solid #174b71}
+.cz-tab[aria-selected=true],.cz-bar-button[aria-pressed=true]{box-shadow:none;border-bottom:2px solid var(--accent)}
