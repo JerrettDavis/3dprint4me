@@ -123,6 +123,13 @@ export function createOperatorController({ api, view, expectSession = () => fals
 }
 
 const title = value => String(value ?? "").replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
+function nextWorkAction(item) {
+  if (["completed", "declined", "cancelled"].includes(item.status)) return "Review history";
+  if (!item.acknowledged) return "Confirm receipt and review";
+  if (item.projectDraft) return "Complete project details";
+  if (item.kind === "inquiry") return item.status === "waiting_customer" ? "Await customer reply" : "Reply to inquiry";
+  return ({submitted:"Review request",triage:"Prepare quote",quoted:"Await quote approval",approved:item.targetDate ? "Schedule production" : "Set target date",scheduled:"Start production",in_progress:"Review production progress",waiting_customer:"Await customer reply"})[item.status] ?? "Review work";
+}
 function el(name, className, text) { const node = document.createElement(name); if (className) node.className = className; if (text != null) node.textContent = text; return node; }
 function createDomView(api) {
   const q = selector => document.querySelector(selector); const list = q("#work-list"), detail = q("#detail-content"), placeholder = q("#detail-placeholder"), filters = q("#filters"), status = q("#status-message"), toast = q("#toast"); let controller, toastTimer;
@@ -141,7 +148,7 @@ function createDomView(api) {
       if (name === "forbidden") q("#auth-title").textContent = "This account is not approved.";
       if (["offline", "unavailable", "error"].includes(name)) view.announce(name === "offline" ? "The inbox is offline. Check the connection and retry." : "The inbox could not load. Try again.");
     },
-    list(items) { const selectedId = controller?.selectedId?.(); list.replaceChildren(); q("#work-count").textContent = String(items.length); q("#empty-state").hidden = items.length > 0; for (const item of items) { const li = el("li"); li.dataset.id = item.id; li.dataset.active = String(item.id === selectedId); const button = el("button", "work-row"); button.type = "button"; button.append(el("strong", "", item.kind === "inquiry" ? "Inquiry" : item.projectTitle), el("span", "work-meta", `${item.kind === "inquiry" ? "Inquiry" : title(item.service)} · ${title(workStatusLabel(item))}${item.projectDraft ? " · Project draft" : ""}`), el("span", `priority priority-${item.priority}`, `${title(item.priority)} · ${formatRelativeTime(item.submittedAt)}`)); button.onclick = () => controller.select(item.id); li.append(button); list.append(li); } },
+    list(items) { const selectedId = controller?.selectedId?.(); list.replaceChildren(); q("#work-count").textContent = String(items.length); q("#queue-summary").textContent = `${items.length} shown · ${items.filter(item => !item.acknowledged && !["completed", "declined", "cancelled"].includes(item.status)).length} need acknowledgment`; q("#empty-state").hidden = items.length > 0; for (const item of items) { const li = el("li"); li.dataset.id = item.id; li.dataset.active = String(item.id === selectedId); const button = el("button", "work-row"); button.type = "button"; button.append(el("strong", "", item.kind === "inquiry" ? "Inquiry" : item.projectTitle), el("span", "next-action", `Next: ${nextWorkAction(item)}`), el("span", "work-meta", `${item.kind === "inquiry" ? "Inquiry" : title(item.service)} · ${title(workStatusLabel(item))}${item.projectDraft ? " · Project draft" : ""}`), el("span", `priority priority-${item.priority}`, `${title(item.priority)} · ${formatRelativeTime(item.submittedAt)}`)); button.onclick = () => controller.select(item.id); li.append(button); list.append(li); } },
     detail(payload, options = {}) {
       placeholder.hidden = true; detail.hidden = false; detail.replaceChildren(); const { item, files = [], notes = [], events = [], inquiry = null } = payload; const request = payload.request ?? {}; const isInquiry = item.kind === "inquiry";
       const back = el("button", "back", "Back to inbox"); back.type = "button"; back.onclick = () => { document.body.dataset.detail = "closed"; history.pushState({}, "", "/"); };
