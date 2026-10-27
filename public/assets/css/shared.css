@@ -154,7 +154,8 @@ html{scroll-padding-top:100px}
 
 /* Product counter: quiet surfaces, fabrication blue brand, teal actions. */
 :root{--brand-blue:#174b71;--radius-lg:0;--radius-md:0;--radius-sm:0}
-.site-header{border-top:5px solid var(--brand-blue)}
+.site-header{height:var(--header-height);border-top:5px solid var(--brand-blue)}
+.site-header .nav-shell{height:calc(var(--header-height) - 6px)}
 .brand,.brand:hover{color:var(--brand-blue)}
 [data-theme=dark] .brand{color:#8fc3e7}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) .brand{color:#8fc3e7}}
