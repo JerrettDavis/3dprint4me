@@ -98,7 +98,7 @@ def show_inquiry(page) -> None:
 
 
 def show_project_dialog(page) -> None:
-    page.locator(".hero-project").click()
+    page.locator('#project-grid [data-project="ioniq-console-organizer"]').click()
 
 
 def build_preview_board(items: list[tuple[str, Path]]) -> Path:
