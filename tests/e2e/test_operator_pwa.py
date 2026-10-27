@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from playwright.sync_api import expect
+
 from tests.e2e.test_api import project_request
 from tests.support.browser_harness import SiteBrowser
 from tests.support.operator_harness import running_operator_workspace
@@ -51,7 +53,8 @@ def test_intake_to_interactive_work_inbox() -> None:
             assert page is not None
             page.goto(operator, wait_until="networkidle")
             page.locator("#workspace:not([hidden])").wait_for()
-            assert page.locator("#work-list .work-row").count() == 1
+            # The signed-in workspace is shown while its private queue is loading.
+            expect(page.locator("#work-list .work-row")).to_have_count(1)
             assert page.locator("#work-list").inner_text().find(request["projectTitle"]) >= 0
             page.locator("#work-list .work-row").click()
             page.locator("#detail-content:not([hidden])").wait_for()
