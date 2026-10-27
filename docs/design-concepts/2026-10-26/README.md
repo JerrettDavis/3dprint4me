@@ -2,7 +2,7 @@
 
 Standalone throwaway prototypes for selection, not production implementation.
 
-Run `python -m http.server 4381 --bind 127.0.0.1 --directory docs/design-concepts/2026-10-26` from the repository root, then open http://127.0.0.1:4381/compare.html.
+Run `python -m http.server 4381 --bind 127.0.0.1 --directory docs/design-concepts/2026-10-26` from the repository root, then open http://127.0.0.1:4381/catalog.html.
 
 Three directions share a proposed product-led catalog: signs/name plates, gifts/local favorites, organizers/useful parts. Existing file printing, design, repair and consulting retain clear entry points. Categories are proposals; sellable SKUs, rights, dimensions, pricing and fulfillment have not been approved.
 
