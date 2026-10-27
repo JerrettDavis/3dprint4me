@@ -82,4 +82,3 @@ def test_owner_primary_action_remains_readable_in_dark_theme(explicit):
             const a=lum(s.color),b=lum(s.backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
         }''')
         assert contrast >= 4.5
-
