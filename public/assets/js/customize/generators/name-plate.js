@@ -4,8 +4,8 @@
 // with a backing outline (no plate). Optional keychain loop at the left end. Size "office" makes
 // the standard 8 × 2 in desk sign and can add the customer's own image (traced in the browser and
 // passed to the build as ctx.imageContours; never a parameter, as on the rating card).
-import { contrastRatio } from "../color.js?v=dcef6fb6d5754a0b";
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=dcef6fb6d5754a0b";
+import { contrastRatio } from "../color.js?v=0be1ba19c5d91a3e";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=0be1ba19c5d91a3e";
 
 const EPS = 1e-6;
 const MIN_WEB = 0.8;           // plate kept under the relief (and under an inlay)

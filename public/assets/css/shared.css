@@ -1,78 +1,78 @@
 /* Neutral paper, ink, and one green accent. Shared by the homepage, dialogs, and interaction states. */
 :root {
   color-scheme: light;
-  --bg: #f6f5f1;
+  --bg: #ffffff;
   --paper: #ffffff;
-  --ink: #1c1b19;
-  --muted: #5d5b55;
-  --accent: #1b6a4c;
-  --accent-hover: #135138;
+  --ink: #172d3c;
+  --muted: #506371;
+  --accent: #006e73;
+  --accent-hover: #00575c;
   --on-accent: #ffffff;
-  --teal: #1b6a4c;
-  --line: #dedbd2;
-  --control-line: #8a867b;
-  --soft: #efede6;
-  --teal-soft: #ece9df;
-  --blue-soft: #efede6;
-  --slate-soft: #eae7de;
-  --sky-soft: #ece9e0;
-  --dark: #1c1b19;
-  --focus-color: #1b6a4c;
+  --teal: #006e73;
+  --line: #d6e0e5;
+  --control-line: #708794;
+  --soft: #edf3f5;
+  --teal-soft: #e3eff0;
+  --blue-soft: #edf3f5;
+  --slate-soft: #e6edf1;
+  --sky-soft: #e5eff5;
+  --dark: #172d3c;
+  --focus-color: #006e73;
   --danger: #b4233f;
-  --shadow: 0 1px 2px #1c1b1912;
-  --radius: 6px;
+  --shadow: 0 1px 2px #172d3c12;
+  --radius: 0;
   --wrap: 1256px;
 }
 
 [data-theme=dark] {
   color-scheme: dark;
-  --bg: #161614;
-  --paper: #1e1d1a;
-  --ink: #f1efe8;
-  --muted: #b4b0a4;
-  --accent: #72d0a9;
-  --accent-hover: #9ae0c0;
-  --on-accent: #0b2318;
-  --teal: #72d0a9;
-  --line: #37352f;
-  --control-line: #7c786c;
-  --soft: #1a1917;
-  --teal-soft: #232622;
-  --blue-soft: #262420;
-  --slate-soft: #2a2824;
-  --sky-soft: #242320;
+  --bg: #101f2b;
+  --paper: #172d3c;
+  --ink: #f1f6f8;
+  --muted: #b6c8d3;
+  --accent: #77d6d1;
+  --accent-hover: #a1e4e0;
+  --on-accent: #102e43;
+  --teal: #77d6d1;
+  --line: #3c5363;
+  --control-line: #8299a8;
+  --soft: #1c3343;
+  --teal-soft: #1c3942;
+  --blue-soft: #1c3343;
+  --slate-soft: #223d4d;
+  --sky-soft: #1c3343;
   --dark: #0f0f0e;
-  --focus-color: #72d0a9;
+  --focus-color: #77d6d1;
   --danger: #fda4af;
   --shadow: 0 1px 2px #00000040;
 }
 
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
   color-scheme: dark;
-  --bg: #161614;
-  --paper: #1e1d1a;
-  --ink: #f1efe8;
-  --muted: #b4b0a4;
-  --accent: #72d0a9;
-  --accent-hover: #9ae0c0;
-  --on-accent: #0b2318;
-  --teal: #72d0a9;
-  --line: #37352f;
-  --control-line: #7c786c;
-  --soft: #1a1917;
-  --teal-soft: #232622;
-  --blue-soft: #262420;
-  --slate-soft: #2a2824;
-  --sky-soft: #242320;
+  --bg: #101f2b;
+  --paper: #172d3c;
+  --ink: #f1f6f8;
+  --muted: #b6c8d3;
+  --accent: #77d6d1;
+  --accent-hover: #a1e4e0;
+  --on-accent: #102e43;
+  --teal: #77d6d1;
+  --line: #3c5363;
+  --control-line: #8299a8;
+  --soft: #1c3343;
+  --teal-soft: #1c3942;
+  --blue-soft: #1c3343;
+  --slate-soft: #223d4d;
+  --sky-soft: #1c3343;
   --dark: #0f0f0e;
-  --focus-color: #72d0a9;
+  --focus-color: #77d6d1;
   --danger: #fda4af;
   --shadow: 0 1px 2px #00000040;
 }}
 
 /* Shared foundations and chrome. Loaded after each route's layout stylesheet. */
 :root {
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: "Segoe UI", Arial, sans-serif;
   --page: var(--bg); --page-2: var(--soft); --surface: var(--paper);
   --surface-2: var(--soft); --surface-3: var(--slate-soft);
   --ink-2: var(--muted); --faint: var(--muted); --line-strong: var(--control-line);
@@ -93,7 +93,7 @@ html{scroll-padding-top:100px}
 .lede{max-width:720px;color:var(--muted);font-size:18px;line-height:1.65}
 .page-hero{padding-block:64px 48px;border-bottom:1px solid var(--line)}
 .not-found-code{color:var(--muted);-webkit-text-stroke:0}
-.button{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:46px;padding:12px 21px;border:1px solid transparent;border-radius:6px;font:700 14px/1.3 var(--font-sans);text-decoration:none;cursor:pointer}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:46px;padding:12px 21px;border:1px solid transparent;border-radius:0;font:700 14px/1.3 var(--font-sans);text-decoration:none;cursor:pointer}
 .button.primary,.button.button-accent{color:var(--on-accent);background:var(--accent);box-shadow:none}
 .button.primary:hover,.button.button-accent:hover{color:var(--on-accent);background:var(--accent-hover)}
 .button.secondary,.button.button-outline{color:var(--ink);background:var(--paper);border-color:var(--control-line);box-shadow:none}
@@ -101,7 +101,7 @@ html{scroll-padding-top:100px}
 .button.block{width:100%}
 .button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 :focus-visible{outline:3px solid var(--focus-color);outline-offset:4px}
-.skip-link{position:fixed;z-index:999;top:12px;left:16px;padding:12px 18px;border-radius:6px;color:var(--on-accent);background:var(--accent);transform:translateY(-160%)}
+.skip-link{position:fixed;z-index:999;top:12px;left:16px;padding:12px 18px;border-radius:0;color:var(--on-accent);background:var(--accent);transform:translateY(-160%)}
 .skip-link:focus{transform:translateY(0)}
 .site-header{position:sticky;z-index:100;top:0;min-height:var(--header-height);border-bottom:1px solid var(--line);background:var(--bg);backdrop-filter:none}
 .nav-shell{height:var(--header-height);display:flex;align-items:center;justify-content:space-between;gap:24px}
@@ -111,10 +111,10 @@ html{scroll-padding-top:100px}
 .brand-word{font-size:22px;font-weight:700;line-height:1.2;letter-spacing:-1px}
 .brand-word span{color:var(--accent)}
 .nav-links{display:flex;align-items:center;gap:12px}
-.nav-link{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border-radius:6px;color:var(--muted);font-size:13px;font-weight:700;text-decoration:none}
+.nav-link{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border-radius:0;color:var(--muted);font-size:13px;font-weight:700;text-decoration:none}
 .nav-link:hover,.nav-link[aria-current="page"]{color:var(--ink);background:var(--soft)}
 .nav-actions{display:flex;align-items:center;gap:10px}
-.icon-button{display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--control-line);border-radius:6px;color:var(--ink);background:var(--paper);box-shadow:none;cursor:pointer}
+.icon-button{display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--control-line);border-radius:0;color:var(--ink);background:var(--paper);box-shadow:none;cursor:pointer}
 .icon-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .menu-button,.mobile-panel{display:none}
 .site-footer{margin-top:0;padding:56px 0 24px;border-top:1px solid var(--line);background:var(--soft);color:var(--muted)}
@@ -127,14 +127,14 @@ html{scroll-padding-top:100px}
 .footer-base>span:last-child{display:flex;gap:24px}
 .footer-base a{display:inline-flex;align-items:center;min-height:44px;color:var(--muted);text-decoration:none}
 .toast-region{position:fixed;right:20px;bottom:20px;z-index:500;display:grid;gap:8px;max-width:calc(100% - 40px)}
-.toast-region .toast{position:static;transform:none;padding:12px 18px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);box-shadow:var(--shadow);font-size:14px}
+.toast-region .toast{position:static;transform:none;padding:12px 18px;border:1px solid var(--line);border-radius:0;background:var(--paper);color:var(--ink);box-shadow:var(--shadow);font-size:14px}
 @media(max-width:1000px){.container,.wrap{width:calc(100% - 48px)}.footer-grid{grid-template-columns:2fr 1fr 1fr}.footer-grid>div:last-child{grid-column:2 / -1}}
 /* Tablet: four nav links plus the CTA don't fit on one line below ~960px, so the menu drawer
    (which repeats every link and the CTA) takes over here, as it does on phones. site.js closes
    the drawer above the same width. */
 @media(max-width:960px){
  .nav-links,.nav-actions>.button{display:none}.menu-button{display:inline-grid}
- .mobile-panel{position:absolute;top:100%;left:24px;right:24px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--paper);box-shadow:var(--shadow)}
+ .mobile-panel{position:absolute;top:100%;left:24px;right:24px;padding:12px;border:1px solid var(--line);border-radius:0;background:var(--paper);box-shadow:var(--shadow)}
  .mobile-panel.open{display:grid}.mobile-panel .nav-link{width:100%}.mobile-panel .button{margin-top:8px}
 }
 @media(max-width:760px){
@@ -142,7 +142,7 @@ html{scroll-padding-top:100px}
  .container,.wrap{width:calc(100% - 40px)}
  .nav-shell{gap:12px}.brand-word{font-size:20px}.brand-mark{width:30px;height:30px}
  .nav-links,.nav-actions>.button{display:none}.menu-button{display:inline-grid}
- .mobile-panel{position:absolute;top:100%;left:20px;right:20px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--paper);box-shadow:var(--shadow)}
+ .mobile-panel{position:absolute;top:100%;left:20px;right:20px;padding:12px;border:1px solid var(--line);border-radius:0;background:var(--paper);box-shadow:var(--shadow)}
  .mobile-panel.open{display:grid}.mobile-panel .nav-link{width:100%}.mobile-panel .button{margin-top:8px}
  .page-hero{padding-block:36px}.lede{font-size:16px}
  .footer-grid{grid-template-columns:1fr 1fr;gap:24px}.footer-brand{grid-column:1/-1}.footer-grid>div:last-child{grid-column:auto}
@@ -151,3 +151,13 @@ html{scroll-padding-top:100px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
 @media print{.site-header,.site-footer{display:none!important}}
+
+/* Product counter: quiet surfaces, fabrication blue brand, teal actions. */
+:root{--brand-blue:#174b71;--radius-lg:0;--radius-md:0;--radius-sm:0}
+.site-header{border-top:5px solid var(--brand-blue)}
+.brand,.brand:hover{color:var(--brand-blue)}
+[data-theme=dark] .brand{color:#8fc3e7}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .brand{color:#8fc3e7}}
+.card,.panel,.service-card,.project-card,.field input,.field textarea,.field select{border-radius:0;box-shadow:none}
+.eyebrow{letter-spacing:0;text-transform:none;font-size:13px}
+h1,h2,h3{font-family:var(--font-sans)}
