@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-10-22T23:22:24.185632+00:00",
+  "generatedAt": "2026-10-27T04:10:47.252659+00:00",
   "status": "pass",
   "summary": {
     "checks": 241,
@@ -72,7 +72,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "47 visible interactive elements have accessible names."
+      "details": "58 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "170 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "165 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -156,7 +156,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "30 visible interactive elements have accessible names."
+      "details": "31 visible interactive elements have accessible names."
     },
     {
       "route": "/services.html",
@@ -191,7 +191,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "126 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "127 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/portfolio.html",
@@ -240,7 +240,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "33 visible interactive elements have accessible names."
+      "details": "34 visible interactive elements have accessible names."
     },
     {
       "route": "/portfolio.html",
@@ -275,7 +275,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "127 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "128 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/about.html",
@@ -324,7 +324,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "31 visible interactive elements have accessible names."
+      "details": "32 visible interactive elements have accessible names."
     },
     {
       "route": "/about.html",
@@ -359,7 +359,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "82 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "83 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/order.html",
@@ -405,96 +405,96 @@
     },
     {
       "route": "/order.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Accessible control names",
-      "status": "pass",
-      "details": "24 visible interactive elements have accessible names."
-    },
-    {
-      "route": "/order.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "New-window safety",
-      "status": "pass",
-      "details": "All new-window links include noopener."
-    },
-    {
-      "route": "/order.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Touch target floor",
-      "status": "pass",
-      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
-    },
-    {
-      "route": "/order.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Hidden focus management",
-      "status": "pass",
-      "details": "No visible focusable control is nested in aria-hidden content."
-    },
-    {
-      "route": "/order.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Responsive overflow",
-      "status": "pass",
-      "details": "No horizontal overflow at 1440 CSS px."
-    },
-    {
-      "route": "/order.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Text contrast",
-      "status": "pass",
-      "details": "67 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
-    },
-    {
-      "route": "/privacy.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Browser execution",
-      "status": "pass",
-      "details": "No page or console errors."
-    },
-    {
-      "route": "/privacy.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Language and metadata",
-      "status": "pass",
-      "details": "Language, title, description, and responsive viewport are present."
-    },
-    {
-      "route": "/privacy.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Landmarks and page heading",
-      "status": "pass",
-      "details": "Exactly one main landmark and H1, with site header and footer."
-    },
-    {
-      "route": "/privacy.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Unique IDs",
-      "status": "pass",
-      "details": "All element IDs are unique."
-    },
-    {
-      "route": "/privacy.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Heading structure",
-      "status": "pass",
-      "details": "Visible headings do not skip levels."
-    },
-    {
-      "route": "/privacy.html",
-      "profile": "desktop/light 1440\u00d71000",
-      "check": "Images",
-      "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
-    },
-    {
-      "route": "/privacy.html",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
       "details": "25 visible interactive elements have accessible names."
     },
     {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/order.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "68 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "2 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/privacy.html",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "26 visible interactive elements have accessible names."
+    },
+    {
       "route": "/privacy.html",
       "profile": "desktop/light 1440\u00d71000",
       "check": "New-window safety",
@@ -527,7 +527,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "66 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "69 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/terms.html",
@@ -576,7 +576,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "25 visible interactive elements have accessible names."
+      "details": "26 visible interactive elements have accessible names."
     },
     {
       "route": "/terms.html",
@@ -611,7 +611,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "64 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "65 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/404.html",
@@ -660,7 +660,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "25 visible interactive elements have accessible names."
+      "details": "26 visible interactive elements have accessible names."
     },
     {
       "route": "/404.html",
@@ -695,7 +695,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "36 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "37 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/customize/",
@@ -744,7 +744,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "31 visible interactive elements have accessible names."
+      "details": "32 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/",
@@ -779,7 +779,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "62 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "63 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -828,7 +828,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "107 visible interactive elements have accessible names."
+      "details": "108 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -863,7 +863,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "155 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "156 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/",
@@ -912,7 +912,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "44 visible interactive elements have accessible names."
+      "details": "52 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -947,7 +947,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "167 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "155 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -1367,7 +1367,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "61 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "63 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/terms.html",
@@ -1739,12 +1739,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 47,
+        "interactiveCount": 58,
         "imageCount": 11,
-        "headingCount": 28
+        "headingCount": 27
       },
       "contrast": {
-        "checked": 170,
+        "checked": 165,
         "complexSkipped": 0,
         "failures": []
       }
@@ -1774,12 +1774,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 30,
+        "interactiveCount": 31,
         "imageCount": 2,
         "headingCount": 10
       },
       "contrast": {
-        "checked": 126,
+        "checked": 127,
         "complexSkipped": 0,
         "failures": []
       }
@@ -1809,12 +1809,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 33,
+        "interactiveCount": 34,
         "imageCount": 13,
         "headingCount": 20
       },
       "contrast": {
-        "checked": 127,
+        "checked": 128,
         "complexSkipped": 0,
         "failures": []
       }
@@ -1844,12 +1844,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 31,
+        "interactiveCount": 32,
         "imageCount": 2,
         "headingCount": 11
       },
       "contrast": {
-        "checked": 82,
+        "checked": 83,
         "complexSkipped": 0,
         "failures": []
       }
@@ -1879,12 +1879,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 24,
+        "interactiveCount": 25,
         "imageCount": 2,
         "headingCount": 6
       },
       "contrast": {
-        "checked": 67,
+        "checked": 68,
         "complexSkipped": 0,
         "failures": []
       }
@@ -1914,12 +1914,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 25,
+        "interactiveCount": 26,
         "imageCount": 2,
-        "headingCount": 18
+        "headingCount": 19
       },
       "contrast": {
-        "checked": 66,
+        "checked": 69,
         "complexSkipped": 0,
         "failures": []
       }
@@ -1949,12 +1949,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 25,
+        "interactiveCount": 26,
         "imageCount": 2,
         "headingCount": 17
       },
       "contrast": {
-        "checked": 64,
+        "checked": 65,
         "complexSkipped": 0,
         "failures": []
       }
@@ -1984,12 +1984,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 25,
+        "interactiveCount": 26,
         "imageCount": 2,
         "headingCount": 4
       },
       "contrast": {
-        "checked": 36,
+        "checked": 37,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2019,12 +2019,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 31,
+        "interactiveCount": 32,
         "imageCount": 4,
         "headingCount": 11
       },
       "contrast": {
-        "checked": 62,
+        "checked": 63,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2054,12 +2054,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 107,
+        "interactiveCount": 108,
         "imageCount": 2,
         "headingCount": 18
       },
       "contrast": {
-        "checked": 155,
+        "checked": 156,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2089,12 +2089,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 44,
+        "interactiveCount": 52,
         "imageCount": 11,
-        "headingCount": 28
+        "headingCount": 25
       },
       "contrast": {
-        "checked": 167,
+        "checked": 155,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2266,10 +2266,10 @@
         "viewportWidth": 390,
         "interactiveCount": 21,
         "imageCount": 2,
-        "headingCount": 18
+        "headingCount": 19
       },
       "contrast": {
-        "checked": 61,
+        "checked": 63,
         "complexSkipped": 0,
         "failures": []
       }
