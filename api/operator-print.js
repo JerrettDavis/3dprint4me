@@ -8,6 +8,7 @@ import { resolveWorkManagementRuntime } from "../lib/work-management/runtime.js"
 import { HttpError, readJson } from "../lib/http.js";
 import { signRequestFile } from "../lib/operator-files.js";
 import { createFilamentMatchingUseCases } from '../lib/filament-matching/application.js';
+import {createOperatorModels} from '../lib/print-estimation/application/operator-models.js';
 
 function exact(value, fields) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new HttpError(400, "An operator print action object is required.");
@@ -55,6 +56,15 @@ export function createOperatorPrintHandler({ store, runtime, printRuntime, signF
       throw new HttpError(400, "A supported print resource is required.");
     }
     const body = await readJson(req, 16 * 1024);
+    if(['authorize-model-upload','finish-model-upload','estimate-model'].includes(body.action)) {
+      const fields=body.action==='authorize-model-upload'?['filename','size','contentType','options']:body.action==='finish-model-upload'?['sessionId','assetId']:['assetId','options','selections','commandId'];
+      exact(body,['action','workId',...fields]);
+      const detail=await work.repository.getWork(workId(body.workId),operator),models=createOperatorModels(print());
+      const input=Object.fromEntries(fields.filter(key=>key in body).map(key=>[key,body[key]]));
+      if(body.action==='authorize-model-upload')return models.authorizeUpload(detail,input);
+      if(body.action==='finish-model-upload')return {status:200,body:await models.finish(detail,input)};
+      return {status:200,body:await models.estimate(detail,input,{revision:input.commandId})};
+    }
     if (body.action === 'refresh-spoolman') {
       exact(body,['action']);
       return createFilamentUseCases({repository:print().repository}).refresh(operator);
