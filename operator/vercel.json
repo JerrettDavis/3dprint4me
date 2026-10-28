@@ -7,6 +7,10 @@
     { "source": "/work/:id", "destination": "/" }
   ],
   "headers": [
+    { "source": "/partners(.*)", "headers": [
+      { "key": "Cache-Control", "value": "no-store" },
+      { "key": "Content-Security-Policy", "value": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.3dprint4.me; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" }
+    ] },
     {
       "source": "/(.*)",
       "headers": [

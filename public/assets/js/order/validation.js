@@ -31,6 +31,8 @@ export function createStepValidator({ document, form, getData, getFiles, fieldEr
       }
     }
     if (index === 2) {
+      const referral=document.querySelector('#referral-code');
+      if(data.referralConsent===true&&referral&&(!referral.value||!referral.checkValidity())){fieldError(referral,'Enter the 16-character referral code exactly, or turn referral credit off.');invalid.push(referral);}
       require("name", "Add your name.");
       require("email", "Add an email address.");
       const email = document.querySelector("#email");

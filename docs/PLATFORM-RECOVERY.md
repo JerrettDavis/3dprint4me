@@ -3,8 +3,8 @@
 See [STACK-AUTOMATION.md](STACK-AUTOMATION.md) for the complete stack inventory,
 new-host bootstrap, replacement-host rebuild, streamed private-file checkpoints,
 hosted deployment commands and operational acceptance checklist. Evidence below
-describes the original database/configuration checkpoint verification; it does
-not establish activation of the newer file backup or cold rebuild tooling.
+describes database/configuration and private-object checkpoint verification. The
+2026-10-24 update below establishes scheduled file backups, not a cold host rebuild.
 
 The storefront and operator shell remain on Vercel. Independent status runs on
 Vercel and Cloudflare; its protected operations view requires Vercel Authentication
@@ -153,3 +153,25 @@ followed by the real writer UID to set the shared group and directory setgid bit
 This preserves readable aggregate job health without broadening runtime privileges.
 After restoring/recreating workers, verify both health files through the API's
 status collector; do not infer health from a running container alone.
+
+
+## Complete checkpoint activation, 2026-10-24
+
+The existing private Windows task now runs the verified current controller/export/
+restore scripts; the prior versions are retained privately for rollback. Its action,
+Windows-managed password and hourly trigger were preserved. A fresh task run exits
+with result `0`, which also requires successful authenticated backup reporting.
+Both existing encrypted repositories contain the new `20261024T143605Z` complete
+checkpoint receipts linking database/configuration and private-object snapshots.
+
+Before the scheduled update, the manual `20261024T143246Z` complete checkpoint passed
+both-store byte/hash readback. Its exact database archive restored into a disposable,
+network-isolated PostgreSQL 18 container: 25 control tables and 29 live tables,
+14 verified archive/configuration members, and runtime privilege denials. Both
+repositories' private-object streams independently verified three objects and the
+receipt hash without plaintext files or provider writes. Exact snapshots and logs
+remain private; [VERIFICATION.md](VERIFICATION.md) records the scope and limits.
+
+This proves scheduled complete backups and isolated database recovery. It does not
+prove private-object writes to a replacement provider, a full host rebuild, signed-out
+reboot survival, independent offsite/key custody or an agreed recovery time.

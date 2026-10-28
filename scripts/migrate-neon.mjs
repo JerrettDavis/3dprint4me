@@ -2,9 +2,11 @@ import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { getDatabase, closeDatabase, databaseProvider } from '../lib/database.js';
 
-export const MIGRATIONS = Object.freeze(["001_service_requests.sql", "002_quick_inquiries.sql", "003_work_queue.sql", "004_print_estimation.sql", "005_print_estimate_rate_limits.sql", "006_model_packs.sql", "007_invoicing.sql", "008_platform.sql", "009_inquiry_workflow.sql", "010_filament_matching.sql", "011_spoolman_inventory.sql"]);
+export const MIGRATIONS = Object.freeze(["001_service_requests.sql", "002_quick_inquiries.sql", "003_work_queue.sql", "004_print_estimation.sql", "005_print_estimate_rate_limits.sql", "006_model_packs.sql", "007_invoicing.sql", "008_platform.sql", "009_inquiry_workflow.sql", "010_filament_matching.sql", "011_spoolman_inventory.sql", "012_partner_outreach.sql", "013_partner_weekly_statements.sql"]);
 
 export function assertMigrationTarget(migration, {driver=databaseProvider(), url=process.env.DATABASE_URL}={}) {
+  if(['012_partner_outreach.sql','013_partner_weekly_statements.sql'].includes(migration)&&(driver!=='postgres'||!url||new URL(url).hostname.endsWith('.neon.tech')))
+    throw new Error('Partner migration requires the selected native PostgreSQL target.');
   if(migration==='009_inquiry_workflow.sql'&&(driver!=='postgres'||new URL(url).hostname.endsWith('.neon.tech')))
     throw new Error('Inquiry workflow migration requires the selected native PostgreSQL target.');
 }

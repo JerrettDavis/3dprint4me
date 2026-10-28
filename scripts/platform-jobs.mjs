@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { closeDatabase, queryDatabase as sql } from '../lib/database.js';
+import { closeDatabase, getDatabase, queryDatabase as sql } from '../lib/database.js';
+import { generateWeeklyStatements } from '../lib/partner-outreach/statements.js';
+import { purgeExpiredPartnerExports } from '../lib/partner-outreach/export-retention.js';
 import { createPlatformJobs } from '../lib/platform/jobs.js';
 import { createNeonWorkStore } from '../lib/work-store.js';
 import { createWebPushTransport, drainPushOutbox } from '../lib/push-delivery.js';
@@ -22,12 +24,15 @@ async function main() {
   }
   const jobs=createPlatformJobs({
     spoolman:()=>observeJob('spoolman',syncSpools),
+    statements:()=>observeJob('statements',()=>generateWeeklyStatements({database:getDatabase()})),
     drain:()=>observeJob('push',()=>drainPushOutbox({store,transport,workerId,batchSize:20})),
     cleanup:()=>leased('model-retention',()=>observeJob('cleanup',()=>runMaintenance([]))),
     expire:()=>leased('auth-expiry',()=>observeJob('expiry',async()=>{
       await sql`DELETE FROM platform_proxy_nonces WHERE expires_at<now()`;
       await sql`DELETE FROM operator_login_flows WHERE expires_at<now()`;
       await sql`DELETE FROM operator_sessions WHERE expires_at<now()`;
+      const [partner]=await sql`SELECT to_regclass('public.partner_export_payloads') IS NOT NULL AS ready`;
+      if(partner.ready)await purgeExpiredPartnerExports(getDatabase());
     })),
     onError:name=>console.error(`Scheduled ${name} operation unavailable.`)
   });

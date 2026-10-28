@@ -87,10 +87,18 @@ def test_designed_and_published_work_is_readable_without_decorative_images() -> 
 def test_approved_original_projects_lead_the_portfolio() -> None:
     with SiteBrowser(viewport=(1440, 1000), color_scheme="light") as site:
         home = site.load("/")
-        featured = home.locator(".hero-project img.project-image")
+        featured = home.locator("#project-grid [data-project='ioniq-console-organizer'] img.project-image")
         assert featured.count() == 1
         assert "ioniq" in featured.get_attribute("alt").lower()
         assert home.locator("a[href='/portfolio.html']").count() >= 1
+        # The retained project gallery is below the catalog, so its lazy image must enter
+        # the viewport before loading; page load does not wait for off-screen images.
+        featured.scroll_into_view_if_needed()
+        home.wait_for_function(
+            "img => img.complete && img.naturalWidth > 0",
+            arg=featured.element_handle(),
+            timeout=5000,
+        )
         assert featured.evaluate("img => img.complete && img.naturalWidth > 0")
 
         work = site.load("/portfolio.html")

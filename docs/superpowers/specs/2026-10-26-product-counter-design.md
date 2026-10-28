@@ -1,0 +1,11 @@
+# Approved product-counter redesign
+
+User selected direction D and approved the blue-and-teal refinement, then explicitly requested build and deployment. The canonical visual prototype is `docs/design-concepts/2026-10-26/catalog.html`.
+
+Build a product-led storefront with a compact photographic hero, white catalog, purpose filters, search and real starting points that link to existing customizers or scoped project intake. Deep fabrication blue #174b71 establishes the brand; teal #006e73 marks actions. Use real images, flat surfaces, square controls, deliberate whitespace and clear hierarchy. Avoid gradients, glow, purple, pill cards and decorative dashboard clutter. Retain light, dark, system, focus, reduced motion and 390px behavior throughout.
+
+The catalog must be honest: no invented prices, stock, delivery promises or manufactured testimonials. Use working customization routes where available; otherwise identify a reviewed custom request. Maintain print, design, repair and consulting plus quick inquiry, offline/customer recovery and private-file behavior. Preserve existing project examples and share links even when they move below the shop. Generator sensitive values remain browser-only and no external origins enter customizers.
+
+Apply the approved visual language to every public page and generator shell, operator inbox/owner partner administration and partner portal. Operations should foreground next actions and clear queues; partners should foreground active work/next steps with earnings separated from settlement. Use real domain state, never prototype records. Preserve authentication, permission, feature-off, legal consent, finance, offline draft and error behavior. No schema or provider contract changes are needed for this release.
+
+Deploy storefront, operator and partner static outputs through their existing projects only after full regression, screenshots, visual inspection and independent review. Preserve current native API, flags, identities, payment settings and DNS. Verify exact deployed UI assets, HTTPS, public routes and anonymous private-boundary behavior. Record deployment and rollback identities; do not claim live authenticated coverage without evidence.

@@ -298,3 +298,12 @@ test("a real wifi-tag customization with a real password never reaches email or 
   assert.equal(hook.request.customization.params.password, "[redacted]");
   for (const s of sent) assert.equal(JSON.stringify(s).includes("hunter2"), false, s.url);
 });
+
+
+test('owner receipt preserves opted-in referral credit for email-only recovery without claiming an award',async()=>{
+ resetEnv();configureEmail();const messages=[];
+ globalThis.fetch=async(url,options)=>{assert.equal(url,'https://api.resend.com/emails');assert.equal(options.method,'POST');messages.push(JSON.parse(options.body));return jsonResponse({id:'synthetic'});};
+ await sendRequestEmails('3DP-20261024-REFERRAL',baseRequest({referral:{code:'AbCdEfGh1234_-xy',consent:true,consentVersion:'referral-v1'}}),[]);
+ const owner=messages.find(message=>message.to.includes(process.env.REQUEST_TO_EMAIL));
+ assert.match(owner.html,/Referral credit requested/);assert.match(owner.html,/AbCdEfGh1234_-xy/);assert.match(owner.html,/eligibility review required/);
+});

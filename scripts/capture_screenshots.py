@@ -61,6 +61,16 @@ def prepare_consult_details(page) -> None:
     page.locator("#description").fill("Review the current setup and recommend a calibration plan.")
 
 
+def prepare_referral_contact(page) -> None:
+    prepare_consult_details(page)
+    page.locator('#next-button').click()
+    page.locator('#name').fill('Synthetic Customer')
+    page.locator('#email').fill('synthetic@example.test')
+    page.locator('#referral-consent').check()
+    page.locator('#referral-code').fill('AbCdEfGh1234_-xy')
+    page.evaluate('document.activeElement?.blur(); window.scrollTo(0, 0)')
+
+
 def prepare_mobile_repair(page) -> None:
     page.locator("#next-button").click()
     page.locator("#project-title").fill("Voron print-quality diagnosis")
@@ -88,7 +98,7 @@ def show_inquiry(page) -> None:
 
 
 def show_project_dialog(page) -> None:
-    page.locator(".hero-project").click()
+    page.locator('#project-grid [data-project="ioniq-console-organizer"]').click()
 
 
 def build_preview_board(items: list[tuple[str, Path]]) -> Path:
@@ -102,7 +112,10 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
         ratio = card_width / image.width
         resized = image.resize((card_width, int(image.height * ratio)), Image.Resampling.LANCZOS)
         if resized.height > 820:
-            resized = resized.crop((0, 0, resized.width, 820))
+            # These viewport captures show a late approval error near the footer.
+            # Keep that changed state visible in the board's bounded thumbnail.
+            top = resized.height - 820 if path.stem.startswith(('operator-partners-missing-review-','partner-materials-owner-error-')) else 0
+            resized = resized.crop((0, top, resized.width, top + 820))
         rendered.append((label, resized))
 
     row_heights = []
@@ -430,6 +443,243 @@ def capture_spoolman_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_partner_states() -> list[tuple[str, Path]]:
+    from tests.support.partner_harness import running_partner_shell
+    from tests.e2e.test_partner_shell import install_partner_fixture, install_offer_fixture, install_referral_fixture, activity_fixture, GIG_ID
+    from tests.e2e.test_partner_visits import visit_fixture, GIG
+    from tests.e2e.test_partner_statements import install_partner_statement_fixture
+    captured = []
+    with running_partner_shell() as origin:
+        for state, viewport, scheme in [("weekly-statements", (390, 844), "dark"), ("weekly-statements", (320, 844), "light"), ("sign-in", (390, 844), "light"), ("overview", (390, 844), "dark"), ("agreement", (1440, 1000), "light"), ("visit", (390, 844), "light"), ("visit-contact", (390, 844), "dark"), ("drafts", (390, 844), "dark"), ("counteroffer", (390, 844), "dark"), ("counteroffer", (320, 844), "light"), ("referrals", (390, 844), "dark"), ("referrals", (320, 844), "light"), ("activity", (390, 844), "dark"), ("activity", (320, 844), "light"), ("accepted-gig", (390, 844), "dark"), ("accepted-gig", (320, 844), "light"), ("enroll-error", (390, 844), "dark"), ("enroll-error", (320, 844), "light")]:
+            path = OUTPUT / f"partner-{state}-{scheme}.png"
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion="reduce") as site:
+                visit_state = state in ["visit", "visit-contact", "drafts"]
+                if state == "weekly-statements":
+                    install_partner_statement_fixture(site.page)
+                elif state == "enroll-error":
+                    install_partner_fixture(site.page,signed_in=False)
+                    site.page.route('**/api/partner/v1/invite/redeem',lambda route:route.fulfill(status=401,content_type='application/json',body=json.dumps({'error':'Sign-in could not be completed. Check your details or contact the owner.'})))
+                elif state == "activity":
+                    record=activity_fixture(site.page)
+                    saved={**record,'id':'70000000-1000-4000-8000-100000000002','runningSince':None,'endedAt':'2026-10-24T12:05:00Z','elapsedSeconds':95}
+                    site.page.route('**/api/partner/v1/activity',lambda route:route.fulfill(status=200,content_type='application/json',body=json.dumps({'items':[record,saved]})))
+                elif state == "referrals":
+                    data = install_referral_fixture(site.page)
+                    data["items"][0]["bonusRules"][0]["criteria"] = "An independent purchase with full settlement verified by the owner."
+                elif state == "accepted-gig":
+                    item,negotiation=install_offer_fixture(site.page)
+                    item.update(status='accepted',revision=2,feeCents=5000,acceptedAt='2026-10-26T12:00:00Z',authorizationWeek='2026-10-26')
+                    negotiation.clear()
+                elif state == "counteroffer":
+                    _, negotiation = install_offer_fixture(site.page)
+                    negotiation[0]["message"] = "Revised fee for the additional materials; please review before accepting."
+                elif visit_state:
+                    visit_fixture(site.page)
+                else:
+                    install_partner_fixture(site.page, signed_in=state != "sign-in")
+                site.page.goto(origin + ('/earnings' if state == 'weekly-statements' else '/join' if state == 'enroll-error' else '/activity' if state == 'activity' else '/referrals' if state == 'referrals' else '/gigs/' + GIG_ID if state in ['counteroffer','accepted-gig'] else '/visits/new?gig=' + GIG if visit_state else '/agreements' if state == 'agreement' else '/'))
+                site.page.get_by_role('heading', level=1).wait_for()
+                if state == 'weekly-statements':site.page.get_by_role('button',name='Download statement for 2026-10-26',exact=True).wait_for()
+                if state == 'enroll-error':
+                    site.page.get_by_label('Invitation or recovery code',exact=True).fill('Example used invitation')
+                    site.page.get_by_label('Choose a passphrase',exact=True).fill('Example private passphrase')
+                    site.page.get_by_role('button',name='Set passphrase and continue',exact=True).click()
+                    site.page.get_by_text('Sign-in could not be completed. Check your details or contact the owner.',exact=True).wait_for()
+                if visit_state:
+                    site.page.get_by_label('Business name', exact=True).fill('Synthetic Coffee')
+                    if state == 'visit-contact':
+                        site.page.get_by_label('This person explicitly agreed to project follow-up.', exact=True).check()
+                        site.page.get_by_label('Project follow-up purpose', exact=True).fill('Requested discussion about a printed shop sign')
+                        site.page.get_by_label('Contact email', exact=True).fill('synthetic@example.test')
+                    if state == 'drafts':
+                        site.page.get_by_label('I understand this business-only draft stays on this device and is deleted when I sign out.', exact=True).check()
+                        site.page.get_by_role('button', name='Save business draft on this device', exact=True).click()
+                        site.page.get_by_role('link', name='Device drafts', exact=True).click()
+                        site.page.get_by_role('heading', name='Device drafts').wait_for()
+                if state == 'counteroffer':
+                    site.page.get_by_label('Proposed fee (USD)', exact=True).fill('12.34')
+                    site.page.get_by_label('Message to the owner', exact=True).fill('Could this fee cover the additional materials?')
+                if visit_state or state in ['counteroffer', 'referrals', 'activity', 'accepted-gig', 'enroll-error', 'weekly-statements']:
+                    site.page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
+                site.screenshot(path, full_page=visit_state or state in ["counteroffer", "referrals", "activity", "accepted-gig", "enroll-error", "weekly-statements"])
+                site.console = [e for e in site.console if 'status of 401 (Unauthorized)' not in e.text]
+                site.assert_no_page_errors()
+            captured.append((f"Partner {state} · {scheme}", path))
+    return captured
+
+
+def capture_partner_offline_states() -> list[tuple[str, Path]]:
+    from tests.support.partner_harness import running_partner_shell
+    from tests.e2e.test_partner_shell import PARTNER
+    from tests.e2e.test_partner_visits import visit_fixture, GIG
+    captured=[]
+    with running_partner_shell() as origin:
+        for state in ['chooser','drafts','form']:
+            for width,scheme in [(320,'light'),(390,'dark')]:
+                with SiteBrowser(viewport=(width,844),color_scheme=scheme,reduced_motion='reduce') as site:
+                    page=site.page;visit_fixture(page);page.goto(origin+'/visits/new?gig='+GIG)
+                    page.wait_for_function('()=>!!navigator.serviceWorker.controller')
+                    page.get_by_role('button',name='Prepare this gig for offline business drafts',exact=True).click()
+                    page.get_by_text('Offline visit form prepared on this device. Current gig status still requires a connection.',exact=True).wait_for()
+                    page.get_by_label('Business name',exact=True).fill('Synthetic device-only business')
+                    page.locator('#device-permission').check()
+                    page.get_by_role('button',name='Save business draft on this device',exact=True).click()
+                    page.unroute_all();site.context.set_offline(True);page.goto(origin+'/drafts')
+                    page.get_by_role('heading',name='This device, offline',exact=True).wait_for()
+                    if state!='chooser':
+                        page.get_by_label('Account code for device drafts',exact=True).fill(PARTNER['id'])
+                        page.get_by_role('button',name='Open device drafts',exact=True).click()
+                        page.get_by_role('heading',name='Device drafts',exact=True).wait_for()
+                    if state=='form':
+                        page.get_by_role('button',name='Record another business visit',exact=True).click()
+                        page.get_by_label('Business name',exact=True).fill('Another synthetic business')
+                    path=OUTPUT/f'partner-offline-{state}-{scheme}.png'
+                    page.evaluate('document.activeElement?.blur();window.scrollTo(0,0)')
+                    site.screenshot(path,full_page=True);assert not site.page_errors
+                    captured.append((f'Partner offline {state} - {scheme}',path))
+    return captured
+
+
+def capture_partner_owner_states() -> list[tuple[str, Path]]:
+    from tests.e2e.test_partner_owner import install_owner_fixture, install_access_fixture
+    from tests.e2e.test_partner_owner_referrals import install_review_fixture
+    from tests.e2e.test_partner_owner_finance import install_finance_fixture, BATCH
+    from tests.e2e.test_partner_owner_forecasts import install_forecast_fixture
+    from tests.e2e.test_partner_statements import install_statement_fixture, STATEMENT
+    from tests.e2e.test_partner_owner_legal import install_legal_fixture, install_missing_review_fixture, VERSION
+    from tests.e2e.test_partner_owner_review import review_fixture, PACKAGE, FEEDBACK
+    from tests.e2e.test_partner_owner_agreements import install_agreement_fixture, ISSUE, PROGRAM as AGREEMENT_PROGRAM, VERSION as AGREEMENT_VERSION, PARTNER as AGREEMENT_PARTNER
+    from tests.e2e.test_partner_shell import GIG_ID, PARTNER
+    captured=[]
+    with running_operator_workspace() as (_,origin,_):
+        for state,viewport,scheme in [('missing-review',(390,844),'dark'),('missing-review',(320,844),'light'),('statements',(390,844),'dark'),('statements',(320,844),'light'),('weekly-statement',(390,844),'dark'),('weekly-statement',(320,844),'light'),('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('forecasts',(390,844),'dark'),('forecasts',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
+            path=OUTPUT/f'operator-partners-{state}-{scheme}.png'
+            with SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
+                page=site.page
+                if state in ['agreements','agreement-copy','program-bindings']:install_agreement_fixture(page,available=state!='program-bindings')
+                elif state=='accounts':install_access_fixture(page)
+                elif state=='missing-review':install_missing_review_fixture(page)
+                elif state in ['legal','legal-version']:install_legal_fixture(page)
+                elif state.startswith('review-'):review_fixture(page)
+                elif state in ['finance','accounting-export']:install_finance_fixture(page)
+                elif state in ['statements','weekly-statement']:install_statement_fixture(page,label='Synthetic outreach statements')
+                elif state=='forecasts':install_forecast_fixture(page,label='Synthetic outreach forecast')
+                elif state in ['leads','leads-suppressed','referrals']:install_review_fixture(page,withdrawn=state=='leads-suppressed')
+                else:install_owner_fixture(page)
+                if state=='gig':
+                    item={'id':GIG_ID,'partnerId':PARTNER['id'],'status':'submitted','revision':3,'feeCents':4000,'maximumBonusCents':0,
+                          'terms':{'title':'Synthetic permitted introductions','feeCents':4000,'maximumBonusCents':0,'area':'Tulsa permitted business areas',
+                                   'deadline':'2026-12-01','tasks':['Respect no-soliciting signs','Ask before leaving materials'],'materials':['Owner-provided sample kit'],'bonusRules':[]}}
+                    def detail(route):
+                        if 'resource=gig&' in route.request.url:
+                            route.fulfill(status=200,content_type='application/json',body=json.dumps({'item':item,'events':[],'negotiations':[]}))
+                        else:route.fallback()
+                    page.route('**/api/operator-partners*',detail)
+                page.goto(origin+'/partners#'+('statements/'+STATEMENT if state=='weekly-statement' else 'agreements/copy/'+ISSUE if state=='agreement-copy' else 'programs' if state=='program-bindings' else 'legal/package/'+PACKAGE if state=='review-package' else 'legal/feedback/'+FEEDBACK if state=='review-feedback' else 'legal' if state=='review-create' else 'gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else 'leads' if state=='leads-suppressed' else 'finance/export/'+BATCH if state=='accounting-export' else 'legal/version/'+VERSION if state in ['legal-version','missing-review'] else state))
+                page.get_by_role('heading',level=1).wait_for()
+                if state=='agreements':
+                    form=page.locator('[data-issue-agreement]')
+                    form.get_by_role('combobox',name='Program',exact=True).select_option(AGREEMENT_PROGRAM)
+                    form.get_by_role('combobox',name='Active partner',exact=True).select_option(AGREEMENT_PARTNER)
+                    form.get_by_role('combobox',name='Exact reviewed source',exact=True).select_option(AGREEMENT_VERSION)
+                    form.get_by_label('partner name (private-person-name)',exact=True).fill('Synthetic private partner')
+                    form.get_by_label('service date (date)',exact=True).fill('2026-10-25')
+                if state=='program-bindings':
+                    page.get_by_text('Bind reviewed agreement and outreach policy',exact=True).click()
+                    page.locator('[data-program-bindings]').get_by_role('combobox',name='Reviewed agreement',exact=True).select_option(AGREEMENT_VERSION)
+                if state=='agreement-copy' and scheme=='light':page.get_by_text('Compare with the exact source at issuance',exact=True).click()
+                if state=='accounts':
+                    page.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True).check()
+                    page.get_by_role('button',name='Issue recovery code',exact=True).click()
+                    page.get_by_label('One-time recovery code',exact=True).wait_for()
+                if state=='review-create':
+                    page.get_by_text('Create professional review package',exact=True).click()
+                    form=page.locator('[data-review-package-create]');form.locator('[name=versionIds]').check()
+                    for reviewer,role,scopes in [('Synthetic professional counsel','attorney',['Agreement language','Classification']),('Synthetic accountant','cpa',['Accounting'])]:
+                        form.get_by_role('button',name='Add named reviewer',exact=True).click();row=form.locator('[data-reviewer]').last
+                        row.get_by_label('Reviewer name',exact=True).fill(reviewer);row.get_by_role('combobox',name='Professional role',exact=True).select_option(role)
+                        for scope in scopes:row.get_by_label(scope,exact=True).check()
+                    form.get_by_label('Grant expires at (ISO 8601 with timezone)',exact=True).fill('2026-11-01T10:00:00Z')
+                    form.get_by_label('Private factual brief and review questions',exact=True).fill('Synthetic review questions only. Please identify conditions and re-review triggers.')
+                if state=='review-package':
+                    form=page.locator('[data-record-review]');form.get_by_role('combobox',name='Reviewed source version',exact=True).select_option(VERSION)
+                    form.get_by_role('combobox',name='Named reviewer and scope',exact=True).select_option('0')
+                    form.get_by_role('combobox',name='Professional decision',exact=True).select_option('changes_requested')
+                if state=='missing-review':
+                    page.get_by_role('button',name='Publish reviewed revision',exact=True).click()
+                    page.get_by_text('This exact version is not approved. Missing requirements: Classification review; Agreement language review.',exact=True).wait_for()
+                if state=='legal-version' and scheme=='light':page.get_by_text('Typed variables and required reviews',exact=True).click()
+                if state=='finance' and scheme=='light':page.locator('main details').evaluate_all('(xs)=>xs.forEach(x=>x.open=true)')
+                if state=='leads' and scheme=='light':page.get_by_text('Correct contact or purpose',exact=True).click()
+                if state=='campaigns':
+                    page.get_by_label('Offer title',exact=True).fill('Permitted business introductions')
+                    page.get_by_label('Offered fee (USD)',exact=True).fill('40.00')
+                    page.get_by_label('Permitted area',exact=True).fill('Tulsa permitted business areas')
+                    page.get_by_label('Completion deadline',exact=True).fill('2026-12-01')
+                    page.get_by_label('Objective tasks (one per line)',exact=True).fill('Ask permission before leaving materials\nRecord consenting introductions')
+                    page.get_by_role('button',name='Add conditional bonus',exact=True).click()
+                    page.get_by_label('Bonus reference',exact=True).fill('settled-sale')
+                    page.get_by_role('combobox',name='Qualifying event',exact=True).select_option('verified_sale')
+                    page.get_by_label('Bonus per award (USD)',exact=True).fill('20.00')
+                    page.get_by_label('Maximum awards',exact=True).fill('2')
+                    page.get_by_label('Objective qualification criteria',exact=True).fill('Independent full settlement and customer opt-in verified by the owner.')
+                    page.get_by_label('Qualify by (Central date)',exact=True).fill('2026-12-31')
+                    page.get_by_label('Refund treatment for a paid-sale bonus',exact=True).fill('Owner reviews refunds separately; no automatic clawback.')
+                page.evaluate('document.activeElement?.blur();window.scrollTo(0,0)')
+                if state=='missing-review':page.locator('#owner-message').scroll_into_view_if_needed()
+                site.screenshot(path,full_page=state!='missing-review')
+                assert not site.page_errors
+            captured.append((f'Owner partners {state} · {scheme}',path))
+    return captured
+
+
+def capture_material_states() -> list[tuple[str, Path]]:
+    from tests.e2e.test_partner_materials import install_owner_material_fixture,install_partner_material_fixture,GIG
+    from tests.support.partner_harness import running_partner_shell
+    captured=[]
+    with running_operator_workspace() as (_,owner,_),running_partner_shell() as partner:
+        for state in ['owner-entry','owner-error','partner-history']:
+            for width,scheme in [(390,'dark'),(320,'light')]:
+                with SiteBrowser(viewport=(width,844),color_scheme=scheme,reduced_motion='reduce') as site:
+                    page=site.page
+                    if state=='partner-history':
+                        install_partner_material_fixture(page,long_label=True);page.goto(partner+'/gigs/'+GIG)
+                        page.get_by_role('heading',name='Supplied and returned materials',exact=True).wait_for()
+                    else:
+                        install_owner_material_fixture(page,reject=state=='owner-error');page.goto(owner+'/partners#gig/'+GIG)
+                        form=page.locator('[data-material-record]')
+                        form.get_by_label('Material label 1',exact=True).fill('Owner-provided sample signs')
+                        form.get_by_label('Material count 1',exact=True).fill('5')
+                        if state=='owner-entry':
+                            form.get_by_role('button',name='Add material item',exact=True).click()
+                            form.get_by_label('Material label 2',exact=True).fill('Flyer bundle')
+                            form.get_by_label('Material count 2',exact=True).fill('1')
+                        else:
+                            form.get_by_role('combobox',name='Material event',exact=True).select_option('returned')
+                            form.get_by_role('button',name='Record materials',exact=True).click()
+                            page.get_by_text('This return exceeds the recorded supplied materials.',exact=True).wait_for()
+                    path=OUTPUT/f'partner-materials-{state}-{scheme}.png'
+                    page.evaluate('document.activeElement?.blur()')
+                    if state=='owner-error':site.screenshot(path,full_page=False)
+                    else:page.locator('[data-owner-materials]' if state=='owner-entry' else '[data-material-history]').screenshot(path=str(path),animations='disabled')
+                    assert not site.page_errors
+                    captured.append((f'Materials {state} · {scheme}',path))
+    return captured
+
+
+def capture_offline_review_states() -> list[tuple[str, Path]]:
+    from tests.e2e.test_partner_review_reader import offline_review_fixture, unlock_fixture
+    fixture=offline_review_fixture();captured=[]
+    for state in ['locked','unlocked']:
+        for width,scheme in [(320,'light'),(390,'dark')]:
+            with SiteBrowser(viewport=(width,844),color_scheme=scheme,reduced_motion='reduce') as site:
+                page=site.page;site.context.set_offline(True);page.goto((ROOT/'operator'/'review-reader.html').as_uri())
+                if state=='unlocked':unlock_fixture(page,fixture)
+                path=OUTPUT/f'offline-review-{state}-{scheme}.png';page.screenshot(path=str(path),full_page=True)
+                captured.append((f'Offline professional review {state} - {scheme}',path))
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -456,11 +706,21 @@ def main() -> int:
         ("Consult intake · desktop · light", capture("/order.html?service=consult", "order-consult-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_consult_details)),
         ("Storage warning · mobile · dark", capture("/order.html?service=consult", "order-storage-warning-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_storage_warning, storage_denied=True)),
     ]
+    cases.extend([
+        ("Referral permission · mobile · dark", capture('/order.html?service=consult', 'order-referral-contact-dark.png', viewport=(390,844), scheme='dark', full_page=True, prepare=prepare_referral_contact)),
+        ("Referral permission · narrow · light", capture('/order.html?service=consult', 'order-referral-contact-light.png', viewport=(320,844), scheme='light', full_page=True, prepare=prepare_referral_contact)),
+        ("Privacy · referral notice · light", capture('/privacy.html', 'privacy-referral-light.png', viewport=(1280,1000), scheme='light', full_page=True)),
+    ])
     cases.extend(capture_customize_states())
     cases.extend(capture_operator_states())
     cases.extend(capture_inquiry_workflow_states())
     cases.extend(capture_filament_states())
     cases.extend(capture_spoolman_states())
+    cases.extend(capture_partner_states())
+    cases.extend(capture_partner_offline_states())
+    cases.extend(capture_partner_owner_states())
+    cases.extend(capture_material_states())
+    cases.extend(capture_offline_review_states())
     capture("/", "home-full-page-light.png", viewport=(1440, 1000), scheme="light", full_page=True)
     board = build_preview_board(cases)
     print(f"Captured {len(cases) + 1} screenshots and {board.relative_to(ROOT)}")

@@ -32,3 +32,13 @@ test('Spoolman polling is independent and does not overlap',async()=>{
   const first=jobs.tick();await Promise.resolve();time=5000;await jobs.tick();assert.equal(calls,1);release();await first;
   time=10000;await jobs.tick();assert.equal(calls,2);
 });
+
+test('weekly statement batches poll independently each minute, never overlap and retry after failure',async()=>{
+ let time=0,expiry=0,calls=0,release;const errors=[];
+ const blocked=new Promise(r=>release=r);
+ const jobs=createPlatformJobs({env:{PLATFORM_JOBS_ENABLED:'1'},now:()=>time,drain:async()=>{},cleanup:async()=>{},expire:async()=>expiry++,statements:async()=>{calls++;if(calls===1)await blocked;if(calls===2)throw Error('PRIVATE');},onError:name=>errors.push(name)});
+ const first=jobs.tick();await Promise.resolve();assert.equal(calls,1);
+ time=60000;await jobs.tick();assert.equal(calls,1);assert.equal(expiry,2);release();await first;
+ time=120000;await jobs.tick();assert.equal(calls,2);assert.deepEqual(errors,['statements']);
+ time=180000;await jobs.tick();assert.equal(calls,3);
+});

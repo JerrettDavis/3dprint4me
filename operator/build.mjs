@@ -7,6 +7,8 @@ await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await Promise.all([
   cp(resolve(root, "index.html"), resolve(output, "index.html")),
+  cp(resolve(root, "partners.html"), resolve(output, "partners.html")),
+  cp(resolve(root, "review-reader.html"), resolve(output, "review-reader.html")),
   cp(resolve(root, "manifest.webmanifest"), resolve(output, "manifest.webmanifest")),
   cp(resolve(root, "sw.js"), resolve(output, "sw.js")),
   cp(resolve(root, "assets"), resolve(output, "assets"), { recursive: true })

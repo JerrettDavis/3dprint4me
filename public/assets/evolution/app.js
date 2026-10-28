@@ -1,7 +1,7 @@
-import '../js/site.js?v=d367ecc51c8342f1';
-import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=d367ecc51c8342f1';
-import { PROJECTS, INTENT_LABELS } from './projects.js?v=d367ecc51c8342f1';
-import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=d367ecc51c8342f1';
+import '../js/site.js?v=8a2c8406a349c4e2';
+import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=8a2c8406a349c4e2';
+import { PROJECTS, INTENT_LABELS } from './projects.js?v=8a2c8406a349c4e2';
+import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=8a2c8406a349c4e2';
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
@@ -250,7 +250,7 @@ document.addEventListener('click', event => {
   const ask = event.target.closest('[data-ask]'); if (ask) { event.preventDefault(); openInquiry(ask.dataset.ask, ask.dataset.entry || 'unknown', ask.dataset.example || null); return; }
   const project = event.target.closest('[data-project]'); if (project) { event.preventDefault(); openProject(project.dataset.project); return; }
 });
-if ('IntersectionObserver' in window) new IntersectionObserver(entries => { $('#mobile-ask').classList.toggle('is-away', entries.some(entry => entry.isIntersecting)); }, { threshold: .25 }).observe($('#final-cta'));
+if ('IntersectionObserver' in window) new IntersectionObserver(entries => { $('#mobile-ask').classList.toggle('is-away', entries.some(entry => entry.isIntersecting)); }, { threshold: .25 }).observe($('.shop-help'));
 const initialSearch = new URLSearchParams(window.__THREEDP_TEST_SEARCH || location.search);
 const initialProject = initialSearch.get('project');
 if (initialProject && PROJECTS.some(project => project.slug === initialProject)) openProject(initialProject, false);
@@ -258,3 +258,26 @@ if (initialProject && PROJECTS.some(project => project.slug === initialProject))
 document.querySelector('#year').textContent = new Date().getFullYear();
 
 if (initialSearch.get('ask') === 'unknown') openInquiry('unknown', 'navigation');
+
+// Product filters remain independent of published-project filters and share links.
+const shopSearch = document.querySelector('#shop-search');
+if (shopSearch) {
+  let purpose = 'all';
+  const productCards = [...document.querySelectorAll('#shop-grid .cat-tile')];
+  const purposeButtons = [...document.querySelectorAll('[data-purpose-filter]')];
+  const updateShop = () => {
+    const words = shopSearch.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+    let count = 0;
+    for (const card of productCards) {
+      const matches = (purpose === 'all' || card.dataset.purpose === purpose) && words.every(word => card.textContent.toLocaleLowerCase().includes(word));
+      card.hidden = !matches;
+      if (matches) count++;
+    }
+    document.querySelector('#shop-count').textContent = `${count} starting point${count === 1 ? '' : 's'}`;
+    document.querySelector('#shop-empty').hidden = count !== 0;
+    purposeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.purposeFilter === purpose)));
+  };
+  purposeButtons.forEach(button => button.addEventListener('click', () => { purpose = button.dataset.purposeFilter; updateShop(); }));
+  shopSearch.addEventListener('input', updateShop);
+  document.querySelector('#shop-reset').addEventListener('click', () => { purpose = 'all'; shopSearch.value = ''; updateShop(); shopSearch.focus(); });
+}

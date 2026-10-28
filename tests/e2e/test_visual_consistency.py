@@ -35,7 +35,7 @@ def test_shared_visual_system_across_routes(theme, width):
 def test_shared_inquiry_entry_and_mobile_menu():
     with SiteBrowser(viewport=(390, 844)) as site:
         page = site.load('/services.html')
-        assert page.locator('.nav-actions .button').get_attribute('href') == '/?ask=unknown'
+        assert page.locator('.nav-actions .button').get_attribute('href') == '/order.html?service=print'
         page = site.load('/?ask=unknown')
         assert page.locator('#ask-dialog').is_visible()
         page.keyboard.press('Escape')
