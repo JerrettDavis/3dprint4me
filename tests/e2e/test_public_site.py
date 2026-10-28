@@ -91,6 +91,14 @@ def test_approved_original_projects_lead_the_portfolio() -> None:
         assert featured.count() == 1
         assert "ioniq" in featured.get_attribute("alt").lower()
         assert home.locator("a[href='/portfolio.html']").count() >= 1
+        # The retained project gallery is below the catalog, so its lazy image must enter
+        # the viewport before loading; page load does not wait for off-screen images.
+        featured.scroll_into_view_if_needed()
+        home.wait_for_function(
+            "img => img.complete && img.naturalWidth > 0",
+            arg=featured.element_handle(),
+            timeout=5000,
+        )
         assert featured.evaluate("img => img.complete && img.naturalWidth > 0")
 
         work = site.load("/portfolio.html")
