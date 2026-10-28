@@ -16,6 +16,7 @@ from contextlib import contextmanager
 from tests.support.server import ROOT, free_port, request
 from tests.support.browser_harness import SiteBrowser
 from tests.support.ports import reserved_loopback_ports
+from tests.support.partner_container_cleanup import cleanup_partner_container
 
 
 @contextmanager
@@ -117,15 +118,7 @@ def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed
                     else:
                         os.killpg(native.pid, signal.SIGKILL)
                     native.wait(timeout=5)
-            # Verify exact name and label before fallback cleanup; never stop unrelated containers.
-            inspected = subprocess.run(['docker', 'inspect', container], capture_output=True, text=True, timeout=15)
-            if inspected.returncode == 0:
-                details = json.loads(inspected.stdout)[0]
-                assert details['Name'] == '/' + container
-                assert details['Config']['Labels']['3dprint4me.purpose'] == 'partner-browser'
-                subprocess.run(['docker', 'rm', '--force', container], check=True, capture_output=True, timeout=15)
-            elif not any(message in inspected.stderr.lower() for message in ['no such object', 'no such container']):
-                raise RuntimeError('Could not verify disposable partner container cleanup')
+            cleanup_partner_container(container)
             if clock_root:clock_root.cleanup()
 
 
