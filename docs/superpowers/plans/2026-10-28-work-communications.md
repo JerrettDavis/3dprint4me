@@ -53,8 +53,10 @@ Files: operator conversation/model modules, API client/controller, CSS, service 
 
 ### Task 4: Verify and release
 
-- [ ] Update operator runbook, print contracts and deployment/migration instructions.
-- [ ] Run npm test, native database checks, screenshots and inspect preview-board.png.
-- [ ] Review full diff against spec, resolve defects and rerun affected checks.
-- [ ] Merge tested changes to main, checkpoint/apply additive migration and deploy following repository runbooks.
-- [ ] Verify deployed commit/assets, unauthenticated rejection and synthetic conversation/private-model/re-estimation journey. Record evidence and clean up synthetic data.
+- [x] Update operator runbook, print contracts and deployment/migration instructions.
+- [x] Run npm test, native database checks, screenshots and inspect preview-board.png.
+- [x] Review full diff against spec, resolve defects and rerun affected checks.
+- [x] Merge tested changes to main, checkpoint/apply additive migration and deploy following repository runbooks.
+- [x] Verify deployed commit/assets, unauthenticated rejection and synthetic conversation/private-model/re-estimation journey. Record evidence and clean up synthetic data.
+
+Release evidence and deployed identities: [WORK-COMMUNICATIONS.md](../../WORK-COMMUNICATIONS.md#acceptance-evidence).
