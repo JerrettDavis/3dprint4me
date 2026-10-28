@@ -23,11 +23,11 @@ test('native PostgreSQL migrations, email claims, private model revisions and re
   for(const file of MIGRATIONS)await admin.query(await readFile(new URL('../../neon/migrations/'+file,import.meta.url),'utf8'));
   for(const file of ['014_work_communications.sql','015_operator_model_revisions.sql'])await admin.query(await readFile(new URL('../../neon/migrations/'+file,import.meta.url),'utf8'));
   database=createNativeDatabase({pool:new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@')))});
-  const request={service:'print',projectTitle:'Synthetic revised model',contact:{email:'synthetic@example.test'}};
+  const request={service:'print',projectTitle:'Synthetic revised model',contact:{email:'synthetic@example.test'},consent:false,estimate:null};
   await admin.query("INSERT INTO operators(id,auth_user_id,display_name,role) VALUES('op_native','synthetic','Synthetic','owner')");
-  await admin.query("INSERT INTO service_requests(id,service,project_title,contact_name,contact_email,payload) VALUES('req_native','print','Synthetic','Synthetic','synthetic@example.test',$1)",[JSON.stringify(request)]);
-  await admin.query("INSERT INTO work_items(id,request_id) VALUES('work_native_12345678','req_native')");
-  const work={item:{id:'work_native_12345678',requestId:'req_native'},request},operator={id:'op_native',displayName:'Synthetic',role:'owner'};
+  await admin.query("INSERT INTO service_requests(id,status,service,project_title,contact_name,contact_email,payload) VALUES('req_native','draft','print','Synthetic','Synthetic','synthetic@example.test',$1)",[JSON.stringify(request)]);
+  await admin.query("INSERT INTO work_items(id,request_id,project_draft) VALUES('work_native_12345678','req_native',true)");
+  const work={item:{id:'work_native_12345678',requestId:'req_native',projectDraft:true},request},operator={id:'op_native',displayName:'Synthetic',role:'owner'};
   let calls=0;const service=createCommunicationService({repository:createCommunicationRepository({database}),delivery:async()=>{calls++;await new Promise(resolve=>setTimeout(resolve,40));return {state:'sent'};}});
   const command={commandId:'command_native_123',kind:'email',body:'Synthetic dispatch'};
   const rows=await Promise.all(Array.from({length:8},()=>service.create(work,command,operator)));
@@ -43,6 +43,7 @@ test('native PostgreSQL migrations, email claims, private model revisions and re
    await models.finish(work,grant);await models.finish(work,grant);
   }
   const detail=await repository.forRequest('req_native');assert.equal(detail.assets.length,2);assert.equal(detail.estimates.filter(row=>row.purpose==='operator').length,2);
+  const {rows:[unchanged]}=await admin.query("SELECT s.status,s.payload,w.project_draft FROM service_requests s JOIN work_items w ON w.request_id=s.id WHERE s.id='req_native'");assert.equal(unchanged.status,'draft');assert.equal(unchanged.project_draft,true);assert.equal(unchanged.payload.consent,false);assert.equal(unchanged.payload.estimate,null);
  }finally{
   await database?.close();await admin?.end();
   if(started){const info=JSON.parse(docker('inspect',name))[0];assert.equal(info.Config.Labels['3dprint4me.purpose'],'communications-test');docker('stop',info.Id);}

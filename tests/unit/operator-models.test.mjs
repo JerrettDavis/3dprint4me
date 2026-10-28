@@ -9,6 +9,8 @@ import {createOperatorModels} from '../../lib/print-estimation/application/opera
 import {selectLatestEstimate,createOperatorPrintView} from '../../lib/print-estimation/application/operator-view.js';
 import {createSliceJobRunner} from '../../lib/print-estimation/application/slice-jobs.js';
 import {zipSync} from 'fflate';
+import {createEstimateSessionUseCases} from '../../lib/print-estimation/application/estimate-session.js';
+import {hashCapability} from '../../lib/print-estimation/capability.js';
 const work={item:{id:'work_models_12345678',requestId:'req_models_12345678'},request:{service:'print',specifications:{material:'petg'}}};
 async function fixture(t) {
  const dir=await mkdtemp(join(tmpdir(),'operator-models'));t.after(()=>rm(dir,{recursive:true,force:true}));
@@ -70,4 +72,25 @@ test('active operator revision survives more than fifty later stale slice snapsh
  const history=await f.repository.forRequest(work.item.requestId);assert.equal(history.estimates.some(row=>row.purpose==='operator'),false);
  const view=await createOperatorPrintView({repository:f.repository,fileStore:f.fileStore}).forWork(work);
  assert.equal(view.latestEstimate.id,active.id);assert.equal(view.latestEstimate.assumptions.quantity,1);
+});
+test('operator-prepared drafts accept private models and planning estimates without manufacturing consent',async t=>{
+ const f=await fixture(t),draft={item:{...work.item,projectDraft:true},request:{...work.request,consent:false,estimate:null,specifications:{}}},bytes=model();
+ const grant=await f.service.authorizeUpload(draft,{filename:'draft.stl',size:bytes.length});f.objects.set(new URL(grant.uploadUrl).pathname.slice(1),bytes);
+ const finished=await f.service.finish(draft,grant);assert.equal(finished.status,'ready');
+ await f.service.estimate(draft,{assetId:grant.assetId,options:{material:'petg',quantity:2}});
+ assert.equal(draft.item.projectDraft,true);assert.equal(draft.request.consent,false);assert.equal(draft.request.estimate,null);
+});
+test('a completed customer submission supersedes an earlier draft planning revision',()=>{
+ const base={assetId:'asset_one',input:{options:{material:'pla',quality:'standard',colors:1,supports:'none'}},geometry:{operatorRevision:'draft_revision'}};
+ const submission={...base,id:'new_customer',purpose:'submission',geometry:{}};
+ const draft={...base,id:'old_draft',purpose:'operator'};
+ assert.equal(selectLatestEstimate([submission,draft]).id,submission.id);
+});
+test('customer model session can attach after operator planning sessions and become authoritative',async t=>{
+ const f=await fixture(t),draft={...work,item:{...work.item,projectDraft:true}},grant=await upload(f);await f.service.finish(draft,grant);
+ const customer=createEstimateSessionUseCases({repository:f.repository,fileStore:f.fileStore,materialCosts:createFilamentUseCases({repository:f.repository})});
+ const session=await customer.create({options:{quantity:4}}),bytes=model(),uploadGrant=await customer.authorizeUpload({...session,filename:'customer.stl',size:bytes.length});
+ f.objects.set(new URL(uploadGrant.uploadUrl).pathname.slice(1),bytes);await customer.analyze({...session,assetId:uploadGrant.assetId},{purpose:'submission'});
+ assert.equal((await f.repository.attachSession({sessionId:session.sessionId,ownershipHash:hashCapability(session.token),requestId:work.item.requestId})).attached,true);
+ const latest=await f.repository.latestAuthoritativeEstimate(work.item.requestId);assert.equal(latest.purpose,'submission');assert.equal(latest.input.options.quantity,4);
 });

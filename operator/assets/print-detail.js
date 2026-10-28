@@ -113,7 +113,7 @@ function runsSection(printEstimation, latest, onRecordRun) {
 }
 
 /** Returns the print section for a job sheet, or null when the request has no print estimate data. */
-export function renderPrintEstimation(printEstimation, { onDownload, onRecordRun }) {
+export function renderPrintEstimation(printEstimation, { onDownload, onRecordRun,planningOnly=false }) {
   if (!printEstimation) return null;
   const section = el("section", "print-sheet");
   section.setAttribute("aria-labelledby", "print-sheet-title");
@@ -133,6 +133,7 @@ export function renderPrintEstimation(printEstimation, { onDownload, onRecordRun
     history.append(table("Estimate snapshots, newest first", ["Created", "Type", "Range", "Internal cost", "Target margin"], printEstimation.estimates.map(row => [when(row.createdAt), `${titleCase(row.estimatorType)} · ${row.purpose}`, `${money(row.low)}–${money(row.high)}`, money(row.costTotal), percent(row.targetMargin)])));
     section.append(history);
   }
-  section.append(runsSection(printEstimation, printEstimation.latestEstimate, onRecordRun));
+  if(planningOnly)section.append(el('p','print-meta','Draft planning estimate only. Customer details and consent remain incomplete; production and invoicing are not approved.'));
+  else section.append(runsSection(printEstimation, printEstimation.latestEstimate, onRecordRun));
   return section;
 }
