@@ -58,9 +58,10 @@ function fileRows(assets, onDownload) {
   return list;
 }
 
-function latestSection(estimate) {
+function latestSection(estimate,assetName) {
   const section = el("div", "print-latest");
   section.append(el("h4", "", "Latest estimate"));
+  if(assetName)section.append(el('p','print-basis',`Model: ${assetName}. This estimate covers this model or its selected pack parts.`));
   const basis = [titleCase(estimate.estimatorType), `${estimate.confidence} confidence`, [estimate.engine, estimate.engineVersion].filter(Boolean).join(" "), estimate.profileId, `pricing ${estimate.pricingModelVersion}`, when(estimate.createdAt)].filter(Boolean).join(" · ");
   section.append(el("p", "print-basis", basis));
   const p = estimate.pricing;
@@ -121,7 +122,7 @@ export function renderPrintEstimation(printEstimation, { onDownload, onRecordRun
   if (!printEstimation.available) { section.append(el("p", "print-meta", "Print estimate data is unavailable right now. The request itself is intact.")); return section; }
   if (!printEstimation.assets.length && !printEstimation.latestEstimate) { section.append(el("p", "print-meta", "No private model or estimate snapshot is attached to this request.")); return section; }
   if (printEstimation.assets.length) { section.append(el("h4", "", "Source files"), fileRows(printEstimation.assets, onDownload)); }
-  if (printEstimation.latestEstimate) section.append(latestSection(printEstimation.latestEstimate));
+  if (printEstimation.latestEstimate) section.append(latestSection(printEstimation.latestEstimate,printEstimation.assets.find(asset=>asset.id===printEstimation.latestEstimate.assetId)?.originalName));
   if (printEstimation.jobs.length) {
     const jobs = el("div", "print-jobs"); jobs.append(el("h4", "", "Slicer analysis"));
     jobs.append(table("Analysis jobs", ["Job", "State", "Attempts", "Last error", "Next attempt"], printEstimation.jobs.map(job => [`${titleCase(job.jobType)} · ${job.profileKey}`, titleCase(job.state), `${job.attemptCount}/${job.maxAttempts}`, job.lastErrorCategory ? titleCase(job.lastErrorCategory) : "—", job.state === "pending" ? when(job.nextAttemptAt) : "—"])));

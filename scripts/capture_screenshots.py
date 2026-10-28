@@ -680,6 +680,27 @@ def capture_offline_review_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def capture_work_conversations() -> list[tuple[str, Path]]:
+    captured=[]
+    with running_operator_workspace({'RESEND_API_KEY':''}) as (storefront,operator,store_path):
+        seeded=seed_print_request(storefront,store_path,title='Revised equipment bracket')
+        state=json.loads(store_path.read_text(encoding='utf8'))
+        work=next(row for row in state['workItems'] if row['requestId']==seeded['requestId'])
+        for index,kind,body in [(1,'comment','Measured the mounting holes. Keep the original model for comparison.'),(2,'email','Your revised bracket is ready for review. Please confirm the mounting dimensions before production.')]:
+            status,_,_=json_request(storefront+'/api/operator-work?resource=communications',method='POST',headers={'Origin':operator},payload={'action':'create','workId':work['id'],'command':{'commandId':f'screenshot_message_{index}','kind':kind,'body':body}})
+            assert status==200
+        for width,scheme in [(1440,'light'),(390,'light'),(1440,'dark'),(390,'dark')]:
+            with SiteBrowser(viewport=(width,1000),color_scheme=scheme,reduced_motion='reduce') as site:
+                page=site.page;page.goto(operator+'/work/'+work['id'],wait_until='networkidle')
+                page.locator('.conversation-message').first.wait_for()
+                for selector,label in [('.conversation-sheet','conversation'),('.model-sheet','models')]:
+                    path=OUTPUT/f'operator-{label}-{width}-{scheme}.png'
+                    page.locator(selector).screenshot(path=str(path))
+                    captured.append((f'Operator {label} · {width} · {scheme}',path))
+                site.assert_no_page_errors()
+    return captured
+
+
 def main() -> int:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     cases = [
@@ -713,6 +734,7 @@ def main() -> int:
     ])
     cases.extend(capture_customize_states())
     cases.extend(capture_operator_states())
+    cases.extend(capture_work_conversations())
     cases.extend(capture_inquiry_workflow_states())
     cases.extend(capture_filament_states())
     cases.extend(capture_spoolman_states())

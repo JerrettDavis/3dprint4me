@@ -10,6 +10,7 @@ import { createOperatorInvoiceHandler } from "../lib/invoicing/operator-api.js";
 import { createOperatorInquiryWorkflowHandler } from '../lib/inquiry-workflow/operator-api.js';
 import { createInquiryWorkflowRuntime } from '../lib/inquiry-workflow/runtime.js';
 import { createFilamentMatchingUseCases } from '../lib/filament-matching/application.js';
+import { createCommunicationHandler } from '../lib/work-communications/operator-api.js';
 
 function defaultPrintEstimates() {
   const print = createPrintEstimationRuntime();
@@ -41,6 +42,7 @@ export function createWorkHandler({ store, runtime, identityProvider, authorize,
   let provider = identityProvider;
   const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createConfiguredIdentityProvider()));
   const billingHandler = createOperatorInvoiceHandler({ runtime: work, authorize: authorizeRequest, allowedOrigins, invoicing, localPath: invoiceLocalPath });
+  const communicationHandler=createCommunicationHandler({work,authorize:authorizeRequest,allowedOrigins});
   const inquiryHandler=createOperatorInquiryWorkflowHandler({authorize:authorizeRequest,allowedOrigins,
     getRuntime:()=>inquiryWorkflow??createInquiryWorkflowRuntime({workRepository:work.repository})});
   const workHandler = createOperatorApiHandler({ methods: ["GET"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
@@ -56,7 +58,7 @@ export function createWorkHandler({ store, runtime, identityProvider, authorize,
   } });
   return (req,res)=>{
     const resource=new URL(req.url??'/api/operator-work','https://operator-api.invalid').searchParams.get('resource');
-    return (resource==='invoices'?billingHandler:resource==='inquiries'?inquiryHandler:workHandler)(req,res);
+    return (resource==='communications'?communicationHandler:resource==='invoices'?billingHandler:resource==='inquiries'?inquiryHandler:workHandler)(req,res);
   };
 }
 
