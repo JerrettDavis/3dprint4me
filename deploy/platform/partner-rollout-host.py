@@ -200,7 +200,7 @@ def deploy_release(verified_context, *, runner):
         full = compose+['-f',str(override)]
         runner(full+['config','--quiet'])
         migrations = '\n'.join((source/'neon/migrations'/name).read_text(encoding='utf-8')
-                               for name in ('012_partner_outreach.sql','013_partner_weekly_statements.sql'))
+                               for name in ('012_partner_outreach.sql','013_partner_weekly_statements.sql','014_work_communications.sql','015_operator_model_revisions.sql'))
         assert_selection()
         sql("BEGIN;SET LOCAL lock_timeout='5s';"+migrations+'\nCOMMIT;')
         stage('selected-native-partner-schema-ready')

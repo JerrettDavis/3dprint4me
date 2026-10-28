@@ -24,6 +24,7 @@ REQUIRED_FILES = ('deploy/platform/Dockerfile', 'deploy/platform/partner-release
                   'deploy/platform/partner-rollout-host.py',
                   'deploy/slicer-worker/Dockerfile.bambu', 'scripts/rehearse-partner.mjs',
                   'neon/migrations/012_partner_outreach.sql', 'neon/migrations/013_partner_weekly_statements.sql',
+                  'neon/migrations/014_work_communications.sql', 'neon/migrations/015_operator_model_revisions.sql',
                   'package.json', 'package-lock.json')
 MAX_ARCHIVE = 32 * 1024 * 1024
 

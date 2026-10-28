@@ -31,7 +31,9 @@ class RolloutChecks(unittest.TestCase):
         (self.source / 'neon/migrations').mkdir(parents=True)
         self.source.chmod(0o700)
         for name, text in [('012_partner_outreach.sql', 'CREATE TABLE partner_fixture_012(id uuid);'),
-                           ('013_partner_weekly_statements.sql', 'CREATE TABLE partner_fixture_013(id uuid);')]:
+                           ('013_partner_weekly_statements.sql', 'CREATE TABLE partner_fixture_013(id uuid);'),
+                           ('014_work_communications.sql', 'CREATE TABLE work_fixture_014(id uuid);'),
+                           ('015_operator_model_revisions.sql', 'CREATE TABLE work_fixture_015(id uuid);')]:
             (self.source / 'neon/migrations' / name).write_text(text, encoding='utf-8')
         old = self.root / 'candidate-source'
         old.mkdir(mode=0o700)
@@ -149,6 +151,8 @@ class RolloutChecks(unittest.TestCase):
         self.assertIn("BEGIN;SET LOCAL lock_timeout='5s';", sql)
         self.assertIn('partner_fixture_012', sql)
         self.assertIn('partner_fixture_013', sql)
+        self.assertIn('work_fixture_014', sql)
+        self.assertIn('work_fixture_015', sql)
         self.assertTrue(sql.endswith('COMMIT;'))
         self.assertNotIn('private-sentinel', json.dumps(proof))
         for args,_ in self.calls:

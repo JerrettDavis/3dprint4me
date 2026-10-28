@@ -26,30 +26,30 @@ Preserve AGENTS.md invariants. No customer data in public output, list/push payl
 
 Files: `lib/work-communications/{service,repository,local-repository,runtime,operator-api}.js`, `neon/migrations/014_work_communications.sql`, message unit/contract/integration tests.
 
-- [ ] Write failing tests for private comments, server-addressed emails, immutable idempotency replay, wrong-work access, claims, failures and retry expiry.
-- [ ] Run focused tests and confirm the failures.
-- [ ] Implement conversation list/create/retry with bounded plain text, per-work command identity, atomic claims, no network calls inside transactions and existing provider module.
-- [ ] Mount `resource=communications` under operator-work and return conversation detail independently of other sections.
-- [ ] Run focused tests, PostgreSQL migration and concurrent dispatch checks; commit.
+- [x] Write failing tests for private comments, server-addressed emails, immutable idempotency replay, wrong-work access, claims, failures and retry expiry.
+- [x] Run focused tests and confirm the failures.
+- [x] Implement conversation list/create/retry with bounded plain text, per-work command identity, atomic claims, no network calls inside transactions and existing provider module.
+- [x] Mount `resource=communications` under operator-work and return conversation detail independently of other sections.
+- [x] Run focused tests, PostgreSQL migration and concurrent dispatch checks; commit.
 
 ### Task 2: Work-bound models and estimate revisions
 
 Files: `lib/print-estimation/application/operator-models.js`, print repositories, operator print API, operator-view and associated tests.
 
-- [ ] Test work-bound upload creation/attachment, multiple revisions, lost-response replay, malformed files, selected ZIP parts and updated assumptions.
-- [ ] Implement authenticated upload/finish/re-estimate actions using existing analysis/session use cases; bind sessions to work server-side.
-- [ ] Add atomic operator attachment operations in both adapters and latest-revision selection that preserves original history and current slicer results.
-- [ ] Verify current material assumptions feed filament readiness without fabricated color mass.
-- [ ] Run focused tests and commit.
+- [x] Test work-bound upload creation/attachment, multiple revisions, lost-response replay, malformed files, selected ZIP parts and updated assumptions.
+- [x] Implement authenticated upload/finish/re-estimate actions using existing analysis/session use cases; bind sessions to work server-side.
+- [x] Add atomic operator attachment operations in both adapters and latest-revision selection that preserves original history and current slicer results.
+- [x] Verify current material assumptions feed filament readiness without fabricated color mass.
+- [x] Run focused tests and commit.
 
 ### Task 3: Job sheet UI and browser journeys
 
 Files: operator conversation/model modules, API client/controller, CSS, service worker, E2E tests and screenshot capture.
 
-- [ ] Test composer/comment/email status/retry, file upload and revised estimate with both 390px and desktop layouts.
-- [ ] Implement labeled composer with separate comment/email actions, explicit recipient and copy/retry controls, in-memory drafts, duplicate-submit prevention and auth/navigation guards.
-- [ ] Implement private upload and existing-model re-estimation with print options and pack selection; link filament corrections.
-- [ ] Version shell/assets; run focused browser coverage and inspect screenshots; commit.
+- [x] Test composer/comment/email status/retry, file upload and revised estimate with both 390px and desktop layouts.
+- [x] Implement labeled composer with separate comment/email actions, explicit recipient and copy/retry controls, in-memory drafts, duplicate-submit prevention and auth/navigation guards.
+- [x] Implement private upload and existing-model re-estimation with print options and pack selection; link filament corrections.
+- [x] Version shell/assets; run focused browser coverage and inspect screenshots; commit.
 
 ### Task 4: Verify and release
 

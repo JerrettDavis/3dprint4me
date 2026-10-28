@@ -10,6 +10,8 @@ Server behavior belongs to `lib/work-management/`: `domain.js` owns workflow pol
 
 ## Print estimate section
 
+For client email/comments, operator model uploads and immutable estimate revisions, see [Work conversations and private model revisions](WORK-COMMUNICATIONS.md). These controls are available on job sheets independently of the original intake's attachments.
+
 See [Filament inventory and readiness](#filament-inventory-and-readiness) for stock matching and substitutions, which also work without print-estimate assets.
 
 Print requests whose model was uploaded through the estimate flow show a **Print estimate** section in the private job sheet (never in the list, Push payloads, or Home Assistant):
