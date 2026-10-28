@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from playwright.sync_api import expect
+
 from tests.e2e.test_api import project_request
 from tests.support.browser_harness import SiteBrowser
 from tests.support.operator_harness import running_operator_workspace
@@ -26,8 +28,11 @@ def test_installed_operator_upgrade_removes_legacy_cached_assets() -> None:
             }""")
             page.wait_for_function("() => Boolean(navigator.serviceWorker.controller)")
             page.wait_for_function("async () => !(await caches.keys()).includes('operator-shell-v10') && !(await caches.match('/obsolete-v10.js'))")
-            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v12')")
+            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v28')")
             assert page.evaluate("async () => !(await caches.match('/obsolete-v10.js'))")
+            assert page.evaluate("async () => !!(await caches.match('/assets/partner-owner-forecasts.js'))")
+            assert page.evaluate("async () => !!(await caches.match('/assets/partner-owner-statements.js'))")
+            assert page.evaluate("async () => (await (await caches.match('/assets/partner-owner-client.js')).text()).includes('Missing requirements:')")
             # An ordinary reopen uses the new shell without clearing application storage.
             page.reload(wait_until="networkidle")
             page.locator("#workspace:not([hidden])").wait_for()
@@ -48,7 +53,8 @@ def test_intake_to_interactive_work_inbox() -> None:
             assert page is not None
             page.goto(operator, wait_until="networkidle")
             page.locator("#workspace:not([hidden])").wait_for()
-            assert page.locator("#work-list .work-row").count() == 1
+            # The signed-in workspace is shown while its private queue is loading.
+            expect(page.locator("#work-list .work-row")).to_have_count(1)
             assert page.locator("#work-list").inner_text().find(request["projectTitle"]) >= 0
             page.locator("#work-list .work-row").click()
             page.locator("#detail-content:not([hidden])").wait_for()

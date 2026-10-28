@@ -1,4 +1,4 @@
-import { SITE_CONFIG } from "./config.js?v=d367ecc51c8342f1";
+import { SITE_CONFIG } from "./config.js?v=8a2c8406a349c4e2";
 
 const icons = {
   sun: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41"/></svg>`,
@@ -10,6 +10,7 @@ const icons = {
 };
 
 const navItems = [
+  ["Shop", "/#categories"],
   ["Services", "/services.html"],
   ["Work", "/portfolio.html"],
   ["Customize", "/customize/"],
@@ -48,7 +49,7 @@ function headerMarkup() {
       ${navMarkup()}
       <div class="nav-actions">
         <button class="icon-button" id="theme-toggle" type="button" aria-label="Theme: system" title="Change theme">${icons.system}</button>
-        <a class="button primary small-button" href="/?ask=unknown" data-ask="unknown" data-entry="navigation">Let’s make something</a>
+        <a class="button primary small-button" href="/order.html?service=print">Print my file</a>
         <button class="icon-button menu-button" id="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-panel" aria-label="Open menu">${icons.menu}</button>
       </div>
     </div>

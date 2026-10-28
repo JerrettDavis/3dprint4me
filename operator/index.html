@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#12304a">
+  <meta name="theme-color" content="#174b71">
   <meta name="description" content="Private 3dprint4.me work inbox">
   <title>Work inbox · 3dprint4.me</title>
   <link rel="manifest" href="/manifest.webmanifest">
@@ -25,7 +25,8 @@
     </section>
     <div id="workspace" class="workspace" hidden>
       <aside class="queue" aria-labelledby="queue-title">
-        <div class="queue-heading"><div><p class="kicker">Build rail</p><h1 id="queue-title">Incoming work</h1></div><output id="work-count" aria-live="polite">0</output></div>
+        <div class="queue-heading"><div><p class="kicker">Operations</p><h1 id="queue-title">Incoming work</h1></div><output id="work-count" aria-label="Work items shown" aria-live="polite">0</output></div>
+        <p id="queue-summary" class="queue-summary" role="status">Loading work…</p>
         <form id="filters" class="filters" aria-label="Filter work">
           <label>View<select name="view"><option value="active">Active</option><option value="unacknowledged">Needs acknowledgment</option><option value="waiting">Waiting</option><option value="completed">Completed</option><option value="all">All</option></select></label>
           <label>Kind<select name="kind"><option value="">All work</option><option value="inquiry">Inquiries</option><option value="request">Project requests</option></select></label>
@@ -33,15 +34,15 @@
           <label>Priority<select name="priority"><option value="">Any priority</option><option value="urgent">Urgent</option><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></label>
         </form>
         <nav aria-label="Work requests"><ol id="work-list" class="work-list"></ol></nav>
-        <div id="empty-state" class="empty" hidden><strong>The rail is clear.</strong><p>New persisted requests will appear here.</p></div>
+        <div id="empty-state" class="empty" hidden><strong>No work in this view.</strong><p>Choose another view or check again when a new request arrives.</p></div>
       </aside>
       <section id="work-detail" class="detail" tabindex="-1" aria-labelledby="detail-title">
-        <div id="detail-placeholder" class="detail-placeholder"><span class="part-mark" aria-hidden="true">⌁</span><h2 id="detail-title">Select work to open its job sheet</h2><p>Customer details stay inside this private view.</p></div>
+        <div id="detail-placeholder" class="detail-placeholder"><h2 id="detail-title">Choose the next request.</h2><p>Review its next step, customer details and production record.</p></div>
         <div id="detail-content" hidden></div>
       </section>
     </div>
   </main>
-  <div class="utility-dock"><button id="filament-inventory" type="button" hidden>Filament inventory</button><button id="notifications" type="button">Manage notifications</button><button id="theme" type="button" aria-label="Change color theme">Theme: system</button></div>
+  <div class="utility-dock"><a id="partners-owner" href="/partners.html" hidden>Partners</a><button id="filament-inventory" type="button" hidden>Filament inventory</button><button id="notifications" type="button">Manage notifications</button><button id="theme" type="button" aria-label="Change color theme">Theme: system</button></div>
   <div id="toast" class="toast" role="presentation" aria-hidden="true" hidden></div>
   <p id="status-message" class="sr-only" role="status" aria-live="polite"></p>
   <noscript>This private inbox requires JavaScript for secure sign-in and updates.</noscript>

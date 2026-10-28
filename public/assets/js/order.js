@@ -1,23 +1,23 @@
-import "./site.js?v=d367ecc51c8342f1";
-import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=d367ecc51c8342f1";
-import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=d367ecc51c8342f1";
-import { toast } from "./site.js?v=d367ecc51c8342f1";
-import { createProjectRequestClient } from "./order/client.js?v=d367ecc51c8342f1";
-import { captureInquiryHandoff, takeInquiryText } from "./order/inquiry-handoff.js?v=d367ecc51c8342f1";
-import { createOrderController } from "./order/controller.js?v=d367ecc51c8342f1";
-import { createDraftStore } from "./order/draft-store.js?v=d367ecc51c8342f1";
-import { createFileManager } from "./order/files.js?v=d367ecc51c8342f1";
-import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=d367ecc51c8342f1";
-import { takeHandoff } from "./order/customize-handoff.js?v=d367ecc51c8342f1";
-import { createStepValidator } from "./order/validation.js?v=d367ecc51c8342f1";
-import { createOrderView } from "./order/view.js?v=d367ecc51c8342f1";
-import { resolveModelLimits } from "./print-estimation/mesh.js?v=d367ecc51c8342f1";
-import { modelFormat } from "./print-estimation/geometry.js?v=d367ecc51c8342f1";
-import { isArchiveName } from "./print-estimation/archive.js?v=d367ecc51c8342f1";
-import { createModelEstimateController } from "./print-estimation/controller.js?v=d367ecc51c8342f1";
-import { createModelPanelView } from "./print-estimation/view.js?v=d367ecc51c8342f1";
-import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=d367ecc51c8342f1";
-import { packRequestSpecifications } from "./print-estimation/pack.js?v=d367ecc51c8342f1";
+import "./site.js?v=8a2c8406a349c4e2";
+import { SITE_CONFIG, SERVICE_LABELS } from "./config.js?v=8a2c8406a349c4e2";
+import { buildRequestSummary, calculateEstimate, formatEstimate } from "./quote-engine.js?v=8a2c8406a349c4e2";
+import { toast } from "./site.js?v=8a2c8406a349c4e2";
+import { createProjectRequestClient } from "./order/client.js?v=8a2c8406a349c4e2";
+import { captureInquiryHandoff, takeInquiryText } from "./order/inquiry-handoff.js?v=8a2c8406a349c4e2";
+import { createOrderController } from "./order/controller.js?v=8a2c8406a349c4e2";
+import { createDraftStore } from "./order/draft-store.js?v=8a2c8406a349c4e2";
+import { createFileManager } from "./order/files.js?v=8a2c8406a349c4e2";
+import { activeProjectData, customizationFromHandoff, handoffPrefill, projectRequestFromData, readProjectForm } from "./order/model.js?v=8a2c8406a349c4e2";
+import { takeHandoff } from "./order/customize-handoff.js?v=8a2c8406a349c4e2";
+import { createStepValidator } from "./order/validation.js?v=8a2c8406a349c4e2";
+import { createOrderView } from "./order/view.js?v=8a2c8406a349c4e2";
+import { resolveModelLimits } from "./print-estimation/mesh.js?v=8a2c8406a349c4e2";
+import { modelFormat } from "./print-estimation/geometry.js?v=8a2c8406a349c4e2";
+import { isArchiveName } from "./print-estimation/archive.js?v=8a2c8406a349c4e2";
+import { createModelEstimateController } from "./print-estimation/controller.js?v=8a2c8406a349c4e2";
+import { createModelPanelView } from "./print-estimation/view.js?v=8a2c8406a349c4e2";
+import { createPrintEstimateClient, createPrivateEstimateFlow } from "./print-estimation/client.js?v=8a2c8406a349c4e2";
+import { packRequestSpecifications } from "./print-estimation/pack.js?v=8a2c8406a349c4e2";
 
 const form = document.querySelector("#project-form");
 addEventListener('hashchange',()=>{if(location.hash.startsWith('#inquiry='))location.reload();});
@@ -126,6 +126,7 @@ function mailtoFor(request) {
     `Rough estimate: ${request.estimate.formatted}`,
     `Name: ${request.contact.name}`,
     `Email: ${request.contact.email}`,
+    ...(request.referral?[`Referral credit requested: ${request.referral.code} (permission ${request.referral.consentVersion}; eligibility review required)`]:[]),
     `Phone: ${request.contact.phone || "Not provided"}`,
     "",
     request.description,
@@ -183,6 +184,17 @@ function restoreDraft() {
   if(inquiryHandoff.present)data.terms=false;
   const requestedService = new URLSearchParams(currentSearch()).get("service");
   if (!inquiryHandoff.present && requestedService && SERVICE_LABELS[requestedService]) data.service = requestedService;
+  // Only known public catalog entries may prefill a new scoped request. Existing drafts win.
+  const catalogEntries = {
+    'made-to-fit': ['design', 'Made to fit'],
+    'replacement-part': ['design', 'Replacement part'],
+    'printer-repair': ['repair', 'Printer repair and upgrades']
+  };
+  const catalogEntry = catalogEntries[new URLSearchParams(currentSearch()).get('product')];
+  if (!inquiryHandoff.present && !inquiryText && catalogEntry && requestedService === catalogEntry[0]) {
+    data.projectTitle ||= catalogEntry[1];
+    data.description ||= `${catalogEntry[1]} — please describe your needs, dimensions and any reference photos.`;
+  }
   Object.entries(data).forEach(([name, value]) => {
     [...form.elements].filter(field => field.name === name).forEach(field => {
       if (field.type === "file") return; // browsers only allow clearing a file input; a saved draft holds `{}` here

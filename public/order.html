@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Start a custom 3D modeling, printing, printer repair, tuning, or fabrication project and get a useful rough estimate.">
-  <meta name="theme-color" content="#161614" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#101f2b" media="(prefers-color-scheme: dark)"><meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta property="og:title" content="Start a project — 3dprint4.me"><meta property="og:description" content="Share a file, link, broken printer, sketch, or idea. Get a rough planning range before a human review."><meta property="og:type" content="website"><meta property="og:url" content="https://3dprint4.me/order.html"><meta property="og:image" content="https://3dprint4.me/assets/images/social-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="3dprint4.me — Ideas into parts. Problems into fixes."><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://3dprint4.me/assets/images/social-card.png">
-  <title>Start a project — 3dprint4.me</title><link rel="canonical" href="https://3dprint4.me/order.html"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/assets/css/site.css?v=d367ecc51c8342f1">
-  <link rel="stylesheet" href="/assets/css/shared.css?v=d367ecc51c8342f1">
+  <title>Start a project — 3dprint4.me</title><link rel="canonical" href="https://3dprint4.me/order.html"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/assets/css/site.css?v=8a2c8406a349c4e2">
+  <link rel="stylesheet" href="/assets/css/shared.css?v=8a2c8406a349c4e2">
 </head>
 <body>
   <div id="site-header"></div>
@@ -82,6 +82,7 @@
               <fieldset class="field form-section"><legend class="field-label">Preferred reply</legend><div class="radio-row"><div class="radio-pill"><input id="contact-email" name="preferredContact" type="radio" value="email" checked><label for="contact-email">Email</label></div><div class="radio-pill"><input id="contact-text" name="preferredContact" type="radio" value="text"><label for="contact-text">Text</label></div><div class="radio-pill"><input id="contact-call" name="preferredContact" type="radio" value="call"><label for="contact-call">Call</label></div></div></fieldset>
               <fieldset class="field full form-section"><legend class="field-label">Handoff</legend><div class="radio-row"><div class="radio-pill"><input id="delivery-pickup" name="delivery" type="radio" value="pickup" checked><label for="delivery-pickup">Tulsa pickup / drop-off</label></div><div class="radio-pill"><input id="delivery-local" name="delivery" type="radio" value="local"><label for="delivery-local">Local delivery</label></div><div class="radio-pill"><input id="delivery-shipping" name="delivery" type="radio" value="shipping"><label for="delivery-shipping">Ship it</label></div></div></fieldset>
               <div class="field full conditional" data-delivery-panel="shipping"><label class="required" for="address">Shipping destination</label><textarea class="textarea compact-textarea" id="address" name="address" autocomplete="shipping street-address" placeholder="Street, city, state, and ZIP" aria-describedby="address-error"></textarea><p class="error" id="address-error" aria-live="polite"></p></div>
+              <fieldset class="field full form-section"><legend class="field-label">Referral (optional)</legend><p>Leave this off to request a quote without referral credit. A code does not change your estimate or confirm a paid sale.</p><div class="terms-check"><input id="referral-consent" name="referralConsent" type="checkbox"><label for="referral-consent">I choose to credit a referral code for this request. The partner may receive compensation after eligibility checks. My contact details and files will not be shared with the partner.</label></div><div id="referral-fields" hidden><label for="referral-code">Referral code</label><input class="input" aria-describedby="referral-code-error" id="referral-code" name="referralCode" maxlength="16" pattern="[A-Za-z0-9_\-]{16}" autocomplete="off" autocapitalize="none" spellcheck="false" disabled><p class="hint">Enter the 16-character code exactly as given, including upper and lower case.</p><p class="error" id="referral-code-error" aria-live="polite"></p></div></fieldset>
               <div class="field full"><label for="contact-notes">Anything I should know about contacting or handing off?</label><textarea class="textarea compact-textarea" id="contact-notes" name="contactNotes" maxlength="1000" placeholder="Best time to call, gated pickup, alternate contact, accessibility needs…"></textarea></div>
             </div>
           </section>
@@ -104,6 +105,6 @@
       <aside class="estimate-sidebar" aria-labelledby="estimate-title"><div><h2 id="estimate-title">Rough planning range</h2><div class="estimate-amount" id="estimate-amount">$15–$25</div><div class="estimate-confidence" id="estimate-confidence">Planning range, confirmed after review</div></div><dl class="estimate-list" id="estimate-list"></dl><p class="estimate-note">Not a checkout total. Tax, shipping, third-party parts, licensing, unusual packing, and scope changes are confirmed separately.</p></aside>
     </div>
   </main>
-  <div id="site-footer"></div><script type="module" src="/assets/js/order.js?v=d367ecc51c8342f1"></script>
+  <div id="site-footer"></div><script type="module" src="/assets/js/order.js?v=8a2c8406a349c4e2"></script>
 </body>
 </html>

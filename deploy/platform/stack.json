@@ -3,6 +3,7 @@
   "components": [
     {"id":"storefront","source":"vercel.json","url":"https://3dprint4.me","recovery":"Redeploy tracked source; restore private Vercel proxy environment."},
     {"id":"operator","source":"operator/vercel.json","url":"https://work.3dprint4.me","recovery":"Redeploy operator shell; restore API origin and GitHub configuration."},
+    {"id":"partner","source":"partner/vercel.json","url":"https://partners.3dprint4.me","recovery":"Link the dedicated 3dprint4me-partners Vercel project from partner/; preview first, verify public-only output and exact API CORS before production. Launch flags remain independent and off until actual reviews."},
     {"id":"api","source":"deploy/platform/Dockerfile","url":"https://api.3dprint4.me","recovery":"bootstrap-host.py or rebuild-host.py; verify before tunnel activation."},
     {"id":"database","source":"deploy/platform/compose.yml","recovery":"Encrypted control plus live dumps; restore ACLs and durable selection."},
     {"id":"private-files","source":"scripts/blob-recovery.mjs","recovery":"Encrypted streamed object snapshot; verify then resume private non-overwriting restore."},

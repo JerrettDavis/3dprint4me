@@ -1,3 +1,5 @@
+import { createPartnerHandlers } from '../lib/partner-outreach/http.js';
+import { getPartnerRuntime } from '../lib/partner-outreach/runtime.js';
 import { createPlatformServer } from '../lib/platform/api-server.js';
 import { closeDatabase, queryDatabase } from '../lib/database.js';
 import { createAuthHttpHandler } from '../lib/operator-identity/http.js';
@@ -14,7 +16,9 @@ async function main() {
   const control=createControlStore(),gate=createHandoverGate();
   const activate=createDatabaseActivation({getSelection:control.getSelection,persistSelection:control.persistSelection});
   await activate.bootstrap();
-  const server=createPlatformServer({routes,consumeNonce:control.consumeNonce,gate,activate,
+  const partner=createPartnerHandlers({getRuntime:getPartnerRuntime});
+  Object.assign(routes,partner.routes);
+  const server=createPlatformServer({routes,directPaths:partner.directPaths,consumeNonce:control.consumeNonce,gate,activate,
     ready:()=>queryDatabase`SELECT id FROM operators LIMIT 1`,
     authHandler:process.env.GITHUB_CLIENT_ID||process.env.OIDC_ISSUER?createAuthHttpHandler():undefined});
   const port=Number(process.env.PORT??8080);
