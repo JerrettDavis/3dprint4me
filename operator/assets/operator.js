@@ -7,6 +7,8 @@ import { renderCustomization } from "./customization-detail.js";
 import { renderInvoiceDetail } from "./invoice-detail.js";
 import { renderFilamentInventory } from './filament-inventory.js';
 import { renderFilamentMatching } from './filament-detail.js';
+import {renderCommunications,clearCommunicationDrafts} from './communication-detail.js';
+import {renderOperatorModels,clearModelDrafts} from './model-detail.js';
 
 // A sign-in round trip (GitHub redirect, then the Neon session-verifier exchange) can briefly answer 401 before the
 // session exists. When `expectSession()` says we just came back from one, wait for it instead of reporting "signed out".
@@ -17,7 +19,7 @@ export const savedMessage = (command, item) => `${savedLabels[command.type] ?? "
 export function createOperatorController({ api, view, expectSession = () => false, retry = { attempts: 8, delayMs: 400 }, wait = ms => new Promise(resolve => setTimeout(resolve, ms)) }) {
   const model = { state: "checking-session", operator: null, items: [], detail: null, selectedId: null, detailLoading: false, noteDraft: "" };
   let selectionGeneration = 0;
-  const clearPrivate = () => { selectionGeneration++; model.items = []; model.detail = null; model.selectedId = null; model.detailLoading = false; };
+  const clearPrivate = () => { selectionGeneration++; clearCommunicationDrafts(); clearModelDrafts(); model.items = []; model.detail = null; model.selectedId = null; model.detailLoading = false; };
   async function loadList() { view.state("loading", model); const result = await api.listWork(view.filters?.() ?? { view: "active" }); model.items = result.items ?? []; view.list(model.items); view.state(model.items.length ? "ready" : "empty", model); }
   async function readSession() {
     for (let attempt = 0; ; attempt++) {
@@ -144,7 +146,7 @@ function createDomView(api) {
       q("#operator-name").textContent = signedIn ? model.operator?.displayName ?? "Operator" : "";
       q('#filament-inventory').hidden = !signedIn;
       q('#partners-owner').hidden = !signedIn || model.operator?.role !== 'owner';
-      if (["signed-out", "forbidden"].includes(name)) { const button = q("#sign-in"); button.disabled = false; button.textContent = "Continue with GitHub"; }
+      if (["signed-out", "forbidden"].includes(name)) { detail.replaceChildren(); const button = q("#sign-in"); button.disabled = false; button.textContent = "Continue with GitHub"; }
       if (name === "forbidden") q("#auth-title").textContent = "This account is not approved.";
       if (["offline", "unavailable", "error"].includes(name)) view.announce(name === "offline" ? "The inbox is offline. Check the connection and retry." : "The inbox could not load. Try again.");
     },
@@ -185,7 +187,10 @@ function createDomView(api) {
        for (const [key, value] of Object.entries(request)) { if (value == null || value === "" || typeof value === "object") continue; const dl = el("dl"), row = el("div", "fact"); row.append(el("dt", "", title(key)), el("dd", "", String(value))); dl.append(row); facts.append(dl); } if (files.length) { facts.append(el("h4", "", `${files.length} private file${files.length === 1 ? "" : "s"} attached`)); const fileList = el("ul", "request-files"); files.forEach((file, index) => { const row = el("li", "request-file"); row.append(el("span", "request-file-name", file.name ?? `File ${index + 1}`)); if (file.path && file.mode !== "estimate") { const button = el("button", "print-download", "Download"); button.type = "button"; button.setAttribute("aria-label", `Download ${file.name ?? `file ${index + 1}`}`); button.onclick = () => controller.downloadFile(index); row.append(button); } else row.append(el("span", "work-meta", file.mode === "estimate" ? "Estimate model — see Print estimate below" : "Name only — file was not uploaded")); fileList.append(row); }); facts.append(fileList); }
       const form = el("form", "note-form"), note = el("textarea"); note.id = "private-note"; note.maxLength = 4000; note.rows = 4; note.value = options.noteDraft ?? ""; const noteLabel = el("label", "", "Private note"); noteLabel.htmlFor = note.id; const save = el("button", "primary", "Add private note"); save.type = "submit"; form.append(noteLabel, note, save); form.onsubmit = event => { event.preventDefault(); controller.command({ type: "add-note", body: note.value, revision: item.revision }); };
       const activity = el("section", "history"); activity.append(el("h3", "", "Activity")); for (const event of events) activity.append(el("p", "", `${title(event.type)} · ${new Date(event.occurredAt).toLocaleString()}`)); for (const savedNote of notes) activity.append(el("blockquote", "", savedNote.body));
-      const print = !isInquiry && !item.projectDraft ? renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) }) : null;
+      const onAuthError=()=>{controller.clearPrivate();controller.start();};
+      const conversation=renderCommunications({item,request,inquiry,api,onAuthError});
+      const models=!isInquiry?renderOperatorModels({item,request,printEstimation:payload.printEstimation,api,onAuthError,onRefresh:()=>controller.selectedId()===item.id?controller.select(item.id):null}):null;
+      const print = !isInquiry ? renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run),planningOnly:Boolean(item.projectDraft) }) : null;
       const customization = request?.customization ? renderCustomization(request) : null;
       const filament = renderFilamentMatching(payload.filamentMatching, {
         onCommand: input => controller.filamentAction('filamentCommand', input, item.id),
@@ -194,7 +199,7 @@ function createDomView(api) {
         onInventory: () => controller.showInventory()
       });
       const billing = !isInquiry && !item.projectDraft && controller.snapshot().operator?.role === "owner" ? renderInvoiceDetail({ item, api, onAuthError: () => { controller.clearPrivate(); controller.start(); } }) : null;
-      if (options.saved) heading.classList.add("saved-flash"); detail.append(back, heading, actions, facts, ...(filament ? [filament] : []), ...(customization ? [customization] : []), ...(print ? [print] : []), ...(billing ? [billing] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
+      if (options.saved) heading.classList.add("saved-flash"); detail.append(back, heading, actions, conversation, facts, ...(models?[models]:[]), ...(filament ? [filament] : []), ...(customization ? [customization] : []), ...(print ? [print] : []), ...(billing ? [billing] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
     },
     inventory(data, callbacks) {
       placeholder.hidden = true; detail.hidden = false; detail.replaceChildren(renderFilamentInventory(data, callbacks)); document.body.dataset.detail = 'open'; q('#work-detail').focus();

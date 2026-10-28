@@ -46,6 +46,9 @@ jobs:
       - name: Verify partner PostgreSQL isolation, concurrency and restore
         run: npm run test:partner:postgres
 
+      - name: Verify work communications and model revisions on native PostgreSQL
+        run: node --test tests/integration/work-communications-postgres.test.mjs
+
       - name: Verify guarded partner rollout in isolated native stack
         run: |
           python tests/integration/partner_archive_images.py

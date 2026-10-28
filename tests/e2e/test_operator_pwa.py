@@ -28,7 +28,7 @@ def test_installed_operator_upgrade_removes_legacy_cached_assets() -> None:
             }""")
             page.wait_for_function("() => Boolean(navigator.serviceWorker.controller)")
             page.wait_for_function("async () => !(await caches.keys()).includes('operator-shell-v10') && !(await caches.match('/obsolete-v10.js'))")
-            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v28')")
+            assert page.evaluate("async () => (await caches.keys()).includes('operator-shell-v30')")
             assert page.evaluate("async () => !(await caches.match('/obsolete-v10.js'))")
             assert page.evaluate("async () => !!(await caches.match('/assets/partner-owner-forecasts.js'))")
             assert page.evaluate("async () => !!(await caches.match('/assets/partner-owner-statements.js'))")
