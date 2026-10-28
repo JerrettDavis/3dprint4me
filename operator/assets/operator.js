@@ -189,8 +189,8 @@ function createDomView(api) {
       const activity = el("section", "history"); activity.append(el("h3", "", "Activity")); for (const event of events) activity.append(el("p", "", `${title(event.type)} · ${new Date(event.occurredAt).toLocaleString()}`)); for (const savedNote of notes) activity.append(el("blockquote", "", savedNote.body));
       const onAuthError=()=>{controller.clearPrivate();controller.start();};
       const conversation=renderCommunications({item,request,inquiry,api,onAuthError});
-      const models=!isInquiry&&!item.projectDraft?renderOperatorModels({item,request,printEstimation:payload.printEstimation,api,onAuthError,onRefresh:()=>controller.selectedId()===item.id?controller.select(item.id):null}):null;
-      const print = !isInquiry && !item.projectDraft ? renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run) }) : null;
+      const models=!isInquiry?renderOperatorModels({item,request,printEstimation:payload.printEstimation,api,onAuthError,onRefresh:()=>controller.selectedId()===item.id?controller.select(item.id):null}):null;
+      const print = !isInquiry ? renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run),planningOnly:Boolean(item.projectDraft) }) : null;
       const customization = request?.customization ? renderCustomization(request) : null;
       const filament = renderFilamentMatching(payload.filamentMatching, {
         onCommand: input => controller.filamentAction('filamentCommand', input, item.id),

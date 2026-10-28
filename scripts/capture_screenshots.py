@@ -698,6 +698,19 @@ def capture_work_conversations() -> list[tuple[str, Path]]:
                     page.locator(selector).screenshot(path=str(path))
                     captured.append((f'Operator {label} · {width} · {scheme}',path))
                 site.assert_no_page_errors()
+        state=json.loads(store_path.read_text(encoding='utf8'))
+        next(row for row in state['workItems'] if row['id']==work['id'])['projectDraft']=True
+        record=next(row for row in state['requests'] if row['id']==seeded['requestId'])
+        record['status']='draft';record['request']['consent']=False;record['request']['estimate']=None
+        store_path.write_text(json.dumps(state),encoding='utf8')
+        for width,scheme in [(1440,'light'),(390,'dark')]:
+            with SiteBrowser(viewport=(width,1000),color_scheme=scheme,reduced_motion='reduce') as site:
+                page=site.page;page.goto(operator+'/work/'+work['id'],wait_until='networkidle')
+                page.get_by_text('Operator-prepared project draft',exact=True).wait_for()
+                for selector,label in [('.model-sheet','draft-models'),('.print-sheet','draft-estimate')]:
+                    path=OUTPUT/f'operator-{label}-{width}-{scheme}.png';page.locator(selector).screenshot(path=str(path))
+                    captured.append((f'Operator {label} · {width} · {scheme}',path))
+                site.assert_no_page_errors()
     return captured
 
 

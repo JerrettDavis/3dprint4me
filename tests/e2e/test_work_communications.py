@@ -107,3 +107,33 @@ def test_detached_message_completion_preserves_a_newer_draft():
             page.get_by_role('heading',name='First draft project',exact=True).wait_for()
             assert page.locator('#client-message').input_value()=='New draft after navigation'
             site.assert_no_page_errors(allow_console_warnings=['Service Worker registration blocked by Playwright'])
+
+def test_operator_prepared_print_draft_accepts_models_and_planning_without_submission():
+    with running_operator_workspace({'RESEND_API_KEY':''}) as (storefront,operator,store_path):
+        key='d'*64
+        status,_,inquiry=json_request(storefront+'/api/inquiry',method='POST',payload={'submissionKey':key,'inquiry':{'replyEmail':'customer@example.test','message':'Please help prepare this model.'},'files':[]})
+        assert status==201
+        assert json_request(storefront+'/api/inquiry',method='PATCH',payload={'id':inquiry['id'],'submissionKey':key})[0]==200
+        _,_,inbox=json_request(storefront+'/api/operator-work?kind=inquiry',headers={'Origin':operator})
+        item=inbox['items'][0]
+        status,_,prepared=json_request(storefront+'/api/operator-work?resource=inquiries',method='POST',headers={'Origin':operator,'Idempotency-Key':'draft-model-project-123'},payload={'action':'prepare','command':{'workId':item['id'],'revision':item['revision'],'title':'Draft model planning','service':'print'}})
+        assert status==200
+        with SiteBrowser(viewport=(390,1000),color_scheme='dark') as site:
+            page=site.page;page.goto(operator+'/work/'+item['id'],wait_until='networkidle')
+            page.get_by_text('Operator-prepared project draft',exact=True).wait_for()
+            page.locator('.model-sheet input[type=file]').set_input_files(str(ROOT/'tests/fixtures/print-estimation/cube-20mm-binary.stl'))
+            page.get_by_role('button',name='Upload & analyze model',exact=True).click()
+            page.locator('.print-latest').wait_for(timeout=20000)
+            assert 'Draft planning only' in page.locator('.model-sheet').inner_text()
+            assert page.locator('.print-run-form').count()==0
+            assert page.get_by_role('heading',name='Invoice drafts',exact=True).count()==0
+            page.locator('.model-form select[name=material]').select_option('petg')
+            page.locator('.model-form input[name=quantity]').fill('3')
+            page.get_by_role('button',name='Update estimate',exact=True).click()
+            page.wait_for_function("document.querySelector('.print-latest')?.textContent.includes('qty 3')")
+            assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+            site.assert_no_page_errors()
+        _,_,detail=json_request(storefront+'/api/operator-work?id='+item['id']+'&schema=2',headers={'Origin':operator})
+        assert detail['item']['projectDraft'] is True
+        assert detail['request']['consent'] is False and detail['request']['estimate'] is None
+        assert detail['filamentMatching']['requirements'][0]['requirement']['material']=='petg'
