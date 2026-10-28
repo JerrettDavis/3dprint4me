@@ -16,6 +16,13 @@ async function context(provider) {
 }
 const command = () => ({ workId: 'work_example123', revision: 1, idempotencyKey: 'click12345', billing: billingFixture() });
 
+test('prepared project drafts cannot preview, create or inspect invoices through the service',async()=>{
+  const workRepository={getWork:async()=>({...workFixture,item:{...workFixture.item,projectDraft:true}})};
+  const service=createInvoicingService({workRepository,repository:{get:()=>assert.fail('draft must not read billing')},provider:{getClient:()=>assert.fail('draft must not contact provider')}});
+  for(const action of ['preview','create'])await assert.rejects(service[action](command(),ownerFixture),{status:409});
+  await assert.rejects(service.get('work_example123',ownerFixture),{status:409});
+});
+
 test('an inquiry cannot preview, create or inspect invoices through direct service calls',async()=>{
   const workRepository={getWork:async()=>({...workFixture,item:{...workFixture.item,kind:'inquiry'}})};
   const service=createInvoicingService({workRepository,repository:{get:()=>assert.fail('must not read billing')},provider:{getClient:()=>assert.fail('must not contact provider')}});

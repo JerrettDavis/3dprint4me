@@ -94,3 +94,7 @@ test('customer model session can attach after operator planning sessions and bec
  assert.equal((await f.repository.attachSession({sessionId:session.sessionId,ownershipHash:hashCapability(session.token),requestId:work.item.requestId})).attached,true);
  const latest=await f.repository.latestAuthoritativeEstimate(work.item.requestId);assert.equal(latest.purpose,'submission');assert.equal(latest.input.options.quantity,4);
 });
+test('draft planning estimates cannot be recorded as actual production through the application API',async t=>{
+ const f=await fixture(t),grant=await upload(f),draft={...work,item:{...work.item,projectDraft:true}};await f.service.finish(draft,grant);
+ await assert.rejects(()=>createOperatorPrintView({repository:f.repository,fileStore:f.fileStore}).recordRun({work:draft,run:{actualGrams:5},operator:{id:'op_owner'}}),e=>e.status===409);
+});

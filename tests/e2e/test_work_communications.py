@@ -137,3 +137,4 @@ def test_operator_prepared_print_draft_accepts_models_and_planning_without_submi
         assert detail['item']['projectDraft'] is True
         assert detail['request']['consent'] is False and detail['request']['estimate'] is None
         assert detail['filamentMatching']['requirements'][0]['requirement']['material']=='petg'
+        assert json_request(storefront+'/api/operator-print',method='POST',headers={'Origin':operator},payload={'action':'record-run','workId':item['id'],'run':{'actualGrams':5}})[0]==409
