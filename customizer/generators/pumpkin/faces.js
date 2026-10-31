@@ -146,24 +146,24 @@ export function buildFace(CrossSection, spec, W, t, { optimize = false } = {}) {
   };
 
   const main = [];
-  const feature = cs => optimize ? printableFeature(CrossSection, cs, t) : cs;
+  const feature = cs => cs;
   const eyeS = spec.eyeSize * W;
   for (const side of [-1, 1]) {
     main.push(at(feature(eyeShape(side > 0 && spec.eyeR ? spec.eyeR : spec.eye, eyeS, side)), side * spec.eyeX * W, spec.eyeY * W));
   }
-  if (spec.eye === "shades" && !optimize) main.push(bar([-spec.eyeX * W, (spec.eyeY + 0.03) * W], [spec.eyeX * W, (spec.eyeY + 0.03) * W], Math.max(2.4, 0.1 * eyeS)));
+  if (spec.eye === "shades") main.push(bar([-spec.eyeX * W, (spec.eyeY + 0.03) * W], [spec.eyeX * W, (spec.eyeY + 0.03) * W], Math.max(2.4, 0.1 * eyeS)));
   const nose = noseShape(spec.nose, spec.noseSize * W);
   if (nose) main.push(at(feature(nose), 0, spec.noseY * W));
   const mouth = mouthShape(spec.mouth, spec.mouthW * W);
   if (mouth) main.push(at(feature(mouth), 0, spec.mouthY * W));
   let mainCs = main.length ? union(main) : null;
   if (optimize && mainCs) {
-    // Individually printable features can form a hanging tooth where they overlap.
-    // Adapt the connected groups too. Convexification can join another group, so
-    // repeat with a bounded budget for this small set of original components.
-    const risky = cs => { const r = faceOverhangs(cs); return r.shallowRoofMm > 0 || r.islands || r.hangingTips; };
+    mainCs = printableFeature(CrossSection, mainCs, t);
+    // Overlapping features can create new hanging material. Support the combined
+    // outline too, without filling concavities or replacing decorative curves.
+    const risky = cs => { const r = faceOverhangs(cs, { bridges: true }); return r.shallowRoofMm > 0 || r.islands || r.hangingTips; };
     for (let pass = 0; pass < 8 && risky(mainCs); pass++) mainCs = printableFeature(CrossSection, mainCs, t);
-    if (risky(mainCs)) throw new Error('These face features overlap too much to make printable roofs. Choose simpler features, or turn off cutout optimization and inspect supports.');
+    if (risky(mainCs)) throw new Error('These face features overlap too much to support with short bridges. Choose smaller features, or turn off cutout optimization and inspect supports.');
   }
   let accent = null;
   if (spec.cheeks) {
