@@ -51,7 +51,9 @@ def test_owner_material_rows_keyboard_partial_history_and_error_retry(width,them
         form.get_by_label('Material count 1',exact=True).fill('3')
         form.get_by_role('button',name='Record materials',exact=True).click()
         page.get_by_text('This return exceeds the recorded supplied materials.',exact=True).wait_for()
-        form.get_by_role('button',name='Record materials',exact=True).click()
+        with page.expect_response(lambda response: response.request.method=='POST' and urlparse(response.url).path=='/api/operator-partners') as retry:
+            form.get_by_role('button',name='Record materials',exact=True).click()
+        assert retry.value.status==409
         assert commands[0]==commands[1]
         assert commands[0]['input']=={'gigId':GIG,'eventType':'returned','items':[{'label':'Sample signs','count':3}]}
         assert 'Showing the newest 200 material events.' in page.locator('[data-material-history]').inner_text()

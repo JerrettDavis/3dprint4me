@@ -15,6 +15,31 @@ differs, this document and the code win (see [Differences from the design spec](
 
 ## Where the code lives
 
+### Pumpkin face printability (generator version 2)
+
+Cut-through faces default to **Optimize cutouts for printing**. Each disconnected feature gets
+a convex outline clipped to a peaked roof of at least 45° to the build plate, within its original
+bounds. Overlapping features are checked again as connected groups so their joins cannot create
+new hanging teeth; a group may be simplified further. This simplifies hanging teeth, heart/star concavities and smile arches; the sunglasses
+bridge is omitted. The preview and downloaded geometry both use the adaptation. Turn the option
+off to retain the original decorative outlines. Inlay and engraved geometry retain their original
+outlines, and vase mode ignores faces entirely.
+
+Warnings inspect the combined face contours in their exported upright orientation for shallow
+roof edges, downward hanging tips (even when their sides are steep) and enclosed material islands. Original cutouts with these features warn about
+unsupported roofs, support reach and removal. Empty glue-in pockets warn separately because
+their loose pieces print beside the pumpkin and cannot support the pocket roofs. Engraving warns
+about the short cantilever across recess depth; filled multicolor inlays do not get the empty-pocket
+warning. Cheeks are included in recess checks and are omitted from cutouts.
+
+This is a conservative **2D outline heuristic**, not a support-free guarantee or physical print
+certification. Curved shell surfaces, extrusion depth, material, cooling and slicer settings still
+need inspection in the layer preview. Existing tree supports are enabled from the build plate for
+hollow shells and bowls; these may not reach face roofs, and some supports may need to start on
+the model. Check removal access, especially for sealed shells. The bowl and lid still print upright
+on their existing flat bases/rims. Generator version 1 provenance remains accepted by the server;
+its missing optimization flag defaults to false so older geometry is not recorded as adapted.
+
 | Path | Role | Runs in |
 |---|---|---|
 | `public/assets/js/customize/registry.js` | `GENERATORS` (id → definition), `getGenerator`, `listPublicGenerators` | browser, worker, server |
@@ -44,6 +69,7 @@ Geometry code never ships to the server.
 |---|---|---|
 | `id` | yes | URL-safe id; the registry key, page folder, `loadBuilder` key and draft key (`3dp-customize:<id>:v<version>`). |
 | `version` | yes | Positive integer. A request pins the version that produced its model; the server accepts `1..version`. Bump it when a parameter's meaning changes. |
+| `versionDefaults` | no | Trusted defaults keyed by historical generator version, applied by the server only to missing provenance fields before ordinary schema validation. The pumpkin uses version 1 → `optimize_cutouts: false`; new version 2 models default to true. |
 | `title`, `blurb` | yes | Catalog card text; `title` also prefills the order's project title ("Custom <title>"). |
 | `category` | yes | Catalog label key (`badges`, `tags`, `cards`, `plates`; anything else is title-cased). |
 | `origin` | yes | Where the design comes from (`"house"`, or the commission it derives from). |

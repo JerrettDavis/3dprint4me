@@ -5,6 +5,7 @@
 import { baseCut, bottomHoleRadius, faceBox, geometry, holeCeiling, openCut, resolution, splitCut, surfaceMesh, tealightFit, TEALIGHT_OPENING_MM } from "../../../public/assets/js/customize/pumpkin-shape.js";
 import { safeName } from "../../framework/model.js";
 import { buildFace, faceSpec } from "./faces.js";
+import { facePrintWarnings } from './printability.js';
 import { latticeCutter } from "./lattice.js";
 import { solidFromMesh } from "./mesh.js";
 import { pegHole, stemBody, stemSizes } from "./stem.js";
@@ -118,7 +119,8 @@ export default async function build(p, ctx) {
       const fb = faceBox(p, g);
       if (fb.top > g.top * 0.8) throw new Error("The face reaches the top of the pumpkin. Move the face lower or make it smaller.");
       if (fb.bottom < zBase + 2) throw new Error("The face reaches the base. Move the face higher or make it smaller.");
-      const parts = buildFace(CrossSection, faceSpec(p), fb.width, t);
+      const parts = buildFace(CrossSection, faceSpec(p), fb.width, t, { optimize: faceStyle === 'cutout' && p.optimize_cutouts !== false });
+      warnings.push(...facePrintWarnings(p, faceStyle, parts, glueIn));
       const reach = g.a * (1 + g.ob) + 5;
       const prism = cs => t(t(t(cs.extrude(reach)).rotate([90, 0, 0])).translate([0, 0, fb.centerZ]));
       if (faceStyle === "cutout") {
