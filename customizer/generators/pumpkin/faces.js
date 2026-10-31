@@ -3,6 +3,8 @@
 // the pumpkin (cut through, inlaid or engraved). Temporaries go through `t` (freed by the caller).
 
 // Eyes, nose and mouth per preset. Positions are fractions of the face width W; sizes too.
+import { faceOverhangs, printableFeature } from './printability.js';
+
 export const FACE_PRESETS = {
   traditional: { eye: "triangle", nose: "triangle", mouth: "jagged", eyeSize: 0.2, eyeX: 0.2, eyeY: 0.14, noseSize: 0.11, noseY: -0.04, mouthW: 0.62, mouthY: -0.22 },
   cute: { eye: "oval", nose: "none", mouth: "smile", eyeSize: 0.15, eyeX: 0.21, eyeY: 0.08, noseSize: 0.1, noseY: -0.04, mouthW: 0.24, mouthY: -0.08, cheeks: true },
@@ -38,7 +40,7 @@ const ccw = pts => {
   return area < 0 ? [...pts].reverse() : pts;
 };
 
-export function buildFace(CrossSection, spec, W, t) {
+export function buildFace(CrossSection, spec, W, t, { optimize = false } = {}) {
   const poly = pts => t(CrossSection.ofPolygons([ccw(pts)]));
   const circle = r => t(CrossSection.circle(r, 40));
   const at = (cs, x, y) => t(cs.translate([x, y]));
@@ -144,16 +146,25 @@ export function buildFace(CrossSection, spec, W, t) {
   };
 
   const main = [];
+  const feature = cs => optimize ? printableFeature(CrossSection, cs, t) : cs;
   const eyeS = spec.eyeSize * W;
   for (const side of [-1, 1]) {
-    main.push(at(eyeShape(side > 0 && spec.eyeR ? spec.eyeR : spec.eye, eyeS, side), side * spec.eyeX * W, spec.eyeY * W));
+    main.push(at(feature(eyeShape(side > 0 && spec.eyeR ? spec.eyeR : spec.eye, eyeS, side)), side * spec.eyeX * W, spec.eyeY * W));
   }
-  if (spec.eye === "shades") main.push(bar([-spec.eyeX * W, (spec.eyeY + 0.03) * W], [spec.eyeX * W, (spec.eyeY + 0.03) * W], Math.max(2.4, 0.1 * eyeS)));
+  if (spec.eye === "shades" && !optimize) main.push(bar([-spec.eyeX * W, (spec.eyeY + 0.03) * W], [spec.eyeX * W, (spec.eyeY + 0.03) * W], Math.max(2.4, 0.1 * eyeS)));
   const nose = noseShape(spec.nose, spec.noseSize * W);
-  if (nose) main.push(at(nose, 0, spec.noseY * W));
+  if (nose) main.push(at(feature(nose), 0, spec.noseY * W));
   const mouth = mouthShape(spec.mouth, spec.mouthW * W);
-  if (mouth) main.push(at(mouth, 0, spec.mouthY * W));
-  const mainCs = main.length ? union(main) : null;
+  if (mouth) main.push(at(feature(mouth), 0, spec.mouthY * W));
+  let mainCs = main.length ? union(main) : null;
+  if (optimize && mainCs) {
+    // Individually printable features can form a hanging tooth where they overlap.
+    // Adapt the connected groups too. Convexification can join another group, so
+    // repeat with a bounded budget for this small set of original components.
+    const risky = cs => { const r = faceOverhangs(cs); return r.shallowRoofMm > 0 || r.islands || r.hangingTips; };
+    for (let pass = 0; pass < 8 && risky(mainCs); pass++) mainCs = printableFeature(CrossSection, mainCs, t);
+    if (risky(mainCs)) throw new Error('These face features overlap too much to make printable roofs. Choose simpler features, or turn off cutout optimization and inspect supports.');
+  }
   let accent = null;
   if (spec.cheeks) {
     const cheek = t(circle(W * 0.07).scale([1.3, 0.85]));

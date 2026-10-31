@@ -8,8 +8,8 @@
 //                    < 0  text is cut |t| into the color's top surface
 // Back/bottom inlays (inlay_depth_mm) are always inset and never protrude.
 
-import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=8a2c8406a349c4e2";
-import { qrScaleField } from "../qr.js?v=8a2c8406a349c4e2";
+import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=4224f5a9733c420b";
+import { qrScaleField } from "../qr.js?v=4224f5a9733c420b";
 
 const STEP = 0.2;
 const MIN_WEB = 0.8;       // solid base left between the front pocket and the back inlay
