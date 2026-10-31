@@ -15,6 +15,29 @@ differs, this document and the code win (see [Differences from the design spec](
 
 ## Where the code lives
 
+### Pumpkin face printability (generator version 2)
+
+Cut-through faces default to **Optimize cutouts for printing**. Each disconnected feature gets
+a convex outline clipped to a peaked roof of at least 45° to the build plate, within its original
+bounds. This simplifies hanging teeth, heart/star concavities and smile arches; the sunglasses
+bridge is omitted. The preview and downloaded geometry both use the adaptation. Turn the option
+off to retain the original decorative outlines. Inlay and engraved geometry retain their original
+outlines, and vase mode ignores faces entirely.
+
+Warnings inspect the combined face contours in their exported upright orientation for shallow
+roof edges and enclosed material islands. Original cutouts with these features warn about
+unsupported roofs, support reach and removal. Empty glue-in pockets warn separately because
+their loose pieces print beside the pumpkin and cannot support the pocket roofs. Engraving warns
+about the short cantilever across recess depth; filled multicolor inlays do not get the empty-pocket
+warning. Cheeks are included in recess checks and are omitted from cutouts.
+
+This is a conservative **2D outline heuristic**, not a support-free guarantee or physical print
+certification. Curved shell surfaces, extrusion depth, material, cooling and slicer settings still
+need inspection in the layer preview. Existing tree supports are enabled from the build plate for
+hollow shells and bowls; these may not reach face roofs, and some supports may need to start on
+the model. Check removal access, especially for sealed shells. The bowl and lid still print upright
+on their existing flat bases/rims. Generator version 1 provenance remains accepted by the server.
+
 | Path | Role | Runs in |
 |---|---|---|
 | `public/assets/js/customize/registry.js` | `GENERATORS` (id → definition), `getGenerator`, `listPublicGenerators` | browser, worker, server |

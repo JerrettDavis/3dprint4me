@@ -178,6 +178,9 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Name plate font picker · mobile · dark", "/customize/g/name-plate/", "customize-name-plate-picker-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, name_plate(font="righteous", name="Jordan", open_picker=True)),
             ("Pumpkin cute · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin()),
             ("Pumpkin lantern advanced · desktop · dark", "/customize/g/pumpkin/", "customize-pumpkin-lantern-advanced-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, pumpkin("Jack-o'-lantern", advanced=True)),
+            ("Pumpkin optimized cutout · mobile · light", "/customize/g/pumpkin/", "customize-pumpkin-cutout-mobile-light.png", (390, 844), "light", GENERATOR_READY, pumpkin("Jack-o'-lantern", support_notes=True)),
+            ("Pumpkin original cutout warning · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-cutout-original-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin("Jack-o'-lantern", optimize=False, support_notes=True)),
+            ("Pumpkin original cutout warning · mobile · dark", "/customize/g/pumpkin/", "customize-pumpkin-cutout-original-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, pumpkin("Jack-o'-lantern", optimize=False, support_notes=True)),
             ("Pumpkin bowl · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-bowl-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin("Pumpkin bowl")),
             ("Display sign starter · desktop · light", "/customize/g/display-sign/", "customize-display-sign-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, display_sign()),
             ("Display sign Chef Curt 3D · desktop · dark", "/customize/g/display-sign/", "customize-display-sign-chef-curt-3d-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, display_sign("Chef Curt: sign", view="3D")),
@@ -285,7 +288,7 @@ def name_plate(*, font: str = "block", name: str = "Alex", style: str = "raised"
     return prepare
 
 
-def pumpkin(design: str | None = None, *, advanced: bool = False):
+def pumpkin(design: str | None = None, *, advanced: bool = False, optimize: bool = True, support_notes: bool = False):
     """Optionally start from a named design and switch to Advanced; wait for the model."""
     def prepare(page) -> None:
         page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
@@ -295,6 +298,12 @@ def pumpkin(design: str | None = None, *, advanced: bool = False):
             page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
         if advanced:
             page.get_by_role("button", name="Advanced", exact=True).click()
+        if not optimize:
+            page.locator("[name='optimize_cutouts']").uncheck()
+            page.wait_for_timeout(400)
+            page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        if support_notes:
+            show_facts(page)
         page.wait_for_timeout(700)
     return prepare
 
