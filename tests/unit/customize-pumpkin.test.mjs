@@ -103,12 +103,14 @@ test("advanced fields hide in Simple mode but remain in the schema, validated an
   assert.ok(hasAdvanced(pumpkin));
   const advanced = Object.entries(pumpkin.schema).filter(([, d]) => d.advanced).map(([k]) => k);
   const simple = Object.entries(pumpkin.schema).filter(([, d]) => !d.advanced).map(([k]) => k);
-  assert.ok(advanced.length >= 15 && simple.length >= 8 && simple.length <= 16, `${simple.length} simple controls`);
+  assert.ok(advanced.length >= 15 && simple.length >= 8 && simple.length <= 17, `${simple.length} simple controls`);
   for (const k of ["style", "diameter_mm", "segments", "decoration", "face", "stem", "multicolor", "body_color"]) assert.ok(simple.includes(k), `${k} is a simple control`);
   const values = ok({});
   assert.equal(isFieldVisible(pumpkin.schema.boxiness_pct, values, false), false);
   assert.equal(isFieldVisible(pumpkin.schema.boxiness_pct, values, true), true);
   assert.equal(isFieldVisible(pumpkin.schema.style, values, false), true);
+  assert.equal(isFieldVisible(pumpkin.schema.optimize_cutouts, values, false), false);
+  assert.equal(isFieldVisible(pumpkin.schema.optimize_cutouts, ok({ style: 'hollow', face_style: 'cutout' }), false), true);
   const html = renderFormHtml(pumpkin, values, { advanced: false });
   assert.match(html, /data-field="boxiness_pct" hidden/);
   assert.doesNotMatch(html, /data-field="style" hidden/);

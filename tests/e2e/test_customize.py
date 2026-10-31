@@ -21,7 +21,7 @@ BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
 DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 2}
 
 
 @pytest.fixture(scope="module")
@@ -1800,6 +1800,32 @@ def test_the_pumpkin_types_switch_their_own_controls(page: Page, base_url: str) 
     page.locator("[name='stem']").select_option("peg")
     wait_settled(page)
     expect(page.locator("#cz-warnings")).to_contain_text("prints on its own")
+
+
+def test_pumpkin_cutout_optimization_and_support_warnings_follow_the_mode(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/pumpkin/")
+    wait_ready(page)
+    pick_design(page, "Jack-o'-lantern")
+    optimize = page.locator("[name='optimize_cutouts']")
+    expect(optimize).to_be_checked()
+    expect(page.locator("#cz-warnings")).to_contain_text("peaked roofs of at least 45°")
+    optimize.uncheck()
+    wait_settled(page)
+    expect(page.locator("#cz-warnings")).to_contain_text("Unsupported face roof")
+    expect(page.locator("#cz-warnings")).to_contain_text("Build-plate-only trees may not reach")
+    optimize.check()
+    wait_settled(page)
+    expect(page.locator("#cz-warnings")).not_to_contain_text("Unsupported face roof")
+    page.locator("[name='face_style']").select_option("inlay")
+    wait_settled(page)
+    expect(page.locator("[data-field='optimize_cutouts']")).to_be_hidden()
+    expect(page.locator("#cz-warnings")).to_contain_text("glue-in face leaves empty pockets")
+    page.locator("[name='multicolor']").check()
+    wait_settled(page)
+    expect(page.locator("#cz-warnings")).not_to_contain_text("glue-in face leaves empty pockets")
+    page.locator("[name='style']").select_option("vase")
+    wait_settled(page)
+    expect(page.locator("#cz-warnings")).not_to_contain_text("face roof")
 
 
 def test_a_pumpkin_design_builds_and_continues_to_the_request(page: Page, base_url: str) -> None:
