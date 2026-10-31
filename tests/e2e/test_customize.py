@@ -21,7 +21,7 @@ BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
 DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 2}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 3}
 
 
 @pytest.fixture(scope="module")
@@ -1808,7 +1808,7 @@ def test_pumpkin_cutout_optimization_and_support_warnings_follow_the_mode(page: 
     pick_design(page, "Jack-o'-lantern")
     optimize = page.locator("[name='optimize_cutouts']")
     expect(optimize).to_be_checked()
-    expect(page.locator("#cz-warnings")).to_contain_text("peaked roofs of at least 45°")
+    expect(page.locator("#cz-warnings")).to_contain_text("bridges up to 10 mm")
     optimize.uncheck()
     wait_settled(page)
     expect(page.locator("#cz-warnings")).to_contain_text("Unsupported face roof")
