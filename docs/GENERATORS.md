@@ -19,13 +19,14 @@ differs, this document and the code win (see [Differences from the design spec](
 
 Cut-through faces default to **Optimize cutouts for printing**. Each disconnected feature gets
 a convex outline clipped to a peaked roof of at least 45° to the build plate, within its original
-bounds. This simplifies hanging teeth, heart/star concavities and smile arches; the sunglasses
+bounds. Overlapping features are checked again as connected groups so their joins cannot create
+new hanging teeth; a group may be simplified further. This simplifies hanging teeth, heart/star concavities and smile arches; the sunglasses
 bridge is omitted. The preview and downloaded geometry both use the adaptation. Turn the option
 off to retain the original decorative outlines. Inlay and engraved geometry retain their original
 outlines, and vase mode ignores faces entirely.
 
 Warnings inspect the combined face contours in their exported upright orientation for shallow
-roof edges and enclosed material islands. Original cutouts with these features warn about
+roof edges, downward hanging tips (even when their sides are steep) and enclosed material islands. Original cutouts with these features warn about
 unsupported roofs, support reach and removal. Empty glue-in pockets warn separately because
 their loose pieces print beside the pumpkin and cannot support the pocket roofs. Engraving warns
 about the short cantilever across recess depth; filled multicolor inlays do not get the empty-pocket

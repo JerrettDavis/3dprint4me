@@ -3,7 +3,7 @@
 // the pumpkin (cut through, inlaid or engraved). Temporaries go through `t` (freed by the caller).
 
 // Eyes, nose and mouth per preset. Positions are fractions of the face width W; sizes too.
-import { printableFeature } from './printability.js';
+import { faceOverhangs, printableFeature } from './printability.js';
 
 export const FACE_PRESETS = {
   traditional: { eye: "triangle", nose: "triangle", mouth: "jagged", eyeSize: 0.2, eyeX: 0.2, eyeY: 0.14, noseSize: 0.11, noseY: -0.04, mouthW: 0.62, mouthY: -0.22 },
@@ -156,7 +156,15 @@ export function buildFace(CrossSection, spec, W, t, { optimize = false } = {}) {
   if (nose) main.push(at(feature(nose), 0, spec.noseY * W));
   const mouth = mouthShape(spec.mouth, spec.mouthW * W);
   if (mouth) main.push(at(feature(mouth), 0, spec.mouthY * W));
-  const mainCs = main.length ? union(main) : null;
+  let mainCs = main.length ? union(main) : null;
+  if (optimize && mainCs) {
+    // Individually printable features can form a hanging tooth where they overlap.
+    // Adapt the connected groups too. Convexification can join another group, so
+    // repeat with a bounded budget (there are at most five original components).
+    const risky = cs => { const r = faceOverhangs(cs); return r.shallowRoofMm > 0 || r.islands || r.hangingTips; };
+    for (let pass = 0; pass < 8 && risky(mainCs); pass++) mainCs = printableFeature(CrossSection, mainCs, t);
+    if (risky(mainCs)) throw new Error('These face features overlap too much to make printable roofs. Choose simpler features, or turn off cutout optimization and inspect supports.');
+  }
   let accent = null;
   if (spec.cheeks) {
     const cheek = t(circle(W * 0.07).scale([1.3, 0.85]));
