@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=4224f5a9733c420b";
-import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=4224f5a9733c420b";
+import { contrastRatio } from "../color.js?v=05432421b2215493";
+import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=05432421b2215493";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -198,7 +198,7 @@ const SCHEMA = {
   ], default: "inlay", randomize: false, visibleWhen: o => hasFace(o), group: "face", section: "face" },
   optimize_cutouts: { type: "bool", label: "Optimize cutouts for printing", default: true, randomize: false,
     visibleWhen: o => hasFace(o) && o.face_style === "cutout", group: "face", section: "face",
-    help: "Peaked roofs of at least 45° simplify hanging teeth and concave details for upright printing. Off keeps the original face, which may need supports. Always check the curved shell in your slicer." },
+    help: "Keeps original curves with bridges up to 10 mm; break-away supports help wider roofs and hanging details. Remove supports after printing. Curved overhangs may still need slicer supports; inspect the layer preview." },
   eye_shape: { type: "enum", label: "Eyes", options: [
     { value: "circle", label: "Round" }, { value: "oval", label: "Oval" }, { value: "triangle", label: "Triangle" },
     { value: "angry", label: "Angry" }, { value: "happy", label: "Happy arches" }, { value: "slit", label: "Sleepy slits" },
@@ -280,7 +280,7 @@ const DESIGNS = [
 
 export default {
   id: "pumpkin",
-  version: 2,
+  version: 3,
   versionDefaults: { 1: { optimize_cutouts: false } },
   title: "Pumpkin",
   blurb: "Design a pumpkin: solid, hollow tealight cover, vase or bowl with a lid, with a face, knit or lattice surface, and a plug-in or attached stem.",

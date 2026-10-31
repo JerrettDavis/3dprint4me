@@ -15,17 +15,18 @@ test('legacy pumpkin provenance does not claim its original face was optimized',
   const params = { style: 'hollow', face_style: 'cutout' };
   assert.equal(normalizeCustomization({ generatorId: 'pumpkin', generatorVersion: 1, params }).params.optimize_cutouts, false);
   assert.equal(normalizeCustomization({ generatorId: 'pumpkin', generatorVersion: 2, params }).params.optimize_cutouts, true);
+  assert.equal(normalizeCustomization({ generatorId: 'pumpkin', generatorVersion: 3, params }).params.optimize_cutouts, true);
   assert.equal(normalizeCustomization({ generatorId: 'pumpkin', generatorVersion: 2, params: { ...params, optimize_cutouts: false } }).params.optimize_cutouts, false);
 });
 function face(p, optimize, W = 60) {
   const temps = [], t = x => { if (x) temps.push(x); return x; };
   try {
     const result = buildFace(wasm.CrossSection, faceSpec(p), W, t, { optimize });
-    return { polygons: result.main.toPolygons(), area: result.main.area(), risk: faceOverhangs(result.main) };
+    return { polygons: result.main.toPolygons(), area: result.main.area(), risk: faceOverhangs(result.main, { bridges: optimize }) };
   } finally { for (const x of temps) x.delete(); }
 }
 
-test('optimized preset roofs have no shallow edges or enclosed material islands at any face size', () => {
+test('optimized preset roofs have no over-limit bridges or enclosed material islands at any face size', () => {
   for (const name of Object.keys(FACE_PRESETS)) for (const W of [24, 60, 121.5]) {
     const p = { ...defaults, face: name };
     const adapted = face(p, true, W), original = face(p, false, W);
@@ -50,7 +51,21 @@ test('every custom feature can be adapted and the original grin retains its unsu
   assert.notDeepEqual(face({ ...defaults, face: 'awesome' }, true).polygons, face({ ...defaults, face: 'awesome' }, false).polygons);
 });
 
-test('layer-by-layer slab checks independently verify support under the adapted face roofs', () => {
+// Independent layer check: new material must remain attached to the layer below;
+// complete bridge closures have anchors no more than 10 mm apart.
+// Connected shallow cantilevers still require slicer inspection.
+function materialIntervals(cs) {
+  const hits = [];
+  for (const points of cs.toPolygons()) for (let i = 0; i < points.length; i++) {
+    const [x, py] = points[i], [nx, pny] = points[(i + 1) % points.length];
+    const y = py + .5, ny = pny + .5;
+    if ((y <= 0 && ny > 0) || (ny <= 0 && y > 0)) hits.push(x + (nx - x) * -y / (ny - y));
+  }
+  hits.sort((a, b) => a - b);
+  return hits.reduce((out, x, i) => { if (i % 2 === 0) out.push([x, hits[i + 1]]); return out; }, []);
+}
+
+test('layer slabs reject floating details and over-limit flat bridges', () => {
   const checkLayers = (name, optimize) => {
     const temps = [], t = x => { temps.push(x); return x; };
     try {
@@ -58,23 +73,35 @@ test('layer-by-layer slab checks independently verify support under the adapted 
       const parts = buildFace(wasm.CrossSection, faceSpec({ ...defaults, ...selected }), 60, t, { optimize });
       const cutter = t(t(parts.main.extrude(4)).rotate([90, 0, 0]));
       const slab = t(t(wasm.Manifold.cube([100, 2, 80], true)).subtract(cutter));
-      let unsupported = 0;
-      // Compare each new layer's material against the previous layer expanded by one
-      // layer height (45°). This checks solids, independently of faceOverhangs.
-      for (let z = -28; z < 24; z += .4) {
-        const below = slab.slice(z - .4), above = slab.slice(z);
-        const supported = below.offset(.40001, 'Miter'), extra = above.subtract(supported);
-        unsupported = Math.max(unsupported, extra.area());
+      let failures = 0;
+      for (let z = -28; z < 24; z += .2) {
+        const below = slab.slice(z - .2), above = slab.slice(z);
+        const previous = materialIntervals(below), current = materialIntervals(above);
+        const supported = below.offset(.20001, 'Miter'), extra = above.subtract(supported);
+        for (const [lo, hi] of current) {
+          if (hi - lo < .001) continue; // float32 slice noise
+          const overlaps = previous.some(([a, b]) => Math.min(hi, b) - Math.max(lo, a) > .001);
+          if (!overlaps) failures++;
+        }
+        for (let i = 0; i + 1 < previous.length; i++) {
+          const left = previous[i][1], right = previous[i + 1][0];
+          if (right - left > 10.001 && current.some(([a, b]) => a <= left && b >= right)) failures++;
+        }
         for (const cs of [below, above, supported, extra]) cs.delete();
       }
-      return unsupported;
+      return failures;
     } finally { for (const x of temps) x.delete(); }
   };
-  for (const name of ['traditional', 'awesome', 'happy', 'cool', 'starstruck', 'cute']) {
-    assert.ok(checkLayers(name, true) < .001, name);
-  }
-  assert.ok(checkLayers('awesome', false) > 1, 'the original wide flat grin fails this same support check');
-  assert.ok(checkLayers({ face: 'custom', nose_shape: 'nostrils', mouth_shape: 'round' }, true) < .001, 'overlapping features are supported too');
+  for (const name of Object.keys(FACE_PRESETS)) assert.equal(checkLayers(name, true), 0, name);
+  assert.ok(checkLayers('awesome', false) > 0, 'wide original grin exceeds bridge budget');
+  assert.ok(checkLayers('traditional', false) > 0, 'original hanging teeth have no lower anchors');
+  assert.equal(checkLayers({ face: 'custom', nose_shape: 'nostrils', mouth_shape: 'round' }, true), 0);
+  for (const { value: eye_shape } of pumpkin.schema.eye_shape.options)
+    for (const { value: nose_shape } of pumpkin.schema.nose_shape.options)
+      for (const { value: mouth_shape } of pumpkin.schema.mouth_shape.options) {
+        assert.equal(checkLayers({ face: 'custom', eye_shape, nose_shape, mouth_shape }, true), 0,
+          `${eye_shape}/${nose_shape}/${mouth_shape}`);
+      }
 });
 
 test('overlapping custom features cannot introduce hanging teeth after optimization', () => {
@@ -90,7 +117,7 @@ test('overlapping custom features cannot introduce hanging teeth after optimizat
 test('cutout optimization is default-on; warnings explain actual printing modes', async () => {
   assert.equal(defaults.optimize_cutouts, true);
   for (const [over, expected, absent] of [
-    [{ style: 'hollow', face_style: 'cutout' }, /roof.*45°/i, /unsupported face roof/i],
+    [{ style: 'hollow', face_style: 'cutout' }, /bridges up to 10 mm/i, /unsupported face roof/i],
     [{ style: 'hollow', face_style: 'cutout', optimize_cutouts: false }, /unsupported face roof/i, /reshaped/i],
     [{ style: 'bowl', wall_mm: 2.4, face_style: 'cutout', optimize_cutouts: false }, /unsupported face roof/i],
     [{ face_style: 'engraved' }, /recess.*cantilever/i],
