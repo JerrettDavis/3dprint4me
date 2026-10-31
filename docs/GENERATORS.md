@@ -37,7 +37,8 @@ certification. Curved shell surfaces, extrusion depth, material, cooling and sli
 need inspection in the layer preview. Existing tree supports are enabled from the build plate for
 hollow shells and bowls; these may not reach face roofs, and some supports may need to start on
 the model. Check removal access, especially for sealed shells. The bowl and lid still print upright
-on their existing flat bases/rims. Generator version 1 provenance remains accepted by the server.
+on their existing flat bases/rims. Generator version 1 provenance remains accepted by the server;
+its missing optimization flag defaults to false so older geometry is not recorded as adapted.
 
 | Path | Role | Runs in |
 |---|---|---|
@@ -68,6 +69,7 @@ Geometry code never ships to the server.
 |---|---|---|
 | `id` | yes | URL-safe id; the registry key, page folder, `loadBuilder` key and draft key (`3dp-customize:<id>:v<version>`). |
 | `version` | yes | Positive integer. A request pins the version that produced its model; the server accepts `1..version`. Bump it when a parameter's meaning changes. |
+| `versionDefaults` | no | Trusted defaults keyed by historical generator version, applied by the server only to missing provenance fields before ordinary schema validation. The pumpkin uses version 1 → `optimize_cutouts: false`; new version 2 models default to true. |
 | `title`, `blurb` | yes | Catalog card text; `title` also prefills the order's project title ("Custom <title>"). |
 | `category` | yes | Catalog label key (`badges`, `tags`, `cards`, `plates`; anything else is title-cased). |
 | `origin` | yes | Where the design comes from (`"house"`, or the commission it derives from). |

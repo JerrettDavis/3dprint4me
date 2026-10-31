@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=b3e928dd366365e4";
-import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=b3e928dd366365e4";
+import { contrastRatio } from "../color.js?v=4224f5a9733c420b";
+import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=4224f5a9733c420b";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -281,6 +281,7 @@ const DESIGNS = [
 export default {
   id: "pumpkin",
   version: 2,
+  versionDefaults: { 1: { optimize_cutouts: false } },
   title: "Pumpkin",
   blurb: "Design a pumpkin: solid, hollow tealight cover, vase or bowl with a lid, with a face, knit or lattice surface, and a plug-in or attached stem.",
   category: "seasonal",
