@@ -46,7 +46,8 @@ test('layer-by-layer slab checks independently verify support under the adapted 
   const checkLayers = (name, optimize) => {
     const temps = [], t = x => { temps.push(x); return x; };
     try {
-      const parts = buildFace(wasm.CrossSection, faceSpec({ ...defaults, face: name }), 60, t, { optimize });
+      const selected = typeof name === 'string' ? { face: name } : name;
+      const parts = buildFace(wasm.CrossSection, faceSpec({ ...defaults, ...selected }), 60, t, { optimize });
       const cutter = t(t(parts.main.extrude(4)).rotate([90, 0, 0]));
       const slab = t(t(wasm.Manifold.cube([100, 2, 80], true)).subtract(cutter));
       let unsupported = 0;
@@ -65,6 +66,17 @@ test('layer-by-layer slab checks independently verify support under the adapted 
     assert.ok(checkLayers(name, true) < .001, name);
   }
   assert.ok(checkLayers('awesome', false) > 1, 'the original wide flat grin fails this same support check');
+  assert.ok(checkLayers({ face: 'custom', nose_shape: 'nostrils', mouth_shape: 'round' }, true) < .001, 'overlapping features are supported too');
+});
+
+test('overlapping custom features cannot introduce hanging teeth after optimization', () => {
+  for (const { value: eye_shape } of pumpkin.schema.eye_shape.options)
+    for (const { value: nose_shape } of pumpkin.schema.nose_shape.options)
+      for (const { value: mouth_shape } of pumpkin.schema.mouth_shape.options)
+        for (const W of [24, 60, 121.5]) {
+          const { risk } = face({ ...defaults, face: 'custom', eye_shape, nose_shape, mouth_shape }, true, W);
+          assert.deepEqual(risk, { shallowRoofMm: 0, islands: 0, hangingTips: 0 }, `${eye_shape}/${nose_shape}/${mouth_shape}@${W}`);
+        }
 });
 
 test('cutout optimization is default-on; warnings explain actual printing modes', async () => {
