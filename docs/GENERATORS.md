@@ -15,30 +15,48 @@ differs, this document and the code win (see [Differences from the design spec](
 
 ## Where the code lives
 
-### Pumpkin face printability (generator version 2)
+### Pumpkin face printability (generator version 3)
 
-Cut-through faces default to **Optimize cutouts for printing**. Each disconnected feature gets
-a convex outline clipped to a peaked roof of at least 45° to the build plate, within its original
-bounds. Overlapping features are checked again as connected groups so their joins cannot create
-new hanging teeth; a group may be simplified further. This simplifies hanging teeth, heart/star concavities and smile arches; the sunglasses
-bridge is omitted. The preview and downloaded geometry both use the adaptation. Turn the option
-off to retain the original decorative outlines. Inlay and engraved geometry retain their original
-outlines, and vase mode ignores faces entirely.
+Cut-through faces default to **Optimize cutouts for printing**. Original decorative outlines
+remain intact, including round eyes, smile arches, teeth, heart/star concavities and the sunglasses
+connector. The adaptation adds material inside openings rather than convexifying or clipping
+features into triangles. It works on the combined outline so overlapping features cannot remove
+a support that another feature needs. Inlay and engraved geometry retain their original outlines;
+vase mode ignores faces entirely.
 
-Warnings inspect the combined face contours in their exported upright orientation for shallow
-roof edges, downward hanging tips (even when their sides are steep) and enclosed material islands. Original cutouts with these features warn about
-unsupported roofs, support reach and removal. Empty glue-in pockets warn separately because
-their loose pieces print beside the pumpkin and cannot support the pocket roofs. Engraving warns
-about the short cantilever across recess depth; filled multicolor inlays do not get the empty-pocket
-warning. Cheeks are included in recess checks and are omitted from cutouts.
+The design uses a conservative 10 mm bridge span heuristic. Wider openings with shallow roofs
+get narrow vertical supports that divide their spans; downward hanging tips and enclosed material
+islands also get supports. Support bodies are 1.2 mm wide and taper to a 0.45 mm contact at the
+roof, intended to break away after printing. They are part of the shell mesh, visible in both the
+preview and downloaded file. Remove them through the face openings after printing. These contact
+sizes are design defaults, not physically certified break-away behavior; material, nozzle size,
+layer height, cooling and the curved wall affect both printing and removal. Check the slicer
+preview and removal access. Turning optimization off exports the unadapted original outline.
 
-This is a conservative **2D outline heuristic**, not a support-free guarantee or physical print
-certification. Curved shell surfaces, extrusion depth, material, cooling and slicer settings still
-need inspection in the layer preview. Existing tree supports are enabled from the build plate for
-hollow shells and bowls; these may not reach face roofs, and some supports may need to start on
-the model. Check removal access, especially for sealed shells. The bowl and lid still print upright
-on their existing flat bases/rims. Generator version 1 provenance remains accepted by the server;
-its missing optimization flag defaults to false so older geometry is not recorded as adapted.
+Short curved shallow roofs retain their curves. A shallow curve is not automatically a two-ended
+flat bridge: these connected overhangs may still require removable slicer supports. Warnings say
+so rather than claiming all face roofs are supported. The planar heuristic checks shallow roof
+runs, downward hanging tips and enclosed material islands. Independent upright slab tests reject
+floating details and flat bridge closures over 10 mm; they do not certify curved cantilevers or
+the curved shell. Existing tree supports are enabled from the build plate for hollow shells and
+bowls; these may not reach face roofs, and some supports may need to start on the model. Check
+removal access, especially for sealed shells. Bowl and lid orientation is unchanged.
+
+Empty glue-in pockets warn separately because their loose pieces print beside the pumpkin and
+cannot support the pocket roofs. Engraving warns about the short cantilever across recess depth;
+filled multicolor inlays do not get the empty-pocket warning. Cheeks are included in recess checks
+and omitted from cutouts. Generator versions 1 and 2 remain accepted as historical provenance;
+version 1 defaults its missing optimization flag to false. Version 2 described the former peaked
+roof adaptation; version 3 records the bridge-first behavior. Uploaded model bytes remain the
+authoritative geometry for historical requests; provenance is not a promise of identical rebuilds.
+
+Deploy the API's shared generator registry before publishing the version 3 storefront.
+An API still running version 2 rejects a version 3 hand-off as stale. The updated API continues
+accepting versions 1 and 2. Rollback the storefront first if reverting the API registry.
+
+For a side-by-side review of all 16 actual preset outlines, run
+`python scripts/render_pumpkin_faces.py`. It writes
+`screenshots/pumpkin-bridge-faces.png`, highlighting added support material in coral.
 
 | Path | Role | Runs in |
 |---|---|---|
@@ -479,7 +497,7 @@ and an entry to `FONTS` in
 | `rating-card` | 2 | `corner_style` (round/chamfer/notch), `border_style`, `frame_style`, widths/insets, `groove_depth_mm`, `divider` (none/caption/icon/both), `caption_font`. Raised decorations print in `icon_color` (the card already uses five colors). |
 | `name-plate` | 2 | New default plate `hug` ("Contour"): the letters grown by exactly `plate_margin_mm` (1-10, default 3) with round joins, clipped to ink ± margin, holes filled; constant thickness everywhere, never thicker above/below any letter. `none` keeps its hard-edged rectangular connector bars; they start/end inside each neighbour across the whole centre band (rows sampled), so slanted letters (A, V) are overlapped in every row. Old `none`/`pill`/`rect` values stay valid. |
 | `name-plate` (office sign) | 2 (no bump) | `size: "office"` makes the standard 8 × 2 in desk sign (203.2 × 50.8 mm): a rounded rectangle regardless of `plate`, the name centered in the room inside a 5 mm margin (at most `height_mm` tall), no keychain loop. `plate_image: "custom"` (office only; `onParamChange` resets it when the size goes back to `fit`) adds the customer's image at the left, traced in the browser like the rating card (`image` spec, `ctx.imageContours`, never a parameter), as an extra "Image" part in `image_color`, raised or inlaid with the style. Defaults (`fit`, no image) keep old requests identical. |
-| `pumpkin` | 1 | Types: `style` solid / hollow / vase / bowl (`opening` bottom (tealight cover) / top / sealed for hollow; `tealight_fit` enforces a 41 mm opening and 17 mm of cavity; `bottom_hole_pct` sizes the hole in the base as a share of the flat base width, never under 20 mm, at least 41 mm with a tealight, and past 100% up to the width 2.4 mm below the mouth's lower edge — `maxBottomHolePct`; a wider hole lifts the base plane so a full wall surrounds it). Shape: width, `height_pct`, `boxiness_pct`, `taper_pct`, `oblong_pct`, `twist_deg`, `dimple_pct`, `concavity_pct` (pinches both poles inward for a squat, nested-stem pumpkin; the top sinks and the base becomes a shallow dish inside the flat rim, up to 16% of the height), `flat_base_pct` (never under 30 mm across), `segments` (6-16 lobes), `rib_depth_pct`, `rib_sharpness`, `irregularity_pct` + `seed`. Surface: `decoration` smooth / ridges / knit / lattice (hollow only; diamond, round or slot holes keep at least 1.6 mm bars). Face: `face` presets (traditional, cute, adorable, awesome, cool/sunglasses, wink, heart eyes, star-struck, tongue out, cat, happy, spooky, angry, scared, surprised, sleepy) or custom eyes/nose/mouth; `face_size_pct` (Simple mode) scales the whole face; `face_style` inlay (own-color part) / engraved / cutout (hollow or bowl); inlay with `multicolor: false` (a non-AMS printer) becomes **glue-in pieces**: pockets in the pumpkin, and loose pieces 0.15 mm smaller all round and 0.2 mm shallower, each a separate part named `Face piece N` / `Cheeks piece N`, lying flat outer side up in a row in front of the pumpkin (a little support under the curve helps). Stem: `stem` fused (pocket in the body; one part in single color) / peg (separate part printed upside down, D-keyed peg, a plain keyed hole in the top, running on through the wall of a hollow pumpkin; no holder inside, nothing to support) / none; the peg switch is independent of `multicolor`. Parts: "Pumpkin" (or "Bowl" + "Lid"), "Stem", "Face", "Cheeks"; at most four colors. A vase is the **solid** body cut flat at the opening, with no face or stem; the 3MF presets `spiral_mode` (the slicer makes the one-line wall). A bowl splits at `split_pct` with a tongue (bowl) and recess (lid), 0.25 mm clearance, and the lid, stem and face never overlap the bowl. Geometry: a closed ring mesh wrapped as a Manifold; the hollow's cavity is the smooth surface inset along the meridian normal by the wall (an even wall for any shape; checked to stay inside the real surface, retried a little thicker with a note, then refused with a readable error); faces, the stem pocket and a bowl's joint use the same inset. `geometry().top` is the true top (a deep dimple lowers the shoulders), used for the lid split and face limits. Vertex pairs that coincide at 3MF precision are merged and the zero-area fin dropped in `manifoldToMesh` (`weldSlivers`), so boolean seams don't trip the analyzer. |
+| `pumpkin` | 3 | Types: `style` solid / hollow / vase / bowl (`opening` bottom (tealight cover) / top / sealed for hollow; `tealight_fit` enforces a 41 mm opening and 17 mm of cavity; `bottom_hole_pct` sizes the hole in the base as a share of the flat base width, never under 20 mm, at least 41 mm with a tealight, and past 100% up to the width 2.4 mm below the mouth's lower edge — `maxBottomHolePct`; a wider hole lifts the base plane so a full wall surrounds it). Shape: width, `height_pct`, `boxiness_pct`, `taper_pct`, `oblong_pct`, `twist_deg`, `dimple_pct`, `concavity_pct` (pinches both poles inward for a squat, nested-stem pumpkin; the top sinks and the base becomes a shallow dish inside the flat rim, up to 16% of the height), `flat_base_pct` (never under 30 mm across), `segments` (6-16 lobes), `rib_depth_pct`, `rib_sharpness`, `irregularity_pct` + `seed`. Surface: `decoration` smooth / ridges / knit / lattice (hollow only; diamond, round or slot holes keep at least 1.6 mm bars). Face: `face` presets (traditional, cute, adorable, awesome, cool/sunglasses, wink, heart eyes, star-struck, tongue out, cat, happy, spooky, angry, scared, surprised, sleepy) or custom eyes/nose/mouth; `face_size_pct` (Simple mode) scales the whole face; `face_style` inlay (own-color part) / engraved / cutout (hollow or bowl); inlay with `multicolor: false` (a non-AMS printer) becomes **glue-in pieces**: pockets in the pumpkin, and loose pieces 0.15 mm smaller all round and 0.2 mm shallower, each a separate part named `Face piece N` / `Cheeks piece N`, lying flat outer side up in a row in front of the pumpkin (a little support under the curve helps). Stem: `stem` fused (pocket in the body; one part in single color) / peg (separate part printed upside down, D-keyed peg, a plain keyed hole in the top, running on through the wall of a hollow pumpkin; no holder inside, nothing to support) / none; the peg switch is independent of `multicolor`. Parts: "Pumpkin" (or "Bowl" + "Lid"), "Stem", "Face", "Cheeks"; at most four colors. A vase is the **solid** body cut flat at the opening, with no face or stem; the 3MF presets `spiral_mode` (the slicer makes the one-line wall). A bowl splits at `split_pct` with a tongue (bowl) and recess (lid), 0.25 mm clearance, and the lid, stem and face never overlap the bowl. Geometry: a closed ring mesh wrapped as a Manifold; the hollow's cavity is the smooth surface inset along the meridian normal by the wall (an even wall for any shape; checked to stay inside the real surface, retried a little thicker with a note, then refused with a readable error); faces, the stem pocket and a bowl's joint use the same inset. `geometry().top` is the true top (a deep dimple lowers the shoulders), used for the lid split and face limits. Vertex pairs that coincide at 3MF precision are merged and the zero-area fin dropped in `manifoldToMesh` (`weldSlivers`), so boolean seams don't trip the analyzer. |
 
 Old drafts and requests stay valid: missing keys take their defaults, and the server accepts versions 1..current.
 
