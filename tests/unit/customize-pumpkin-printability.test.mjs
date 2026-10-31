@@ -6,9 +6,17 @@ import { faceOverhangs } from '../../customizer/generators/pumpkin/printability.
 import pumpkin from '../../public/assets/js/customize/generators/pumpkin.js';
 import build from '../../customizer/generators/pumpkin/build.js';
 import { clampParams, validateParams } from '../../public/assets/js/customize/schema.js';
+import { normalizeCustomization } from '../../lib/customization/domain.js';
 
 const wasm = await loadEngine();
 const defaults = Object.fromEntries(Object.entries(pumpkin.schema).map(([k, d]) => [k, d.default]));
+
+test('legacy pumpkin provenance does not claim its original face was optimized', () => {
+  const params = { style: 'hollow', face_style: 'cutout' };
+  assert.equal(normalizeCustomization({ generatorId: 'pumpkin', generatorVersion: 1, params }).params.optimize_cutouts, false);
+  assert.equal(normalizeCustomization({ generatorId: 'pumpkin', generatorVersion: 2, params }).params.optimize_cutouts, true);
+  assert.equal(normalizeCustomization({ generatorId: 'pumpkin', generatorVersion: 2, params: { ...params, optimize_cutouts: false } }).params.optimize_cutouts, false);
+});
 function face(p, optimize, W = 60) {
   const temps = [], t = x => { if (x) temps.push(x); return x; };
   try {

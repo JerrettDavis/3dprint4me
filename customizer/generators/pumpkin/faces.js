@@ -160,7 +160,7 @@ export function buildFace(CrossSection, spec, W, t, { optimize = false } = {}) {
   if (optimize && mainCs) {
     // Individually printable features can form a hanging tooth where they overlap.
     // Adapt the connected groups too. Convexification can join another group, so
-    // repeat with a bounded budget (there are at most five original components).
+    // repeat with a bounded budget for this small set of original components.
     const risky = cs => { const r = faceOverhangs(cs); return r.shallowRoofMm > 0 || r.islands || r.hangingTips; };
     for (let pass = 0; pass < 8 && risky(mainCs); pass++) mainCs = printableFeature(CrossSection, mainCs, t);
     if (risky(mainCs)) throw new Error('These face features overlap too much to make printable roofs. Choose simpler features, or turn off cutout optimization and inspect supports.');
