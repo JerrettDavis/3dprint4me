@@ -35,7 +35,7 @@ export async function verifyNativeSchema({ pool, env }) {
     assert.equal(table.public_access, false);
     assert.equal(table.readable, true);
     assert.equal(table.insertable, true);
-    if (table.name !== 'partner_weekly_statements') assert.equal(table.rls, true);
+    assert.equal(table.rls, true);
     if (table.name !== 'partner_activity_sessions') assert.equal(table.deletable, false);
     if (['partner_payables', 'partner_payment_events', 'partner_agreement_issues', 'partner_weekly_statements'].includes(table.name)) {
       assert.equal(table.updatable, false);

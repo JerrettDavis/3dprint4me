@@ -38,6 +38,9 @@ test('release rehearsal proves native private grants and disabled HTTP behavior,
     assert.deepEqual(await rehearsal.verifyNativeSchema({ pool: appPool, env }), { schema: true, leastPrivilege: true });
     assert.deepEqual(await rehearsal.rehearseDisabledRuntime({ database: createNativeDatabase({ pool: appPool }), env, programId }),
       { disabledProgram: true, sessionDenials: true, noMessagesSent: true });
+    await admin.query('ALTER TABLE partner_weekly_statements DISABLE ROW LEVEL SECURITY');
+    await assert.rejects(rehearsal.verifyNativeSchema({ pool: appPool, env }), 'release rehearsal must reject statement RLS drift');
+    await admin.query('ALTER TABLE partner_weekly_statements ENABLE ROW LEVEL SECURITY');
     await admin.query('GRANT UPDATE ON partner_payables TO platform_backend');
     await assert.rejects(rehearsal.verifyNativeSchema({ pool: appPool, env }));
     await admin.query('REVOKE UPDATE ON partner_payables FROM platform_backend; GRANT SELECT ON partner_accounts TO PUBLIC');

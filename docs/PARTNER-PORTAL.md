@@ -1,5 +1,10 @@
 # Partner portal implementation status
 
+> The opening implementation notes below are historical. The disabled production
+> rollout is documented in [production release evidence](PARTNER-PRODUCTION-RELEASE.md).
+> See [current contractor readiness](CONTRACTOR-RELEASE-READINESS.md) for the ongoing
+> November 2 assessment and outstanding launch requirements.
+
 The partner portal is under implementation on `feat/partner-portal`, based on
 `e981a7f89fea596f7fb11102e273710fbb2a3203`. Its static shell has a protected preview; the native partner backend is not yet
 deployed and new work is not activated.

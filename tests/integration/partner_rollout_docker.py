@@ -45,7 +45,7 @@ def main(image, diagnostics=None):
         source = root/'releases'/release
         (source/'neon/migrations').mkdir(parents=True)
         source.chmod(0o700)
-        for name in ('012_partner_outreach.sql','013_partner_weekly_statements.sql','014_work_communications.sql','015_operator_model_revisions.sql'):
+        for name in ('012_partner_outreach.sql','013_partner_weekly_statements.sql','014_work_communications.sql','015_operator_model_revisions.sql', '016_partner_statement_rls.sql'):
             (source/'neon/migrations'/name).write_bytes((ROOT/'neon/migrations'/name).read_bytes())
         old_source = root/'candidate-source'
         old_source.mkdir(mode=0o700)
@@ -136,6 +136,7 @@ if(!existsSync('/tmp/stop'))failed++;console.log(JSON.stringify({checked,failed}
             assert continuity['checked'] > 0 and continuity['failed'] == 0
             assert sql("SELECT id||':'||project_title FROM service_requests ORDER BY id",db=selected,user='platform_owner') == original
             assert sql("SELECT to_regclass('public.partner_weekly_statements') IS NOT NULL",db=selected,user='platform_owner') == 't'
+            assert sql("SELECT relrowsecurity FROM pg_class WHERE oid='public.partner_weekly_statements'::regclass",db=selected,user='platform_owner') == 't'
             assert sql("SELECT to_regclass('public.partner_weekly_statements') IS NULL",db='platform',user='platform_owner') == 't'
             assert sql('SELECT count(*) FROM partner_invites',db=selected,user='platform_owner') == '0'
             assert sql('SELECT count(*) FROM partner_legal_reviews',db=selected,user='platform_owner') == '0'
