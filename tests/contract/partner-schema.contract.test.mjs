@@ -51,3 +51,9 @@ test('weekly statement migration refuses retired and non-native targets',()=>{
  assert.throws(()=>assertMigrationTarget('013_partner_weekly_statements.sql',{driver:'postgres',url:'postgresql://role@old.neon.tech/db'}),/native PostgreSQL/);
  assert.doesNotThrow(()=>assertMigrationTarget('013_partner_weekly_statements.sql',{driver:'postgres',url:'postgresql://role@localhost/db'}));
 });
+
+test('statement RLS correction refuses retired and non-native targets',()=>{
+ assert.throws(()=>assertMigrationTarget('016_partner_statement_rls.sql',{driver:'neon',url:'https://old.neon.tech'}),/native PostgreSQL/);
+ assert.throws(()=>assertMigrationTarget('016_partner_statement_rls.sql',{driver:'postgres',url:'postgresql://role@old.neon.tech/db'}),/native PostgreSQL/);
+ assert.doesNotThrow(()=>assertMigrationTarget('016_partner_statement_rls.sql',{driver:'postgres',url:'postgresql://role@localhost/db'}));
+});
