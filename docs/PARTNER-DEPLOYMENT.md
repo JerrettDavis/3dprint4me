@@ -1,6 +1,6 @@
 # Partner release evidence and remaining gates
 
-## November 2 correction candidate
+## November 3 statement RLS correction
 
 The contractor-readiness audit found that `partner_weekly_statements` lacks the
 RLS setup present on other partner tables. Additive migration
@@ -9,8 +9,12 @@ it changes no statement bytes, immutable triggers, API role checks or launch fla
 The native-only migration registry, committed-source archive requirements and
 guarded selected-database migration transaction now include 016. Rehearsal rejects
 disabled RLS on statements as it does on every other partner table. Existing 013
-is unchanged. Fresh full verification/review and a checkpointed flags-off release
-are required before this candidate is applied to production. See
+is unchanged. Reviewed release `8b9659a7e4ab6cf8e46ba2b3506fb4ae778d4972` passed full
+regression, native upgrade/restore, images, isolated rollout and native-host rehearsal.
+After owner approval, its checkpointed flags-off production rollout passed all 13
+checks. Independent production reads confirm RLS on all 41 partner tables and the
+statement backend policy, with all launch flags still zero. Contractor activation
+and actual professional clearance remain outstanding. See
 [current readiness](CONTRACTOR-RELEASE-READINESS.md) for evidence and open gates.
 
 > Current production status: the owner-approved disabled rollout is deployed and

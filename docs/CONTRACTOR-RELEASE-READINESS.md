@@ -101,7 +101,7 @@ native database; no production records or settings were changed.
   with the worker's no-recipient failure path, not evidence of provider rejection.
   Do not silently relabel or replay these historical failures. The owner inbox
   remains the verified manual review path; push delivery is unconfigured/unproven.
-- Of 41 partner tables, **40 enable RLS**. `partner_weekly_statements` is the
+- At the initial audit, of 41 partner tables, **40 enabled RLS**. `partner_weekly_statements` was the
   exception: migration 013 revokes public access and enforces immutable evidence,
   but omits RLS, and the release verifier explicitly exempted it. Existing API
   role/partner checks and anonymous denial remain verified; this finding alone
@@ -109,8 +109,8 @@ native database; no production records or settings were changed.
 - Added local migration `016_partner_statement_rls.sql`, preserving migration 013
   and matching the existing backend-role RLS policy. Native-only target checks,
   release archive/rollout wiring and fixtures include it. The verifier no longer
-  exempts statements. Production still needs the correction through a reviewed,
-  checkpointed disabled rollout.
+  exempts statements. The correction subsequently reached production through the
+  owner-approved checkpointed disabled rollout recorded below.
 - Observed native regression failures for missing statement RLS and the verifier
   exemption, then passed **six focused native/contract checks**. They exercise all
   partner RLS, accidental visitor SELECT denial, retained backend access, statement
@@ -176,13 +176,28 @@ Host-built companion slicer image:
 `sha256:1b9176011d32d59c252acd9416c3e618ff51291d266f7e7886d29faf77a14ecb`.
 Log: local temporary `3dprint4me-statement-rls-host-rehearsal.log`.
 
-Production migration/application remains pending owner acceptance of this exact
-reviewed release per [the release procedure](PARTNER-DEPLOYMENT.md). An approved
-deploy phase must create a fresh two-store checkpoint; the earlier recovery proof
-does not replace that release-time checkpoint. Keep all three partner switches at
-zero. No DNS, invitation, professional approval, payment or program activation is
-part of this correction. The reviewed protocol preserves the existing slicer and
-tunnel and retains additive partner data on failure.
+The owner approved this exact flags-off release on November 3. The production
+deploy phase passed all 13 protocol checks, including a fresh complete two-store
+checkpoint/readback, guarded API handover, job handover, feature-off smoke and
+existing-service preservation. API/jobs now use the rehearsed
+`cf07732a97a927282c8459cc791bdff204d80fc085e42de3fe85acb488ca6a89` image.
+The existing slicer, database and tunnel were retained.
+
+Independent read-only postchecks confirm **41/41 partner tables have RLS**.
+Statements have the `platform_backend_access` policy, backend SELECT but no UPDATE
+privilege, and no public grants. All three activation flags remain `0`; programs,
+accounts, professional reviews and statements remain empty. Push/expiry/cleanup/
+statement heartbeats are fresh and healthy. Partner, owner and storefront pages
+return 200, the public partner endpoint remains invitation-required, and anonymous
+partner/owner sessions return safe 401 responses. No DNS, invitation, professional
+approval, payment or program activation was performed. The rollout proof is in local
+temporary `3dprint4me-statement-rls-production-rollout.log`; checkpoint identities
+and recovery journals remain private.
+
+The prior browser owner session required sign-in. The normal **Continue with
+GitHub** flow completed successfully, the existing work inbox loaded, and its real
+Partners link opened a verified owner session with no console warnings/errors.
+The production readiness banner still reports no partner program configured.
 
 ## Evidence required before contractor onboarding
 
@@ -220,8 +235,9 @@ Use [scenario coverage](PARTNER-ACCEPTANCE-GAPS.md),
 paragraphs describe pre-deployment checkpoints; they do not override later rollout
 records or substitute for current verification.
 
-No production flags, invitations, approvals, payment records or provider settings
-were changed by this assessment.
+The approved RLS correction changed production schema and API/jobs as recorded
+above. No activation flags, invitations, professional approvals, payment records
+or external provider settings were changed.
 
 ## Preparing the professional review
 

@@ -13,4 +13,6 @@
 
 Evidence: corrected full `npm test` passed 1,261 unit/contract, 383 browser (one platform skip) and 241 UX checks; native browser 59 passed; extended native upgrade/restore and schema rehearsal passed; archive images and isolated guarded rollout passed 205 continuity probes with zero failures. Both independent read-only reviews found no actionable issues. No production schema or activation changes were made.
 
+November 3: owner-approved release `8b9659a7e4ab6cf8e46ba2b3506fb4ae778d4972` passed the checkpointed production rollout and independent 41/41 RLS, backend-policy/privilege, health and anonymous-boundary checks. Fresh real GitHub owner sign-in and partner-administration navigation passed. Activation remains off; actual professional approvals and program setup are still missing.
+
 Operational findings: three failed inherited `new_work` notifications need deliberate operator review; do not erase/requeue them as part of this schema repair. Current partner outbox and exports are empty, with no overdue export payloads. Healthy job heartbeats do not clear failed queue records.
