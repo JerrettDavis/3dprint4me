@@ -163,6 +163,27 @@ references remain private. This establishes current database recovery and object
 integrity; it does not establish replacement-host routing, private-object writes to
 a replacement provider, signed-out reboot survival, offsite/key custody, or RPO/RTO.
 
+## Committed correction and native-host rehearsal
+
+Correction release: `8b9659a7e4ab6cf8e46ba2b3506fb4ae778d4972`.
+The pinned native-host `--phase rehearse` protocol passed all eight checks:
+schema, least privilege, disabled program, session denials, no messages, isolated
+API overlap, scratch cleanup and unchanged live state. Archive SHA-256:
+`9987b0a48014081ff5071060fa8e6656f7ddc3c3f8c1bf4c548520e4161cd501`.
+Host-built API image:
+`sha256:cf07732a97a927282c8459cc791bdff204d80fc085e42de3fe85acb488ca6a89`.
+Host-built companion slicer image:
+`sha256:1b9176011d32d59c252acd9416c3e618ff51291d266f7e7886d29faf77a14ecb`.
+Log: local temporary `3dprint4me-statement-rls-host-rehearsal.log`.
+
+Production migration/application remains pending owner acceptance of this exact
+reviewed release per [the release procedure](PARTNER-DEPLOYMENT.md). An approved
+deploy phase must create a fresh two-store checkpoint; the earlier recovery proof
+does not replace that release-time checkpoint. Keep all three partner switches at
+zero. No DNS, invitation, professional approval, payment or program activation is
+part of this correction. The reviewed protocol preserves the existing slicer and
+tunnel and retains additive partner data on failure.
+
 ## Evidence required before contractor onboarding
 
 1. Corrected native browser and full regression checks passed. Complete current production
