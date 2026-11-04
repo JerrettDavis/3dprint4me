@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "environment": "hosted",
+  "result": "observed",
+  "observedAt": "2026-11-04T01:55:57.259362+00:00",
+  "backendRelease": "33271f1cf2fac1423f466e4f0b0057e3bccfc2e0",
+  "apiImage": "sha256:0ec98dfdcb75c0c87cc6f78ed64658f9e493a362c748f25e485770a383b88a96",
+  "ownerDeployment": "https://3dprint4me-operator-ebtewn3od-jerrettdavis-projects.vercel.app",
+  "participantDeployment": "https://3dprint4me-partners-m046ub5eq-jerrettdavis-projects.vercel.app",
+  "frontendSourceCommit": "513a2b31f1ec5881a1b865ea2ea670fd952d360a",
+  "screenshots": [
+    {
+      "file": "owner-canonical-drafts.png",
+      "sha256": "91513b346c88aa4fffa2a3f3b89c4402bdf187baba01d48d7c8ba6505a221226",
+      "description": "Hosted UI observation; fictional QA records only, no active codes or filled credential controls."
+    },
+    {
+      "file": "participant-agreement-acknowledged.png",
+      "sha256": "327fb1100447971976911cb4334e29587c496eeb544e4c8f928dfdb56a498d50",
+      "description": "Hosted UI observation; fictional QA records only, no active codes or filled credential controls."
+    },
+    {
+      "file": "participant-retired-session-denied.png",
+      "sha256": "e57d9afe198848b69b75165964ccf4dfeb46dce6589e431d4292baa87990e18c",
+      "description": "Hosted UI observation; fictional QA records only, no active codes or filled credential controls."
+    }
+  ],
+  "liveBusinessCounts": {
+    "programs": 0,
+    "accounts": 0,
+    "reviews": 0
+  },
+  "realLaunchFlagsEnabled": false,
+  "professionalApprovals": false,
+  "scope": "Hosted smoke of owner provisioning, fifteen canonical drafts, private participant enrollment, fictional agreement issuance and read acknowledgment. Full adversarial cases are documented separately as native test evidence.",
+  "retirementPreservesHistory": true,
+  "retiredParticipantSessionDenied": true,
+  "canonicalDraftCount": 15,
+  "issuanceChoicesExcludeCanonicalDrafts": true,
+  "anonymousSessionStatus": 401,
+  "allowedCorsOriginVerified": true,
+  "untrustedCorsOriginDenied": true,
+  "afterRetirementLiveCountsUnchanged": true,
+  "qaJobsHealth": {
+    "running": true,
+    "restartCount": 0,
+    "recentFailureMessages": false
+  }
+}

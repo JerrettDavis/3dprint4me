@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-042",
+  "stepId": "final-1",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_lead_review_correction_and_withdrawal_update_live_permission",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "dark",
+  "screenshot": "../screenshots/QA-042-final-1-390-dark.png",
+  "sha256": "353e679f83cdf0b16eae657b626e5a5c81ae94b7dd24b66d7da8c3cfbcb5f854",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

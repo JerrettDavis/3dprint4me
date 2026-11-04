@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-016",
+  "stepId": "final-1",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_consent_referral_browser.py::test_native_unconsented_email_is_rejected_without_contact_audit_or_notification_side_effects",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "dark",
+  "screenshot": "../screenshots/QA-016-final-1-390-dark.png",
+  "sha256": "4e750a3eac4660f171c2e1f66a25eed117f2b537e246a6a1e79bac9db5bc9bf2",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

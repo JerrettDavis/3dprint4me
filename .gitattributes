@@ -11,3 +11,6 @@
 *.otf binary
 *.woff binary
 *.woff2 binary
+
+# Run provenance hashes cover exact serialized bytes across checkouts.
+docs/partner-qa/evidence/runs/*.json -text

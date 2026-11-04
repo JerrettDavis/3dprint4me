@@ -28,7 +28,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -49,7 +49,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -85,7 +85,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -113,7 +113,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -135,7 +135,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -156,7 +156,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -194,7 +194,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -215,7 +215,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -236,7 +236,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -257,7 +257,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -278,7 +278,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -302,7 +302,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -337,7 +337,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -360,7 +360,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -388,7 +388,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -409,7 +409,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -450,7 +450,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -510,7 +510,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -549,7 +549,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -599,7 +599,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -620,7 +620,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -682,7 +682,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -707,7 +707,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -734,7 +734,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -808,7 +808,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -845,7 +845,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -885,7 +885,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -925,7 +925,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -947,7 +947,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1004,7 +1004,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1065,7 +1065,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1097,7 +1097,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1167,7 +1167,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1187,7 +1187,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1333,7 +1333,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1401,7 +1401,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1490,7 +1490,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1557,7 +1557,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1615,7 +1615,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1765,7 +1765,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1886,7 +1886,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -1996,7 +1996,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2215,7 +2215,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2320,7 +2320,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2569,7 +2569,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2719,7 +2719,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2802,7 +2802,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2849,7 +2849,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2911,7 +2911,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2947,7 +2947,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -2983,7 +2983,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -3006,7 +3006,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -3076,7 +3076,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -3103,7 +3103,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -3147,7 +3147,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -3202,7 +3202,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -3221,7 +3221,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -3240,7 +3240,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "nonvisual",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     },
     {
@@ -3378,7 +3378,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": [
         "accepted",
         "acknowledged",
@@ -3455,7 +3455,7 @@
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
       "evidenceRequirement": "browser-final",
-      "status": "not-run",
+      "status": "passed",
       "evidenceSteps": []
     }
   ]

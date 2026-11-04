@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-026",
+  "stepId": "final-1",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_ledger_browser.py::test_native_separate_personal_gift_is_absent_from_partner_statement_and_contractor_exports",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "theme": "light",
+  "screenshot": "../screenshots/QA-026-final-1-1440-light.png",
+  "sha256": "916e01188561bada0591ac6fb3729201ef2f4abb9b67c7bf4d9fb6c11b8a9bb6",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

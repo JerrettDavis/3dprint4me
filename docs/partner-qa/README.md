@@ -8,7 +8,7 @@
 - Participant: [QA portal](https://partners.3dprint4.me/qa); invitation redemption is at `/qa/join`.
 - Live owner and partner workspaces stay separate. Check the persistent **QA only — representative stubs** banner before every test action.
 
-Implementation is under verification; the hosted entry points are not claimed verified until the hosted evidence section records a deployment. Real program activation remains off pending actual version-bound attorney/CPA approval.
+Hosted QA is deployed and smoke-tested as recorded below. Real program activation remains off pending actual version-bound attorney/CPA approval.
 
 ## Forms
 
@@ -43,15 +43,20 @@ Three evidence classes remain explicit: mocked UI fixtures for presentation; nat
 To reproduce from this worktree in PowerShell:
 
 ```powershell
+# On Windows, let Node child processes use the same Python as the active shell.
+$qaPythonDirectory = Split-Path (python -c 'import sys; print(sys.executable)')
+$env:Path = $qaPythonDirectory + ';' + $env:Path
 python scripts/build-partner-qa-docs.py
-$env:PARTNER_QA_EVIDENCE_RUN = 'native-20261103'
+$env:PARTNER_QA_EVIDENCE_RUN = 'native-' + (Get-Date -Format 'yyyyMMdd-HHmmss')
 npm run test:partner:browser -- --junitxml=.superpowers/partner-qa-results.xml
-python scripts/finalize-partner-qa-evidence.py --junit .superpowers/partner-qa-results.xml --run native-20261103
+python scripts/finalize-partner-qa-evidence.py --junit .superpowers/partner-qa-results.xml --run $env:PARTNER_QA_EVIDENCE_RUN
 npm run validate:partner:qa
 Remove-Item Env:PARTNER_QA_EVIDENCE_RUN
 ```
 
-Screenshots live in `screenshots/`, with source/run/environment/viewport/theme/checksum records in `evidence/`. Input fields, revealable access codes and secret-bearing controls are masked before capture. The validator rejects broken mappings/images, changed checksums, stale source fingerprints, unknown steps and secret markers. Source commits may precede the documentation commit; source fingerprints must still match the actual runtime/test sources.
+Screenshots live in `screenshots/`, with source/run/environment/viewport/theme/checksum records in `evidence/`. Input fields, revealable access codes and secret-bearing controls are masked before capture. The validator rejects broken mappings/images, changed checksums, stale source fingerprints, unknown steps and secret markers. Run IDs must be unique. Session-start and session-end records bind the captured source commit/fingerprint, actual pytest cases and JUnit checksum. The finalizer rejects missing provenance, modified artifacts or source changes during the run, including edits to canonical form Markdown. Source commits may precede the documentation commit; source fingerprints must still match the actual runtime/test sources.
+
+Final native run `native-20261103-final-05` passed **60 / 60 scenarios**, with **142 redacted screenshots**. The [run summary](evidence/run-summary.json) and [run provenance](evidence/runs/native-20261103-final-05.end.json) bind the source fingerprint, actual cases and JUnit checksum. Documentation validation passed all 60 mappings and 142 image records. The full project check passed 1,275 unit tests, 391 E2E tests (one skipped) and 241 UX checks; later routing/evidence additions passed focused checks. The 168-image preview board was regenerated and visually inspected.
 
 ## Scenario index
 
@@ -118,7 +123,19 @@ Screenshots live in `screenshots/`, with source/run/environment/viewport/theme/c
 
 ## Hosted verification
 
-Not run yet. This section must record the exact deployed image/commit, HTTPS/session/CORS checks, actual owner login, synthetic participant lifecycle, unchanged live aggregate counts/flags and the separate hosted observations. Native fixture success alone is not hosted verification.
+Verified November 3, 2026 on the existing production domains. Backend release `33271f1cf2fac1423f466e4f0b0057e3bccfc2e0`, immutable API image `sha256:0ec98dfdcb75c0c87cc6f78ed64658f9e493a362c748f25e485770a383b88a96`. Owner deployment `3dprint4me-operator-ebtewn3od`; participant deployment `3dprint4me-partners-m046ub5eq`. The later frontend routing source is commit `513a2b3`; subsequent evidence-tooling commits do not change deployed runtime bytes.
+
+Actual GitHub owner sign-in opened the QA realm and created a synthetic run. All fifteen canonical forms seeded as drafts; the issuance picker offered only the separate published QA specimen. A synthetic participant redeemed a privately handed-off invitation, viewed the frozen fictional agreement and recorded read acknowledgment. Retiring that run preserved history and forced the participant back to sign-in. QA PostgreSQL and the QA-only maintenance worker were running in their separate Compose project. HTTPS anonymous session requests returned 401; allowed-origin and untrusted-origin CORS checks passed.
+
+Live aggregate program/account/professional-review counts remained **0 / 0 / 0**. Real program, classification and accounting flags remained **0 / 0 / 0**; only `PARTNER_QA_ENABLED=1` was enabled. No actual professional approval, real work, payment or outreach was created. The hosted run is retired; choose **Create synthetic QA run** for a fresh test.
+
+[Hosted observation record](hosted/observations.json) includes deployment identities and image checksums. This is a hosted smoke, not a claim that all adversarial native cases were rerun against production.
+
+![Hosted canonical draft catalog](hosted/owner-canonical-drafts.png)
+
+![Hosted participant read acknowledgment](hosted/participant-agreement-acknowledged.png)
+
+![Hosted retired session denied](hosted/participant-retired-session-denied.png)
 
 ## Operational boundary
 

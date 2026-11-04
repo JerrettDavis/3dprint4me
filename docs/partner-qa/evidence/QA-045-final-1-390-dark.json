@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-045",
+  "stepId": "final-1",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_professional_package_decisions_and_returned_feedback",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "dark",
+  "screenshot": "../screenshots/QA-045-final-1-390-dark.png",
+  "sha256": "15d8b680f8e0808a3649e9add01dbeb03e1701583bcb2cadbacb4965c5ae44a4",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

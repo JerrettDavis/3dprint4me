@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-056",
+  "stepId": "final-1",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_native_existing_private_work_inbox_updates_while_storefront_and_status_routes_stay_separate",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "dark",
+  "screenshot": "../screenshots/QA-056-final-1-390-dark.png",
+  "sha256": "5d6a0e98811ba34d81788e5ec914cc6b556a8541acf6972a8bab8f1bbfd37c92",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

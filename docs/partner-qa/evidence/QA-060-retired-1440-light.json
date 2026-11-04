@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-060",
+  "stepId": "retired",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_qa_browser.py::test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "theme": "light",
+  "screenshot": "../screenshots/QA-060-retired-1440-light.png",
+  "sha256": "b409ea8872e6a26d15437438ccdb2b70ebaf4fc028d788344117d58a68ade92e",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

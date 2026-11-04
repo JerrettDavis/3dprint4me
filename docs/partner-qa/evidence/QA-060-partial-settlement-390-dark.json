@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-060",
+  "stepId": "partial-settlement",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_qa_browser.py::test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "dark",
+  "screenshot": "../screenshots/QA-060-partial-settlement-390-dark.png",
+  "sha256": "346cf6ed87d608c4c68def146377b46e346e99c03a81abf94edd0d469384e331",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

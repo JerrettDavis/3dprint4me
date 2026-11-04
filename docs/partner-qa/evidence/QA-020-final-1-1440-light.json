@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-020",
+  "stepId": "final-1",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_forecast_browser.py::test_native_forecasts_replace_fee_and_bonus_reserves_preserve_week_and_show_unfunded_debt",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "theme": "light",
+  "screenshot": "../screenshots/QA-020-final-1-1440-light.png",
+  "sha256": "4dbc7540322fcbd79ecafce7b582ae3578b11b31ebcd50ba9cefe67da73aca65",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}
