@@ -13,4 +13,4 @@
 *.woff2 binary
 
 # Run provenance hashes cover exact serialized bytes across checkouts.
-docs/partner-qa/evidence/runs/*.json -text
+docs/partner-qa/evidence/runs/*.json -text whitespace=cr-at-eol
