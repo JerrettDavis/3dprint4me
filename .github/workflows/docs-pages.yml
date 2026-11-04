@@ -52,6 +52,7 @@ jobs:
           path: public/handbook
   deploy:
     needs: build
+    timeout-minutes: 35
     if: github.ref == 'refs/heads/docs-source' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -65,3 +66,5 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          timeout: '1800000'
