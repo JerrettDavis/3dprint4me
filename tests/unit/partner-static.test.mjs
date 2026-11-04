@@ -36,3 +36,10 @@ test('owner QA rewrite uses an extensionless destination with Vercel clean URLs'
  assert.equal(config.cleanUrls,true);
  assert.equal(config.rewrites.find(r=>r.source==='/partners/qa').destination,'/partners-qa');
 });
+
+
+test('participant QA deep links use the extensionless static QA shell',async()=>{
+ const config=JSON.parse(await readFile('partner/vercel.json','utf8'));
+ assert.equal(config.cleanUrls,true);
+ for(const path of ['/qa','/qa/:path*'])assert.equal(config.rewrites.find(r=>r.source===path).destination,'/qa');
+});
