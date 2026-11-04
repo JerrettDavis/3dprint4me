@@ -44,6 +44,9 @@ def prepare():
    if not resolved.exists():raise ValueError(f'Missing source link: {src}: {url}')
    return '](https://github.com/JerrettDavis/3dprint4me/blob/docs-source/'+quote(repo_path,safe='/._-')+('#'+u.fragment if u.fragment else '')+')'
   text=re.sub(r'(```[\s\S]*?```|`[^`\n]*`)|\]\(([^)\n]+)\)',rewrite,text)
+  # Give every screenshot a direct full-resolution view without a remote lightbox.
+  text=re.sub(r'(```[\s\S]*?```|`[^`\n]*`)|(!\[([^\]]*)\]\(([^)]+)\))',
+              lambda m:m.group(0) if m.group(1) else '['+m.group(2)+']('+m.group(4)+')',text)
   target.write_text(text,encoding='utf-8')
  return mapping
 
