@@ -142,6 +142,8 @@ def test_native_partner_browser_cookie_csrf_idor_and_logout():
         }''', {'api': fixture['apiOrigin'], 'other': fixture['otherGigId']})
         assert result['status'] == 404 and result['cache'] == 'no-store'
         assert 'Synthetic Partner 2' not in json.dumps(result['body'])
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link', name='Profile', exact=True).click()
         page.get_by_label('Display name', exact=True).fill('Synthetic browser saved')
         page.get_by_role('button', name='Save profile', exact=True).click()
@@ -161,6 +163,8 @@ def test_native_partner_browser_cookie_csrf_idor_and_logout():
             assert second_cookie['value'] != cookie['value']
             denied = second.evaluate("async ({api,id})=>(await fetch(api+'/api/partner/v1/gig?id='+id,{credentials:'include'})).status", {'api': fixture['apiOrigin'], 'id': fixture['gigId']})
             assert denied == 404
+            if second.locator('nav summary').is_visible() and second.locator('nav details').get_attribute('open') is None:
+                second.locator('nav summary').click()
             second.get_by_role('navigation').get_by_role('link', name='Profile', exact=True).click()
             assert second.get_by_label('Display name', exact=True).input_value() == 'Synthetic Partner 2'
             assert not errors
@@ -393,6 +397,8 @@ def test_native_customer_referral_request_records_permission_without_creating_a_
         page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
         page.get_by_role('button',name='Sign in',exact=True).click()
         page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link',name='Referrals',exact=True).click()
         page.get_by_text(fixture['referralCode'],exact=True).wait_for()
         assert 'No earned referral awards recorded.' in page.locator('main').inner_text()
@@ -402,6 +408,8 @@ def test_native_customer_referral_request_records_permission_without_creating_a_
         page.get_by_label('Passphrase',exact=True).fill(fixture['password'])
         page.get_by_role('button',name='Sign in',exact=True).click()
         page.get_by_role('heading',name='Hello, Synthetic Partner 2.').wait_for()
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link',name='Referrals',exact=True).click()
         page.get_by_role('heading',name='No referral codes yet').wait_for()
         assert fixture['referralCode'] not in page.locator('main').inner_text()
@@ -412,8 +420,9 @@ def test_native_owner_console_uses_github_binding_and_preserves_obligations_whil
     with native_partner_workspace() as (origin,fixture), SiteBrowser(viewport=(390,844),color_scheme='dark',reduced_motion='reduce') as site:
         owner=fixture['ownerOrigin'];api=fixture['apiOrigin'];page=site.page
         site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
-        page.goto(owner+'/partners')
+        page.goto(owner+'/partners#programs')
         page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
+        page.locator('#partner-clearance summary').click()
         assert 'New work unavailable' in page.locator('#partner-clearance').inner_text()
         page.get_by_label('Default weekly authorization (USD)',exact=True).fill('175.25')
         page.get_by_role('button',name='Save program controls',exact=True).click()
@@ -433,9 +442,8 @@ def test_native_owner_console_uses_github_binding_and_preserves_obligations_whil
             partner_page.get_by_role('button',name='Sign in',exact=True).click()
             partner_page.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
             partner_page.goto(origin+'/gigs/'+fixture['acceptedGigId'])
-            partner_page.get_by_role('combobox',name='Action',exact=True).select_option('submit')
             partner_page.get_by_label('Reason or submission details',exact=True).fill('Synthetic completed permitted introductions.')
-            partner_page.get_by_role('button',name='Save decision',exact=True).click()
+            partner_page.get_by_role('button',name='Submit work for review',exact=True).click()
             partner_page.get_by_text('Decision recorded.',exact=True).wait_for()
             page.goto(owner+'/partners#gig/'+fixture['acceptedGigId'])
             page.get_by_role('combobox',name='Review action',exact=True).select_option('approve')
@@ -455,6 +463,7 @@ def test_native_owner_console_uses_github_binding_and_preserves_obligations_whil
             partner_page.get_by_label('Display name',exact=True).wait_for()
             page.goto(owner+'/partners#partners')
             access=page.locator('[data-partner-access="'+fixture['partnerId']+'"]')
+            access.locator('..').locator('summary').click()
             access.get_by_role('combobox',name='Access change',exact=True).select_option('suspended')
             access.get_by_label('I understand that this ends access and invalidates unused codes without changing amounts owed.',exact=True).check()
             access.get_by_role('button',name='Apply access change',exact=True).click()
@@ -462,6 +471,7 @@ def test_native_owner_console_uses_github_binding_and_preserves_obligations_whil
             partner_page.get_by_role('button',name='Save profile',exact=True).click()
             partner_page.get_by_role('heading',name='Your work. Your records.').wait_for()
             assert partner_page.get_by_label('Display name',exact=True).count()==0
+            access.locator('..').locator('summary').click()
             access.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True).check()
             access.get_by_role('button',name='Issue recovery code',exact=True).click()
             code=access.get_by_label('One-time recovery code',exact=True)
@@ -620,9 +630,8 @@ def test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_l
             partner.get_by_role('button',name='Sign in',exact=True).click()
             partner.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
             partner.goto(origin+'/gigs/'+fixture['acceptedGigId'])
-            partner.get_by_role('combobox',name='Action',exact=True).select_option('submit')
             partner.get_by_label('Reason or submission details',exact=True).fill('Synthetic completed work for finance verification.')
-            partner.get_by_role('button',name='Save decision',exact=True).click()
+            partner.get_by_role('button',name='Submit work for review',exact=True).click()
             partner.get_by_text('Decision recorded.',exact=True).wait_for()
             page.goto(owner+'/partners#gig/'+fixture['acceptedGigId'])
             for action in ['approve','make_payable']:
@@ -643,6 +652,7 @@ def test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_l
                 else:route.fallback()
             page.route('**/api/operator-partners*',lose_first_payment)
             def payment(amount,reference):
+                page.get_by_text('Record a settled payment',exact=True).click()
                 form=page.locator('[data-payment]')
                 form.get_by_label('Settled payment (USD)',exact=True).fill(amount)
                 form.get_by_label('Payment reference',exact=True).fill(reference)
@@ -659,6 +669,7 @@ def test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_l
             page.get_by_text('Verified payment recorded. Review the updated outstanding amount.',exact=True).wait_for()
             data=read('ledger');assert data['totals']['paidCents']==1000 and data['totals']['outstandingCents']==0
             original=next(e for e in data['paymentEvents'] if e['payment_reference']=='NATIVE-PAYMENT-2')
+            page.locator('.owner-payment-history > summary').click()
             form=page.locator('[data-reversal="'+original['id']+'"]')
             form.locator('..').get_by_text('Record a confirmed returned transfer',exact=True).click()
             form.get_by_label('Nonsettlement reference',exact=True).fill('NATIVE-RETURN-2')
@@ -683,9 +694,8 @@ def test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_l
             # A separate accepted obligation can be resolved after a safety report while new work is off.
             referral_gig=read('referrals')['items'][0]['gigId']
             partner.goto(origin+'/gigs/'+referral_gig)
-            partner.get_by_role('combobox',name='Action',exact=True).select_option('report_unsafe')
             partner.get_by_label('Reason or submission details',exact=True).fill('Synthetic unsafe access; partial work needs resolution.')
-            partner.get_by_role('button',name='Save decision',exact=True).click()
+            partner.get_by_role('button',name='Stop unsafe work',exact=True).click()
             partner.get_by_text('Decision recorded.',exact=True).wait_for()
             page.reload();page.get_by_role('heading',name='Partner finance',exact=True).wait_for()
             page.get_by_text('Reconcile accepted work',exact=True).click()
@@ -705,6 +715,7 @@ def test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_l
                     else:route.fulfill(response=response)
                 else:route.fallback()
             page.route('**/api/operator-partners*',lose_first_export)
+            page.get_by_text('Create accounting CSV batch',exact=True).click()
             form=page.locator('[data-finance-export]')
             form.get_by_role('combobox',name='Accounting basis',exact=True).select_option('cash')
             form.get_by_role('button',name='Create incremental CSV batch',exact=True).click()
@@ -724,6 +735,7 @@ def test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_l
             for basis,expected_count,total in [('accrual',4,1700),('cash',0,0)]:
                 page.get_by_role('link',name='Return to finance and batch history',exact=True).click()
                 page.get_by_role('heading',name='Partner finance',exact=True).wait_for()
+                page.get_by_text('Create accounting CSV batch',exact=True).click()
                 form=page.locator('[data-finance-export]');form.get_by_role('combobox',name='Accounting basis',exact=True).select_option(basis)
                 form.get_by_role('button',name='Create incremental CSV batch',exact=True).click()
                 page.get_by_role('heading',name='Accounting export',exact=True).wait_for()
@@ -748,7 +760,7 @@ def test_native_owner_legal_editor_preserves_versions_comments_and_conflicting_d
         page.get_by_role('button',name='Load bundled discussion drafts',exact=True).click()
         page.get_by_text('Discussion drafts loaded. Professional review is still required.',exact=True).wait_for()
         page.locator('[data-template="independent-marketing-services"] a').click()
-        page.locator('[data-legal-edit]').wait_for()
+        page.locator('[data-legal-edit]').wait_for(state='attached')
         read=lambda resource,ident=None:page.evaluate("async ({api,resource,id})=>(await fetch(api+'/api/operator-partners?'+new URLSearchParams({resource,...(id?{id}:{})}),{credentials:'include'})).json()",{'api':api,'resource':resource,'id':ident})
         item=next(d for d in read('legal')['items'] if d['template_key']=='independent-marketing-services')
         old_id=item['latest_version_id'];old=read('legal-version',old_id)['version']
@@ -758,6 +770,7 @@ def test_native_owner_legal_editor_preserves_versions_comments_and_conflicting_d
         form.get_by_label('Clause concern',exact=True).fill('Synthetic clarification needed before professional review.')
         form.get_by_role('button',name='Add clause concern',exact=True).click()
         page.get_by_text('Clause concern recorded. Review clearance may need to be renewed.',exact=True).wait_for()
+        page.locator('summary').filter(has_text='Edit latest revision').click()
         form=page.locator('[data-legal-edit]')
         updated=old['markdown']+'\n## [IMS-99] Browser editorial note\nSynthetic clarification for professional review.\n'
         form.get_by_role('textbox',name='Markdown source',exact=True).fill(updated)
@@ -796,6 +809,7 @@ def test_native_owner_legal_editor_preserves_versions_comments_and_conflicting_d
                 'markdown':v['markdown']+'\nSecond owner window clarification.','variablesSchema':v['variables_schema'],'issuable':False,
                 'requiredScopes':v['required_scopes'],'expectedRevision':v['document_revision'],'changeReason':'Synthetic concurrent revision.'})
             assert saved['status']==200
+        page.locator('summary').filter(has_text='Edit latest revision').click()
         form=page.locator('[data-legal-edit]');unsaved=updated+'\nUnsaved owner proposal retained after conflict.'
         form.get_by_role('textbox',name='Markdown source',exact=True).fill(unsaved)
         form.get_by_label('Change reason',exact=True).fill('Synthetic stale editor attempt.')
@@ -824,9 +838,10 @@ def test_native_owner_professional_package_decisions_and_returned_feedback():
         read=lambda resource,ident=None:page.evaluate("async ({api,resource,id})=>(await fetch(api+'/api/operator-partners?'+new URLSearchParams({resource,...(id?{id}:{})}),{credentials:'include'})).json()",{'api':api,'resource':resource,'id':ident})
         page.goto(owner+'/partners#legal');page.get_by_role('button',name='Load bundled discussion drafts',exact=True).click()
         page.get_by_text('Discussion drafts loaded. Professional review is still required.',exact=True).wait_for()
-        page.locator('[data-template="independent-marketing-services"] a').click();page.locator('[data-legal-edit]').wait_for()
+        page.locator('[data-template="independent-marketing-services"] a').click();page.locator('[data-legal-edit]').wait_for(state='attached')
         original=next(v for v in read('legal')['items'] if v['template_key']=='independent-marketing-services')
         source=read('legal-version',original['latest_version_id'])['version']
+        page.locator('summary').filter(has_text='Edit latest revision').click()
         form=page.locator('[data-legal-edit]');form.get_by_role('textbox',name='Markdown source',exact=True).fill('# Synthetic services terms\n## [IMS-04] Scope\nSynthetic voluntary introductions in a disposable browser test.\n')
         form.get_by_label('Mark this text ready for reviewed issuance (does not grant approval)',exact=True).check()
         form.get_by_label('Change reason',exact=True).fill('Synthetic professional review journey only.')
@@ -1029,14 +1044,14 @@ def test_native_owner_scoped_bindings_typed_issue_ack_and_immutable_history():
             partner.get_by_label('Account code',exact=True).fill(fixture['partnerId']);partner.get_by_label('Passphrase',exact=True).fill(fixture['password'])
             partner.get_by_role('button',name='Sign in',exact=True).click();partner.get_by_role('heading',name='Hello, Synthetic Partner 1.').wait_for()
             partner.goto(origin+'/gigs/'+fixture['gigId'])
-            partner.get_by_role('combobox',name='Action',exact=True).select_option('accept');partner.get_by_role('button',name='Save decision',exact=True).click()
+            partner.get_by_role('button',name='Accept offer',exact=True).click()
             partner.get_by_text('Read and acknowledge the current reviewed agreement before accepting new work.',exact=True).wait_for()
             partner.goto(origin+'/agreements');partner.get_by_role('heading',name='Your agreements',exact=True).wait_for()
             assert '12.34' in partner.locator('main').inner_text()
             partner.get_by_label('I have read this exact issued version.',exact=True).check();partner.get_by_role('button',name='Record read acknowledgment',exact=True).click()
             partner.get_by_text('Read acknowledgment recorded.',exact=True).wait_for()
-            partner.goto(origin+'/gigs/'+fixture['gigId']);partner.get_by_role('combobox',name='Action',exact=True).select_option('accept')
-            partner.get_by_role('button',name='Save decision',exact=True).click();partner.get_by_text('Offer accepted. Receipt',exact=False).wait_for()
+            partner.goto(origin+'/gigs/'+fixture['gigId']);
+            partner.get_by_role('button',name='Accept offer',exact=True).click();partner.get_by_text('Offer accepted. Receipt',exact=False).wait_for()
         acknowledged=read('agreement',issue_id);assert acknowledged['acknowledgedAt'] and acknowledged['snapshotHash']==issued['snapshotHash']
         detail=read('legal-version',version['versionId'])['version']
         post('legal.save',{'programId':program_id,'templateKey':detail['template_key'],'title':detail['title'],'markdown':detail['markdown']+'\nNew unreviewed amendment.','variablesSchema':detail['variables_schema'],'issuable':False,'requiredScopes':detail['required_scopes'],'expectedRevision':detail['document_revision'],'changeReason':'Synthetic amendment must not rewrite an issued copy.'})
@@ -1179,9 +1194,8 @@ def test_native_optional_activity_work_submission_never_requires_a_timer():
     with native_partner_workspace() as (origin,fixture),SiteBrowser(viewport=(390,844)) as site:
         page=site.page;activity_partner_sign_in(page,origin,fixture)
         page.goto(origin+'/gigs/'+fixture['acceptedGigId'])
-        page.get_by_role('combobox',name='Action',exact=True).select_option('submit')
         page.get_by_label('Reason or submission details',exact=True).fill('Synthetic agreed visit completed without optional tracking.')
-        page.get_by_role('button',name='Save decision',exact=True).click();page.get_by_text('Decision recorded.',exact=True).wait_for()
+        page.get_by_role('button',name='Submit work for review',exact=True).click();page.get_by_text('Decision recorded.',exact=True).wait_for()
         result=page.evaluate("""async ({api,id})=>({gig:(await(await fetch(api+'/api/partner/v1/gig?id='+id,{credentials:'include'})).json()).item,activity:(await(await fetch(api+'/api/partner/v1/activity',{credentials:'include'})).json()).items})""",{'api':fixture['apiOrigin'],'id':fixture['acceptedGigId']})
         assert result['gig']['status']=='submitted' and result['activity']==[] and not site.page_errors
 
@@ -1191,6 +1205,8 @@ def test_native_optional_activity_gig_and_visit_screens_never_request_geolocatio
     with native_partner_workspace() as (origin,fixture),SiteBrowser(viewport=(390,844),color_scheme='dark') as site:
         site.context.add_init_script("window.__geoCalls=[];for(const key of ['getCurrentPosition','watchPosition'])Object.defineProperty(navigator.geolocation,key,{value:()=>{window.__geoCalls.push(key);throw Error('Unexpected geolocation');}});")
         page=site.page;activity_partner_sign_in(page,origin,fixture)
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link',name='Gigs',exact=True).click()
         page.get_by_role('heading',name='Your gigs',exact=True).wait_for()
         page.locator('a[href="/gigs/'+fixture['acceptedGigId']+'"]').click()

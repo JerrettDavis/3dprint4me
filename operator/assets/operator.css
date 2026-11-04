@@ -102,3 +102,45 @@ button,.job-actions select,.job-actions input{border-radius:var(--portal-radius)
 
 /* Manual themes also select the matching native control palette. */
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+
+/* Work inbox: tools belong to the workspace, never on top of private records. */
+.work-inbox .utility-dock{position:static;max-width:none;margin:0;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:.4rem clamp(1rem,3vw,2.5rem);gap:.25rem 1rem;align-items:center;justify-content:flex-start;background:var(--panel)}
+.work-inbox .utility-dock a,.work-inbox .utility-dock button{min-height:44px;padding:.5rem .75rem;font-size:.875rem}
+.work-inbox .utility-dock #theme{margin-left:auto}
+.work-inbox .workspace{min-height:calc(100dvh - 128px);grid-template-columns:minmax(300px,30%) minmax(0,1fr)}
+.work-inbox .queue{padding:1.5rem;border-right:1px solid var(--line)}
+.work-inbox .queue-heading{align-items:center;gap:1rem}
+.work-inbox .queue-heading h1{font-size:1.75rem;line-height:1.2;letter-spacing:-.025em}
+.work-inbox .queue-heading output{font-size:1.25rem;min-width:2.5rem;min-height:2.5rem;display:grid;place-items:center;background:var(--teal-soft);border-radius:.4rem}
+.work-inbox .queue-summary{margin:.65rem 0 1rem;line-height:1.5}
+.work-inbox .filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;padding:.75rem 0 1rem;margin:0 0 .5rem}
+.work-inbox .filters label,.work-inbox .filters label:first-child{grid-column:auto;margin:0;min-width:0}
+.work-inbox .filters select{margin-top:.3rem;padding:.5rem;min-width:0}
+.work-inbox .queue-filters{border-bottom:1px solid var(--line);margin:0 0 .5rem}
+.work-inbox .queue-filters summary{min-height:44px;padding:.65rem 0;font-size:.875rem;font-weight:650;cursor:pointer;color:var(--teal)}
+.work-inbox .queue-filters .filters{border:0}
+.work-inbox .work-list li{padding:1rem .5rem 1rem 1rem}
+.work-inbox .work-list li[data-active=true]{background:var(--teal-soft)}
+.work-inbox .work-row{gap:.4rem;cursor:pointer}
+.work-inbox .work-row strong{font-size:1rem;line-height:1.4}
+.work-inbox .detail{padding:clamp(1.5rem,3vw,3rem);min-height:0}
+.work-inbox .detail-placeholder{min-height:16rem;place-content:start;text-align:left;padding:1rem 0}
+.work-inbox .detail-placeholder h2{font-size:clamp(1.5rem,2.5vw,2rem);max-width:28ch;line-height:1.25;letter-spacing:-.025em}
+.work-inbox .detail-placeholder p{max-width:48ch;color:var(--muted)}
+.work-inbox .job-heading h2{font-size:clamp(1.75rem,3vw,2.5rem);line-height:1.2;letter-spacing:-.025em}
+.work-inbox .job-heading{padding-bottom:1rem}
+.work-inbox .job-actions{gap:.65rem;padding:1rem 0}
+.work-inbox .job-sheet,.work-inbox .note-form,.work-inbox .history{margin-block:1.5rem}
+@media(max-width:700px){
+ .work-inbox .workspace{display:block}
+ .work-inbox .queue{min-height:0;border:0;padding:1.25rem}
+ .work-inbox .detail{min-height:0;padding:1.25rem}
+ .work-inbox .utility-dock{padding:.35rem .75rem;gap:.1rem .35rem}
+ .work-inbox .utility-dock a,.work-inbox .utility-dock button{font-size:.8125rem;padding:.5rem}
+ .work-inbox .utility-dock #theme{margin-left:0}
+ .work-inbox .brand strong{display:block}
+ .work-inbox .brand span{display:none}
+ .work-inbox .brand strong{font-size:.9rem}
+ .work-inbox .session-strip{font-size:.75rem;gap:.5rem}
+ .work-inbox .topbar{padding:.65rem 1rem}
+}

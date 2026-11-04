@@ -46,7 +46,7 @@ try:
   if subprocess.run(['docker','exec',name,'pg_isready','-h','127.0.0.1','-U','platform_admin'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=5).returncode==0:break
   time.sleep(1)
  else:raise ValueError('Readiness failed')
- sql("CREATE ROLE platform_backend NOLOGIN NOSUPERUSER NOBYPASSRLS; CREATE ROLE platform_owner LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '"+credentials['owner']+"'; CREATE ROLE platform_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '"+credentials['runtime']+"'; GRANT platform_backend TO platform_app;")
+ sql("CREATE ROLE partner_qa_auth NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE platform_backend NOLOGIN NOSUPERUSER NOBYPASSRLS; CREATE ROLE platform_owner LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '"+credentials['owner']+"'; CREATE ROLE platform_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '"+credentials['runtime']+"'; GRANT platform_backend TO platform_app;")
  results=[]
  for database in databases:
   sql('CREATE DATABASE '+database+' OWNER platform_owner')

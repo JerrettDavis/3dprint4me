@@ -4,7 +4,9 @@ The work inbox holds private customer requests and inquiries. Sign in at [work.3
 
 ## Find the next request
 
-Use **View**, **Kind**, **Service** and **Priority** to narrow the queue. Read the next-step summary, then select a work item. Check its customer details and current revision before making a change. An empty filtered list may mean nothing matches; clear filters before assuming a request is missing.
+Open **Filter work** to use **View**, **Kind**, **Service** and **Priority**. Filters start collapsed on a phone so the next request is visible; the selected filters still apply while collapsed. Read the next-step summary, then select a work item. Check its customer details and current revision before making a change. An empty filtered list may mean nothing matches; clear filters before assuming a request is missing.
+
+The **Workspace tools** navigation above the queue contains Partners, filament inventory, notifications and the appearance control. These controls stay in the page flow and do not cover private records.
 
 ![Work queue](../assets/guides/work-queue-mobile.png)
 *Synthetic work queue. Filters and request actions remain usable on a phone.*
@@ -12,6 +14,8 @@ Use **View**, **Kind**, **Service** and **Priority** to narrow the queue. Read t
 ## Review the job sheet
 
 Read the intake, private notes and activity. Save the intended operational change and confirm the updated record. If another operator changed the same item, reopen the current revision, compare it with your draft and apply the change again deliberately.
+
+Use the job sheet's section headings to keep the request, conversation, models and estimate in context. When supporting actions are collapsed, open the relevant section before editing. Opening a section does not save a change or send a message. On a phone, work through one task at a time and check the resulting status before moving on.
 
 ![Populated job sheet](../assets/guides/work-detail-mobile.png)
 *Synthetic job detail with operational context and actions.*

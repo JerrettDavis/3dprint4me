@@ -58,6 +58,7 @@ def test_owner_material_rows_keyboard_partial_history_and_error_retry(width,them
         assert commands[0]['input']=={'gigId':GIG,'eventType':'returned','items':[{'label':'Sample signs','count':3}]}
         assert 'Showing the newest 200 material events.' in page.locator('[data-material-history]').inner_text()
         assert page.locator('main script').count()==0 and page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        page.locator('#owner-menu').click()
         page.get_by_role('navigation').get_by_role('link',name='Finance',exact=True).click()
         page.locator('[data-material-record]').wait_for(state='detached')
         assert not site.page_errors

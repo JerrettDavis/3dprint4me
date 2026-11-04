@@ -35,7 +35,7 @@ class ReleaseChecks(unittest.TestCase):
         self.git('config', 'user.name', 'Synthetic release test')
         for name in ['api/index.js', 'lib/index.js', 'neon/migrations/012_partner_outreach.sql',
                      'neon/migrations/013_partner_weekly_statements.sql',
-                     'neon/migrations/014_work_communications.sql', 'neon/migrations/015_operator_model_revisions.sql', 'neon/migrations/016_partner_statement_rls.sql',
+                     'neon/migrations/014_work_communications.sql', 'neon/migrations/015_operator_model_revisions.sql', 'neon/migrations/016_partner_statement_rls.sql', 'neon/migrations/017_notification_skipped.sql',
                      'scripts/rehearse-partner.mjs', 'scripts/platform-server.mjs', 'deploy/platform/Dockerfile',
                      'deploy/platform/partner-release-host.py',
                      'deploy/platform/partner-rollout-host.py',
@@ -212,7 +212,7 @@ class HostArchiveChecks(unittest.TestCase):
                          'deploy/slicer-worker/Dockerfile.bambu', 'contracts/partner/manifest.json',
                          'scripts/rehearse-partner.mjs', 'neon/migrations/012_partner_outreach.sql',
                          'neon/migrations/013_partner_weekly_statements.sql', 'neon/migrations/014_work_communications.sql',
-                         'neon/migrations/015_operator_model_revisions.sql', 'neon/migrations/016_partner_statement_rls.sql', 'package.json', 'package-lock.json']:
+                         'neon/migrations/015_operator_model_revisions.sql', 'neon/migrations/016_partner_statement_rls.sql', 'neon/migrations/017_notification_skipped.sql', 'package.json', 'package-lock.json']:
                 member = tarfile.TarInfo(name)
                 value = rollout_code.encode() if rollout_code and name == 'deploy/platform/partner-rollout-host.py' else b'safe'
                 member.size = len(value)

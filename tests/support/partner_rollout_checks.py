@@ -34,7 +34,8 @@ class RolloutChecks(unittest.TestCase):
                            ('013_partner_weekly_statements.sql', 'CREATE TABLE partner_fixture_013(id uuid);'),
                            ('014_work_communications.sql', 'CREATE TABLE work_fixture_014(id uuid);'),
                            ('015_operator_model_revisions.sql', 'CREATE TABLE work_fixture_015(id uuid);'),
-                           ('016_partner_statement_rls.sql', 'CREATE TABLE partner_fixture_016(id uuid);')]:
+                           ('016_partner_statement_rls.sql', 'CREATE TABLE partner_fixture_016(id uuid);'),
+                           ('017_notification_skipped.sql', 'CREATE TABLE partner_fixture_017(id uuid);')]:
             (self.source / 'neon/migrations' / name).write_text(text, encoding='utf-8')
         old = self.root / 'candidate-source'
         old.mkdir(mode=0o700)
@@ -155,6 +156,7 @@ class RolloutChecks(unittest.TestCase):
         self.assertIn('work_fixture_014', sql)
         self.assertIn('work_fixture_015', sql)
         self.assertIn('partner_fixture_016', sql)
+        self.assertIn('partner_fixture_017', sql)
         self.assertTrue(sql.endswith('COMMIT;'))
         self.assertNotIn('private-sentinel', json.dumps(proof))
         for args,_ in self.calls:

@@ -125,6 +125,8 @@ def test_delayed_statement_failure_does_not_replace_a_later_partner_page():
         page.route('**/api/partner/v1/statements*',delay)
         page.goto(origin+'/earnings')
         page.get_by_role('button',name='Download statement for 2026-10-26',exact=True).click()
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link',name='Profile',exact=True).click()
         page.get_by_role('heading',name='Your profile',exact=True).wait_for()
         assert len(held)==1

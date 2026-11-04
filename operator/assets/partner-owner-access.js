@@ -6,6 +6,7 @@ export function mountPartnerAccess({root,account,enrollmentAllowed,api,isCurrent
  const heading=document.createElement('h3');heading.textContent='Private access';root.append(heading);
  const copy=document.createElement('p');copy.textContent='Use the agreed identity-check process before handing over a code. Every issue replaces all unused codes. Codes expire after 30 minutes and are shown only in this owner view.';root.append(copy);
  const secret=document.createElement('div');secret.className='owner-access-code';secret.setAttribute('aria-live','polite');
+ const disclosure=root.closest('details');
  const live=()=>!disposed&&isCurrent()&&api.signedIn;
  function clearSecret(text='Code hidden. It is not saved here. Recheck identity and issue a replacement if private handoff was not completed.'){
   issueEpoch++;
@@ -70,7 +71,8 @@ export function mountPartnerAccess({root,account,enrollmentAllowed,api,isCurrent
   const select=document.createElement('button');select.type='button';select.textContent='Select code';select.onclick=()=>{field.type='text';reveal.textContent='Mask code';field.focus();field.select();};
   const hide=document.createElement('button');hide.type='button';hide.textContent='Hide and clear code';hide.onclick=()=>clearSecret();buttons.append(reveal,select,hide);secret.append(title,label,note,buttons);
  }
+ const collapsed=()=>{if(disclosure&&!disclosure.open){if(identity)identity.checked=false;clearSecret();}};disclosure?.addEventListener('toggle',collapsed);
  const conceal=()=>{if(document.hidden){if(identity)identity.checked=false;clearSecret('Code hidden because this page is no longer visible. Recheck identity before issuing a replacement if needed.');}};
  const leaving=()=>clearSecret();document.addEventListener('visibilitychange',conceal);addEventListener('pagehide',leaving);
- return ()=>{disposed=true;if(identity)identity.checked=false;clearSecret();document.removeEventListener('visibilitychange',conceal);removeEventListener('pagehide',leaving);};
+ return ()=>{disclosure?.removeEventListener('toggle',collapsed);disposed=true;if(identity)identity.checked=false;clearSecret();document.removeEventListener('visibilitychange',conceal);removeEventListener('pagehide',leaving);};
 }

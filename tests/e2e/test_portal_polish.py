@@ -21,7 +21,7 @@ def test_portal_spacing_controls_focus_and_motion(width,theme,motion,surface):
             control=page.get_by_label('Review passphrase',exact=True)
         elif owner:
             install_owner_fixture(page,realm='qa' if qa else 'live')
-            page.goto(target[1]+('/partners/qa' if qa else '/partners'))
+            page.goto(target[1]+('/partners/qa#programs' if qa else '/partners#programs'))
             page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
             control=page.get_by_role('spinbutton',name='Default weekly authorization (USD)',exact=True)
             if qa:
@@ -37,6 +37,7 @@ def test_portal_spacing_controls_focus_and_motion(width,theme,motion,surface):
             control=page.get_by_label('Display name',exact=True)
         else:
             page.goto(target[1]);page.get_by_role('heading',name='Incoming work',exact=True).wait_for()
+            if width<=700:page.locator('#queue-filters summary').click()
             control=page.get_by_role('combobox',name='View',exact=True)
             page.locator('#toast').evaluate("n=>n.dataset.kind='success'")
             assert '\u2713' in page.locator('#toast').evaluate("n=>getComputedStyle(n,'::before').content")
@@ -87,7 +88,7 @@ def test_qa_tools_explain_access_and_disable_controls_during_requests():
         with page.expect_request(lambda r:'operator-partner-qa' in r.url and 'resource=session' in r.url):
             page.get_by_role('button',name='Check access again',exact=True).click()
         session.pop(0).fulfill(content_type='application/json',body='{"owner":{"id":"synthetic-owner"},"csrfToken":"synthetic-only"}')
-        page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
+        page.get_by_role('heading',name='Partner gigs',exact=True).wait_for()
         create=page.get_by_role('button',name='Create synthetic QA run',exact=True,include_hidden=True)
         expect(create).to_be_enabled();expect(page.locator('.qa-tools')).to_be_visible()
         with page.expect_request(lambda r:'operator-partner-qa' in r.url and r.method=='POST'):

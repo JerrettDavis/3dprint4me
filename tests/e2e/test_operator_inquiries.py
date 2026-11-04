@@ -35,6 +35,7 @@ def test_operator_inquiry_detail_conversion_and_private_link_fallback(theme):
             page.add_init_script("Object.defineProperty(navigator, 'clipboard', {value:{writeText:async()=>{throw new Error('unavailable')}}});")
             page.goto(operator,wait_until='networkidle')
             assert 'Inquiry · Needs response' in page.locator('#work-list').inner_text()
+            page.locator('#queue-filters summary').click()
             with page.expect_response(lambda response: '/api/operator-work?' in response.url and 'kind=inquiry' in response.url):
                 page.locator('select[name=kind]').select_option('inquiry')
             page.wait_for_function("document.body.dataset.state === 'ready'")

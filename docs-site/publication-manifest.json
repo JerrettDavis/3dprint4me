@@ -1245,12 +1245,12 @@
     {
       "file": "docs-site/src/guides/owner.md",
       "output": "guides/owner.md",
-      "sha256": "dd7e18e0976ecf7df9c6bc7327c2b1348cc61b3446af0ab4b008eff339269f70"
+      "sha256": "b142ad323971a9ceec505a6cb3c31194e37e37dbfc0582a94306cf12093cd94e"
     },
     {
       "file": "docs-site/src/guides/partner.md",
       "output": "guides/partner.md",
-      "sha256": "eecf9d79ea4bb864a329663e37908db3f048da16d5e8841faea14ad5472dfdd0"
+      "sha256": "1a9779b1336ee190679ecb11a5c39ee66ea17e057cb086c207968e7ddd9b6316"
     },
     {
       "file": "docs-site/src/guides/qa.md",
@@ -1265,7 +1265,7 @@
     {
       "file": "docs-site/src/guides/work.md",
       "output": "guides/work.md",
-      "sha256": "6c9480900407b6aad67f0a31238437b6d4f4aaea3c0a1f4ac7aae03a341cec8e"
+      "sha256": "c876d25299f2680ce22364936ffcc0fb0b9416fbe8310d1002e976e90ebce6a4"
     },
     {
       "file": "docs-site/src/index.md",
@@ -1280,12 +1280,12 @@
     {
       "file": "docs-site/src/assets/guides/conversation-desktop.png",
       "output": "assets/guides/conversation-desktop.png",
-      "sha256": "0fc53457b6f0d8bbb83b41702085758a61ec737ed48422c2763c5c07709d91d0"
+      "sha256": "f5c1e429ce417e947e268059249562a0bacc3449f9eb9be4f76c9d001d9e6c9a"
     },
     {
       "file": "docs-site/src/assets/guides/conversation-mobile.png",
       "output": "assets/guides/conversation-mobile.png",
-      "sha256": "31511ed5a59c3fa6bb9c266c6c04a717eda336279c250ca524caabec3f298520"
+      "sha256": "c2b5a98e1df81badd8ccb42eed341b7634b60cd7a87d2f8be1d1956716a0f742"
     },
     {
       "file": "docs-site/src/assets/guides/customizer-desktop.png",
@@ -1300,182 +1300,182 @@
     {
       "file": "docs-site/src/assets/guides/models-desktop.png",
       "output": "assets/guides/models-desktop.png",
-      "sha256": "203e6e11bcb1a35f82c0bc690c255261975e1cee989457968d8d7ce6dfa15b4d"
+      "sha256": "f3e87400cedf9a3790a007ae32d473396200f1c7475b755042d7550f9bd4b907"
     },
     {
       "file": "docs-site/src/assets/guides/models-mobile.png",
       "output": "assets/guides/models-mobile.png",
-      "sha256": "b164cc060083cda9ea6aa566c06575efb89b5514eb18958989e94ff66dd853e0"
+      "sha256": "094a0477f9650d86da242b4d4d7dbdb892bd6d9f10b54818b2314d4f8cf2feab"
     },
     {
       "file": "docs-site/src/assets/guides/owner-access-desktop.png",
       "output": "assets/guides/owner-access-desktop.png",
-      "sha256": "55a4b7c8d1a9d8658559b501ec15739a950e7e00282bdc9c02f2d4ede211b6dc"
+      "sha256": "4bb01df1b17785ede54a350fd60f50670b07142ffe6a91da7097c92c49dcb927"
     },
     {
       "file": "docs-site/src/assets/guides/owner-access-mobile.png",
       "output": "assets/guides/owner-access-mobile.png",
-      "sha256": "0473cf48fed0c2f01cabe4e32d4b8ddab213fa5fd4c0c209f6ec837a6c900611"
+      "sha256": "964113c596b269f4a0a51666499c5dc0d981108e5497b439baa2fc94f00939ba"
     },
     {
       "file": "docs-site/src/assets/guides/owner-accounts-desktop.png",
       "output": "assets/guides/owner-accounts-desktop.png",
-      "sha256": "a6f2167bb60f626692d180867c58226ff5e0190530adea76a7e9e6a3f9725a74"
+      "sha256": "7791527c87a870d15af34fd63fcc275d9a73b4281b9e575c096b02756a076f55"
     },
     {
       "file": "docs-site/src/assets/guides/owner-accounts-mobile.png",
       "output": "assets/guides/owner-accounts-mobile.png",
-      "sha256": "9445905cecd11db7d08b31a6d964ef6daae389bc6586e4d74674ef7c59395661"
+      "sha256": "edd03c345ffd3abf8225e8e3cb4fd8657b67dd9677164eab17048623b82c11a9"
     },
     {
       "file": "docs-site/src/assets/guides/owner-campaigns-desktop.png",
       "output": "assets/guides/owner-campaigns-desktop.png",
-      "sha256": "feaaa17ca42c8477f49d7ec850d81fffb635fc48b6354d711d27751a8e50e8e3"
+      "sha256": "972d04b27e3630889eae9e7b939c4149698fc3a3a081fc5980a44d89c3b23f5f"
     },
     {
       "file": "docs-site/src/assets/guides/owner-campaigns-mobile.png",
       "output": "assets/guides/owner-campaigns-mobile.png",
-      "sha256": "faded7cf26cecc1e77e647adc53e73df8b195cbaf68c7102dafae7d09fe33603"
+      "sha256": "4f022e92d1bdb1b37355e3a2f2aaa63af629a309f60cb4f228b66d09bb3e91f0"
     },
     {
       "file": "docs-site/src/assets/guides/owner-finance-desktop.png",
       "output": "assets/guides/owner-finance-desktop.png",
-      "sha256": "cf9658ade2afbdba243e3d21b55d0e14d68ee8b336baef140177498710653b64"
+      "sha256": "1449ff4db26ae55f7e4c24bd00f0608261d9a238f41dc9e30b1853dbd776d803"
     },
     {
       "file": "docs-site/src/assets/guides/owner-finance-mobile.png",
       "output": "assets/guides/owner-finance-mobile.png",
-      "sha256": "a61fbb71f55c8cc549116d84ab18e2e00d5758b879ee1688f5ccb1ec9d409fb6"
+      "sha256": "266638378c334490bf3e9310bc160a84d79e6a740f6da678d440e2486cd044e2"
     },
     {
       "file": "docs-site/src/assets/guides/owner-legal-desktop.png",
       "output": "assets/guides/owner-legal-desktop.png",
-      "sha256": "812b94d738674540f2bf506e736b80175eabe04635b7a2bab8a76a91c4de36f3"
+      "sha256": "1ae41c44b669aa91f8995c95cb4d487456cd8a9cdcd004f8bdf1d12667381a01"
     },
     {
       "file": "docs-site/src/assets/guides/owner-legal-mobile.png",
       "output": "assets/guides/owner-legal-mobile.png",
-      "sha256": "7095185381b5c87113d8775393ce4fbedf3df5a2deaadec817b2fc688860dbd8"
+      "sha256": "27f9a23073890585d9d3b5b93f1bd1b6520df066901ffdc33b3c14d2c101f979"
     },
     {
       "file": "docs-site/src/assets/guides/owner-qa-desktop.png",
       "output": "assets/guides/owner-qa-desktop.png",
-      "sha256": "8d9dd883c6c7416cd189c7e7de246aaed3a71db773126753c3041d99023ef56e"
+      "sha256": "7f47ab3e08e5d0ad6d6b296426f93faff4dd27f1067048f5209f7eb6fdf8d369"
     },
     {
       "file": "docs-site/src/assets/guides/owner-qa-mobile.png",
       "output": "assets/guides/owner-qa-mobile.png",
-      "sha256": "a8ccd46a20f3ef3ce16d505b664be655b7e7746022a0a1e8aa005442771b4b8c"
+      "sha256": "24c58e25e1fc45484ea4e7c87e09e8405474344e7f11b3d21ecd8827c0c9dc09"
     },
     {
       "file": "docs-site/src/assets/guides/owner-retry-desktop.png",
       "output": "assets/guides/owner-retry-desktop.png",
-      "sha256": "0b9cef1444f7cbfbb4ce25591591e633e38b3b9904fc1fc5127a7dc7a5fd76fa"
+      "sha256": "4834f3dca0141e8f36494eadfb9cd08272a9b10708b78a22833a9de6bfc252ef"
     },
     {
       "file": "docs-site/src/assets/guides/owner-retry-mobile.png",
       "output": "assets/guides/owner-retry-mobile.png",
-      "sha256": "549461b8633d313e3fd189d5c6e10e6e82f7e699143eabbcb15cebb20f7c0c1d"
+      "sha256": "3fdac87c71e5e7939e59f9986108b9321ed6445c47c131b228d35ba5ff8482d3"
     },
     {
       "file": "docs-site/src/assets/guides/partner-agreement-desktop.png",
       "output": "assets/guides/partner-agreement-desktop.png",
-      "sha256": "efc1e93175550149f123ef45f71d44ca5f54bd5fdbce09464127e30220fdb0e0"
+      "sha256": "7794debc0370e8db5e9fc49411aa1dababd79b6ca99b47db51e2e473026accef"
     },
     {
       "file": "docs-site/src/assets/guides/partner-agreement-mobile.png",
       "output": "assets/guides/partner-agreement-mobile.png",
-      "sha256": "3fde64319fff85e7d782d8dcd7d0e1b8fa9e7f774276ed16556bdd033456eefb"
+      "sha256": "5d2f151008b400e6487d050940a9e2f63ea41a2767bdea6878e39fb0e4e0dda6"
     },
     {
       "file": "docs-site/src/assets/guides/partner-drafts-desktop.png",
       "output": "assets/guides/partner-drafts-desktop.png",
-      "sha256": "319e5d0ab075032fb7ae2a2808ca4bc77eecc377d1eb06c01df99e903e9dbabf"
+      "sha256": "a2c8efd7741997afeeba8b8c0c3aa64b4b77d9ff59aef8016a30f9ab5d3f3bd9"
     },
     {
       "file": "docs-site/src/assets/guides/partner-drafts-mobile.png",
       "output": "assets/guides/partner-drafts-mobile.png",
-      "sha256": "e1726c1dd17446298b662fcbd2685fdd4f5649bf948f13bc7c6430804e7a19c8"
+      "sha256": "5a96ef2e86400adee676183c3efbb3e29cbb6f83f2599c9319c9cf3618e54cb9"
     },
     {
       "file": "docs-site/src/assets/guides/partner-gig-desktop.png",
       "output": "assets/guides/partner-gig-desktop.png",
-      "sha256": "c314c15d53b21d43629de7f08234fa92a3bc3a159e9613058582f701706828ce"
+      "sha256": "9d8c5bccd67a3c1ccc50a6a5373bb1a83bf95e9b17bc6d138d6adadc2ba60d7d"
     },
     {
       "file": "docs-site/src/assets/guides/partner-gig-mobile.png",
       "output": "assets/guides/partner-gig-mobile.png",
-      "sha256": "777ce004c409d8e8693a6d00f6fcfd787f106565523cbaad126f62728582cc2d"
+      "sha256": "7a31641573ca56a3e2d4b1752595e905086f0e83191a521055f3895ee392fa0f"
     },
     {
       "file": "docs-site/src/assets/guides/partner-profile-desktop.png",
       "output": "assets/guides/partner-profile-desktop.png",
-      "sha256": "d2411641d1d5aa825b21f057c6bd84d67e3186cf9ccfcfc1c20d43444a38ad10"
+      "sha256": "9533c3a6d05b4eff8a3d375d51829c8d3a9749fad0e05fa047b77271d057db90"
     },
     {
       "file": "docs-site/src/assets/guides/partner-profile-mobile.png",
       "output": "assets/guides/partner-profile-mobile.png",
-      "sha256": "977fdd8c0fa28699d67a225d63160e728d3b3b66cc0e4df572e92bb750784646"
+      "sha256": "e151f864a7a4502d77464827e558a6189ca418cb57f0b47cf03d1a1daf60d93b"
     },
     {
       "file": "docs-site/src/assets/guides/partner-statements-desktop.png",
       "output": "assets/guides/partner-statements-desktop.png",
-      "sha256": "98e14b3d34b3097a5fc348d643eb5213a3a66cde117285e47895a0770c8fb88d"
+      "sha256": "5884e5f3811217d5734bb8a352a0689bdca4978a6072250abfdc09b12554154d"
     },
     {
       "file": "docs-site/src/assets/guides/partner-statements-mobile.png",
       "output": "assets/guides/partner-statements-mobile.png",
-      "sha256": "48d3c272df239691688f9dfd6b0146f3e0d7ae05019b25561f86fa57423aee04"
+      "sha256": "29de53fb54588995b3e29129f5779e53ac1abb71de02907aec45b02075ebb738"
     },
     {
       "file": "docs-site/src/assets/guides/partner-visit-desktop.png",
       "output": "assets/guides/partner-visit-desktop.png",
-      "sha256": "03d9927a10faac2a7212714ee5800f47ca4bf9905ca5ed0f0b6054b95939344c"
+      "sha256": "4cc49514a5fff42d0283619c2fe518030a39f18468526f6d89d50ed9b50a8cbe"
     },
     {
       "file": "docs-site/src/assets/guides/partner-visit-mobile.png",
       "output": "assets/guides/partner-visit-mobile.png",
-      "sha256": "cd12369950ce80ef0204c47e8a6286498c525a527a82eea161f5b877b60d4412"
+      "sha256": "54b55d957606a234c95b871039451a47b454872ae861a4db5e8e06c2029536a9"
     },
     {
       "file": "docs-site/src/assets/guides/print-estimate-desktop.png",
       "output": "assets/guides/print-estimate-desktop.png",
-      "sha256": "9c07d9c667344b18b62182466cb5d87d1fd29d715b9f98e26e31af2509c1e42e"
+      "sha256": "baf1f20e23096500abd62505d61cdd2e63f007bc723e753aca71a9b1bb588620"
     },
     {
       "file": "docs-site/src/assets/guides/print-estimate-mobile.png",
       "output": "assets/guides/print-estimate-mobile.png",
-      "sha256": "865f12a14b57999b290a999b31c8499a62bc8fcdcc46418f043e74f7539a3b8c"
+      "sha256": "cd5dc31884f07de86de33a2157884584ce7428661b84dbb7222c86835781d9c4"
     },
     {
       "file": "docs-site/src/assets/guides/review-reader-desktop.png",
       "output": "assets/guides/review-reader-desktop.png",
-      "sha256": "584aa644bab5e38de89dc4bf045f262d74688aa0b38a5e89d5e6cb059503e9de"
+      "sha256": "1f03f1c62e6f250e6a76bfbff422482cb551afa39a80cecde4cc026026f7a84b"
     },
     {
       "file": "docs-site/src/assets/guides/review-reader-mobile.png",
       "output": "assets/guides/review-reader-mobile.png",
-      "sha256": "b7799668f2a02020ac2e844c4c6647fdd413614d60a354b785278ba47b56c1d8"
+      "sha256": "960d14fdf7837aef3ae5ced96ef679e856c8751e4937b7c3867b9e335825eded"
     },
     {
       "file": "docs-site/src/assets/guides/work-detail-desktop.png",
       "output": "assets/guides/work-detail-desktop.png",
-      "sha256": "a4862067f041c7a60b8046da841200cc9ec07e8039d442c549ca1f0a2ee13d41"
+      "sha256": "109f3033180188fb2f012df275c4e0f84a1876fa13ad72f703c34533d219c187"
     },
     {
       "file": "docs-site/src/assets/guides/work-detail-mobile.png",
       "output": "assets/guides/work-detail-mobile.png",
-      "sha256": "c9b288072001c31bfde43169e626167a45b18d5939d501d178b154324ec21ec3"
+      "sha256": "020518eef9d134f73a8e38eb5560e08a875c1811f4373cc159b06120d56a01ca"
     },
     {
       "file": "docs-site/src/assets/guides/work-queue-desktop.png",
       "output": "assets/guides/work-queue-desktop.png",
-      "sha256": "b6d367f6ebf151eb41e48d150e4a6bd30574a32ca5c0db920d216d510d1d2a5f"
+      "sha256": "0774d9cc428f70606c6d2f90e9bd04a8b51d830cfa15a519046d0fe1524ab708"
     },
     {
       "file": "docs-site/src/assets/guides/work-queue-mobile.png",
       "output": "assets/guides/work-queue-mobile.png",
-      "sha256": "3b3cb3e775fd338b1518b6f65fdde78d66b5a0960fb3cb9c58c5bde70461ee5f"
+      "sha256": "7076fd071f087897272323e2c0c23232265d8d16cd742b426cc3f4af43bd2515"
     }
   ]
 }
