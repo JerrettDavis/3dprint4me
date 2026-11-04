@@ -30,6 +30,19 @@ database provider matches production's health response; candidate health alone
 cannot turn production green. Two failures open incidents; two successes clear
 them. Twelve-minute staleness is calculated both server-side and in an open tab.
 
+Configured capabilities remain unknown until functional evidence exists. Signed
+control reports may contain `verifiedProvider` (`postgres` or `neon`) and actual
+`filesVerifiedAt`, `estimatesVerifiedAt`, `emailVerifiedAt` timestamps. These name
+a successful private upload/read, completed model/slicer check, and confirmed
+receipt delivery respectively. They expire after 24 hours from the actual check,
+not arrival of a later heartbeat. Public status shows the check's date and scope.
+Fresh platform/database and production API evidence must still agree on the
+verified provider; failed prerequisites are never overridden. Estimates also need
+healthy jobs. Open tabs expire both current telemetry and functional acceptance.
+Never populate these fields from configuration alone or renew them without
+repeating the functional check. Automated collection does not send diagnostic
+emails; new manual diagnostic delivery still requires owner authorization.
+
 `POST /heartbeat/platform`, `/backup` and `/control` each use a separate secret.
 Send JSON `{observedAt,nonce,details}` with an HMAC-SHA256 hex
 `x-status-signature` over the exact UTF-8 `pathname + '\n' + body`.
