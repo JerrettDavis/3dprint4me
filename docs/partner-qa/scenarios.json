@@ -175,11 +175,7 @@
         },
         {
           "id": "action-02",
-          "description": "Select Action 'accept'"
-        },
-        {
-          "id": "action-03",
-          "description": "Activate Save decision"
+          "description": "Activate Accept offer"
         }
       ],
       "expected": [
@@ -206,15 +202,20 @@
       "actor": "Owner and/or scoped partner as specified in each step",
       "prerequisites": "Disposable PostgreSQL fixture and real browser HTTP boundaries; synthetic review evidence only. Production-portal QA uses the isolated QA realm.",
       "inputs": "Fictional fixture businesses/participants and bounded amounts from the linked native test. No real work, consent or funds.",
-      "steps": [],
+      "steps": [
+        {
+          "id": "action-01",
+          "description": "Activate page.locator('.acceptance-record > summary')"
+        }
+      ],
       "expected": [
         "w['read']('gig', gig['id'])['item']['authorizationWeek'] == monday",
-        "monday in w['pages'][0].locator('main').inner_text()",
+        "monday in page.locator('.acceptance-record').inner_text()",
         "str(w['budgets']()[0]['week_start_local']).startswith(monday)"
       ],
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
-      "evidenceRequirement": "nonvisual",
+      "evidenceRequirement": "browser-final",
       "status": "passed",
       "evidenceSteps": []
     },
@@ -227,15 +228,20 @@
       "actor": "Owner and/or scoped partner as specified in each step",
       "prerequisites": "Disposable PostgreSQL fixture and real browser HTTP boundaries; synthetic review evidence only. Production-portal QA uses the isolated QA realm.",
       "inputs": "Fictional fixture businesses/participants and bounded amounts from the linked native test. No real work, consent or funds.",
-      "steps": [],
+      "steps": [
+        {
+          "id": "action-01",
+          "description": "Activate page.locator('.acceptance-record > summary')"
+        }
+      ],
       "expected": [
         "w['read']('gig', gig['id'])['item']['authorizationWeek'] == monday",
-        "monday in w['pages'][0].locator('main').inner_text()",
+        "monday in page.locator('.acceptance-record').inner_text()",
         "str(w['budgets']()[0]['week_start_local']).startswith(monday)"
       ],
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
-      "evidenceRequirement": "nonvisual",
+      "evidenceRequirement": "browser-final",
       "status": "passed",
       "evidenceSteps": []
     },
@@ -248,15 +254,20 @@
       "actor": "Owner and/or scoped partner as specified in each step",
       "prerequisites": "Disposable PostgreSQL fixture and real browser HTTP boundaries; synthetic review evidence only. Production-portal QA uses the isolated QA realm.",
       "inputs": "Fictional fixture businesses/participants and bounded amounts from the linked native test. No real work, consent or funds.",
-      "steps": [],
+      "steps": [
+        {
+          "id": "action-01",
+          "description": "Activate page.locator('.acceptance-record > summary')"
+        }
+      ],
       "expected": [
         "w['read']('gig', gig['id'])['item']['authorizationWeek'] == monday",
-        "monday in w['pages'][0].locator('main').inner_text()",
+        "monday in page.locator('.acceptance-record').inner_text()",
         "str(w['budgets']()[0]['week_start_local']).startswith(monday)"
       ],
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
-      "evidenceRequirement": "nonvisual",
+      "evidenceRequirement": "browser-final",
       "status": "passed",
       "evidenceSteps": []
     },
@@ -269,15 +280,20 @@
       "actor": "Owner and/or scoped partner as specified in each step",
       "prerequisites": "Disposable PostgreSQL fixture and real browser HTTP boundaries; synthetic review evidence only. Production-portal QA uses the isolated QA realm.",
       "inputs": "Fictional fixture businesses/participants and bounded amounts from the linked native test. No real work, consent or funds.",
-      "steps": [],
+      "steps": [
+        {
+          "id": "action-01",
+          "description": "Activate page.locator('.acceptance-record > summary')"
+        }
+      ],
       "expected": [
         "w['read']('gig', gig['id'])['item']['authorizationWeek'] == monday",
-        "monday in w['pages'][0].locator('main').inner_text()",
+        "monday in page.locator('.acceptance-record').inner_text()",
         "str(w['budgets']()[0]['week_start_local']).startswith(monday)"
       ],
       "retry": "Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.",
       "cleanup": "Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.",
-      "evidenceRequirement": "nonvisual",
+      "evidenceRequirement": "browser-final",
       "status": "passed",
       "evidenceSteps": []
     },
@@ -321,11 +337,7 @@
         },
         {
           "id": "action-02",
-          "description": "Select Action 'accept'"
-        },
-        {
-          "id": "action-03",
-          "description": "Activate Save decision"
+          "description": "Activate Accept offer"
         }
       ],
       "expected": [
@@ -785,15 +797,11 @@
         },
         {
           "id": "action-10",
-          "description": "Select Action 'submit'"
-        },
-        {
-          "id": "action-11",
           "description": "Enter Reason or submission details 'Synthetic offline business visit submitted for owner review.'"
         },
         {
-          "id": "action-12",
-          "description": "Activate Save decision"
+          "id": "action-11",
+          "description": "Activate Submit work for review"
         }
       ],
       "expected": [
@@ -1132,22 +1140,30 @@
         },
         {
           "id": "action-06",
-          "description": "Activate Profile"
+          "description": "Activate page.locator('nav summary')"
         },
         {
           "id": "action-07",
-          "description": "Enter Display name 'Synthetic browser saved'"
+          "description": "Activate Profile"
         },
         {
           "id": "action-08",
-          "description": "Activate Save profile"
+          "description": "Enter Display name 'Synthetic browser saved'"
         },
         {
           "id": "action-09",
-          "description": "Enter Account code fixture['otherPartnerId']"
+          "description": "Activate Save profile"
         },
         {
           "id": "action-10",
+          "description": "Enter Account code fixture['otherPartnerId']"
+        },
+        {
+          "id": "action-11",
+          "description": "Activate second.locator('nav summary')"
+        },
+        {
+          "id": "action-12",
           "description": "Activate Sign out"
         }
       ],
@@ -1588,14 +1604,18 @@
         },
         {
           "id": "action-05",
-          "description": "Activate Referrals"
+          "description": "Activate page.locator('nav summary')"
         },
         {
           "id": "action-06",
-          "description": "Activate Sign out"
+          "description": "Activate Referrals"
         },
         {
           "id": "action-07",
+          "description": "Activate Sign out"
+        },
+        {
+          "id": "action-08",
           "description": "Enter Account code fixture['otherPartnerId']"
         }
       ],
@@ -1630,122 +1650,130 @@
       "steps": [
         {
           "id": "action-01",
-          "description": "Open owner + '/partners'"
+          "description": "Open owner + '/partners#programs'"
         },
         {
           "id": "action-02",
-          "description": "Enter Default weekly authorization (USD) '175.25'"
+          "description": "Activate page.locator('#partner-clearance summary')"
         },
         {
           "id": "action-03",
-          "description": "Activate Save program controls"
+          "description": "Enter Default weekly authorization (USD) '175.25'"
         },
         {
           "id": "action-04",
-          "description": "Reload the current page and revalidate its session"
+          "description": "Activate Save program controls"
         },
         {
           "id": "action-05",
-          "description": "Open origin"
+          "description": "Reload the current page and revalidate its session"
         },
         {
           "id": "action-06",
-          "description": "Enter Account code fixture['partnerId']"
+          "description": "Open owner + '/partners'"
         },
         {
           "id": "action-07",
-          "description": "Enter Passphrase fixture['password']"
+          "description": "Open origin"
         },
         {
           "id": "action-08",
-          "description": "Activate Sign in"
+          "description": "Enter Account code fixture['partnerId']"
         },
         {
           "id": "action-09",
-          "description": "Open origin + '/gigs/' + fixture['acceptedGigId']"
+          "description": "Enter Passphrase fixture['password']"
         },
         {
           "id": "action-10",
-          "description": "Select Action 'submit'"
+          "description": "Activate Sign in"
         },
         {
           "id": "action-11",
-          "description": "Enter Reason or submission details 'Synthetic completed permitted introductions.'"
+          "description": "Open origin + '/gigs/' + fixture['acceptedGigId']"
         },
         {
           "id": "action-12",
-          "description": "Activate Save decision"
+          "description": "Enter Reason or submission details 'Synthetic completed permitted introductions.'"
         },
         {
           "id": "action-13",
-          "description": "Open owner + '/partners#gig/' + fixture['acceptedGigId']"
+          "description": "Activate Submit work for review"
         },
         {
           "id": "action-14",
-          "description": "Select Review action 'approve'"
+          "description": "Open owner + '/partners#gig/' + fixture['acceptedGigId']"
         },
         {
           "id": "action-15",
-          "description": "Enter Review reason 'Objective deliverables verified.'"
+          "description": "Select Review action 'approve'"
         },
         {
           "id": "action-16",
-          "description": "Activate Record gig review"
+          "description": "Enter Review reason 'Objective deliverables verified.'"
         },
         {
           "id": "action-17",
-          "description": "Select Review action 'make_payable'"
+          "description": "Activate Record gig review"
         },
         {
           "id": "action-18",
-          "description": "Open origin + '/earnings'"
+          "description": "Select Review action 'make_payable'"
         },
         {
           "id": "action-19",
-          "description": "Open origin + '/profile'"
+          "description": "Open origin + '/earnings'"
         },
         {
           "id": "action-20",
-          "description": "Open owner + '/partners#partners'"
+          "description": "Open origin + '/profile'"
         },
         {
           "id": "action-21",
-          "description": "Select Access change 'suspended'"
+          "description": "Open owner + '/partners#partners'"
         },
         {
           "id": "action-22",
-          "description": "Confirm I understand that this ends access and invalidates unused codes without changing amounts owed."
+          "description": "Activate access.locator('..').locator('summary')"
         },
         {
           "id": "action-23",
-          "description": "Activate Apply access change"
+          "description": "Select Access change 'suspended'"
         },
         {
           "id": "action-24",
-          "description": "Activate Save profile"
+          "description": "Confirm I understand that this ends access and invalidates unused codes without changing amounts owed."
         },
         {
           "id": "action-25",
-          "description": "Confirm I verified the identity of this partner and understand that issuing a code replaces all unused codes."
+          "description": "Activate Apply access change"
         },
         {
           "id": "action-26",
-          "description": "Activate Issue recovery code"
+          "description": "Activate Save profile"
         },
         {
           "id": "action-27",
-          "description": "Open origin + '/join'"
+          "description": "Confirm I verified the identity of this partner and understand that issuing a code replaces all unused codes."
         },
         {
           "id": "action-28",
-          "description": "Enter Invitation or recovery code token"
+          "description": "Activate Issue recovery code"
         },
         {
           "id": "action-29",
-          "description": "Enter Choose a passphrase 'Synthetic restored partner passphrase'"
+          "description": "Open origin + '/join'"
         },
         {
           "id": "action-30",
+          "description": "Enter Invitation or recovery code token"
+        },
+        {
+          "id": "action-31",
+          "description": "Enter Choose a passphrase 'Synthetic restored partner passphrase'"
+        },
+        {
+          "id": "action-32",
           "description": "Activate Set passphrase and continue"
         }
       ],
@@ -1784,86 +1812,90 @@
         },
         {
           "id": "action-02",
-          "description": "Select Consenting web request request_id"
+          "description": "Activate page.locator('#partner-clearance summary')"
         },
         {
           "id": "action-03",
-          "description": "Enter Permission evidence reference 'Native private web request permission checked'"
+          "description": "Select Consenting web request request_id"
         },
         {
           "id": "action-04",
-          "description": "Confirm Customer opt-in for this referral code is verified."
+          "description": "Enter Permission evidence reference 'Native private web request permission checked'"
         },
         {
           "id": "action-05",
-          "description": "Confirm I verified this is an independent customer, not a participant purchase."
+          "description": "Confirm Customer opt-in for this referral code is verified."
         },
         {
           "id": "action-06",
-          "description": "Activate Record attribution"
+          "description": "Confirm I verified this is an independent customer, not a participant purchase."
         },
         {
           "id": "action-07",
-          "description": "Select Attributed request attribution_id"
+          "description": "Activate Record attribution"
         },
         {
           "id": "action-08",
-          "description": "Enter Settled amount (USD) '125.00'"
+          "description": "Select Attributed request attribution_id"
         },
         {
           "id": "action-09",
-          "description": "Enter Settlement reference reference"
+          "description": "Enter Settled amount (USD) '125.00'"
         },
         {
           "id": "action-10",
-          "description": "Select Settlement method 'bank_transfer'"
+          "description": "Enter Settlement reference reference"
         },
         {
           "id": "action-11",
-          "description": "Enter Settled at (ISO 8601 with timezone) datetime.now(timezone.utc).isoformat()"
+          "description": "Select Settlement method 'bank_transfer'"
         },
         {
           "id": "action-12",
-          "description": "Confirm form.get_by_label(label, exact=True)"
+          "description": "Enter Settled at (ISO 8601 with timezone) datetime.now(timezone.utc).isoformat()"
         },
         {
           "id": "action-13",
-          "description": "Activate Record verified sale"
+          "description": "Confirm form.get_by_label(label, exact=True)"
         },
         {
           "id": "action-14",
-          "description": "Select Verified settlement evidence sale_id"
+          "description": "Activate Record verified sale"
         },
         {
           "id": "action-15",
-          "description": "Confirm The frozen qualification criteria and deadline are met."
+          "description": "Select Verified settlement evidence sale_id"
         },
         {
           "id": "action-16",
-          "description": "Confirm I reviewed self-referral, duplicate and collusion checks."
+          "description": "Confirm The frozen qualification criteria and deadline are met."
         },
         {
           "id": "action-17",
-          "description": "Activate Award accepted bonus"
+          "description": "Confirm I reviewed self-referral, duplicate and collusion checks."
         },
         {
           "id": "action-18",
-          "description": "Open origin"
+          "description": "Activate Award accepted bonus"
         },
         {
           "id": "action-19",
-          "description": "Enter Account code fixture['partnerId']"
+          "description": "Open origin"
         },
         {
           "id": "action-20",
-          "description": "Enter Passphrase fixture['password']"
+          "description": "Enter Account code fixture['partnerId']"
         },
         {
           "id": "action-21",
-          "description": "Activate Sign in"
+          "description": "Enter Passphrase fixture['password']"
         },
         {
           "id": "action-22",
+          "description": "Activate Sign in"
+        },
+        {
+          "id": "action-23",
           "description": "Open origin + '/referrals'"
         }
       ],
@@ -2031,35 +2063,35 @@
         },
         {
           "id": "action-06",
-          "description": "Select Action 'submit'"
-        },
-        {
-          "id": "action-07",
           "description": "Enter Reason or submission details 'Synthetic completed work for finance verification.'"
         },
         {
-          "id": "action-08",
-          "description": "Activate Save decision"
+          "id": "action-07",
+          "description": "Activate Submit work for review"
         },
         {
-          "id": "action-09",
+          "id": "action-08",
           "description": "Open owner + '/partners#gig/' + fixture['acceptedGigId']"
         },
         {
-          "id": "action-10",
+          "id": "action-09",
           "description": "Select Review action action"
         },
         {
-          "id": "action-11",
+          "id": "action-10",
           "description": "Enter Review reason 'Synthetic objective work reviewed.'"
         },
         {
-          "id": "action-12",
+          "id": "action-11",
           "description": "Activate Record gig review"
         },
         {
-          "id": "action-13",
+          "id": "action-12",
           "description": "Open owner + '/partners#finance'"
+        },
+        {
+          "id": "action-13",
+          "description": "Activate page.get_by_text('Record a settled payment', exact=True)"
         },
         {
           "id": "action-14",
@@ -2083,59 +2115,59 @@
         },
         {
           "id": "action-19",
-          "description": "Activate form.locator('..').get_by_text('Record a confirmed returned transfer', exact=True)"
+          "description": "Activate page.locator('.owner-payment-history > summary')"
         },
         {
           "id": "action-20",
-          "description": "Enter Nonsettlement reference 'NATIVE-RETURN-2'"
+          "description": "Activate form.locator('..').get_by_text('Record a confirmed returned transfer', exact=True)"
         },
         {
           "id": "action-21",
-          "description": "Enter Reversed at (ISO 8601 with timezone) datetime.now(timezone.utc).isoformat()"
+          "description": "Enter Nonsettlement reference 'NATIVE-RETURN-2'"
         },
         {
           "id": "action-22",
-          "description": "Enter Reversal reason 'Synthetic bank confirmation of returned transfer.'"
+          "description": "Enter Reversed at (ISO 8601 with timezone) datetime.now(timezone.utc).isoformat()"
         },
         {
           "id": "action-23",
-          "description": "Confirm I verified nonsettlement or return of this original payment."
+          "description": "Enter Reversal reason 'Synthetic bank confirmation of returned transfer.'"
         },
         {
           "id": "action-24",
-          "description": "Activate Record payment reversal"
+          "description": "Confirm I verified nonsettlement or return of this original payment."
         },
         {
           "id": "action-25",
-          "description": "Activate page.get_by_text('Record an evidenced obligation adjustment', exact=True)"
+          "description": "Activate Record payment reversal"
         },
         {
           "id": "action-26",
-          "description": "Enter Adjustment (USD, positive or negative) '2.00'"
+          "description": "Activate page.get_by_text('Record an evidenced obligation adjustment', exact=True)"
         },
         {
           "id": "action-27",
-          "description": "Enter Adjustment reason 'Additional externally documented obligation.'"
+          "description": "Enter Adjustment (USD, positive or negative) '2.00'"
         },
         {
           "id": "action-28",
-          "description": "Enter Resolution reference 'NATIVE-RESOLUTION-1'"
+          "description": "Enter Adjustment reason 'Additional externally documented obligation.'"
         },
         {
           "id": "action-29",
-          "description": "Confirm form.get_by_label(label, exact=True)"
+          "description": "Enter Resolution reference 'NATIVE-RESOLUTION-1'"
         },
         {
           "id": "action-30",
-          "description": "Activate Record obligation adjustment"
+          "description": "Confirm form.get_by_label(label, exact=True)"
         },
         {
           "id": "action-31",
-          "description": "Open origin + '/gigs/' + referral_gig"
+          "description": "Activate Record obligation adjustment"
         },
         {
           "id": "action-32",
-          "description": "Select Action 'report_unsafe'"
+          "description": "Open origin + '/gigs/' + referral_gig"
         },
         {
           "id": "action-33",
@@ -2143,50 +2175,58 @@
         },
         {
           "id": "action-34",
-          "description": "Reload the current page and revalidate its session"
+          "description": "Activate Stop unsafe work"
         },
         {
           "id": "action-35",
-          "description": "Activate page.get_by_text('Reconcile accepted work', exact=True)"
+          "description": "Reload the current page and revalidate its session"
         },
         {
           "id": "action-36",
-          "description": "Enter Agreed obligation (USD) '5.00'"
+          "description": "Activate page.get_by_text('Reconcile accepted work', exact=True)"
         },
         {
           "id": "action-37",
-          "description": "Enter Resolution reason 'Synthetic acknowledged safety resolution.'"
+          "description": "Enter Agreed obligation (USD) '5.00'"
         },
         {
           "id": "action-38",
-          "description": "Enter Resolution reference 'NATIVE-SAFETY-RESOLUTION'"
+          "description": "Enter Resolution reason 'Synthetic acknowledged safety resolution.'"
         },
         {
           "id": "action-39",
-          "description": "Activate Record resolved obligation"
+          "description": "Enter Resolution reference 'NATIVE-SAFETY-RESOLUTION'"
         },
         {
           "id": "action-40",
-          "description": "Select Accounting basis 'cash'"
+          "description": "Activate Record resolved obligation"
         },
         {
           "id": "action-41",
-          "description": "Activate Create incremental CSV batch"
+          "description": "Activate page.get_by_text('Create accounting CSV batch', exact=True)"
         },
         {
           "id": "action-42",
-          "description": "Activate Download verified CSV"
+          "description": "Select Accounting basis 'cash'"
         },
         {
           "id": "action-43",
-          "description": "Activate Return to finance and batch history"
+          "description": "Activate Create incremental CSV batch"
         },
         {
           "id": "action-44",
-          "description": "Select Accounting basis basis"
+          "description": "Activate Download verified CSV"
         },
         {
           "id": "action-45",
+          "description": "Activate Return to finance and batch history"
+        },
+        {
+          "id": "action-46",
+          "description": "Select Accounting basis basis"
+        },
+        {
+          "id": "action-47",
           "description": "Open origin + '/earnings'"
         }
       ],
@@ -2258,46 +2298,50 @@
         },
         {
           "id": "action-08",
-          "description": "Enter Markdown source updated"
+          "description": "Activate page.locator('summary').filter(has_text='Edit latest revision')"
         },
         {
           "id": "action-09",
-          "description": "Enter Change reason 'Add the requested synthetic clarification.'"
+          "description": "Enter Markdown source updated"
         },
         {
           "id": "action-10",
-          "description": "Activate Save new immutable revision"
+          "description": "Enter Change reason 'Add the requested synthetic clarification.'"
         },
         {
           "id": "action-11",
-          "description": "Enter Resolution 'Synthetic clarification recorded in this new revision.'"
+          "description": "Activate Save new immutable revision"
         },
         {
           "id": "action-12",
-          "description": "Activate Record comment resolution"
+          "description": "Enter Resolution 'Synthetic clarification recorded in this new revision.'"
         },
         {
           "id": "action-13",
-          "description": "Activate Mark revision in review"
+          "description": "Activate Record comment resolution"
         },
         {
           "id": "action-14",
-          "description": "Select Compare with revision old_id"
+          "description": "Activate Mark revision in review"
         },
         {
           "id": "action-15",
-          "description": "Activate Compare saved revisions"
+          "description": "Select Compare with revision old_id"
         },
         {
           "id": "action-16",
-          "description": "Enter Markdown source unsaved"
+          "description": "Activate Compare saved revisions"
         },
         {
           "id": "action-17",
-          "description": "Enter Change reason 'Synthetic stale editor attempt.'"
+          "description": "Enter Markdown source unsaved"
         },
         {
           "id": "action-18",
+          "description": "Enter Change reason 'Synthetic stale editor attempt.'"
+        },
+        {
+          "id": "action-19",
           "description": "Activate Compare unsaved text with latest revision"
         }
       ],
@@ -2347,190 +2391,194 @@
         },
         {
           "id": "action-04",
-          "description": "Enter Markdown source '# Synthetic services terms\\n## [IMS-04] Scope\\nSynthetic voluntary introductions in a disposable browser test.\\n'"
+          "description": "Activate page.locator('summary').filter(has_text='Edit latest revision')"
         },
         {
           "id": "action-05",
-          "description": "Confirm Mark this text ready for reviewed issuance (does not grant approval)"
+          "description": "Enter Markdown source '# Synthetic services terms\\n## [IMS-04] Scope\\nSynthetic voluntary introductions in a disposable browser test.\\n'"
         },
         {
           "id": "action-06",
-          "description": "Enter Change reason 'Synthetic professional review journey only.'"
+          "description": "Confirm Mark this text ready for reviewed issuance (does not grant approval)"
         },
         {
           "id": "action-07",
-          "description": "Activate Save new immutable revision"
+          "description": "Enter Change reason 'Synthetic professional review journey only.'"
         },
         {
           "id": "action-08",
-          "description": "Activate page.get_by_text('Create professional review package', exact=True)"
+          "description": "Activate Save new immutable revision"
         },
         {
           "id": "action-09",
-          "description": "Confirm form.locator('[name=versionIds]')"
+          "description": "Activate page.get_by_text('Create professional review package', exact=True)"
         },
         {
           "id": "action-10",
-          "description": "Activate Add named reviewer"
+          "description": "Confirm form.locator('[name=versionIds]')"
         },
         {
           "id": "action-11",
-          "description": "Enter Reviewer name name"
+          "description": "Activate Add named reviewer"
         },
         {
           "id": "action-12",
-          "description": "Select Professional role role"
+          "description": "Enter Reviewer name name"
         },
         {
           "id": "action-13",
-          "description": "Confirm row.get_by_label(scope, exact=True)"
+          "description": "Select Professional role role"
         },
         {
           "id": "action-14",
-          "description": "Enter Grant expires at (ISO 8601 with timezone) expires"
+          "description": "Confirm row.get_by_label(scope, exact=True)"
         },
         {
           "id": "action-15",
-          "description": "Enter Private factual brief and review questions 'Synthetic facts. No actual professional decision or engagement.'"
+          "description": "Enter Grant expires at (ISO 8601 with timezone) expires"
         },
         {
           "id": "action-16",
-          "description": "Confirm I checked redaction, private facts and permission to share this package."
+          "description": "Enter Private factual brief and review questions 'Synthetic facts. No actual professional decision or engagement.'"
         },
         {
           "id": "action-17",
-          "description": "Activate Create private signed package"
+          "description": "Confirm I checked redaction, private facts and permission to share this package."
         },
         {
           "id": "action-18",
-          "description": "Activate Download signed ZIP (unencrypted)"
+          "description": "Activate Create private signed package"
         },
         {
           "id": "action-19",
-          "description": "Enter Handoff passphrase (20 to 1024 UTF-8 bytes) secret"
+          "description": "Activate Download signed ZIP (unencrypted)"
         },
         {
           "id": "action-20",
-          "description": "Enter Repeat handoff passphrase secret"
+          "description": "Enter Handoff passphrase (20 to 1024 UTF-8 bytes) secret"
         },
         {
           "id": "action-21",
-          "description": "Confirm I saved the passphrase separately and will share it through the agreed trusted channel."
+          "description": "Enter Repeat handoff passphrase secret"
         },
         {
           "id": "action-22",
-          "description": "Activate Encrypt package on this device"
+          "description": "Confirm I saved the passphrase separately and will share it through the agreed trusted channel."
         },
         {
           "id": "action-23",
-          "description": "Activate Download encrypted review file"
+          "description": "Activate Encrypt package on this device"
         },
         {
           "id": "action-24",
-          "description": "Open (ROOT / 'operator' / 'review-reader.html').as_uri()"
+          "description": "Activate Download encrypted review file"
         },
         {
           "id": "action-25",
-          "description": "Enter Review passphrase password"
+          "description": "Open (ROOT / 'operator' / 'review-reader.html').as_uri()"
         },
         {
           "id": "action-26",
-          "description": "Enter Independently trusted signing fingerprint fingerprint"
+          "description": "Enter Review passphrase password"
         },
         {
           "id": "action-27",
-          "description": "Activate Unlock and verify locally"
+          "description": "Enter Independently trusted signing fingerprint fingerprint"
         },
         {
           "id": "action-28",
-          "description": "Activate offline.locator('#result a[download$=\".md\"]').first"
+          "description": "Activate Unlock and verify locally"
         },
         {
           "id": "action-29",
-          "description": "Enter Return passphrase (20 to 1024 UTF-8 bytes) return_secret"
+          "description": "Activate offline.locator('#result a[download$=\".md\"]').first"
         },
         {
           "id": "action-30",
-          "description": "Enter Repeat return passphrase return_secret"
+          "description": "Enter Return passphrase (20 to 1024 UTF-8 bytes) return_secret"
         },
         {
           "id": "action-31",
-          "description": "Confirm form.get_by_role('checkbox')"
+          "description": "Enter Repeat return passphrase return_secret"
         },
         {
           "id": "action-32",
-          "description": "Activate Encrypt returned DOCX locally"
+          "description": "Confirm form.get_by_role('checkbox')"
         },
         {
           "id": "action-33",
-          "description": "Activate Download encrypted DOCX return"
+          "description": "Activate Encrypt returned DOCX locally"
         },
         {
           "id": "action-34",
-          "description": "Enter Return passphrase (20 to 1024 UTF-8 bytes) 'Changed private return passphrase 2026!'"
+          "description": "Activate Download encrypted DOCX return"
         },
         {
           "id": "action-35",
-          "description": "Activate Lock and clear private view"
+          "description": "Enter Return passphrase (20 to 1024 UTF-8 bytes) 'Changed private return passphrase 2026!'"
         },
         {
           "id": "action-36",
-          "description": "Select Returned source version version_id"
+          "description": "Activate Lock and clear private view"
         },
         {
           "id": "action-37",
-          "description": "Select Returning named reviewer '0'"
+          "description": "Select Returned source version version_id"
         },
         {
           "id": "action-38",
-          "description": "Enter Return passphrase (encrypted returns only) return_secret"
+          "description": "Select Returning named reviewer '0'"
         },
         {
           "id": "action-39",
-          "description": "Confirm I confirmed the returning reviewer identity through the agreed private channel."
+          "description": "Enter Return passphrase (encrypted returns only) return_secret"
         },
         {
           "id": "action-40",
-          "description": "Activate Import untrusted feedback"
+          "description": "Confirm I confirmed the returning reviewer identity through the agreed private channel."
         },
         {
           "id": "action-41",
-          "description": "Activate Return to the source review package"
+          "description": "Activate Import untrusted feedback"
         },
         {
           "id": "action-42",
-          "description": "Select Reviewed source version version_id"
+          "description": "Activate Return to the source review package"
         },
         {
           "id": "action-43",
-          "description": "Select Named reviewer and scope str(grant)"
+          "description": "Select Reviewed source version version_id"
         },
         {
           "id": "action-44",
-          "description": "Select Professional decision choice"
+          "description": "Select Named reviewer and scope str(grant)"
         },
         {
           "id": "action-45",
-          "description": "Enter Evidence reference reference"
+          "description": "Select Professional decision choice"
         },
         {
           "id": "action-46",
-          "description": "Enter Reviewed at (ISO 8601 with timezone) datetime.now(timezone.utc).isoformat()"
+          "description": "Enter Evidence reference reference"
         },
         {
           "id": "action-47",
-          "description": "Confirm I verified the reviewer identity and this decision through the agreed private channel."
+          "description": "Enter Reviewed at (ISO 8601 with timezone) datetime.now(timezone.utc).isoformat()"
         },
         {
           "id": "action-48",
-          "description": "Activate Record professional decision"
+          "description": "Confirm I verified the reviewer identity and this decision through the agreed private channel."
         },
         {
           "id": "action-49",
-          "description": "Open owner + '/partners#legal/version/' + version_id"
+          "description": "Activate Record professional decision"
         },
         {
           "id": "action-50",
+          "description": "Open owner + '/partners#legal/version/' + version_id"
+        },
+        {
+          "id": "action-51",
           "description": "Activate Publish reviewed revision"
         }
       ],
@@ -2612,79 +2660,79 @@
         },
         {
           "id": "action-08",
-          "description": "Activate Issued agreements"
+          "description": "Activate Workspace menu"
         },
         {
           "id": "action-09",
-          "description": "Select Program program_id"
+          "description": "Activate Issued agreements"
         },
         {
           "id": "action-10",
-          "description": "Select Active partner fixture['partnerId']"
+          "description": "Select Program program_id"
         },
         {
           "id": "action-11",
-          "description": "Select Exact reviewed source version['versionId']"
+          "description": "Select Active partner fixture['partnerId']"
         },
         {
           "id": "action-12",
-          "description": "Enter partner name (private-person-name) 'Synthetic typed partner'"
+          "description": "Select Exact reviewed source version['versionId']"
         },
         {
           "id": "action-13",
-          "description": "Enter fee usd (USD) '12.34'"
+          "description": "Enter partner name (private-person-name) 'Synthetic typed partner'"
         },
         {
           "id": "action-14",
-          "description": "Enter service date (date) '2026-10-25'"
+          "description": "Enter fee usd (USD) '12.34'"
         },
         {
           "id": "action-15",
-          "description": "Enter count (integer) '3'"
+          "description": "Enter service date (date) '2026-10-25'"
         },
         {
           "id": "action-16",
-          "description": "Enter email (email) 'synthetic@example.test'"
+          "description": "Enter count (integer) '3'"
         },
         {
           "id": "action-17",
-          "description": "Enter notes (multiline) 'Private objective scope.\\n*Literal* note.'"
+          "description": "Enter email (email) 'synthetic@example.test'"
         },
         {
           "id": "action-18",
-          "description": "Confirm I reviewed the typed values and will issue this exact saved version to this partner."
+          "description": "Enter notes (multiline) 'Private objective scope.\\n*Literal* note.'"
         },
         {
           "id": "action-19",
-          "description": "Activate Issue frozen agreement copy"
+          "description": "Confirm I reviewed the typed values and will issue this exact saved version to this partner."
         },
         {
           "id": "action-20",
-          "description": "Open origin"
+          "description": "Activate Issue frozen agreement copy"
         },
         {
           "id": "action-21",
-          "description": "Enter Account code fixture['partnerId']"
+          "description": "Open origin"
         },
         {
           "id": "action-22",
-          "description": "Enter Passphrase fixture['password']"
+          "description": "Enter Account code fixture['partnerId']"
         },
         {
           "id": "action-23",
-          "description": "Activate Sign in"
+          "description": "Enter Passphrase fixture['password']"
         },
         {
           "id": "action-24",
-          "description": "Open origin + '/gigs/' + fixture['gigId']"
+          "description": "Activate Sign in"
         },
         {
           "id": "action-25",
-          "description": "Select Action 'accept'"
+          "description": "Open origin + '/gigs/' + fixture['gigId']"
         },
         {
           "id": "action-26",
-          "description": "Activate Save decision"
+          "description": "Activate Accept offer"
         },
         {
           "id": "action-27",
@@ -2930,15 +2978,11 @@
         },
         {
           "id": "action-02",
-          "description": "Select Action 'submit'"
-        },
-        {
-          "id": "action-03",
           "description": "Enter Reason or submission details 'Synthetic agreed visit completed without optional tracking.'"
         },
         {
-          "id": "action-04",
-          "description": "Activate Save decision"
+          "id": "action-03",
+          "description": "Activate Submit work for review"
         }
       ],
       "expected": [
@@ -2962,18 +3006,22 @@
       "steps": [
         {
           "id": "action-01",
-          "description": "Activate Gigs"
+          "description": "Activate page.locator('nav summary')"
         },
         {
           "id": "action-02",
-          "description": "Activate page.locator('a[href=\"/gigs/' + fixture['acceptedGigId'] + '\"]')"
+          "description": "Activate Gigs"
         },
         {
           "id": "action-03",
-          "description": "Activate Record a business visit"
+          "description": "Activate page.locator('a[href=\"/gigs/' + fixture['acceptedGigId'] + '\"]')"
         },
         {
           "id": "action-04",
+          "description": "Activate Record a business visit"
+        },
+        {
+          "id": "action-05",
           "description": "Enter Business name 'Synthetic map-free visit'"
         }
       ],
@@ -3025,42 +3073,46 @@
         },
         {
           "id": "action-02",
-          "description": "Select Program w['programId']"
+          "description": "Activate owner.locator('summary').filter(has_text='Create campaign draft')"
         },
         {
           "id": "action-03",
-          "description": "Enter Offer title 'Synthetic permitted flyer campaign'"
+          "description": "Select Program w['programId']"
         },
         {
           "id": "action-04",
-          "description": "Enter Offered fee (USD) '40.00'"
+          "description": "Enter Offer title 'Synthetic permitted flyer campaign'"
         },
         {
           "id": "action-05",
-          "description": "Enter Permitted area 'Tulsa permitted business areas'"
+          "description": "Enter Offered fee (USD) '40.00'"
         },
         {
           "id": "action-06",
-          "description": "Enter Completion deadline '2026-12-01'"
+          "description": "Enter Permitted area 'Tulsa permitted business areas'"
         },
         {
           "id": "action-07",
-          "description": "Enter Objective tasks (one per line) 'Respect no-soliciting signs\\nAsk permission before leaving owner-provided flyers'"
+          "description": "Enter Completion deadline '2026-12-01'"
         },
         {
           "id": "action-08",
-          "description": "Enter Supplied materials (one per line, optional) 'Owner-provided flyers'"
+          "description": "Enter Objective tasks (one per line) 'Respect no-soliciting signs\\nAsk permission before leaving owner-provided flyers'"
         },
         {
           "id": "action-09",
-          "description": "Activate Create campaign draft"
+          "description": "Enter Supplied materials (one per line, optional) 'Owner-provided flyers'"
         },
         {
           "id": "action-10",
-          "description": "Activate Publish campaign"
+          "description": "Activate Create campaign draft"
         },
         {
           "id": "action-11",
+          "description": "Activate Publish campaign"
+        },
+        {
+          "id": "action-12",
           "description": "Open w['origin'] + '/gigs/' + gig['id']"
         }
       ],
@@ -3122,18 +3174,22 @@
         },
         {
           "id": "action-02",
-          "description": "Activate Save program controls"
+          "description": "Reload the current page and revalidate its session"
         },
         {
           "id": "action-03",
-          "description": "Open w['origin'] + '/gigs/' + new['id']"
+          "description": "Activate Save program controls"
         },
         {
           "id": "action-04",
-          "description": "Activate Save decision"
+          "description": "Open w['origin'] + '/gigs/' + new['id']"
         },
         {
           "id": "action-05",
+          "description": "Activate Accept offer"
+        },
+        {
+          "id": "action-06",
           "description": "Open w['origin'] + '/earnings'"
         }
       ],
@@ -3255,7 +3311,7 @@
       "steps": [
         {
           "id": "action-01",
-          "description": "Open fixture['ownerOrigin'] + '/partners/qa'"
+          "description": "Open fixture['ownerOrigin'] + '/partners/qa#programs'"
         },
         {
           "id": "action-02",
@@ -3279,31 +3335,31 @@
         },
         {
           "id": "action-07",
-          "description": "Activate Agreements"
+          "description": "Activate Workspace menu:"
         },
         {
           "id": "action-08",
-          "description": "Activate Download exact text"
+          "description": "Activate Agreements"
         },
         {
           "id": "action-09",
-          "description": "Confirm I have read this exact issued version."
+          "description": "Activate Download exact text"
         },
         {
           "id": "action-10",
-          "description": "Activate Record read acknowledgment"
+          "description": "Confirm I have read this exact issued version."
         },
         {
           "id": "action-11",
-          "description": "Open origin + '/qa/gigs/' + gig['id']"
+          "description": "Activate Record read acknowledgment"
         },
         {
           "id": "action-12",
-          "description": "Select Action 'accept'"
+          "description": "Open origin + '/qa/gigs/' + gig['id']"
         },
         {
           "id": "action-13",
-          "description": "Activate Save decision"
+          "description": "Activate Accept offer"
         },
         {
           "id": "action-14",
@@ -3335,11 +3391,11 @@
         },
         {
           "id": "action-21",
-          "description": "Select Action 'submit'"
+          "description": "Enter Reason or submission details 'QA ten simulated permitted visits complete.'"
         },
         {
           "id": "action-22",
-          "description": "Enter Reason or submission details 'QA ten simulated permitted visits complete.'"
+          "description": "Activate Submit work for review"
         },
         {
           "id": "action-23",
@@ -3426,10 +3482,14 @@
         },
         {
           "id": "action-06",
-          "description": "Activate Finance"
+          "description": "Activate Workspace menu"
         },
         {
           "id": "action-07",
+          "description": "Activate Finance"
+        },
+        {
+          "id": "action-08",
           "description": "Activate Weekly statements"
         }
       ],

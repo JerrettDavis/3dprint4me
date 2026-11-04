@@ -8,6 +8,7 @@ Feature: owner control
   @QA-053
   Scenario: only owner can publish forty dollar campaign and partner sees frozen offer
     When "Open w['fixture']['ownerOrigin'] + '/partners#campaigns'"
+    When "Activate owner.locator('summary').filter(has_text='Create campaign draft')"
     When "Select Program w['programId']"
     When "Enter Offer title 'Synthetic permitted flyer campaign'"
     When "Enter Offered fee (USD) '40.00'"
@@ -30,9 +31,10 @@ Feature: owner control
   @QA-055
   Scenario: program pause denies unaccepted work without erasing prior debt
     When "Open w['fixture']['ownerOrigin'] + '/partners#programs'"
+    When "Reload the current page and revalidate its session"
     When "Activate Save program controls"
     When "Open w['origin'] + '/gigs/' + new['id']"
-    When "Activate Save decision"
+    When "Activate Accept offer"
     When "Open w['origin'] + '/earnings'"
     Then the linked native assertions confirm the expected persisted and access-control effects
     And no actual clearance, work or funds are represented by the test

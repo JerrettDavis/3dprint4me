@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "runId": "portal-polish-20261103-final-03",
+  "runId": "workspace-release-20261104-01",
   "environment": "native",
-  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
-  "sourceFingerprint": "44e11e7cef617c45ba71d6dc77a9eaccdaeefb6878f6d974f5075b195511fa17",
-  "startSha256": "b4bef6d199a76d73800544f33e8e1d88278484c0f1d9d6909e13d02e7005b740",
-  "endSha256": "9ad929abe7f6d966c82ac97c0dbe4b7cc6c6650326b7b437a8966a221b56f3b3",
-  "junitSha256": "59daed5a433eaf4cb662096b39484777e8fcea1a3e1f0997171b3d99c2604f98",
+  "sourceCommit": "b4e76ab922fb428907868f22b692b5627a75ce95",
+  "sourceFingerprint": "afbbf97fe88d32a3ddd857fb56ed46e6b14e6837ffc745b0600555388ed7a77a",
+  "startSha256": "cc59f4219ab6a75f108caa9e318ff47e48095b688be5716a18a50e719f5b3a04",
+  "endSha256": "55ece12b97d7799d2b13399bb967dc742d9480c3d23c797d971537291451c218",
+  "junitSha256": "db081d7a4b37c4ef500633c1b41edbf2d501a6c75f1188a49eab3bc4e02c32c9",
   "cases": [
     {
       "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_partner_browser_cookie_csrf_idor_and_logout",

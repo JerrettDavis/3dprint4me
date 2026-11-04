@@ -41,9 +41,8 @@ Feature: gig
     When "Activate Send pending business drafts"
     When "Reload the current page and revalidate its session"
     When "Open w['origin'] + '/gigs/' + gig['id']"
-    When "Select Action 'submit'"
     When "Enter Reason or submission details 'Synthetic offline business visit submitted for owner review.'"
-    When "Activate Save decision"
+    When "Activate Submit work for review"
     Then the linked native assertions confirm the expected persisted and access-control effects
     And no actual clearance, work or funds are represented by the test
 

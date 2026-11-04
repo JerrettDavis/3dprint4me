@@ -28,10 +28,14 @@ Push reviewed source changes to `docs-source`. The **Publish handbook** workflow
 
 The [online maintenance guide](https://jerrettdavis.github.io/3dprint4me/developers/documentation/) covers the workflow and rollback. `build-info.json` on the public site identifies the actual deployed source. [Verification artifacts](verification/) distinguish hosted observations from local screenshots. Screenshots named for the OS theme may show the opposite manual theme after the theme-switch check.
 
-## Verified screenshot revision
+## November 3 verified screenshot revision
 
 [Release record](verification/release.json): deployed source `d97f68dace547c4d66551c4af804eb9b2eb102e2`, [successful Pages workflow](https://github.com/JerrettDavis/3dprint4me/actions/runs/41777149454). All 20 guide states have real desktop 1440 × 810 and phone 390 × 520 captures. The site presents 94 paired comparisons, side by side on wide screens and stacked on phones. Native BDD previews are bounded and labeled excerpts; their 142 original PNGs remain unchanged.
 
 Three docs contracts and two browser cases passed locally and in CI. Live checks passed at both widths, including frame geometry, keyboard focus, search, themes and image loading; all 182 reviewed image byte checks passed. Fresh repository verification passed 1,277 unit/contract tests, 408 E2E tests (one existing Windows skip) and 241 UX checks. The 168-image matrix and preview board were regenerated and visually inspected. The new 40-image guide contact sheet and hosted comparison layouts were also inspected.
 
 This verification commit adds records outside the published input set; the site's build-info source remains the deployed commit above. Existing root screenshot/audit changes remain unstaged. Test-generated changes in older reviewed documentation fixtures were restored to their committed snapshot bytes.
+
+## November 4 workspace evidence refresh
+
+The grouped workspace release refreshes all 40 guide captures and 142 redacted native BDD captures. All 60 native workflows pass with source/run/JUnit-bound provenance on `b4e76ab922fb428907868f22b692b5627a75ce95`. Evidence validation passes, and both the 168-image preview board and the new native screenshot contact sheet were visually inspected. The production operator and participant files match committed runtime source `6023204ad1ef65def0338088ce3fffaf920f206f`. The publication manifest is updated only after reviewing these current inputs. Public Pages publication remains a separate verified release step.
