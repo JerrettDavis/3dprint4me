@@ -1,4 +1,6 @@
 import { createPartnerHandlers } from '../lib/partner-outreach/http.js';
+import { loadConfiguredQaRuntime } from '../lib/partner-outreach/qa-config.js';
+import { getDatabase } from '../lib/database.js';
 import { getPartnerRuntime } from '../lib/partner-outreach/runtime.js';
 import { createPlatformServer } from '../lib/platform/api-server.js';
 import { closeDatabase, queryDatabase } from '../lib/database.js';
@@ -18,7 +20,7 @@ async function main() {
   await activate.bootstrap();
   const partner=createPartnerHandlers({getRuntime:getPartnerRuntime});
   Object.assign(routes,partner.routes);
-  const server=createPlatformServer({routes,directPaths:partner.directPaths,consumeNonce:control.consumeNonce,gate,activate,
+  const server=createPlatformServer({routes,directPaths:[...partner.directPaths,...qa.directPaths],consumeNonce:control.consumeNonce,gate,activate,
     ready:()=>queryDatabase`SELECT id FROM operators LIMIT 1`,
     authHandler:process.env.GITHUB_CLIENT_ID||process.env.OIDC_ISSUER?createAuthHttpHandler():undefined});
   const port=Number(process.env.PORT??8080);
@@ -28,7 +30,7 @@ async function main() {
   for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>{
     if(stopping)return;stopping=true;
     const deadline=setTimeout(()=>{server.closeAllConnections();process.exit(1);},40000);deadline.unref();
-    server.close(async()=>{await Promise.all([closeDatabase(),control.close()]);clearTimeout(deadline);process.exit(0);});
+    server.close(async()=>{await Promise.all([closeDatabase(),control.close(),qaRuntime.close()]);clearTimeout(deadline);process.exit(0);});
   });
 
 }
