@@ -1,0 +1,44 @@
+name: Workspace regressions
+
+on:
+  pull_request:
+    paths:
+      - 'operator/**'
+      - 'partner/**'
+      - 'tests/e2e/test_operator_pwa.py'
+      - 'tests/e2e/test_partner_*.py'
+      - '.github/workflows/workspace-regressions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: npm ci
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - name: Verify responsive navigation, owner layout and offline upgrades
+        run: >-
+          python -m pytest -q
+          tests/e2e/test_partner_responsive_navigation.py
+          tests/e2e/test_partner_owner_workspace.py
+          tests/e2e/test_operator_pwa.py
+          tests/e2e/test_partner_pwa.py
+          tests/e2e/test_partner_qa_ui.py
+          tests/e2e/test_partner_qa_upgrade.py
+          tests/e2e/test_partner_qa_release_config.py
