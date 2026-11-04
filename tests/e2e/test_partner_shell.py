@@ -12,12 +12,13 @@ ISSUE = {'id': '20000000-1000-4000-8000-100000000001', 'snapshot_sha256': 'a' * 
          'snapshot_markdown': '# Issued synthetic text\n<img src=x onerror=alert(1)>', 'issued_at': '2026-10-24T12:00:00Z'}
 
 
-def install_partner_fixture(page, *, signed_in=True):
+def install_partner_fixture(page, *, signed_in=True, realm="live"):
+    prefix='/api/partner-qa/v1/' if realm=='qa' else '/api/partner/v1/'
     commands = []
     state = {'signed_in': signed_in}
 
     def respond(route):
-        path = route.request.url.split('/api/partner/v1/')[1]
+        path = route.request.url.split(prefix)[1]
         code, body = 200, {}
         if path == 'session':
             if state['signed_in']:
@@ -44,7 +45,7 @@ def install_partner_fixture(page, *, signed_in=True):
             body = {'id': 'synthetic-receipt'}
         route.fulfill(status=code, content_type='application/json', body=json.dumps(body))
 
-    page.route('**/api/partner/v1/**', respond)
+    page.route('**'+prefix+'**', respond)
     return commands
 
 

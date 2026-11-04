@@ -25,4 +25,19 @@ header{border-top:5px solid #174b71}.brand{font-size:1.3rem;letter-spacing:-.025
 @media(min-width:701px){nav{background:var(--soft);margin:2rem 0;border:0;padding:1rem .65rem}nav a[aria-current=page]{background:var(--panel);border-color:transparent;border-left:3px solid var(--teal)}}
 @media(max-width:700px){.layout{display:block}main{padding:1.75rem 1.25rem}.workspace-secondary,.settlement-summary{grid-template-columns:minmax(0,1fr);gap:1.5rem}.work-overview{padding:1.25rem}.sheet{padding-inline:0}nav a[aria-current=page]{border-color:transparent;border-bottom:3px solid var(--teal)}}
 
-.qa-banner{max-width:72rem;margin:1rem auto;padding:1rem;border:2px solid currentColor;border-radius:.5rem;overflow-wrap:anywhere}.qa-banner strong{display:block;font-size:1.1rem}.qa-banner p{margin:.5rem 0}.qa-banner button,.qa-banner label{display:block;margin-top:.75rem}
+
+/* Comfortable reading and form rhythm, shared by live and isolated QA. */
+main{padding-block:clamp(2rem,4vw,4rem)}p{line-height:1.75}h1{margin-bottom:1.5rem}h2{margin-top:2rem;margin-bottom:1rem}
+.sheet{padding-block:2rem}.sheet>h2:first-child{margin-top:0}.stack{gap:1.25rem}
+form{gap:1.4rem}label{gap:.5rem;line-height:1.5}input,select,textarea{padding:.85rem 1rem;border-radius:.4rem}
+button,.button{padding:.8rem 1.2rem;border-radius:.4rem}fieldset{padding:clamp(1.25rem,3vw,1.75rem);gap:1.4rem;border-radius:.4rem}
+.check{line-height:1.7}.facts div{padding-block:1rem}.records li{padding-block:1.5rem}.actions{gap:1rem}
+.document{line-height:1.85;padding-block:1rem}.hash{color:var(--muted);line-height:1.7}.auth-form{margin-block:2.5rem}
+.work-overview{padding:clamp(1.25rem,3vw,2rem);margin-block:2.25rem}.work-overview h2{margin-top:0}
+.workspace-secondary,.settlement-summary{gap:2rem;margin-block:2.5rem}.workspace-secondary h2,.settlement-summary h2{margin-top:0}
+footer{padding-block:2rem;margin-top:1rem}.message{padding:1.25rem;border-radius:.4rem}
+.qa-banner{width:calc(100% - 2.5rem);max-width:86rem;margin:1.75rem auto;padding:clamp(1.25rem,3vw,2rem);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:.4rem;background:var(--soft);overflow-wrap:anywhere}
+.qa-banner strong{display:block;font-size:1.2rem;line-height:1.4}.qa-banner p{margin:.65rem 0 1rem}.qa-banner a{display:inline-flex;align-items:center;min-height:44px}
+@media(max-width:700px){main{padding:2rem 1.25rem}.sheet{padding-block:1.75rem}.workspace-secondary,.settlement-summary{gap:1.75rem}.qa-banner{margin-block:1.25rem}h1{font-size:clamp(2.25rem,9vw,3rem)}}
+@keyframes partner-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:no-preference){button,.button,nav a,input,select,textarea{transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}button:hover:not(:disabled),.button:hover{transform:translateY(-1px)}button:active:not(:disabled),.button:active{transform:none}main>h1,.message:not([hidden]){animation:partner-enter .2s ease-out both}}
