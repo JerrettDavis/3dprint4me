@@ -1295,7 +1295,7 @@
     {
       "file": "docs-site/src/assets/guides/customizer-mobile.png",
       "output": "assets/guides/customizer-mobile.png",
-      "sha256": "e425751cc72e8dc8f83c59bb94b939cebe697cd6c085703234693b5901e5053f"
+      "sha256": "f90a8d22fa8fce6d820d411ebebe64d70c7d576275564ccfcf5322f2840b2b58"
     },
     {
       "file": "docs-site/src/assets/guides/models-desktop.png",
@@ -1450,12 +1450,12 @@
     {
       "file": "docs-site/src/assets/guides/review-reader-desktop.png",
       "output": "assets/guides/review-reader-desktop.png",
-      "sha256": "055cdd491c756ecfa0655fff92dd3e7c278cae022daa492e5d13aecef6d9d72b"
+      "sha256": "584aa644bab5e38de89dc4bf045f262d74688aa0b38a5e89d5e6cb059503e9de"
     },
     {
       "file": "docs-site/src/assets/guides/review-reader-mobile.png",
       "output": "assets/guides/review-reader-mobile.png",
-      "sha256": "70bb49e7d8eca5487621885580fd81eb9c20e60fbc79ec14a18e32356aeaa604"
+      "sha256": "b7799668f2a02020ac2e844c4c6647fdd413614d60a354b785278ba47b56c1d8"
     },
     {
       "file": "docs-site/src/assets/guides/work-detail-desktop.png",

@@ -105,11 +105,14 @@ def reader_and_customizer():
     for device,size in VIEWS:
         with SiteBrowser(viewport=size,color_scheme='light',reduced_motion='reduce') as site:
             site.context.set_offline(True);site.page.goto((ROOT/'operator/review-reader.html').as_uri())
-            unlock_fixture(site.page,fixture);save(site,'review-reader',device,'main h1')
+            unlock_fixture(site.page,fixture);save(site,'review-reader',device,'#result')
     with running_server() as origin:
         for device,size in VIEWS:
             with SiteBrowser(viewport=size,color_scheme='light',reduced_motion='reduce') as site:
                 site.goto(origin+'/customize/g/route-shield/',ready_selector="body[data-build-state='ready']")
+                if device=='mobile':site.page.locator('#cz-sheet-toggle').click()
+                site.page.wait_for_function("document.querySelector('#cz-stage-message')?.hidden && !!document.querySelector('#cz-stage canvas')")
+                site.page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
                 save(site,'customizer',device)
 
 if __name__=='__main__':
