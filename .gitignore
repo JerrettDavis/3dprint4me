@@ -28,3 +28,7 @@ deploy/slicer-worker/.env.worker
 .wrangler/
 .dev.vars*
 public/customize/
+
+# Generated documentation staging and static output
+.docs-source/
+public/handbook/
