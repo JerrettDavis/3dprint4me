@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-024",
   "stepId": "final-1",
-  "runId": "workspace-release-20261104-01",
+  "runId": "workspace-release-20261104-04",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "b4e76ab922fb428907868f22b692b5627a75ce95",
-  "sourceFingerprint": "afbbf97fe88d32a3ddd857fb56ed46e6b14e6837ffc745b0600555388ed7a77a",
-  "startSha256": "cc59f4219ab6a75f108caa9e318ff47e48095b688be5716a18a50e719f5b3a04",
+  "sourceCommit": "1360be638e664288f638d98124ac86585eab05d7",
+  "sourceFingerprint": "16db3cd8f8292ee94d694cd41dace56ad768c9b8e7ca78ceae4652751ea1e408",
+  "startSha256": "3e1badede63b273689cb1be4f9efd0616992be4cf5988f4d8c59eff939964166",
   "testNodeId": "tests/integration/test_partner_gig_browser.py::test_native_gig_unsafe_report_reaches_owner_without_location_tracking_or_retaliation",
   "viewport": {
     "width": 1440,
@@ -15,6 +15,6 @@
   },
   "theme": "light",
   "screenshot": "../screenshots/QA-024-final-1-1440-light.png",
-  "sha256": "8eb088c9ffecff7c2ed360f49ff7262f76215e0355017b7ee518fa1d97b17068",
+  "sha256": "896d6dd62c927a779da911ee4b9507119cc4bd932184c2917b2f6544cff0daee",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }
