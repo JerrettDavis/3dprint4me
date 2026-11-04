@@ -15,7 +15,7 @@ def source_fingerprint():
         paths.extend(p for p in (ROOT/folder).rglob('*') if p.is_file() and p.suffix in {'.js','.mjs','.py','.html','.css','.sql','.json'} and not any(x in p.parts for x in ['__pycache__','node_modules','dist']))
     paths.extend(ROOT/p for p in ['operator/partners.html','operator/sw.js','operator/vercel.json','partner/vercel.json'])
     for p in sorted(set(paths),key=lambda p:p.relative_to(ROOT).as_posix()):
-        digest.update(p.relative_to(ROOT).as_posix().encode());digest.update(b'\0');digest.update(p.read_bytes());digest.update(b'\0')
+        digest.update(p.relative_to(ROOT).as_posix().encode());digest.update(b'\0');digest.update(p.read_text(encoding='utf-8-sig').replace('\r\n','\n').encode('utf-8'));digest.update(b'\0')
     return digest.hexdigest()
 
 
