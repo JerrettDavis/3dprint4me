@@ -8,14 +8,14 @@ Confirm the hostname and realm. Work/owner access uses an authorized GitHub iden
 
 The workspace waits for verified owner access before showing QA tools. Return to the work inbox, sign in and use **Check access again**. If access is denied, ask the owner to verify the identity binding. Do not change launch flags or bypass access checks to expose a button.
 
-![Owner access recovery](../../../docs/portal-polish/screenshots/owner-qa-access-required.png)
+![Owner access recovery](../assets/guides/owner-access-mobile.png)
 *Synthetic access-required state. The recovery actions remain separate and keyboard reachable.*
 
 ## A save or network request failed
 
 Read the status message and keep the current draft open. If a conflict is reported, reopen the latest record and compare changes before retrying. If the result is uncertain, inspect the record/history first to avoid duplicate actions. Do not treat a spinner ending or an offline draft as server acceptance.
 
-![QA retry feedback](../../../docs/portal-polish/screenshots/owner-qa-retry.png)
+![QA retry feedback](../assets/guides/owner-retry-mobile.png)
 *Synthetic temporary failure with controls restored for retry.*
 
 ## My offline visit is not submitted

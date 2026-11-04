@@ -1163,221 +1163,6 @@
       "sha256": "ed85fb36cf99eb84f4c1b85c58049776b38e560d8241e70aae2b6ec8b59f4b76"
     },
     {
-      "file": "docs/portal-polish/screenshots/owner-1440-light.png",
-      "output": "reference/portal-polish/screenshots/owner-1440-light.png",
-      "sha256": "35db6e90257bcef6ce04ea71cfe65744ba96b0b6c6bec9cbdf1324dcf880cea3"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/owner-390-dark.png",
-      "output": "reference/portal-polish/screenshots/owner-390-dark.png",
-      "sha256": "a1fa7843a124660027852bf72a3fac4197f9e59f544aea9236140fbaa60de179"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/owner-qa-1440-light.png",
-      "output": "reference/portal-polish/screenshots/owner-qa-1440-light.png",
-      "sha256": "ae96b690b6c0f828f0811b3e40a1a9cf0226217dcafb964aec0c5d88b20e35a5"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/owner-qa-390-dark.png",
-      "output": "reference/portal-polish/screenshots/owner-qa-390-dark.png",
-      "sha256": "037f13fd3094ee4d74d99690d0c7ef3c8d32ebe9da3047c0ea756658fa74eb30"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/owner-qa-access-required.png",
-      "output": "reference/portal-polish/screenshots/owner-qa-access-required.png",
-      "sha256": "49f570e195842275d1e846cd7055667502c52d91140c4a466c0a102c314ac02a"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/owner-qa-busy.png",
-      "output": "reference/portal-polish/screenshots/owner-qa-busy.png",
-      "sha256": "16fb62c304da6dac9c3dfbb3c87706c04b3602d884c9ec7e5df180eb0083c827"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/owner-qa-retry.png",
-      "output": "reference/portal-polish/screenshots/owner-qa-retry.png",
-      "sha256": "23b9dfc087c7923b3dfb75ec3676bc8ec0a5a9e7c1d6c98e4e2d65563c4302c3"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/partner-1440-light.png",
-      "output": "reference/portal-polish/screenshots/partner-1440-light.png",
-      "sha256": "a3828fb5ef0acc7e60cdf16e7c967866b854f8f7e85e6c2b0250b7dae97e7086"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/partner-390-dark.png",
-      "output": "reference/portal-polish/screenshots/partner-390-dark.png",
-      "sha256": "e31f2dcff74e1f04c783e8a0f9b7bf9fe3f3296b4dd33588c66753f87a586dc9"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/partner-qa-1440-light.png",
-      "output": "reference/portal-polish/screenshots/partner-qa-1440-light.png",
-      "sha256": "797878348a0cdc2b4035c9bf6f1f365618447abc7bf9ab4bfc67a64950928713"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/partner-qa-390-dark.png",
-      "output": "reference/portal-polish/screenshots/partner-qa-390-dark.png",
-      "sha256": "e7ad825a427c32434aae98964787dffb64820b3f8e480e5c529dca179ad49116"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/offline-review-unlocked-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/offline-review-unlocked-dark.png",
-      "sha256": "f746a79bd5f1ddf30bf842990b36352876e77633b1ab5dbb649820ea010d2781"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-conversation-390-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-conversation-390-dark.png",
-      "sha256": "70eceaba0b2e25e48b98f75e8568ae7f4612069272b04be4514af7142ea1d07a"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-detail-mobile-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-detail-mobile-light.png",
-      "sha256": "f9296d9df2732f45a4b9244f5347bb5a37fc7828f0c14bf802911edbd0f8a77a"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-filament-proposal-desktop-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-filament-proposal-desktop-light.png",
-      "sha256": "2f39821d36b987973a2b10f3d03fa35b883bd532dcb3405e863f70a1fb01db03"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-inquiry-detail-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-inquiry-detail-light.png",
-      "sha256": "a492080e58da66a0a79c444502cf0e7b0035211b3bca92d55aa7b9baab16f3ba"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-invoice-mobile-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-invoice-mobile-dark.png",
-      "sha256": "dc67f53e15c597bd5fe26b576c099d945ff2d9c8237e94c4bb41d251e20b658d"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-models-390-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-models-390-light.png",
-      "sha256": "9193205cde295b538629547464b8b0a4c94c4ff466659351de66da9565c252c7"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-accounts-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-accounts-light.png",
-      "sha256": "6512cefd94a55a949f5996c8f70779f17d253418d77da6955a61893add698e66"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-agreement-copy-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-agreement-copy-light.png",
-      "sha256": "9fcb5de40f2bb1b34819fc550e4f7a96bee3887ace6c577de43cc06699db60a2"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-campaigns-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-campaigns-dark.png",
-      "sha256": "e852c772389fa05fb7cf82db46734c94ed5d317cbb1ffe98857542ae0d6effb3"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-finance-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-finance-light.png",
-      "sha256": "11b9030b57bf4170a64a4a1805fb43cc5f3f960319c9a26c90093b90f213369a"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-forecasts-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-forecasts-dark.png",
-      "sha256": "91df89490ac22ed1ffa486b08642dc1c28ce62c571fcc2eeb47b14da2c990958"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-gig-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-gig-light.png",
-      "sha256": "a36e8e7e207a6f667e4767ca98fad08bd003337c03590bff0892d610af02b99b"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-leads-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-leads-light.png",
-      "sha256": "88dfa1ab5aa88a93917fd8bc4b36144256537c191821fd95aec0ca254b691cee"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-legal-version-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-legal-version-light.png",
-      "sha256": "758b5a9d3ef5c06d61110cc84ca82b33ca91c3c33b3e186178a0fed8c840142e"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-review-feedback-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-review-feedback-light.png",
-      "sha256": "0c5723d180f90132f9aacb9e6c91a176537c895b0c0d515a1862e8808f688f23"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-review-package-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-review-package-dark.png",
-      "sha256": "9a46ab14b7c6f4bc0918918a793da912c9b09b426aff3821acf6fb0505f43fbc"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-partners-weekly-statement-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-partners-weekly-statement-dark.png",
-      "sha256": "7eb6460522bb38103f43bebfaee012877b9a1e7031c832b67bcd924a7d06cb62"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-print-estimate-desktop-light.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-print-estimate-desktop-light.png",
-      "sha256": "35037cde056982d9d3dcac1843736a8d01e335fee5f1e4d75732d0fd070c9003"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/operator-spoolman-mobile-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/operator-spoolman-mobile-dark.png",
-      "sha256": "061b1be73a13d83eea20571397a1a5792307bd08e5727f0655c8ef3ff405bccc"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/partner-accepted-gig-light.png",
-      "output": "reference/portal-polish/screenshots/populated/partner-accepted-gig-light.png",
-      "sha256": "3709985d4c3ab806385a6e79ade361af7092529cf45976fccd44668764927808"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/partner-agreement-light.png",
-      "output": "reference/portal-polish/screenshots/populated/partner-agreement-light.png",
-      "sha256": "0036ff80ef87838483ee9013509a999cd19ea5f3b535b8736467f466f103a57d"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/partner-materials-partner-history-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/partner-materials-partner-history-dark.png",
-      "sha256": "b4d9abf8ba8e5a78285feee63f8589fb7a0a37bd517c0ba03355b71bb06aa09a"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/partner-offline-drafts-light.png",
-      "output": "reference/portal-polish/screenshots/populated/partner-offline-drafts-light.png",
-      "sha256": "19d599d55b437c0f548ee40cf8622f3d5a3f21364b10952f04eec0e60d152007"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/partner-referrals-light.png",
-      "output": "reference/portal-polish/screenshots/populated/partner-referrals-light.png",
-      "sha256": "44335cf0038f7407e13c61d45cdd80310e761b7f4e8c4149e79a83cf4abebe2d"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/partner-visit-contact-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/partner-visit-contact-dark.png",
-      "sha256": "94571db29ebaa943083394e4b76ed7177328ad77ce776559c6391a28f7ba7e0e"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/partner-visit-light.png",
-      "output": "reference/portal-polish/screenshots/populated/partner-visit-light.png",
-      "sha256": "4379d127cd3a132950156408f8b637ee45d134b2d971c1e36ca7b1dbac06bf6b"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/populated/partner-weekly-statements-dark.png",
-      "output": "reference/portal-polish/screenshots/populated/partner-weekly-statements-dark.png",
-      "sha256": "0a798f7069d2af913f989e96c2dd9b75f092cc160b105d8b1dcccd207ddb2f30"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/review-1440-light.png",
-      "output": "reference/portal-polish/screenshots/review-1440-light.png",
-      "sha256": "96651c2991aef2dad32845bdf9ee82d83ebcaab8bc1610ed6fe8951bb21998f3"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/review-390-dark.png",
-      "output": "reference/portal-polish/screenshots/review-390-dark.png",
-      "sha256": "e2d65fbf3926cdd508ebc5edc4af309e4405f1a5eaa0aad0dd30fc6787beeb36"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/work-1440-light.png",
-      "output": "reference/portal-polish/screenshots/work-1440-light.png",
-      "sha256": "d0f4131e79bfa50edc38353e92781234e195f4354ec4693a14702e6eb91076d6"
-    },
-    {
-      "file": "docs/portal-polish/screenshots/work-390-dark.png",
-      "output": "reference/portal-polish/screenshots/work-390-dark.png",
-      "sha256": "86552879b9534a3bdc549eb631d126824127e4e34993315a0b3eb85f928675f7"
-    },
-    {
       "file": "docs/PRICING-CALIBRATION.md",
       "output": "reference/PRICING-CALIBRATION.md",
       "sha256": "590164e792e5e08b9fdf76992a774a37d057d7020f2d1b3492b3828be0e83051"
@@ -1418,14 +1203,9 @@
       "sha256": "b445e05271b8c751db1faca942f65ee924c232b7c71b3a1a8a908e1286cfa567"
     },
     {
-      "file": "docs-site/src/assets/customer-customizer.png",
-      "output": "assets/customer-customizer.png",
-      "sha256": "7f34d37be7ad651e8fcdebed7c2cfd218b5bf548369ea370f858725e3ace9694"
-    },
-    {
       "file": "docs-site/src/assets/handbook.css",
       "output": "assets/handbook.css",
-      "sha256": "b7a226799cb557f9d51f646c96e4bb67b866a2c166de3f4b06d51b9f789cc460"
+      "sha256": "41f8f57fc14e22b16827be8b4d742a3d954fdc27eab0b280c62208dfc9e71931"
     },
     {
       "file": "docs-site/src/bdd.md",
@@ -1440,7 +1220,7 @@
     {
       "file": "docs-site/src/developers/documentation.md",
       "output": "developers/documentation.md",
-      "sha256": "7bb4ed2ff76f22639287e7a12d346bf3cdad6e342e1c569f2d4f2751d23d0d29"
+      "sha256": "d513fd0fcb85f272257010ca85177934ed5332ab164ad3c675fb8fed33dbf88d"
     },
     {
       "file": "docs-site/src/developers/index.md",
@@ -1450,52 +1230,252 @@
     {
       "file": "docs-site/src/developers/testing.md",
       "output": "developers/testing.md",
-      "sha256": "2b3d662cb8fb4bccefc22e0aa18e31de6872b075c1b49e9342c70ff6051f9ad7"
+      "sha256": "669f66175a14dadf1b9ff4c2b4df368bbc38ae9d34a78b5fa0db9a9269515504"
     },
     {
       "file": "docs-site/src/getting-started.md",
       "output": "getting-started.md",
-      "sha256": "61ce58440d638700948e82e3148ff7eabb2649ff914d54299b3d4d5aaa54fc7b"
+      "sha256": "212ef072ed9cebc65a8d38ff4d49042974112834be8a8048f83342e044a9921f"
     },
     {
       "file": "docs-site/src/guides/customer.md",
       "output": "guides/customer.md",
-      "sha256": "52060204c3f1d5ad5ac3741e1d4082b91d714abcaf45fd317836b8140a35c9e5"
+      "sha256": "ddf4c0dabf4d709b8352d3f91f690beebda0adf9adf1f98867e151a02ad2e7f4"
     },
     {
       "file": "docs-site/src/guides/owner.md",
       "output": "guides/owner.md",
-      "sha256": "04eee87c9b5a31da21243865a7c6cf4f4e9cf29a0762dfe06cc7323e659884f5"
+      "sha256": "dd7e18e0976ecf7df9c6bc7327c2b1348cc61b3446af0ab4b008eff339269f70"
     },
     {
       "file": "docs-site/src/guides/partner.md",
       "output": "guides/partner.md",
-      "sha256": "7cdd7c98490f6f4069cbeb297f7e497a436f1c5d785c6ff25941300e0b35b83e"
+      "sha256": "eecf9d79ea4bb864a329663e37908db3f048da16d5e8841faea14ad5472dfdd0"
     },
     {
       "file": "docs-site/src/guides/qa.md",
       "output": "guides/qa.md",
-      "sha256": "7810ca52cda4c464779e7dae2f3af5886726e7e0c3dd3a0614798dc3025daa2c"
+      "sha256": "59a6508d10962b7ecaba9724aedc042d8a57d82c12f579d1a20b53f5a42229c7"
     },
     {
       "file": "docs-site/src/guides/troubleshooting.md",
       "output": "guides/troubleshooting.md",
-      "sha256": "da66b997570b24612c0b3e3be1e7b2e3f7c8fb37747bbe233d1b72b9362af196"
+      "sha256": "bd7461841cda75b15145fe30d15e63cf3712d77465a108ffcc84bc2216c29d86"
     },
     {
       "file": "docs-site/src/guides/work.md",
       "output": "guides/work.md",
-      "sha256": "e469f4d84d5a5e0493d74c1e5c4a22ec3b5813a87f20077caa526ad214f55650"
+      "sha256": "6c9480900407b6aad67f0a31238437b6d4f4aaea3c0a1f4ac7aae03a341cec8e"
     },
     {
       "file": "docs-site/src/index.md",
       "output": "index.md",
-      "sha256": "b9a544aa6acc5c4d9810012fddac8591f03a0956297d8b057440a1a7d7c15fb9"
+      "sha256": "11230499c85bb8ee37d21bbad82717260b55df95a2048485c0f8c4ba234f014e"
     },
     {
       "file": "docs-site/src/reference/index.md",
       "output": "reference/index.md",
       "sha256": "b787f980b8ed338bc6afaf260cfda4e5805ad03f9b5e31d5fbf4a4ac841b793c"
+    },
+    {
+      "file": "docs-site/src/assets/guides/conversation-desktop.png",
+      "output": "assets/guides/conversation-desktop.png",
+      "sha256": "0fc53457b6f0d8bbb83b41702085758a61ec737ed48422c2763c5c07709d91d0"
+    },
+    {
+      "file": "docs-site/src/assets/guides/conversation-mobile.png",
+      "output": "assets/guides/conversation-mobile.png",
+      "sha256": "31511ed5a59c3fa6bb9c266c6c04a717eda336279c250ca524caabec3f298520"
+    },
+    {
+      "file": "docs-site/src/assets/guides/customizer-desktop.png",
+      "output": "assets/guides/customizer-desktop.png",
+      "sha256": "82f3bde5f4c029a6a90619124d125d86111f78a6aca661626fd7fa2b4ba1b3d7"
+    },
+    {
+      "file": "docs-site/src/assets/guides/customizer-mobile.png",
+      "output": "assets/guides/customizer-mobile.png",
+      "sha256": "e425751cc72e8dc8f83c59bb94b939cebe697cd6c085703234693b5901e5053f"
+    },
+    {
+      "file": "docs-site/src/assets/guides/models-desktop.png",
+      "output": "assets/guides/models-desktop.png",
+      "sha256": "203e6e11bcb1a35f82c0bc690c255261975e1cee989457968d8d7ce6dfa15b4d"
+    },
+    {
+      "file": "docs-site/src/assets/guides/models-mobile.png",
+      "output": "assets/guides/models-mobile.png",
+      "sha256": "b164cc060083cda9ea6aa566c06575efb89b5514eb18958989e94ff66dd853e0"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-access-desktop.png",
+      "output": "assets/guides/owner-access-desktop.png",
+      "sha256": "55a4b7c8d1a9d8658559b501ec15739a950e7e00282bdc9c02f2d4ede211b6dc"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-access-mobile.png",
+      "output": "assets/guides/owner-access-mobile.png",
+      "sha256": "0473cf48fed0c2f01cabe4e32d4b8ddab213fa5fd4c0c209f6ec837a6c900611"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-accounts-desktop.png",
+      "output": "assets/guides/owner-accounts-desktop.png",
+      "sha256": "a6f2167bb60f626692d180867c58226ff5e0190530adea76a7e9e6a3f9725a74"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-accounts-mobile.png",
+      "output": "assets/guides/owner-accounts-mobile.png",
+      "sha256": "9445905cecd11db7d08b31a6d964ef6daae389bc6586e4d74674ef7c59395661"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-campaigns-desktop.png",
+      "output": "assets/guides/owner-campaigns-desktop.png",
+      "sha256": "feaaa17ca42c8477f49d7ec850d81fffb635fc48b6354d711d27751a8e50e8e3"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-campaigns-mobile.png",
+      "output": "assets/guides/owner-campaigns-mobile.png",
+      "sha256": "faded7cf26cecc1e77e647adc53e73df8b195cbaf68c7102dafae7d09fe33603"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-finance-desktop.png",
+      "output": "assets/guides/owner-finance-desktop.png",
+      "sha256": "cf9658ade2afbdba243e3d21b55d0e14d68ee8b336baef140177498710653b64"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-finance-mobile.png",
+      "output": "assets/guides/owner-finance-mobile.png",
+      "sha256": "a61fbb71f55c8cc549116d84ab18e2e00d5758b879ee1688f5ccb1ec9d409fb6"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-legal-desktop.png",
+      "output": "assets/guides/owner-legal-desktop.png",
+      "sha256": "812b94d738674540f2bf506e736b80175eabe04635b7a2bab8a76a91c4de36f3"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-legal-mobile.png",
+      "output": "assets/guides/owner-legal-mobile.png",
+      "sha256": "7095185381b5c87113d8775393ce4fbedf3df5a2deaadec817b2fc688860dbd8"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-qa-desktop.png",
+      "output": "assets/guides/owner-qa-desktop.png",
+      "sha256": "8d9dd883c6c7416cd189c7e7de246aaed3a71db773126753c3041d99023ef56e"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-qa-mobile.png",
+      "output": "assets/guides/owner-qa-mobile.png",
+      "sha256": "a8ccd46a20f3ef3ce16d505b664be655b7e7746022a0a1e8aa005442771b4b8c"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-retry-desktop.png",
+      "output": "assets/guides/owner-retry-desktop.png",
+      "sha256": "0b9cef1444f7cbfbb4ce25591591e633e38b3b9904fc1fc5127a7dc7a5fd76fa"
+    },
+    {
+      "file": "docs-site/src/assets/guides/owner-retry-mobile.png",
+      "output": "assets/guides/owner-retry-mobile.png",
+      "sha256": "549461b8633d313e3fd189d5c6e10e6e82f7e699143eabbcb15cebb20f7c0c1d"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-agreement-desktop.png",
+      "output": "assets/guides/partner-agreement-desktop.png",
+      "sha256": "efc1e93175550149f123ef45f71d44ca5f54bd5fdbce09464127e30220fdb0e0"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-agreement-mobile.png",
+      "output": "assets/guides/partner-agreement-mobile.png",
+      "sha256": "3fde64319fff85e7d782d8dcd7d0e1b8fa9e7f774276ed16556bdd033456eefb"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-drafts-desktop.png",
+      "output": "assets/guides/partner-drafts-desktop.png",
+      "sha256": "319e5d0ab075032fb7ae2a2808ca4bc77eecc377d1eb06c01df99e903e9dbabf"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-drafts-mobile.png",
+      "output": "assets/guides/partner-drafts-mobile.png",
+      "sha256": "e1726c1dd17446298b662fcbd2685fdd4f5649bf948f13bc7c6430804e7a19c8"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-gig-desktop.png",
+      "output": "assets/guides/partner-gig-desktop.png",
+      "sha256": "c314c15d53b21d43629de7f08234fa92a3bc3a159e9613058582f701706828ce"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-gig-mobile.png",
+      "output": "assets/guides/partner-gig-mobile.png",
+      "sha256": "777ce004c409d8e8693a6d00f6fcfd787f106565523cbaad126f62728582cc2d"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-profile-desktop.png",
+      "output": "assets/guides/partner-profile-desktop.png",
+      "sha256": "d2411641d1d5aa825b21f057c6bd84d67e3186cf9ccfcfc1c20d43444a38ad10"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-profile-mobile.png",
+      "output": "assets/guides/partner-profile-mobile.png",
+      "sha256": "977fdd8c0fa28699d67a225d63160e728d3b3b66cc0e4df572e92bb750784646"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-statements-desktop.png",
+      "output": "assets/guides/partner-statements-desktop.png",
+      "sha256": "98e14b3d34b3097a5fc348d643eb5213a3a66cde117285e47895a0770c8fb88d"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-statements-mobile.png",
+      "output": "assets/guides/partner-statements-mobile.png",
+      "sha256": "48d3c272df239691688f9dfd6b0146f3e0d7ae05019b25561f86fa57423aee04"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-visit-desktop.png",
+      "output": "assets/guides/partner-visit-desktop.png",
+      "sha256": "03d9927a10faac2a7212714ee5800f47ca4bf9905ca5ed0f0b6054b95939344c"
+    },
+    {
+      "file": "docs-site/src/assets/guides/partner-visit-mobile.png",
+      "output": "assets/guides/partner-visit-mobile.png",
+      "sha256": "cd12369950ce80ef0204c47e8a6286498c525a527a82eea161f5b877b60d4412"
+    },
+    {
+      "file": "docs-site/src/assets/guides/print-estimate-desktop.png",
+      "output": "assets/guides/print-estimate-desktop.png",
+      "sha256": "9c07d9c667344b18b62182466cb5d87d1fd29d715b9f98e26e31af2509c1e42e"
+    },
+    {
+      "file": "docs-site/src/assets/guides/print-estimate-mobile.png",
+      "output": "assets/guides/print-estimate-mobile.png",
+      "sha256": "865f12a14b57999b290a999b31c8499a62bc8fcdcc46418f043e74f7539a3b8c"
+    },
+    {
+      "file": "docs-site/src/assets/guides/review-reader-desktop.png",
+      "output": "assets/guides/review-reader-desktop.png",
+      "sha256": "055cdd491c756ecfa0655fff92dd3e7c278cae022daa492e5d13aecef6d9d72b"
+    },
+    {
+      "file": "docs-site/src/assets/guides/review-reader-mobile.png",
+      "output": "assets/guides/review-reader-mobile.png",
+      "sha256": "70bb49e7d8eca5487621885580fd81eb9c20e60fbc79ec14a18e32356aeaa604"
+    },
+    {
+      "file": "docs-site/src/assets/guides/work-detail-desktop.png",
+      "output": "assets/guides/work-detail-desktop.png",
+      "sha256": "a4862067f041c7a60b8046da841200cc9ec07e8039d442c549ca1f0a2ee13d41"
+    },
+    {
+      "file": "docs-site/src/assets/guides/work-detail-mobile.png",
+      "output": "assets/guides/work-detail-mobile.png",
+      "sha256": "c9b288072001c31bfde43169e626167a45b18d5939d501d178b154324ec21ec3"
+    },
+    {
+      "file": "docs-site/src/assets/guides/work-queue-desktop.png",
+      "output": "assets/guides/work-queue-desktop.png",
+      "sha256": "b6d367f6ebf151eb41e48d150e4a6bd30574a32ca5c0db920d216d510d1d2a5f"
+    },
+    {
+      "file": "docs-site/src/assets/guides/work-queue-mobile.png",
+      "output": "assets/guides/work-queue-mobile.png",
+      "sha256": "3b3cb3e775fd338b1518b6f65fdde78d66b5a0960fb3cb9c58c5bde70461ee5f"
     }
   ]
 }

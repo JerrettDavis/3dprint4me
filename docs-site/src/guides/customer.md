@@ -16,7 +16,7 @@ Attach relevant files when available. Customer uploads are private by default. A
 
 The [Customize catalog](https://3dprint4.me/customize/) builds models in your browser. Choose a generator, change its fields, inspect the preview and choose **Continue to request**. Review the model and request fields after the handoff.
 
-![Local route-shield customizer preview](../assets/customer-customizer.png)
+![Local route-shield customizer preview](../assets/guides/customizer-mobile.png)
 *Synthetic customizer example. Generated geometry is a starting point for a reviewed print request.*
 
 Sensitive customizer fields such as a Wi-Fi password stay in the browser as values. Their geometry can exist in the model, so treat the finished model as private too. Do not include credentials in filenames, descriptions or reference images.

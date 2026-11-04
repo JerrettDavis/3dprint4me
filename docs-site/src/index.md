@@ -1,6 +1,6 @@
 # From first idea to finished work
 
-The **3dprint4.me handbook** explains how to request fabrication, manage private work, use the partner portal and test safely. Start with your role, then follow the illustrated steps. Select any screenshot to open it at full resolution.
+The **3dprint4.me handbook** explains how to request fabrication, manage private work, use the partner portal and test safely. Start with your role, then follow the illustrated steps. Each step includes desktop (16:9) and mobile (3:4) views. Select a screenshot for full resolution. Native BDD previews are bounded excerpts; their original captures remain available.
 
 - **Customer:** [Request a project](guides/customer.md), estimate a print or customize a model.
 - **Shop operator:** [Manage the work inbox](guides/work.md), conversations, models and production.
@@ -9,7 +9,7 @@ The **3dprint4.me handbook** explains how to request fabrication, manage private
 - **QA tester:** [Run the production-portal QA journey](guides/qa.md) with synthetic records.
 - **Developer:** [Run locally](developers/index.md), explore the architecture and deploy changes.
 
-![Work inbox empty-state layout](../../docs/portal-polish/screenshots/work-1440-light.png)
+![Work inbox layout](assets/guides/work-queue-mobile.png)
 *Illustration: the private work inbox, rendered with synthetic test fixtures. The handbook contains no customer work data.*
 
 ## Know which workspace you are in

@@ -9,7 +9,7 @@ Test in the deployed production portals using the isolated QA workspace. The sof
 
 Sign into [the work inbox](https://work.3dprint4.me) with the existing owner GitHub identity. Open [the QA workspace](https://work.3dprint4.me/partners/qa), verify its persistent warning, then choose **Create synthetic QA run**. Keep the returned program and participant references privately.
 
-![Owner QA controls](../../../docs/portal-polish/screenshots/owner-qa-1440-light.png)
+![Owner QA controls](../assets/guides/owner-qa-mobile.png)
 *Synthetic presentation fixture. The three QA tools create, retire and simulate referral permission within QA.*
 
 If access is checking or unavailable, the controls remain hidden/disabled. Sign in through the work inbox and use **Check access again**. During a request, wait for the status message; a sanitized failure leaves a retry path.
@@ -18,7 +18,7 @@ If access is checking or unavailable, the controls remain hidden/disabled. Sign 
 
 In QA Legal, seed the [fifteen canonical discussion drafts](../../../docs/partner-qa/forms/README.md). Read their purpose, typed fields, fictional completed examples and unresolved review decisions. Confirm repeat seeding preserves owner edits and canonical stubs cannot be issued. Use the separate **QA SAMPLE — NO LEGAL EFFECT — NOT FOR REAL SIGNING OR WORK** specimen for issuance tests.
 
-![Versioned draft editor](../../../docs/portal-polish/screenshots/populated/operator-partners-legal-version-light.png)
+![Versioned draft editor](../assets/guides/owner-legal-mobile.png)
 *Synthetic editor. A draft version and an issued frozen document are different records.*
 
 ## 3. Enroll a fictional participant

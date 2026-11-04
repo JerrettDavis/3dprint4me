@@ -4,7 +4,7 @@
 
 The handbook contains getting-started instructions, illustrated customer/work/owner/partner/QA guides, troubleshooting, developer setup/testing/deployment guidance, the canonical technical reference, all 60 BDD flows and all 15 representative forms.
 
-The strict build produces 113 HTML pages, 187 PNG assets (including the theme favicon), 60 BDD scenarios, 142 redacted BDD screenshots and 682 indexed search sections. Screenshots link directly to full-resolution images. Canonical forms remain unreviewed discussion stubs; QA does not enable real work or establish professional approval.
+The strict build produces 113 HTML pages, 183 PNG assets (including the theme favicon), 60 BDD scenarios, 142 redacted BDD screenshots and 682 indexed search sections. Twenty guide states have paired desktop 16:9 and phone 3:4 captures (40 guide screenshots); 142 original native screenshots remain available through bounded, labeled excerpts. Screenshots link directly to full-resolution images. Canonical forms remain unreviewed discussion stubs; QA does not enable real work or establish professional approval.
 
 ## Build and check
 

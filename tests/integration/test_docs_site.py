@@ -3,6 +3,17 @@ from unittest.mock import patch
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 class DocsSiteBuild(unittest.TestCase):
+ def test_guides_publish_paired_bounded_screenshots(self):
+  from PIL import Image
+  assets=ROOT/'docs-site/src/assets/guides'
+  desktop=list(assets.glob('*-desktop.png'))
+  self.assertGreaterEqual(len(desktop),18)
+  for p in desktop:
+   with Image.open(p) as image:self.assertEqual(image.size,(1440,810))
+   with Image.open(p.with_name(p.name.replace('-desktop','-mobile'))) as image:self.assertEqual(image.size,(390,520))
+  html=(ROOT/'public/handbook/guides/partner/index.html').read_text(encoding='utf-8')
+  self.assertIn('screenshot-pair',html)
+  self.assertIn('Mobile · 3:4',html)
  def test_curated_site_and_local_links(self):
   subprocess.run([sys.executable,'scripts/build-docs.py'],cwd=ROOT,check=True)
   out=ROOT/'public/handbook'

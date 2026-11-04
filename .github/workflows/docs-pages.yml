@@ -8,6 +8,8 @@ on:
       - 'docs-site/publication-manifest.json'
       - 'docs/**'
       - 'scripts/build-docs.py'
+      - 'scripts/docs_screenshots.py'
+      - 'scripts/capture-docs-guides.py'
       - 'scripts/validate-docs.py'
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
