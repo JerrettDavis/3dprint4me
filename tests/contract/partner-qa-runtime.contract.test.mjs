@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {createPartnerQaRuntime,assertQaIsolation} from '../../lib/partner-outreach/qa-runtime.js';
+import {createPartnerQaRuntime,assertQaIsolation,assertQaSyntheticInput} from '../../lib/partner-outreach/qa-runtime.js';
 import {createQaOwnerAuthorization} from '../../lib/partner-outreach/qa-owner-auth.js';
 import {partnerFixture,TEST_NOW} from '../support/partner-fixture.mjs';
 const env={OPERATOR_OWNER_SUBJECT:'2610199',PARTNER_REVIEW_SIGNING_PRIVATE_KEY:'qa-private-placeholder'};
@@ -15,6 +15,7 @@ test('QA owner guard accepts only the real locked session and releases on failur
  await assert.rejects(boundary.guard({},actor),{status:403});
  await assert.rejects(boundary.run({...actor,ownerSessionHash:undefined},()=>assert.fail()),{status:401});
  await boundary.run(actor,async()=>{assert.equal(db.locked,true);await boundary.guard({},actor);await assert.rejects(boundary.guard({},{...actor,id:'other'}),{status:403});});
+ let releaseDetached;const detachedGate=new Promise(r=>releaseDetached=r);let detached;await boundary.run(actor,async()=>{detached=detachedGate.then(()=>boundary.guard({},actor));});releaseDetached();await assert.rejects(detached,{status:403});
  assert.equal(db.locked,false);
  await assert.rejects(boundary.run(actor,()=>{throw Error('failure');}),/failure/);assert.equal(db.locked,false);
  const revoked=createQaOwnerAuthorization({ownerAuthDatabase:authStore({denied:true}),env});await assert.rejects(revoked.run(actor,()=>assert.fail()),{status:403});
@@ -32,10 +33,16 @@ test('QA runtime keeps business writes in QA and canonical drafts blocked withou
  }finally{await f.close();}
 });
 test('QA preflight rejects overlap, missing sentinel, privileged role and real provider config',async()=>{
- const database=(name,realm='qa',privileged=false)=>({query:async strings=>strings.join('').includes('partner_qa_identity')?[{realm}]:[{database_name:name,role_name:'platform_app',privileged}]});
+ const database=(name,realm='qa',privileged=false)=>({query:async strings=>strings.join('').includes('partner_qa_identity')?[{realm}]:strings.join('').includes('backend_member')?[{backend_member:false,business_read:false,auth_write:false}]:[{database_name:name,role_name:name==='live'?'partner_qa_auth':'platform_app',privileged}]});
  await assert.rejects(assertQaIsolation({qaDatabase:database('live'),ownerAuthDatabase:database('live'),env:{}}),/isolation/i);
  await assert.rejects(assertQaIsolation({qaDatabase:database('qa','live'),ownerAuthDatabase:database('live'),env:{}}),/isolation/i);
  await assert.rejects(assertQaIsolation({qaDatabase:database('qa','qa',true),ownerAuthDatabase:database('live'),env:{}}),/isolation/i);
  await assert.rejects(assertQaIsolation({qaDatabase:database('qa'),ownerAuthDatabase:database('live'),env:{STRIPE_SECRET_KEY:'not-a-real-secret'}}),/provider/i);
  await assertQaIsolation({qaDatabase:database('qa'),ownerAuthDatabase:database('live'),env:{}});
+});
+
+test('QA rejects real contact channels and unmarked settlement or professional evidence',()=>{
+ for(const [action,input] of [['visit.record',{contact:{email:'person@real.example'}}],['lead.correct',{contact:{phone:'+12125551234'}}],['payment.record',{paymentReference:'ACTUAL-BANK-123'}],['legal.record_review',{reviewerName:'Actual attorney'}]])assert.throws(()=>assertQaSyntheticInput(action,input),/synthetic|SIMULATED/);
+ assertQaSyntheticInput('visit.record',{contact:{email:'fictional@example.invalid',phone:'+12025550100'}});
+ assertQaSyntheticInput('payment.record',{paymentReference:'QA-SIMULATED-001'});
 });

@@ -20,7 +20,7 @@ from tests.support.partner_container_cleanup import cleanup_partner_container
 
 
 @contextmanager
-def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed=False,program_flag_control=False,observe_outbound=False,statement_jobs=False):
+def native_partner_workspace(*,qa_mode=False,enable_reviewed_launch=False,clock=None,work_seed=False,program_flag_control=False,observe_outbound=False,statement_jobs=False):
     with reserved_loopback_ports(2) as reservations:
         port, owner_port = [held.getsockname()[1] for held in reservations]
         owner_origin = f'http://127.0.0.1:{owner_port}'
@@ -40,7 +40,7 @@ def native_partner_workspace(*,enable_reviewed_launch=False,clock=None,work_seed
         outbound_path=Path(clock_root.name)/'outbound-count.txt' if observe_outbound else None
         if clock:set_clock(clock)
         if program_flag_control:set_program_enabled(enable_reviewed_launch)
-        native = subprocess.Popen(['node', 'tests/support/partner-native-server.mjs'], cwd=ROOT,
+        native = subprocess.Popen(['node', 'tests/support/partner-qa-native-server.mjs' if qa_mode else 'tests/support/partner-native-server.mjs'], cwd=ROOT,
                                   env={**os.environ, 'INVOICE_NINJA_ENABLED':'0','INVOICE_NINJA_TOKEN':'','INVOICE_NINJA_GROUP_ID':'', 'PARTNER_NATIVE_BROWSER_TEST': '1', 'PARTNER_TEST_STATEMENT_JOBS':'1' if statement_jobs else '0', 'PARTNER_TEST_CLOCK_FILE':str(clock_path) if clock else '', 'PARTNER_TEST_PROGRAM_FLAG_FILE':str(flag_path) if flag_path else '', 'PARTNER_TEST_WORK_SEED':'1' if work_seed else '0', 'PARTNER_TEST_OUTBOUND_FILE':str(outbound_path) if outbound_path else '', 'PARTNER_TEST_SHELL_ORIGIN': shell_origin, 'PARTNER_TEST_OWNER_ORIGIN':owner_origin, 'PARTNER_TEST_CONTAINER_NAME': container, 'PARTNER_TEST_REVIEWED_LAUNCH':'1' if enable_reviewed_launch else '0'},
                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=os.name != 'nt')
         lines = queue.Queue()

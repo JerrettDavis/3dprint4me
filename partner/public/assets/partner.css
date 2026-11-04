@@ -24,3 +24,5 @@ header{border-top:5px solid #174b71}.brand{font-size:1.3rem;letter-spacing:-.025
 :root[data-theme=dark] button.primary,:root[data-theme=dark] .button.primary{color:#102e43}
 @media(min-width:701px){nav{background:var(--soft);margin:2rem 0;border:0;padding:1rem .65rem}nav a[aria-current=page]{background:var(--panel);border-color:transparent;border-left:3px solid var(--teal)}}
 @media(max-width:700px){.layout{display:block}main{padding:1.75rem 1.25rem}.workspace-secondary,.settlement-summary{grid-template-columns:minmax(0,1fr);gap:1.5rem}.work-overview{padding:1.25rem}.sheet{padding-inline:0}nav a[aria-current=page]{border-color:transparent;border-bottom:3px solid var(--teal)}}
+
+.qa-banner{max-width:72rem;margin:1rem auto;padding:1rem;border:2px solid currentColor;border-radius:.5rem;overflow-wrap:anywhere}.qa-banner strong{display:block;font-size:1.1rem}.qa-banner p{margin:.5rem 0}.qa-banner button,.qa-banner label{display:block;margin-top:.75rem}

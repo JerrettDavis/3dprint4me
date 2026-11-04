@@ -205,6 +205,9 @@ class SiteBrowser:
         self.page.on("pageerror", lambda error: self.page_errors.append(str(error)))
 
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        if exc_type is None and os.environ.get('PARTNER_QA_EVIDENCE_RUN'):
+            from tests.support.partner_qa_evidence import capture_final_partner_state
+            capture_final_partner_state(self)
         if self.context:
             self.context.close()
         if self.browser:
