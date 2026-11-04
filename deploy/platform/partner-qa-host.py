@@ -57,7 +57,7 @@ def prepare(config):
     if not re.fullmatch('[a-f0-9]{40}',release or '') or phase not in ['preflight','apply']:raise ValueError('Exact reviewed release and phase required.')
     source=ROOT/'releases'/release
     if source.resolve().parent!=(ROOT/'releases').resolve() or not (source/'deploy/platform/compose.partner-qa.yml').is_file():raise ValueError('Prepared committed release source required.')
-    compose=['docker','compose','--env-file',str(ROOT/'compose.env'),'-f',str(ROOT/'source/deploy/platform/compose.yml')]
+    compose=['docker','compose','--env-file',str(ROOT/'compose.env'),'-f',str(source/'deploy/platform/compose.yml')]
     current_env=env(ROOT/'api.env')
     if any(current_env.get(flag)!='0' for flag in ['PARTNER_PROGRAM_ENABLED','PARTNER_CLASSIFICATION_APPROVED','PARTNER_ACCOUNTING_APPROVED']):raise ValueError('Real launch flags must remain disabled.')
     live_id=run(compose+['ps','-q','postgres']);admin=env(ROOT/'postgres.env')['POSTGRES_USER']
