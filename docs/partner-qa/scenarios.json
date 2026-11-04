@@ -3245,46 +3245,50 @@
         },
         {
           "id": "action-13",
-          "description": "Open origin + '/qa/visits/new?gig=' + gig['id']"
+          "description": "Open fixture['ownerOrigin'] + '/partners/qa#referrals'"
         },
         {
           "id": "action-14",
-          "description": "Enter Business name 'QA fictional business ' + str(number)"
+          "description": "Open origin + '/qa/visits/new?gig=' + gig['id']"
         },
         {
           "id": "action-15",
-          "description": "Select Outcome 'accepted_material'"
+          "description": "Enter Business name 'QA fictional business ' + str(number)"
         },
         {
           "id": "action-16",
-          "description": "Select Permission to leave materials 'permission_received'"
+          "description": "Select Outcome 'accepted_material'"
         },
         {
           "id": "action-17",
-          "description": "Enter Samples left '1'"
+          "description": "Select Permission to leave materials 'permission_received'"
         },
         {
           "id": "action-18",
-          "description": "Activate Submit visit"
+          "description": "Enter Samples left '1'"
         },
         {
           "id": "action-19",
-          "description": "Select Action 'submit'"
+          "description": "Activate Submit visit"
         },
         {
           "id": "action-20",
-          "description": "Enter Reason or submission details 'QA ten simulated permitted visits complete.'"
+          "description": "Select Action 'submit'"
         },
         {
           "id": "action-21",
-          "description": "Open origin + '/qa/earnings'"
+          "description": "Enter Reason or submission details 'QA ten simulated permitted visits complete.'"
         },
         {
           "id": "action-22",
-          "description": "Activate Retire selected QA run"
+          "description": "Open origin + '/qa/earnings'"
         },
         {
           "id": "action-23",
+          "description": "Activate Retire selected QA run"
+        },
+        {
+          "id": "action-24",
           "description": "Reload the current page and revalidate its session"
         }
       ],
@@ -3293,13 +3297,14 @@
         "'No real approval or funds' in owner.locator('#qa-run-result').inner_text()",
         "seed['created'] == 15",
         "legal",
-        "'error' in denied",
         "'/qa' in page.url",
         "page.get_by_text('QA only — representative stubs', exact=True).is_visible()",
+        "'error' in denied",
         "live['items'] == []",
         "page.evaluate(\"async api=>(await fetch(api+'/api/partner/v1/session',{credentials:'include'})).status\", api) == 401",
         "'/qa/agreements' in page.url",
-        "read('ledger')['items'][0]['outstandingCents'] == 2500",
+        "next((p for p in read('ledger')['items'] if p['id'] == payable['id']))['outstandingCents'] == 2500",
+        "batch['csv'].startswith('QA SAMPLE — NO LEGAL EFFECT — SIMULATED ACCOUNTING')",
         "read('leads')['items'] == []",
         "live['items'] == []",
         "len(read('programs')['items']) == 1",

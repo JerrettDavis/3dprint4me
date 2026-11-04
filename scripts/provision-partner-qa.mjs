@@ -22,6 +22,7 @@ export async function provisionPartnerQa({qaAdmin,ownerAdmin,apply=false}){
 async function main(){
  const [configPath,phase]=process.argv.slice(2);if(!configPath||!['preflight','apply'].includes(phase))throw Error('Use a private configuration file and preflight/apply phase.');
  const config=JSON.parse(await readFile(configPath,'utf8'));
+ if(phase==='apply'&&(typeof config.qaAppPassword!=='string'||config.qaAppPassword.length<32||typeof config.ownerAuthPassword!=='string'||config.ownerAuthPassword.length<32))throw Error('Private role passwords are required before provisioning.');
  const qaAdmin=new pg.Client({connectionString:config.qaAdminUrl}),ownerAdmin=new pg.Client({connectionString:config.ownerAdminUrl});
  try{await Promise.all([qaAdmin.connect(),ownerAdmin.connect()]);const result=await provisionPartnerQa({qaAdmin,ownerAdmin,apply:phase==='apply'});
  if(phase==='apply'){

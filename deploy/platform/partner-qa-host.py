@@ -46,6 +46,8 @@ def prepare(config):
     source=ROOT/'releases'/release
     if source.resolve().parent!=(ROOT/'releases').resolve() or not (source/'deploy/platform/compose.partner-qa.yml').is_file():raise ValueError('Prepared committed release source required.')
     compose=['docker','compose','--env-file',str(ROOT/'compose.env'),'-f',str(ROOT/'source/deploy/platform/compose.yml')]
+    current_env=env(ROOT/'api.env')
+    if any(current_env.get(flag)!='0' for flag in ['PARTNER_PROGRAM_ENABLED','PARTNER_CLASSIFICATION_APPROVED','PARTNER_ACCOUNTING_APPROVED']):raise ValueError('Real launch flags must remain disabled.')
     live_id=run(compose+['ps','-q','postgres']);admin=env(ROOT/'postgres.env')['POSTGRES_USER']
     target=json.loads((ROOT/'database-target.private.json').read_text());selected=urlsplit(target['databaseUrl']).path[1:]
     if not re.fullmatch('platform_live_[a-z0-9_]{1,48}',selected):raise ValueError('Selected native store required.')
