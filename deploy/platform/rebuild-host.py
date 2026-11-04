@@ -125,7 +125,7 @@ def rebuild(root, source, release, data, expected_sha, apply=False):
     def sql(text, database='postgres', user='platform_admin'):
         return run(['docker','exec','-i',pg,'psql','-X','-U',user,'-d',database,'-At','-v','ON_ERROR_STOP=1'],text.encode())
     credentials = json.loads(files['private/database.private.json'])
-    sql("CREATE ROLE platform_backend NOLOGIN NOSUPERUSER NOBYPASSRLS; CREATE ROLE platform_owner LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '" + credentials['owner'] + "'; CREATE ROLE platform_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '" + credentials['runtime'] + "'; GRANT platform_backend TO platform_app;")
+    sql("CREATE ROLE partner_qa_auth NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE platform_backend NOLOGIN NOSUPERUSER NOBYPASSRLS; CREATE ROLE platform_owner LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD '" + credentials['owner'] + "'; CREATE ROLE platform_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '" + credentials['runtime'] + "'; GRANT platform_backend TO platform_app;")
     for database in manifest['databases']:
         # postgres.env may initialize 'platform'; accept only that empty database.
         exists = sql("SELECT 1 FROM pg_database WHERE datname='" + database + "'").strip()

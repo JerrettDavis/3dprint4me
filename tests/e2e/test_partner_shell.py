@@ -61,6 +61,8 @@ def test_partner_private_sign_in_and_navigation_layout(width, theme):
         page.get_by_role('button', name='Sign in', exact=True).click()
         page.get_by_role('heading', name='Hello, Synthetic Partner.').wait_for()
         assert 'New work is currently unavailable' in page.locator('main').inner_text()
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link', name='Gigs', exact=True).click()
         page.get_by_role('heading', name='No offers yet').wait_for()
         page.get_by_label('Theme', exact=True).select_option('dark')
@@ -157,7 +159,7 @@ def test_partner_counteroffer_exact_retry_and_inert_history():
         page.get_by_role('button', name='Send counterproposal', exact=True).click()
         page.wait_for_function('document.querySelector("#counteroffer button").disabled')
         assert page.get_by_label('Proposed fee (USD)', exact=True).is_disabled()
-        assert page.get_by_role('button', name='Save decision', exact=True).is_disabled()
+        assert page.get_by_role('button', name='Accept offer', exact=True).is_disabled()
         assert commands[0]['action'] == 'gig.counteroffer'
         assert commands[0]['input'] == {'gigId': GIG_ID, 'expectedRevision': 1, 'proposedFeeCents': 1234,
                                         'message': 'Can this cover the additional materials?'}
@@ -187,6 +189,8 @@ def test_partner_delayed_counteroffer_does_not_replace_current_page():
         page.get_by_label('Proposed fee (USD)', exact=True).fill('15.00')
         page.get_by_label('Message to the owner', exact=True).fill('A different fee request')
         page.get_by_role('button', name='Send counterproposal', exact=True).click()
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link', name='Help', exact=True).click()
         page.get_by_role('heading', name='Help & privacy').wait_for()
         pending[0].fulfill(status=200, content_type='application/json', body=json.dumps({'id': GIG_ID, 'revision': 2}))
@@ -279,6 +283,8 @@ def test_partner_activity_delayed_command_preserves_navigation_and_expired_sessi
         page=site.page;activity_fixture(page);pending=[]
         page.route('**/api/partner/v1/commands',lambda route:pending.append(route))
         page.goto(origin+'/activity');page.get_by_role('button',name='Stop',exact=True).click()
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link',name='Help',exact=True).click()
         page.get_by_role('heading',name='Help & privacy',exact=True).wait_for()
         take_activity_request(page,pending).fulfill(status=200,content_type='application/json',body='{}')
@@ -333,6 +339,8 @@ def test_partner_late_export_failure_preserves_current_page_and_focus(view,butto
         control=page.get_by_role('button',name=button,exact=True)
         control.evaluate('(element)=>window.__heldExportControl=element')
         control.click();held=take_activity_request(page,pending)
+        if page.locator('nav summary').is_visible() and page.locator('nav details').get_attribute('open') is None:
+            page.locator('nav summary').click()
         page.get_by_role('navigation').get_by_role('link',name='Help',exact=True).click()
         page.get_by_role('heading',name='Help & privacy',exact=True).wait_for()
         held.fulfill(status=503,content_type='application/json',body='{"error":"Temporarily unavailable"}')

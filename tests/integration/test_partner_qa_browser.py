@@ -10,7 +10,7 @@ def test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial():
         owner=site.page
         api=fixture['apiOrigin']
         site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
-        owner.goto(fixture['ownerOrigin']+'/partners/qa')
+        owner.goto(fixture['ownerOrigin']+'/partners/qa#programs')
         owner.get_by_role('heading',name='Partner programs',exact=True).wait_for()
         assert owner.get_by_text('QA only — representative stubs',exact=True).is_visible()
         capture_partner_qa_step(owner,scenario_id='QA-060',step_id='owner-entry')
@@ -66,8 +66,7 @@ def test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial():
         post('campaign.publish',{'campaignId':campaign['id'],'expectedRevision':1})
         gig=post('gig.offer',{'campaignId':campaign['id'],'partnerId':account['id']})
         page.goto(origin+'/qa/gigs/'+gig['id'])
-        page.get_by_role('combobox',name='Action',exact=True).select_option('accept')
-        page.get_by_role('button',name='Save decision',exact=True).click()
+        page.get_by_role('button',name='Accept offer',exact=True).click()
         page.get_by_text('Offer accepted. Receipt',exact=False).wait_for()
         capture_partner_qa_step(page,scenario_id='QA-060',step_id='accepted')
         referral=read('referrals')['items'][0]
@@ -91,9 +90,8 @@ def test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial():
             page.get_by_text('Visit recorded.',exact=True).wait_for()
         capture_partner_qa_step(page,scenario_id='QA-060',step_id='visits-recorded')
         page.goto(origin+'/qa/gigs/'+gig['id'])
-        page.get_by_role('combobox',name='Action',exact=True).select_option('submit')
         page.get_by_label('Reason or submission details',exact=True).fill('QA ten simulated permitted visits complete.')
-        page.get_by_role('button',name='Save decision',exact=True).click()
+        page.get_by_role('button',name='Submit work for review',exact=True).click()
         page.get_by_text('Decision recorded.',exact=True).wait_for()
         capture_partner_qa_step(page,scenario_id='QA-060',step_id='submitted')
         for action in ['approve','make_payable']:

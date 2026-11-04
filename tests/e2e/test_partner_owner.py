@@ -33,15 +33,17 @@ def install_owner_fixture(page, *, allowed=True, realm="live"):
 def test_owner_program_gate_and_revisioned_pause_cap_controls(width,theme):
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(width,844),color_scheme=theme,reduced_motion='reduce') as site:
         page=site.page;commands,program=install_owner_fixture(page)
-        page.goto(origin+'/partners')
+        page.goto(origin+'/partners#programs')
         page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
-        assert 'New work unavailable' in page.locator('#partner-clearance').inner_text()
+        assert '0 of 1 programs cleared' in page.locator('#partner-clearance').inner_text()
+        page.locator('#partner-clearance summary').click()
         assert 'Published agreement' in page.locator('#partner-clearance').inner_text()
         page.get_by_label('Default weekly authorization (USD)',exact=True).fill('175.25')
         page.get_by_role('button',name='Save program controls',exact=True).click()
         page.get_by_text('Program controls saved.',exact=True).wait_for()
         assert commands[-1]['input']=={'programId':PROGRAM,'expectedRevision':1,'enabled':False,'weeklyCapCents':17525}
         assert program['default_weekly_cap_cents']==17525
+        page.locator('#partner-clearance summary').click()
         assert 'Existing commitments and earned obligations are unchanged.' in page.locator('#partner-clearance').inner_text()
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         assert 'owner-memory-only' not in page.evaluate('JSON.stringify({...localStorage,...sessionStorage})')
@@ -50,7 +52,7 @@ def test_owner_program_gate_and_revisioned_pause_cap_controls(width,theme):
 def test_operator_without_owner_access_gets_no_partner_controls():
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,844)) as site:
         install_owner_fixture(site.page,allowed=False)
-        site.page.goto(origin+'/partners')
+        site.page.goto(origin+'/partners#programs')
         site.page.get_by_role('heading',name='Owner access required',exact=True).wait_for()
         assert site.page.locator('main form').count()==0
         assert site.page.locator('#partner-navigation').is_hidden()
@@ -63,6 +65,7 @@ def test_owner_campaign_reserves_every_bonus_and_retries_exactly_without_navigat
         page=site.page;install_owner_fixture(page)
         page.goto(origin+'/partners#campaigns')
         page.get_by_role('heading',name='Campaigns',exact=True).wait_for()
+        page.locator('summary').filter(has_text='Create campaign draft').click()
         page.get_by_label('Offer title',exact=True).fill('Synthetic compensated introductions')
         page.get_by_label('Offered fee (USD)',exact=True).fill('40.00')
         page.get_by_label('Permitted area',exact=True).fill('Tulsa permitted business areas')
@@ -94,6 +97,7 @@ def test_owner_campaign_reserves_every_bonus_and_retries_exactly_without_navigat
         page.get_by_role('button',name='Create campaign draft',exact=True).click()
         page.wait_for_function('document.querySelector("#campaign-create button.primary").disabled')
         assert commands[1]==commands[0]
+        page.locator('#owner-menu').click()
         page.get_by_role('navigation').get_by_role('link',name='Audit',exact=True).click()
         page.get_by_role('heading',name='Partner audit',exact=True).wait_for()
         pending.pop().fulfill(status=200,content_type='application/json',body=json.dumps({'id':'created'}))
@@ -106,7 +110,7 @@ def test_owner_campaign_reserves_every_bonus_and_retries_exactly_without_navigat
 def test_owner_authorization_loss_clears_private_forms_and_banner():
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,844)) as site:
         page=site.page;install_owner_fixture(page)
-        page.goto(origin+'/partners')
+        page.goto(origin+'/partners#programs')
         page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
         def denied(route):
             if route.request.method=='POST':route.fulfill(status=403,body='Access ended')
@@ -123,10 +127,10 @@ def test_owner_authorization_loss_clears_private_forms_and_banner():
 
 def test_owner_skip_link_focus_preserves_unsaved_program_controls():
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,844)) as site:
-        page=site.page;install_owner_fixture(page);page.goto(origin+'/partners')
+        page=site.page;install_owner_fixture(page);page.goto(origin+'/partners#programs')
         page.get_by_label('Default weekly authorization (USD)',exact=True).fill('123.45')
         page.locator('.skip-link').focus();page.keyboard.press('Enter')
-        assert page.evaluate('location.hash')==''
+        assert page.evaluate('location.hash')=='#programs'
         assert page.get_by_label('Default weekly authorization (USD)',exact=True).input_value()=='123.45'
         assert page.evaluate('document.activeElement.id')=='owner-content'
         assert not site.page_errors
@@ -162,6 +166,7 @@ def test_owner_recovery_code_is_masked_ephemeral_and_never_in_storage_or_url():
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,844)) as site:
         page=site.page;commands,_=install_access_fixture(page)
         page.goto(origin+'/partners#partners')
+        page.get_by_text('Manage private access',exact=True).click()
         page.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True).check()
         page.get_by_role('button',name='Issue recovery code',exact=True).click()
         code=page.get_by_label('One-time recovery code',exact=True)
@@ -188,6 +193,7 @@ def test_owner_unknown_invitation_result_requires_new_confirmation_and_late_secr
             else:route.fallback()
         page.route('**/api/operator-partners*',hold)
         page.goto(origin+'/partners#partners')
+        page.get_by_text('Manage private access',exact=True).click()
         confirm=page.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True)
         confirm.check();page.get_by_role('button',name='Issue recovery code',exact=True).click()
         page.wait_for_function('document.querySelector("[data-access-issue] button").disabled')
@@ -197,6 +203,7 @@ def test_owner_unknown_invitation_result_requires_new_confirmation_and_late_secr
         # A replacement is a deliberate new issue, not a blind idempotent retry.
         confirm.check();page.get_by_role('button',name='Issue recovery code',exact=True).click()
         page.wait_for_function('document.querySelector("[data-access-issue] button").disabled')
+        page.locator('#owner-menu').click()
         page.get_by_role('navigation').get_by_role('link',name='Audit',exact=True).click()
         page.get_by_role('heading',name='Partner audit',exact=True).wait_for()
         from datetime import datetime,timedelta,timezone
@@ -211,10 +218,12 @@ def test_owner_suspension_and_revocation_are_explicit_and_preserve_obligation_co
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,844),color_scheme='dark') as site:
         page=site.page;commands,_=install_access_fixture(page)
         page.goto(origin+'/partners#partners')
+        page.get_by_text('Manage private access',exact=True).click()
         page.get_by_role('combobox',name='Access change',exact=True).select_option('suspended')
         page.get_by_label('I understand that this ends access and invalidates unused codes without changing amounts owed.',exact=True).check()
         page.get_by_role('button',name='Apply access change',exact=True).click()
         page.get_by_text('Portal access suspended. Existing obligations are unchanged.',exact=True).wait_for()
+        page.get_by_text('Manage private access',exact=True).click()
         assert commands[-1]['input']=={'partnerId':ACCOUNT,'status':'suspended'}
         assert page.get_by_role('button',name='Issue recovery code',exact=True).is_visible()
         page.get_by_role('combobox',name='Access change',exact=True).select_option('revoked')
@@ -230,6 +239,7 @@ def test_owner_enrollment_is_hidden_until_program_clearance():
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,844)) as site:
         page=site.page;install_access_fixture(page,status='invited')
         page.goto(origin+'/partners#partners')
+        page.get_by_text('Manage private access',exact=True).click()
         page.get_by_role('heading',name='Partner accounts',exact=True).wait_for()
         assert page.get_by_role('button',name='Issue enrollment code',exact=True).count()==0
         assert 'Enrollment is unavailable until program clearance is complete.' in page.locator('main').inner_text()
@@ -240,6 +250,7 @@ def test_owner_access_issuance_denial_clears_private_account_view():
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,844)) as site:
         page=site.page;install_access_fixture(page)
         page.goto(origin+'/partners#partners')
+        page.get_by_text('Manage private access',exact=True).click()
         def deny(route):
             if route.request.method=='POST':route.fulfill(status=403,body='No access')
             else:route.fallback()
@@ -259,6 +270,7 @@ def test_owner_code_response_after_page_hiding_never_becomes_visible():
             if route.request.method=='POST':pending.append(route)
             else:route.fallback()
         page.route('**/api/operator-partners*',hold);page.goto(origin+'/partners#partners')
+        page.get_by_text('Manage private access',exact=True).click()
         page.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True).check()
         page.get_by_role('button',name='Issue recovery code',exact=True).click()
         page.wait_for_function('document.querySelector("[data-access-issue] button").disabled')
@@ -274,6 +286,7 @@ def test_owner_code_response_after_page_hiding_never_becomes_visible():
 def test_owner_visible_code_expires_and_is_cleared_when_leaving_accounts():
     with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,844)) as site:
         page=site.page;install_access_fixture(page);page.goto(origin+'/partners#partners')
+        page.get_by_text('Manage private access',exact=True).click()
         page.get_by_role('heading',name='Partner accounts',exact=True).wait_for()
         page.clock.install()
         page.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True).check()
@@ -281,6 +294,7 @@ def test_owner_visible_code_expires_and_is_cleared_when_leaving_accounts():
         page.get_by_label('One-time recovery code',exact=True).wait_for()
         page.clock.fast_forward(31*60*1000)
         assert page.get_by_label('One-time recovery code',exact=True).count()==0
+        page.locator('#owner-menu').click()
         page.get_by_role('link',name='Programs',exact=True).click()
         page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
         assert ACCESS_TOKEN not in page.locator('body').inner_text()

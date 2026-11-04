@@ -19,11 +19,27 @@ from tests.e2e.test_partner_review_reader import offline_review_fixture,unlock_f
 OUT=ROOT/'docs-site/src/assets/guides'
 VIEWS=[('desktop',(1440,810)),('mobile',(390,520))]
 
-def save(site,name,device,focus=None):
+def reveal_control(locator):
+    """Open containing native disclosures through their visible summary controls.
+
+    Guide captures may show a specific task inside a progressively disclosed
+    section. Keep other sections collapsed, as in the actual workspace.
+    """
+    target=locator.first
+    ancestors=target.locator('xpath=ancestor::details').all()
+    ancestors.sort(key=lambda node:node.evaluate("n=>{let depth=0;for(let p=n.parentElement;p;p=p.parentElement)depth++;return depth}"))
+    for disclosure in ancestors:
+        if not disclosure.evaluate('n=>n.open'):
+            disclosure.locator(':scope > summary').click()
+    return target
+
+def save(site,name,device,focus=None,frame_targets=()):
     page=site.page
     page.evaluate('document.activeElement?.blur()')
     if focus:
-        page.locator(focus).first.evaluate("n=>n.scrollIntoView({block:'start'})")
+        reveal_control(page.locator(focus)).evaluate("n=>n.scrollIntoView({block:'start'})")
+    for selector in frame_targets:
+        assert page.locator(selector).first.evaluate("n=>{const r=n.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth}"),f'{name}-{device}: task action outside guide frame: {selector}'
     page.screenshot(path=str(OUT/f'{name}-{device}.png'),full_page=False,animations='disabled',
                     mask=[page.locator('input[type=password],[data-secret],.owner-access-code')])
     assert not site.page_errors,site.page_errors
@@ -68,9 +84,9 @@ def owner():
                     if name=='owner-accounts':route='/partners#partners'
                     page.goto(origin+route,wait_until='networkidle');page.locator('main h1').wait_for()
                     if name=='owner-retry':
-                        page.get_by_role('button',name='Create synthetic QA run',exact=True).click()
+                        reveal_control(page.get_by_role('button',name='Create synthetic QA run',exact=True)).click()
                         page.get_by_text('Partner administration is temporarily unavailable.',exact=False).wait_for()
-                    focus='.qa-banner' if qa else 'main h1'
+                    focus='.qa-banner' if qa else '[data-payable]' if name=='owner-finance' else 'main h1'
                     save(site,name,device,focus)
 
 def partner():
@@ -94,11 +110,14 @@ def partner():
                     if name in ['partner-visit','partner-drafts']:
                         page.get_by_label('Business name',exact=True).fill('Synthetic Coffee')
                     if name=='partner-drafts':
-                        page.get_by_label('I understand this business-only draft stays on this device and is deleted when I sign out.',exact=True).check()
-                        page.get_by_role('button',name='Save business draft on this device',exact=True).click()
-                        page.get_by_role('link',name='Device drafts',exact=True).click()
+                        reveal_control(page.get_by_label('I understand this business-only draft stays on this device and is deleted when I sign out.',exact=True)).check()
+                        reveal_control(page.get_by_role('button',name='Save business draft on this device',exact=True)).click()
+                        reveal_control(page.get_by_role('link',name='Device drafts',exact=True)).click()
                         page.get_by_role('heading',name='Device drafts',exact=True).wait_for()
-                    save(site,name,device,'main h1')
+                    # The phone frame shows the agreed fee, scope and next action,
+                    # rather than stopping above the action after title chrome.
+                    focus='main .fee' if name=='partner-gig' and device=='mobile' else 'main h1'
+                    save(site,name,device,focus,('.gig-next-step .button.primary',) if name=='partner-gig' and device=='mobile' else ())
 
 def reader_and_customizer():
     fixture=offline_review_fixture()

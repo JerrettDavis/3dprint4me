@@ -14,9 +14,8 @@ def offer(w):
 
 def decision(w,gig,action,reason=None):
     page=w['pages'][0];page.goto(w['origin']+'/gigs/'+gig['id'])
-    page.get_by_role('combobox',name='Action',exact=True).select_option(action)
     if reason:page.get_by_label('Reason or submission details',exact=True).fill(reason)
-    page.get_by_role('button',name='Save decision',exact=True).click()
+    page.get_by_role('button',name={'accept':'Accept offer','decline':'Decline offer','submit':'Submit work for review','request_cancel':'Request cancellation','report_unsafe':'Stop unsafe work','dispute':'Raise a dispute'}[action],exact=True).click()
     page.get_by_text('Decision recorded.',exact=True).wait_for()
 
 
@@ -129,11 +128,10 @@ def test_native_gig_offline_visit_and_work_submission_retry_after_committed_lost
         page.reload();page.get_by_role('button',name='Send pending business drafts',exact=True).click()
         page.get_by_text('1 draft submitted. 0 remain on this device.',exact=True).wait_for()
         page.goto(w['origin']+'/gigs/'+gig['id'])
-        page.get_by_role('combobox',name='Action',exact=True).select_option('submit')
         page.get_by_label('Reason or submission details',exact=True).fill('Synthetic offline business visit submitted for owner review.')
-        page.get_by_role('button',name='Save decision',exact=True).click()
+        page.get_by_role('button',name='Submit work for review',exact=True).click()
         page.get_by_text('Unable to reach the partner service. Check your connection and try again.',exact=True).wait_for()
-        page.get_by_role('button',name='Save decision',exact=True).click()
+        page.get_by_role('button',name='Submit work for review',exact=True).click()
         page.get_by_text('Decision recorded.',exact=True).wait_for()
         assert all(len(rows)==2 and rows[0]==rows[1] for rows in attempts.values())
         visits=[v for v in own(w,'visits')['items'] if v['gig_id']==gig['id']]

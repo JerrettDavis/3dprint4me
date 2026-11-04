@@ -11,6 +11,7 @@ import {createCommunicationService} from '../../lib/work-communications/service.
 import {createNeonPrintRepository} from '../../lib/print-estimation/adapters/neon-print-repository.js';
 import {createOperatorModels} from '../../lib/print-estimation/application/operator-models.js';
 import {createFilamentUseCases} from '../../lib/print-estimation/application/filament.js';
+import {createNeonWorkRepository} from '../../lib/work-management/adapters/neon-work-repository.js';
 const docker=(...args)=>execFileSync('docker',args,{encoding:'utf8',timeout:90000,stdio:['pipe','pipe','pipe']}).trim();
 test('native PostgreSQL migrations, email claims, private model revisions and replay',{timeout:120000},async()=>{
  const name='3dprint4me-communications-'+randomUUID().slice(0,8);let admin,database,started=false;
@@ -28,6 +29,12 @@ test('native PostgreSQL migrations, email claims, private model revisions and re
   await admin.query("INSERT INTO service_requests(id,status,service,project_title,contact_name,contact_email,payload) VALUES('req_native','draft','print','Synthetic','Synthetic','synthetic@example.test',$1)",[JSON.stringify(request)]);
   await admin.query("INSERT INTO work_items(id,request_id,project_draft) VALUES('work_native_12345678','req_native',true)");
   const work={item:{id:'work_native_12345678',requestId:'req_native',projectDraft:true},request},operator={id:'op_native',displayName:'Synthetic',role:'owner'};
+  const {rows:[event]}=await admin.query("INSERT INTO work_events(work_item_id,request_id,event_type,actor_type) VALUES('work_native_12345678','req_native','work.created','system') RETURNING id");
+  const {rows:outbox}=await admin.query("INSERT INTO notification_outbox(event_id,kind,payload) VALUES($1,'new_work','{}'),($1,'test','{}') RETURNING id,kind",[event.id]);
+  const pushStore=createNeonWorkRepository({query:database.query});
+  for(const entry of outbox)await pushStore.finishPushOutbox(String(entry.id),{delivered:0,disabled:0,retrying:0,failed:entry.kind==='test'?1:0});
+  const {rows:outcomes}=await admin.query('SELECT kind,state,delivered_at FROM notification_outbox ORDER BY kind');
+  assert.deepEqual(outcomes.map(x=>[x.kind,x.state,x.delivered_at]),[['new_work','skipped',null],['test','failed',null]]);
   let calls=0;const service=createCommunicationService({repository:createCommunicationRepository({database}),delivery:async()=>{calls++;await new Promise(resolve=>setTimeout(resolve,40));return {state:'sent'};}});
   const command={commandId:'command_native_123',kind:'email',body:'Synthetic dispatch'};
   const rows=await Promise.all(Array.from({length:8},()=>service.create(work,command,operator)));

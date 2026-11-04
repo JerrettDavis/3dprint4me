@@ -7,7 +7,7 @@ export async function buildQaShells({check=false}={}){
  for(const kind of ['partner','operator']){
   const base=join(root,kind==='partner'?'partner/public':'operator'),htmlName=kind==='partner'?'index.html':'partners.html';
   let html=await readFile(join(base,htmlName),'utf8');
-  html=html.replaceAll('/assets/','/qa-assets/').replace('<title>','<title>QA only · ').replace('name="partner-shell-release" content="partner-shell-v9"','name="partner-qa-shell-release" content="partner-qa-shell-v3"');
+  html=html.replaceAll('/assets/','/qa-assets/').replace('<title>','<title>QA only · ').replace('name="partner-shell-release" content="partner-shell-v10"','name="partner-qa-shell-release" content="partner-qa-shell-v4"');
   html=html.replace('</header>','</header><aside id="qa-static-notice" class="qa-banner"><strong>QA only — representative stubs</strong><p>Synthetic records only. No legal effect, real work or funds.</p></aside>');
   await output(join(base,kind==='partner'?'qa.html':'partners-qa.html'),html);
   for(const name of await readdir(join(base,'assets'))){

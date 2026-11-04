@@ -2,6 +2,12 @@
 
 The [live partner portal](https://partners.3dprint4.me) and [QA partner portal](https://partners.3dprint4.me/qa) are separate. Use the origin and private enrollment code provided by the owner. QA is for fictional test activity only.
 
+## Find your next step
+
+Start with the overview, then open the gig or record you need. Navigation groups work, payment records and account help. On a phone, open the workspace menu to see every destination; the menu does not require horizontal scrolling. The current destination stays identified when you move between pages.
+
+Use the primary action for the current task. Open supporting details when you need the full terms, history or device-storage explanation. Collapsing a section does not accept an offer, submit work or change a record.
+
 ## Join and sign in
 
 Redeem the single-use invitation on the correct join page and set your private passphrase. Keep your account code available privately for future access. Do not share screenshots containing codes or credentials. If a code is expired or already used, ask the owner for the appropriate recovery path rather than repeatedly submitting it.
@@ -14,7 +20,7 @@ Redeem the single-use invitation on the correct join page and set your private p
 Open your available gigs. Read the task, fee, bonus criteria and scope. Use the available accept, decline or counterproposal controls deliberately. A counterproposal is not acceptance and does not silently change the offered fee. Inspect the accepted snapshot afterward.
 
 ![Accepted offer](../assets/guides/partner-gig-mobile.png)
-*Synthetic accepted gig showing frozen terms.*
+*Synthetic accepted gig showing the agreed fee, visit scope and next action. Open the gig's agreed tasks and acceptance record to review the complete frozen terms.*
 
 Open the issued agreement and inspect its exact text. Record read acknowledgment only after reading it. QA samples have no legal effect, and read acknowledgment is not signing.
 

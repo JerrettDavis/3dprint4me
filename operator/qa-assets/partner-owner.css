@@ -51,3 +51,72 @@
 @media(max-width:900px){.qa-tools{grid-template-columns:1fr}.qa-tool{padding-bottom:1.5rem;border-bottom:1px solid var(--line)}.qa-tool:last-child{padding-bottom:0;border:0}.qa-banner{margin-block:1.25rem}}
 
 .owner-recovery-actions{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;margin-block:1.5rem}.owner-recovery-actions a{display:inline-flex;align-items:center;min-height:44px}
+/* Task workspace: stable grouped destinations, compact records, deliberate actions. */
+.partner-owner .topbar{padding:1rem 1.5rem}
+.owner-shell{max-width:1440px;padding:1.25rem;gap:1.5rem}
+.owner-shell h1{font-size:clamp(1.65rem,3vw,2rem);line-height:1.2;letter-spacing:-.025em;margin-bottom:.75rem}
+.owner-shell h2{font-size:1.25rem;margin-block:1.5rem .75rem}
+.owner-shell h3{margin-block:1rem .5rem}
+.owner-shell main>p{line-height:1.6;margin-block:.75rem 1.25rem}
+.owner-shell nav{background:transparent;border:0;padding:0;margin:0;overflow-x:visible;flex-direction:column;white-space:normal;gap:1.25rem}
+.owner-shell nav .owner-nav-group h2{font-size:.75rem;letter-spacing:.035em;margin:0 0 .4rem;color:var(--muted)}
+.owner-shell nav a{display:flex;align-items:center;white-space:normal;padding:.6rem .75rem;min-height:44px;border:0;border-left:3px solid transparent;border-radius:.25rem;text-decoration:none}
+.owner-shell nav a[aria-current=page]{border-left-color:var(--teal);background:var(--teal-soft)}
+.owner-shell .owner-menu{width:100%;justify-content:space-between;align-items:center;gap:.75rem;text-align:left;margin:0;border-color:var(--line);background:var(--panel);color:var(--ink)}
+.owner-menu span{font-size:.85rem;color:var(--muted);font-weight:450}
+.owner-clearance{background:transparent;border:0;border-bottom:1px solid var(--line);padding:0;margin:0 0 1rem}
+.owner-clearance details{border:0;margin:0;padding:0}.owner-clearance summary{display:list-item;padding:.5rem 0;font-size:.85rem;color:var(--muted)}
+.owner-status{display:inline-block;font-weight:650;color:var(--ink);font-size:.85rem;background:var(--teal-soft);border-radius:.25rem;padding:.25rem .5rem;margin:.25rem .5rem .25rem 0}
+.owner-card{margin-block:1.25rem;padding-block:1.25rem}
+.owner-shell form{gap:1rem;margin-block:1rem 1.5rem}
+.owner-shell details{margin-block:.75rem;padding-top:.25rem}
+.owner-shell summary{padding-block:.6rem;min-height:44px}
+.owner-shell dl>div{padding-block:.65rem}
+.owner-list li{padding-block:1rem}.owner-list li h2{margin-top:0}
+.owner-shell dl{font-variant-numeric:tabular-nums}
+.owner-finance-totals>dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 1.5rem}
+.owner-finance-totals>dl>div,.owner-payable-summary>dl>div{display:flex;flex-direction:column;gap:.25rem}
+.owner-finance-totals dd{font-size:1.15rem;font-weight:650}
+.owner-payable-summary>dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:.5rem 0}
+.owner-payable-summary dd{font-size:1.15rem;font-weight:650}
+.owner-shell [data-payable]{padding:1.25rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.owner-shell [data-payable]>h3{margin:0;font-size:1.1rem}
+.owner-shell [data-payable]>p{margin:.5rem 0}
+.owner-shell [data-payable] h4{font-size:.9rem;margin:1rem 0 .5rem}
+.owner-shell [data-payable]>ul{padding-left:1.25rem;font-size:.9rem}
+.owner-shell .owner-payment-action summary{color:var(--teal)}
+.owner-shell footer{margin-top:1rem;padding:1rem 0}
+.qa-banner.qa-link{display:flex;justify-content:flex-end;background:transparent;border:0;margin:.25rem auto;padding:0 1.5rem;width:100%;font-size:.8rem}
+.qa-banner.qa-link a{min-height:44px}
+@media(min-width:1000px){
+ .owner-shell{grid-template-columns:13rem minmax(0,1fr);column-gap:2rem;padding:1.5rem 2rem}
+ .owner-shell nav{grid-row:1/6;top:1rem;border-right:1px solid var(--line);padding-right:1rem;max-height:calc(100dvh - 2rem);overflow-y:auto}
+ .owner-clearance,.owner-shell main,.owner-shell footer,.owner-shell>.owner-message{grid-column:2}
+}
+@media(max-width:999px){
+ .owner-shell{display:flex;flex-direction:column;gap:0}
+ .owner-shell .owner-menu{display:flex;margin-bottom:.75rem}
+ .owner-shell nav{display:flex;flex-direction:column;overflow:visible;border:1px solid var(--line);padding:1rem;margin-bottom:1rem}
+ .owner-shell nav[hidden]{display:none}
+ .owner-shell main{padding-top:.25rem}.owner-clearance{margin-bottom:.75rem}
+}
+@media(max-width:700px){
+ .owner-finance-totals>dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 1rem}
+ .owner-payable-summary>dl{grid-template-columns:1fr;gap:0}
+ .owner-payable-summary>dl>div{flex-direction:row;justify-content:space-between;align-items:baseline;gap:1rem}
+ .owner-shell [data-payable]{padding:1rem}.owner-shell button{width:auto}.owner-shell form>button{width:100%}
+ .owner-shell .owner-menu{width:100%}.owner-shell .owner-check input{padding:0;min-height:24px}
+}
+.owner-shell footer .qa-banner.qa-link{width:auto;margin:0;padding:0;font-size:.8rem}
+.owner-record-heading{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.owner-record-heading h3{margin:0}.owner-gig-list>li>p{margin:.35rem 0}.owner-gig-meta{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}.owner-review-count{font-weight:650}
+@media(max-width:700px){
+ .partner-owner .topbar{padding:.75rem 1rem;gap:.5rem;flex-wrap:nowrap;align-items:center}
+ .partner-owner .brand{font-size:.85rem}.partner-owner .session-strip{margin-left:auto;gap:.5rem}
+ .partner-owner #owner-session{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+ .partner-owner #owner-sign-out{padding:.5rem .65rem;font-size:.85rem}
+ .owner-shell{padding:1rem}.owner-shell .owner-menu{margin-bottom:.25rem;padding:.6rem .75rem}
+ .owner-clearance{margin-bottom:.5rem}.owner-clearance summary{padding:.35rem 0}.owner-shell main>p{margin-bottom:1rem}
+}
+.owner-shell .owner-clearance details{margin:0;padding:0;border:0}
+.owner-shell>.owner-message{position:static;z-index:auto;margin:0 0 1rem;padding:1rem;border-radius:.4rem}
