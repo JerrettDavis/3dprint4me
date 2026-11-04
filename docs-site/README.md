@@ -4,7 +4,7 @@
 
 The handbook contains getting-started instructions, illustrated customer/work/owner/partner/QA guides, troubleshooting, developer setup/testing/deployment guidance, the canonical technical reference, all 60 BDD flows and all 15 representative forms.
 
-The strict build produces 113 HTML pages, 183 PNG assets (including the theme favicon), 60 BDD scenarios, 142 redacted BDD screenshots and 682 indexed search sections. Twenty guide states have paired desktop 16:9 and phone 3:4 captures (40 guide screenshots); 142 original native screenshots remain available through bounded, labeled excerpts. Screenshots link directly to full-resolution images. Canonical forms remain unreviewed discussion stubs; QA does not enable real work or establish professional approval.
+The strict build produces 113 HTML pages, 183 PNG assets (including the theme favicon), 60 BDD scenarios, 142 redacted BDD screenshots and 683 indexed search sections. Twenty guide states have paired desktop 16:9 and phone 3:4 captures (40 guide screenshots); 142 original native screenshots remain available through bounded, labeled excerpts. Screenshots link directly to full-resolution images. Canonical forms remain unreviewed discussion stubs; QA does not enable real work or establish professional approval.
 
 ## Build and check
 
@@ -28,8 +28,10 @@ Push reviewed source changes to `docs-source`. The **Publish handbook** workflow
 
 The [online maintenance guide](https://jerrettdavis.github.io/3dprint4me/developers/documentation/) covers the workflow and rollback. `build-info.json` on the public site identifies the actual deployed source. [Verification artifacts](verification/) distinguish hosted observations from local screenshots. Screenshots named for the OS theme may show the opposite manual theme after the theme-switch check.
 
-## Verified release
+## Verified screenshot revision
 
-[Release record](verification/release.json): deployed source `e2ad432b895fcd64f12b769f274278663fbbc580`, [successful Pages workflow](https://github.com/JerrettDavis/3dprint4me/actions/runs/41772033083). All planned steps are complete. Hosted mobile/desktop navigation, search, themes, keyboard focus and screenshot loading passed; all 186 reviewed image byte checks passed. Fresh repository verification passed 1,277 unit/contract tests, 408 E2E tests (one existing Windows skip) and 241 UX checks. The 168-image matrix and preview board were regenerated and visually inspected.
+[Release record](verification/release.json): deployed source `d97f68dace547c4d66551c4af804eb9b2eb102e2`, [successful Pages workflow](https://github.com/JerrettDavis/3dprint4me/actions/runs/41777149454). All 20 guide states have real desktop 1440 × 810 and phone 390 × 520 captures. The site presents 94 paired comparisons, side by side on wide screens and stacked on phones. Native BDD previews are bounded and labeled excerpts; their 142 original PNGs remain unchanged.
 
-The verification commit adds records outside the published input set; the site's build-info source remains the deployed commit above. Existing root screenshot/audit changes are intentionally unstaged. Test-generated differences in prior reviewed documentation fixtures were restored to their committed snapshot bytes; publishing changed fixtures requires a deliberate manifest update.
+Three docs contracts and two browser cases passed locally and in CI. Live checks passed at both widths, including frame geometry, keyboard focus, search, themes and image loading; all 182 reviewed image byte checks passed. Fresh repository verification passed 1,277 unit/contract tests, 408 E2E tests (one existing Windows skip) and 241 UX checks. The 168-image matrix and preview board were regenerated and visually inspected. The new 40-image guide contact sheet and hosted comparison layouts were also inspected.
+
+This verification commit adds records outside the published input set; the site's build-info source remains the deployed commit above. Existing root screenshot/audit changes remain unstaged. Test-generated changes in older reviewed documentation fixtures were restored to their committed snapshot bytes.
