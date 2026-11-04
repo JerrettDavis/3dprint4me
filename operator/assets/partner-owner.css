@@ -24,4 +24,28 @@
 
 .owner-shell button.primary{color:var(--on-teal)}
 
-.qa-banner{max-width:72rem;margin:1rem auto;padding:1rem;border:2px solid currentColor;border-radius:.5rem;overflow-wrap:anywhere}.qa-banner strong{display:block;font-size:1.1rem}.qa-banner p{margin:.5rem 0}.qa-banner button,.qa-banner label{display:block;margin-top:.75rem}
+
+/* Comfortable administrative forms without turning each record into a card. */
+.owner-shell{padding-block:2rem}.owner-shell main>p{margin-block:1rem 2rem;line-height:1.75}
+.owner-shell h2{margin-block:2rem 1rem}.owner-shell h3{margin-block:1.5rem .75rem}
+.owner-card{margin-block:2rem;padding-block:2rem}.owner-card>h2:first-child{margin-top:0}
+.owner-shell form{gap:1.4rem;margin-block:1.5rem 2rem}.owner-shell label{gap:.5rem;line-height:1.5}
+.owner-shell input,.owner-shell select,.owner-shell textarea{padding:.85rem 1rem;border-radius:.4rem}
+.owner-shell fieldset{padding:clamp(1rem,2.5vw,1.75rem);gap:1.25rem;border-radius:.4rem}
+.owner-shell legend{padding-inline:.5rem}.owner-shell button{padding:.8rem 1.2rem;border-radius:.4rem}
+.owner-shell dl>div,.owner-list li{padding-block:1rem}.owner-shell pre{line-height:1.8;max-width:75ch}
+.owner-shell details{margin-block:1.5rem;border-top:1px solid var(--line);padding-top:.5rem}
+.owner-shell summary{padding-block:1rem}.owner-actions{gap:.85rem}.owner-shell .owner-check{gap:.85rem;line-height:1.7}
+.owner-clearance{margin-bottom:2.5rem;padding:1.5rem}.owner-clearance h2{margin-top:0}
+.owner-shell footer{margin-top:2rem;border-top:1px solid var(--line)}
+@media(min-width:1000px){.owner-shell{padding-block:3rem;column-gap:4rem}}
+@media(max-width:700px){.owner-shell{padding:1.5rem 1.25rem}.owner-card{padding-block:1.75rem}.owner-clearance{padding:1.25rem}.owner-shell h1{font-size:clamp(2.25rem,9vw,3rem)}}
+
+/* QA remains unmistakable, with the same controls as the owner workspace. */
+.qa-banner{width:calc(100% - 2.5rem);max-width:86rem;margin:1.75rem auto;padding:clamp(1.25rem,3vw,2rem);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:.4rem;background:var(--teal-soft);overflow-wrap:anywhere}
+.qa-banner strong{display:block;font-size:1.2rem;line-height:1.4}.qa-banner p{max-width:70ch;margin:.65rem 0 1rem}.qa-banner a{color:var(--teal);text-underline-offset:.2em;display:inline-flex;align-items:center;min-height:44px}
+.qa-banner button,.qa-banner input,.qa-banner select{font:inherit;min-height:48px;max-width:100%;border:1px solid var(--line);border-radius:.4rem;padding:.8rem 1rem;background:var(--panel);color:var(--ink)}
+.qa-banner button{cursor:pointer;border-color:var(--teal);color:var(--teal);font-weight:650}.qa-banner button:disabled{opacity:.6;cursor:wait}
+.qa-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--line)}
+.qa-tool{display:flex;flex-direction:column;gap:1rem;min-width:0}.qa-tool label{display:grid;gap:.6rem;font-weight:650}.qa-tool input,.qa-tool select{width:100%;min-width:0}.qa-tool button{margin-top:auto;text-align:left}.qa-tool p{margin:0}.qa-banner [role=status]:empty{display:none}.qa-banner [role=status]:not(:empty){margin:1.5rem 0 0;padding-top:1rem;border-top:1px solid var(--line)}
+@media(max-width:900px){.qa-tools{grid-template-columns:1fr}.qa-tool{padding-bottom:1.5rem;border-bottom:1px solid var(--line)}.qa-tool:last-child{padding-bottom:0;border:0}.qa-banner{margin-block:1.25rem}}

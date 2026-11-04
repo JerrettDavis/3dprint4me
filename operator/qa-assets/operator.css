@@ -42,7 +42,7 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985);filter:bright
 .work-list li[data-active="true"]{background:var(--teal-soft)}.work-list li[data-active="true"]:before{width:5px;background:var(--teal)}
 .job-actions .action{font-weight:650;border-color:var(--teal);color:var(--teal)}.job-actions .action:hover:not(:disabled){background:var(--teal);color:#fff}.job-actions[aria-busy="true"]{opacity:.7}
 .toast{position:fixed;left:50%;bottom:5rem;transform:translateX(-50%);z-index:30;max-width:min(32rem,calc(100vw - 2rem));padding:.75rem 1.1rem;border-radius:0;background:var(--blue);color:#f3fffd;border:1px solid var(--teal);box-shadow:var(--shadow);font-weight:600}.toast[data-kind="error"]{background:var(--panel);border:2px solid var(--danger);color:var(--ink)}
-.toast[data-kind="success"]{border-color:var(--teal)}.toast[data-kind="success"]:before{content:"¹3 a0";color:#69d5a5}
+.toast[data-kind="success"]{border-color:var(--teal)}.toast[data-kind="success"]:before{content:"\2713\00a0";color:#69d5a5}
 @keyframes saved-flash{from{background:var(--teal-soft);box-shadow:0 0 0 .75rem var(--teal-soft)}to{background:transparent;box-shadow:0 0 0 .75rem transparent}}.saved-flash{animation:saved-flash 1.6s ease-out}@media(prefers-reduced-motion:reduce){.saved-flash{animation:none}}
 .request-files{list-style:none;margin:.5rem 0 0;padding:0;display:grid;gap:.5rem}.request-file{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;border:1px solid var(--line);border-radius:0;background:var(--panel);padding:.55rem .8rem}.request-file-name{overflow-wrap:anywhere;font-weight:650}.job-sheet h4{margin:1.25rem 0 0}
 .print-file-part{margin-left:1.25rem;border-left:3px solid var(--teal)}
@@ -71,3 +71,31 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985);filter:bright
 .topbar :focus-visible{outline-color:#ffc26b}
 .conversation-sheet,.model-sheet{border-top:1px solid var(--line);padding:1.5rem 0;min-width:0}.conversation-history{list-style:none;margin:0 0 1rem;padding:0;display:grid;gap:.75rem;max-height:32rem;overflow-y:auto}.conversation-message{padding:1rem;border-left:3px solid var(--teal);background:var(--teal-soft);overflow-wrap:anywhere}.conversation-comment{background:var(--panel);border-left-color:var(--muted)}.conversation-body{white-space:pre-wrap;line-height:1.6}.conversation-message button{margin:.25rem .5rem .25rem 0}.conversation-composer{display:grid;gap:.65rem}.conversation-composer textarea{width:100%;min-height:7rem;resize:vertical}.conversation-actions{display:flex;gap:.75rem;flex-wrap:wrap}.model-form{display:grid;gap:1rem}.model-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}.model-form label{display:grid;gap:.35rem;min-width:0}.model-form input,.model-form select{width:100%;min-width:0}.model-parts{border:1px solid var(--line);padding:1rem;display:grid;gap:.75rem}.model-parts[hidden]{display:none}.model-form button{justify-self:start}.conversation-sheet button,.model-sheet button{min-height:44px}.conversation-sheet p,.model-sheet p{overflow-wrap:anywhere}
 @media(max-width:600px){.model-options{grid-template-columns:repeat(2,minmax(0,1fr))}.conversation-actions{display:grid}.conversation-actions button{width:100%}.model-form button{width:100%}}
+
+
+/* Workspace rhythm: generous reading space, deliberate controls, quiet feedback. */
+:root{--portal-radius:.4rem;--portal-ease:cubic-bezier(.2,.7,.3,1)}
+body{line-height:1.65}
+.topbar{padding-block:1rem;row-gap:.75rem}
+.queue{padding:clamp(1.25rem,2.4vw,2.5rem);padding-bottom:8rem}
+.queue-heading{gap:1.5rem}.queue-summary{margin-block:1rem 1.5rem;max-width:60ch}
+.filters{gap:1rem;padding-block:1.25rem;margin-bottom:1rem}
+.filters label{line-height:1.5}.filters select{margin-top:.5rem;padding:.65rem .75rem;border-radius:var(--portal-radius)}
+.work-list li{padding-block:1.5rem}.work-row{gap:.5rem;padding:.25rem}.work-meta{line-height:1.6}
+.detail{padding:clamp(1.5rem,4vw,4.5rem);padding-bottom:8rem}
+.job-heading{padding-bottom:1.75rem}.job-heading h2{line-height:1.12;max-width:24ch;text-wrap:balance}
+.job-actions{gap:.85rem;padding-block:1.5rem}
+.job-sheet,.note-form,.history,.print-sheet,.conversation-sheet,.model-sheet{margin-block:2.5rem}
+.fact{padding-block:1rem}.print-file,.request-file{padding-block:1.25rem}
+.conversation-composer,.model-form,.note-form{gap:1.25rem}
+.conversation-composer textarea,.note-form textarea,.model-form input,.model-form select,.model-form textarea{padding:.85rem 1rem;border:1px solid var(--line);border-radius:var(--portal-radius);background:var(--panel)}
+.conversation-composer label,.model-form label,.note-form label{line-height:1.5;gap:.5rem}
+.conversation-message{padding:1.25rem;line-height:1.75}.conversation-history{gap:1rem}
+button,.job-actions select,.job-actions input{border-radius:var(--portal-radius)}
+.utility-dock{gap:.5rem;padding:.5rem;border-radius:.6rem}.utility-dock a,.utility-dock button{line-height:1.4}
+@media(max-width:700px){.topbar{padding-block:.85rem;flex-wrap:wrap}.session-strip{flex-wrap:wrap;row-gap:.5rem}.queue{padding:1.5rem 1.25rem 9rem}.detail{padding:1.75rem 1.25rem 9rem}.job-actions>*{max-width:100%}.job-sheet,.note-form,.history,.print-sheet{margin-block:2rem}}
+@keyframes portal-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:no-preference){button,a,input,select,textarea{transition:background-color .16s var(--portal-ease),border-color .16s var(--portal-ease),box-shadow .16s var(--portal-ease),transform .16s var(--portal-ease)}button:hover:not(:disabled){transform:translateY(-1px)}button:active:not(:disabled){transform:none}#detail-content:not([hidden]),.owner-shell main>h1,.owner-message:not([hidden]){animation:portal-enter .2s var(--portal-ease) both}}
+
+.detail input:not([type=checkbox]):not([type=radio]),.detail select,.detail textarea{border:1px solid var(--line);border-radius:.4rem;padding:.8rem 1rem;background:var(--panel);max-width:100%}
+.detail form{row-gap:1.25rem}.detail form label{line-height:1.6}.detail p{max-width:75ch}

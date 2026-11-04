@@ -6,7 +6,7 @@ from tests.support.browser_harness import SiteBrowser
 
 PROGRAM='40000000-1000-4000-8000-100000000001'
 
-def install_owner_fixture(page, *, allowed=True):
+def install_owner_fixture(page, *, allowed=True, realm="live"):
     commands=[]
     program={'id':PROGRAM,'label':'Synthetic outreach','enabled':False,'revision':1,
              'default_weekly_cap_cents':20000,'starts_on':'2026-10-01','ends_on':'2026-12-31',
@@ -26,7 +26,7 @@ def install_owner_fixture(page, *, allowed=True):
             resource=parse_qs(urlparse(request.url).query).get('resource',['programs'])[0]
             result={'owner':{'id':'owner'},'csrfToken':'owner-memory-only'} if resource=='session' else {'items':[program] if resource=='programs' else [],'csrfToken':'owner-memory-only'}
         route.fulfill(status=200,content_type='application/json',body=json.dumps(result))
-    page.route('**/api/operator-partners*',handle)
+    page.route('**/api/operator-partner-qa*' if realm=='qa' else '**/api/operator-partners*',handle)
     return commands,program
 
 @pytest.mark.parametrize('width,theme',[(320,'light'),(390,'dark')])

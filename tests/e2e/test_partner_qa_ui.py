@@ -28,5 +28,5 @@ def test_qa_cold_reopen_keeps_live_drafts_and_caches_separate():
         assert cold.evaluate("()=>localStorage.getItem('3dp-partner-qa-preparation-v1:10000000-1000-4000-8000-100000000001')") is None
         assert cold.evaluate("()=>localStorage.getItem('3dp-partner-preparation-v1:10000000-1000-4000-8000-100000000001')") is not None
         assert all('/api/partner-qa/' in url for url in requests)
-        assert cold.evaluate("async()=> (await caches.keys()).includes('partner-qa-shell-v2')")
-        assert not cold.evaluate("async()=> (await caches.keys()).includes('partner-shell-v8')")
+        assert cold.evaluate("async()=> (await caches.keys()).includes('partner-qa-shell-v3')")
+        assert not cold.evaluate("async()=> (await caches.keys()).includes('partner-shell-v9')")
