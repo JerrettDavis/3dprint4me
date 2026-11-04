@@ -83,7 +83,7 @@ def test_qa_tools_explain_access_and_disable_controls_during_requests():
         expect(page.get_by_role('button',name='Create synthetic QA run',exact=True,include_hidden=True)).to_be_disabled()
         assert 'Sign in as the owner' in page.locator('#qa-run-result').inner_text()
         expect(page.locator('.qa-tools')).to_be_hidden()
-        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-access-required.png'),full_page=True)
+        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-access-required.png'),full_page=True,animations='disabled')
         with page.expect_request(lambda r:'operator-partner-qa' in r.url and 'resource=session' in r.url):
             page.get_by_role('button',name='Check access again',exact=True).click()
         session.pop(0).fulfill(content_type='application/json',body='{"owner":{"id":"synthetic-owner"},"csrfToken":"synthetic-only"}')
@@ -95,9 +95,9 @@ def test_qa_tools_explain_access_and_disable_controls_during_requests():
         expect(create).to_be_disabled()
         assert page.locator('.qa-tools').get_attribute('aria-busy')=='true'
         assert 'Creating synthetic QA run' in page.locator('#qa-run-result').inner_text()
-        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-busy.png'),full_page=True)
+        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-busy.png'),full_page=True,animations='disabled')
         assert pending
         pending.pop(0).fulfill(status=503,content_type='application/json',body='{"error":"QA temporarily unavailable. Try again."}')
         expect(create).to_be_enabled();assert 'Partner administration is temporarily unavailable.' in page.locator('#qa-run-result').inner_text()
         assert page.locator('.qa-tools').get_attribute('aria-busy')=='false'
-        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-retry.png'),full_page=True)
+        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-retry.png'),full_page=True,animations='disabled')
