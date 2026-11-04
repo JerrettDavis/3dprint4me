@@ -62,7 +62,11 @@ An independent second watchdog is required before claiming guaranteed alerts.
 Backup and cost evidence have different expiry windows. Successful backup
 transfer does not prove restore, independent location or key custody. Billing
 is not inferred from zero SQL traffic: an explicit dated account-plan check is
-required. Manual recovery is the default; the dashboard has no writer promotion
+required. Control evidence expires after 24 hours, except a restore drill remains
+valid for 30 days from its actual `restoreVerifiedAt` timestamp. Its control report
+must also be within 30 days; neither timestamp may exceed the current time by more
+than the 30-second clock allowance. Daily control reports must follow real checks,
+not replay old assertions with a new timestamp. Manual recovery is the default; the dashboard has no writer promotion
 or invoice dispatch action. Missing alert destination/restore/billing evidence
 remains an explicit blocker.
 
