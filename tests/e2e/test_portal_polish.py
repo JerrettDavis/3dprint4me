@@ -42,6 +42,7 @@ def test_portal_spacing_controls_focus_and_motion(width,theme,motion,surface):
             assert '\u2713' in page.locator('#toast').evaluate("n=>getComputedStyle(n,'::before').content")
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
         control.focus()
+        control.press('Tab');page.keyboard.press('Shift+Tab')
         assert control.evaluate('(n)=>n===document.activeElement')
         assert control.evaluate('(n)=>getComputedStyle(n).outlineStyle')!='none'
         assert control.bounding_box()['height']>=44
