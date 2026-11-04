@@ -5,6 +5,26 @@ import { publicSnapshot, privateSnapshot, validateHeartbeat, probeServices, upda
 import worker, { StatusState } from '../../status/worker.js';
 
 const now=1800000000000;
+test('restore evidence survives daily control expiry without refreshing billing or manual checks',async()=>{
+  const secret='a'.repeat(64);
+  const body=JSON.stringify({observedAt:now,nonce:'b'.repeat(32),details:{restoreVerifiedAt:now,neonPlan:'free',neonVerifiedAt:now,neonOffloaded:true,sourceQuiet:true,backupUnattended:true,offsiteVerified:true,credentialsReady:true,ownerLoginVerified:true,cutoverVerified:true}});
+  const signature=createHmac('sha256',secret).update('/heartbeat/control\n'+body).digest('hex');
+  const control=await validateHeartbeat({kind:'control',body,signature,secret,now});
+  const blockersAt=time=>privateSnapshot({control,platform:{observedAt:time,details:{provider:'postgres',jobs:true}}},time).blockers.map(x=>x.id);
+  assert.ok(!blockersAt(now).includes('restore-drill'));
+  const dayTwo=blockersAt(now+2*86400000);
+  assert.ok(!dayTwo.includes('restore-drill'),'a two-day-old restore is still within the 30-day window');
+  for(const id of ['neon-billing','backup-scheduler','offsite','neon-exit','credentials','owner-login','cutover'])assert.ok(dayTwo.includes(id),id+' still requires daily evidence');
+  assert.ok(!blockersAt(now+30*86400000).includes('restore-drill'));
+  assert.ok(blockersAt(now+30*86400000+1).includes('restore-drill'));
+});
+test('restore evidence rejects invalid timestamps and future control containers',()=>{
+  const warns=(observedAt,restoreVerifiedAt)=>privateSnapshot({control:{observedAt,details:{restoreVerifiedAt}}},now).blockers.some(x=>x.id==='restore-drill');
+  for(const timestamp of [undefined,NaN,Infinity,now+31000,now-30*86400000-1])assert.equal(warns(now,timestamp),true);
+  assert.equal(warns(now+31000,now),true,'a future container cannot supply valid restore evidence');
+  assert.equal(warns(NaN,now),true);
+  assert.equal(warns(now-30*86400000-1,now),true,'expired containers cannot supply newer restore claims');
+});
 test('status expires evidence and public output projects only safe capability fields',()=>{
   const state={checkedAt:now,probes:{storefront:{ok:true,checkedAt:now},operator:{ok:true,checkedAt:now},api:{ok:true,provider:'postgres',checkedAt:now},auth:{ok:true,checkedAt:now}},platform:{observedAt:now,details:{database:true,provider:'postgres',email:true,files:true,estimates:true,jobs:true,diskFreePercent:50}},control:{observedAt:now,details:{neonPlan:'paid',neonOffloaded:false}},secret:'do-not-publish',blockers:[{title:'private-secret'}]};
   const snapshot=publicSnapshot(state,now);
