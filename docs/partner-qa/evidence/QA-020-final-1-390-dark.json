@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-020",
   "stepId": "final-1",
-  "runId": "portal-polish-20261103-final-03",
+  "runId": "workspace-release-20261104-01",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
-  "sourceFingerprint": "44e11e7cef617c45ba71d6dc77a9eaccdaeefb6878f6d974f5075b195511fa17",
-  "startSha256": "b4bef6d199a76d73800544f33e8e1d88278484c0f1d9d6909e13d02e7005b740",
+  "sourceCommit": "b4e76ab922fb428907868f22b692b5627a75ce95",
+  "sourceFingerprint": "afbbf97fe88d32a3ddd857fb56ed46e6b14e6837ffc745b0600555388ed7a77a",
+  "startSha256": "cc59f4219ab6a75f108caa9e318ff47e48095b688be5716a18a50e719f5b3a04",
   "testNodeId": "tests/integration/test_partner_forecast_browser.py::test_native_forecasts_replace_fee_and_bonus_reserves_preserve_week_and_show_unfunded_debt",
   "viewport": {
     "width": 390,
@@ -15,6 +15,6 @@
   },
   "theme": "dark",
   "screenshot": "../screenshots/QA-020-final-1-390-dark.png",
-  "sha256": "18ddbe2bc4664c3af81d29accc62c9c9f9cbdb171c1db8b7beb6e157c9be4691",
+  "sha256": "a954a63dd7cf15499213c1f02d0ee54a5499729e2ff115f7c518729233c60eb5",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }

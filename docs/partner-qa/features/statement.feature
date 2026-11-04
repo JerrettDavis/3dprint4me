@@ -12,6 +12,7 @@ Feature: statement
     When "Activate Save statement schedule"
     When "Open w['origin'] + '/earnings'"
     When "Activate Download statement for 2026-11-02"
+    When "Activate Workspace menu"
     When "Activate Finance"
     When "Activate Weekly statements"
     Then the linked native assertions confirm the expected persisted and access-control effects

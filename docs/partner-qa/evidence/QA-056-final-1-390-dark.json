@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-056",
   "stepId": "final-1",
-  "runId": "portal-polish-20261103-final-03",
+  "runId": "workspace-release-20261104-01",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
-  "sourceFingerprint": "44e11e7cef617c45ba71d6dc77a9eaccdaeefb6878f6d974f5075b195511fa17",
-  "startSha256": "b4bef6d199a76d73800544f33e8e1d88278484c0f1d9d6909e13d02e7005b740",
+  "sourceCommit": "b4e76ab922fb428907868f22b692b5627a75ce95",
+  "sourceFingerprint": "afbbf97fe88d32a3ddd857fb56ed46e6b14e6837ffc745b0600555388ed7a77a",
+  "startSha256": "cc59f4219ab6a75f108caa9e318ff47e48095b688be5716a18a50e719f5b3a04",
   "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_native_existing_private_work_inbox_updates_while_storefront_and_status_routes_stay_separate",
   "viewport": {
     "width": 390,
@@ -15,6 +15,6 @@
   },
   "theme": "dark",
   "screenshot": "../screenshots/QA-056-final-1-390-dark.png",
-  "sha256": "dd3622318d362aadb43c67eed71c9eeeb5fc9a77c29b41fbcd4f8711bf25c4f1",
+  "sha256": "b914b689ca635145b4836f36eaed5e0f5b22e179091968cc0412e18c31f1346a",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }

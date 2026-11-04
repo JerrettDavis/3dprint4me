@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-025",
   "stepId": "final-1",
-  "runId": "portal-polish-20261103-final-03",
+  "runId": "workspace-release-20261104-01",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
-  "sourceFingerprint": "44e11e7cef617c45ba71d6dc77a9eaccdaeefb6878f6d974f5075b195511fa17",
-  "startSha256": "b4bef6d199a76d73800544f33e8e1d88278484c0f1d9d6909e13d02e7005b740",
+  "sourceCommit": "b4e76ab922fb428907868f22b692b5627a75ce95",
+  "sourceFingerprint": "afbbf97fe88d32a3ddd857fb56ed46e6b14e6837ffc745b0600555388ed7a77a",
+  "startSha256": "cc59f4219ab6a75f108caa9e318ff47e48095b688be5716a18a50e719f5b3a04",
   "testNodeId": "tests/integration/test_partner_gig_browser.py::test_native_gig_offline_visit_and_work_submission_retry_after_committed_lost_responses",
   "viewport": {
     "width": 1440,
@@ -15,6 +15,6 @@
   },
   "theme": "light",
   "screenshot": "../screenshots/QA-025-final-1-1440-light.png",
-  "sha256": "7aa3f1110d8d0bb5dae0f2774af539f33b63ab5c12ae792323755360c02622a4",
+  "sha256": "1f2b232a2768fda9f4afa2c4d1b4690894fed38aa13f18247c5c22cb8d324028",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }

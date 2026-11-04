@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-060",
   "stepId": "final-2",
-  "runId": "portal-polish-20261103-final-03",
+  "runId": "workspace-release-20261104-01",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
-  "sourceFingerprint": "44e11e7cef617c45ba71d6dc77a9eaccdaeefb6878f6d974f5075b195511fa17",
-  "startSha256": "b4bef6d199a76d73800544f33e8e1d88278484c0f1d9d6909e13d02e7005b740",
+  "sourceCommit": "b4e76ab922fb428907868f22b692b5627a75ce95",
+  "sourceFingerprint": "afbbf97fe88d32a3ddd857fb56ed46e6b14e6837ffc745b0600555388ed7a77a",
+  "startSha256": "cc59f4219ab6a75f108caa9e318ff47e48095b688be5716a18a50e719f5b3a04",
   "testNodeId": "tests/integration/test_partner_qa_browser.py::test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial",
   "viewport": {
     "width": 1440,
@@ -15,6 +15,6 @@
   },
   "theme": "light",
   "screenshot": "../screenshots/QA-060-final-2-1440-light.png",
-  "sha256": "677fed87bbf55dc8a21c15c27c21672bddd60f63ab49df30355b6cbbcdaa4796",
+  "sha256": "1feefaad2eb7d2e2ba833f9e1eed9ee7a8e7b151676006ca72f02816b4170a73",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }
