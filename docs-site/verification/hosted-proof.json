@@ -1,0 +1,41 @@
+{
+  "url": "https://jerrettdavis.github.io/3dprint4me/",
+  "sourceCommit": "e2ad432b895fcd64f12b769f274278663fbbc580",
+  "scope": "Anonymous live pages, keyboard focus, responsive navigation, theme switching, local search and screenshot loading; no portal authentication or mutations.",
+  "checks": [
+    "390 dark reduced motion",
+    "1440 light normal motion"
+  ],
+  "screenshots": [
+    {
+      "file": "bdd-qa060-1440-light.png",
+      "sha256": "994a58b0682635b4612dac528d5373513e2468d5c4f2664766a1ce04809ca056",
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "bdd-qa060-390-dark.png",
+      "sha256": "a8bf4b973c755ebd707586508bfbc77e9079d29ef096f672a31bf35acbd611ff",
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "home-1440-light.png",
+      "sha256": "320f62f1e72edd7c6f73d38957d0ad9e3489558e79f66af2d518f8ffa7b8a7d3",
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "home-390-dark.png",
+      "sha256": "5dbd13453719ba50d04446809734b286d61a62789649e68c42bb762908e2e819",
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "partner-1440-light.png",
+      "sha256": "388d108468a95768c1fa2084d35e1cf17ffd141bb497ab500cc3f255d528ee43",
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "partner-390-dark.png",
+      "sha256": "8b12164cb72dcdcf2e3eb3758c893a7d55f9bd80475c78d582ef245f2cadd1c2",
+      "environment": "hosted GitHub Pages"
+    }
+  ]
+}
