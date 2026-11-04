@@ -22,6 +22,10 @@ def describe_call(call):
     return {'fill':'Enter','click':'Activate','check':'Confirm','select_option':'Select'}[name]+' '+target+value
 
 
+def explicit_evidence_steps(fn):
+    return sorted({keyword.value.value for call in ast.walk(fn) if isinstance(call,ast.Call) and isinstance(call.func,ast.Name) and call.func.id=='capture_partner_qa_step' for keyword in call.keywords if keyword.arg=='step_id' and isinstance(keyword.value,ast.Constant) and isinstance(keyword.value.value,str)})
+
+
 def build():
     files=sorted((ROOT/'tests/integration').glob('test_partner_*browser.py'))
     collect=subprocess.run(['python','-m','pytest',*[str(p.relative_to(ROOT)) for p in files],'--collect-only','-q'],cwd=ROOT,capture_output=True,text=True,check=True)
@@ -45,6 +49,7 @@ def build():
         expected=[ast.unparse(n.test) for n in ast.walk(fn) if isinstance(n,ast.Assert)]
         nonvisual=not steps
         item={'id':sid,'title':title,'feature':f'features/{group}.feature','testNodeId':node,'source':file,'actor':'Owner and/or scoped partner as specified in each step','prerequisites':'Disposable PostgreSQL fixture and real browser HTTP boundaries; synthetic review evidence only. Production-portal QA uses the isolated QA realm.','inputs':'Fictional fixture businesses/participants and bounded amounts from the linked native test. No real work, consent or funds.','steps':[{'id':f'action-{i+1:02}','description':s[:400]} for i,s in enumerate(steps)],'expected':expected,'retry':'Use the same command identity for uncertain committed responses; other tests assert explicit conflict/replay behavior as named. Never automatically replay into another realm.','cleanup':'Context managers close browsers and remove disposable containers; hosted QA retires only the selected run and preserves history.','evidenceRequirement':'nonvisual' if nonvisual else 'browser-final','status':'not-run'}
+        item['evidenceSteps']=explicit_evidence_steps(fn)
         scenarios.append(item)
     OUT.mkdir(parents=True,exist_ok=True);(OUT/'features').mkdir(exist_ok=True);(OUT/'flows').mkdir(exist_ok=True)
     for group in sorted({x['feature'] for x in scenarios}):

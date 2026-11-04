@@ -49,3 +49,14 @@ def test_finalizer_rejects_missing_stale_or_mismatched_native_run_provenance(tmp
     summary=module.finalize(junit,run,root=docs,current_fingerprint=lambda:fingerprint);assert summary['counts']['passed']==1
     junit.write_text(junit.read_text()+' ')
     with pytest.raises(ValueError,match='artifact'):module.finalize(junit,run,root=docs,current_fingerprint=lambda:fingerprint)
+
+
+def test_document_inventory_retains_every_explicit_capture_checkpoint():
+    import ast
+    root=Path(__file__).resolve().parents[2]
+    spec=importlib.util.spec_from_file_location('qa_docs_checkpoint_test',root/'scripts/build-partner-qa-docs.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    tree=ast.parse((root/'tests/integration/test_partner_qa_browser.py').read_text(encoding='utf-8-sig'))
+    fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef))
+    steps=module.explicit_evidence_steps(fn)
+    assert len(steps)==12
+    assert {'owner-entry','sale-simulated','session-denied'}<=set(steps)
