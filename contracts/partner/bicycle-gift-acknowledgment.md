@@ -1,4 +1,5 @@
 # PROPOSED Personal Bicycle Assistance Acknowledgment
+**REPRESENTATIVE STUB — DRAFT — UNREVIEWED — QA/DISCUSSION ONLY**
 **NONBINDING DRAFT FOR ATTORNEY AND CPA REVIEW ONLY**
 
 ## [GIFT-01] Nature of personal assistance
@@ -11,7 +12,7 @@ If given as a personal gift, it is **voluntary, unconditional, nonrecoverable an
 Bicycle will belong to recipient, not the company. Donor does not control personal use. Both parties can consider bike condition, charger/battery, brakes, lock and helmet without conditioning the gift on accepting work. Counsel should review any liability language; no disclaimer is automatically enforceable.
 
 ## [GIFT-04] Funding/accounting
-Owner may make payment from LLC checking under proper owner draw treatment **if CPA confirms disregarded-entity status and bookkeeping**, with separately recorded personal gift; it is not automatically a deductible business expense or contractor payment. CPA should review any different entity tax election and reporting requirements.
+Funding source, paying entity, recipient, classification, ledger accounts, deductibility and reporting are UNDECIDED. CPA must document the correct treatment based on actual ownership and entity tax status before a real transaction. Do not assume an owner draw, gift exclusion or deductible expense. Keep any actual unconditional personal assistance separate from earned compensation.
 
 ## [GIFT-05] Confirmation
 Any personal receipt and acknowledgment should record only essential date/amount/method and be finalized *after* professional review. This draft creates no obligation to give or accept money.

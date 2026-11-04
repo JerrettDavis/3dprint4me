@@ -1,4 +1,5 @@
 # PROPOSED Gig Work Order / Project Acceptance
+**REPRESENTATIVE STUB — DRAFT — UNREVIEWED — QA/DISCUSSION ONLY**
 **DRAFT / ATTORNEY REVIEW REQUIRED / NOT ACTIVE**
 
 Work order ID: [generated] | Program: {{company_dba}} | Proposed partner: {{partner_full_name}} | Campaign: {{gig_title}}

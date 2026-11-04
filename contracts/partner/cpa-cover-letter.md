@@ -1,4 +1,5 @@
 **DRAFT FOR PROFESSIONAL REVIEW ONLY / NONBINDING**
+**REPRESENTATIVE STUB — DRAFT — UNREVIEWED — QA/DISCUSSION ONLY**
 
 # CPA Review Request | Contractor Gig Payments and Gift Bookkeeping
 
