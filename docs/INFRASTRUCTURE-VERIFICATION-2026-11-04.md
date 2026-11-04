@@ -37,7 +37,12 @@ Do not clear those warnings by copying old assertions into a fresh heartbeat.
   Three historical push outbox records were failed despite having no delivery
   records and no enrolled devices. Migration 017 introduces explicit `skipped`
   state; adapters skip empty delivery sets without claiming delivery, and retain
-  actual delivery failures. Production reconciliation remains a release step.
+  actual delivery failures. The guarded production release of commit
+  `6023204ad1ef65def0338088ce3fffaf920f206f` passed all checks, including a fresh
+  complete checkpoint, API overlap, compatible worker handover and disabled flags.
+  The three reviewed records were reconciled transactionally after confirming
+  zero subscribers and zero delivery records; no delivery was claimed or sent.
+  Fresh production job health is now true.
 - A fresh anonymous synthetic STL upload completed both geometry analysis and
   production slicing (`ready`, slicer estimate, better confidence). No customer
   request was created; no email or invoice was sent. The anonymous session uses
@@ -54,9 +59,13 @@ the owner-only backup reports, not in the public handbook or browser assets.
 ## Remaining acceptance
 
 Verify independent physical off-site storage and key custody with the owner.
-Verify email delivery using an explicitly authorized diagnostic. Complete the
-notification migration/rollout and recheck job telemetry. Publish a fresh signed
-control record only for supported claims. A full replacement-host/provider rebuild
+Verify email delivery using an explicitly authorized diagnostic. The signed
+control record now includes today's verified backup schedule, restore, owner
+sign-in, cutover, source fences and Neon plan; credentials and off-site custody
+remain unverified. Recheck the independent collector after the worker fix.
+Control evidence currently expires after 24 hours, so an ongoing revalidation
+cadence remains necessary; copying old assertions into fresh timestamps is not
+a valid way to suppress reminders. A full replacement-host/provider rebuild
 and a signed-out reboot remain separate from the successful database drill.
 
 The latest workspace redesign was found uncommitted in the linked QA worktree;

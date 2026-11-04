@@ -505,6 +505,7 @@ def test_native_owner_referral_conversion_requires_settlement_and_awards_once():
         site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
         page.goto(owner+'/partners#referrals')
         page.get_by_role('heading',name='Referral review',exact=True).wait_for()
+        page.locator('#partner-clearance summary').click()
         assert 'New work unavailable' in page.locator('#partner-clearance').inner_text()
         form=page.locator('[data-web-attribution]')
         form.get_by_role('combobox',name='Consenting web request',exact=True).select_option(request_id)
@@ -1009,6 +1010,7 @@ def test_native_owner_scoped_bindings_typed_issue_ack_and_immutable_history():
         page.get_by_role('button',name='Save program controls',exact=True).click()
         page.get_by_text('Program controls saved.',exact=True).wait_for()
         assert read('programs')['items'][0]['clearance']['allowed'] is True
+        page.get_by_role('button',name='Workspace menu').click()
         page.get_by_role('link',name='Issued agreements',exact=True).click()
         form=page.locator('[data-issue-agreement]')
         form.get_by_role('combobox',name='Program',exact=True).select_option(program_id)

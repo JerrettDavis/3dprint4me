@@ -46,6 +46,7 @@ def test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial():
         assert page.evaluate("async api=>(await fetch(api+'/api/partner/v1/session',{credentials:'include'})).status",api)==401
         version=read('legal-version',program['settings']['contractVersionId'])['version']
         post('legal.issue',{'programId':program['id'],'versionId':version['id'],'versionHash':version['content_sha256'],'partnerId':account['id'],'bindings':{'company_dba':'Synthetic QA Fabrication','partner_full_name':'Synthetic Participant A','program_start_date':'2026-10-01'}})
+        page.get_by_role('button',name='Workspace menu:').click()
         page.get_by_role('link',name='Agreements',exact=True).click();assert '/qa/agreements' in page.url
         page.get_by_role('heading',name='Your agreements',exact=True).wait_for()
         capture_partner_qa_step(page,scenario_id='QA-060',step_id='agreements')
