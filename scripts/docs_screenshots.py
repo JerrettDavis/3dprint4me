@@ -41,6 +41,7 @@ def format_screenshots(output):
             seen.add(key)
             alt=re.search(r'\balt="([^"]*)"',match.group(2))
             description=unescape(alt.group(1)) if alt else 'Application screenshot'
+            if native:description=re.sub(r', (?:1440 px light|390 px dark)', '', description)
             views=[]
             for device,path,ratio,width,height in [('desktop',desktop,'16:9',1440,810),('mobile',mobile,'3:4',390,520)]:
                 href=quote(os.path.relpath(path,page.parent).replace(os.sep,'/'),safe='/._-')
