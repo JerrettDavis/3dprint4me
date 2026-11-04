@@ -115,8 +115,11 @@
  .partner-owner .brand{font-size:.85rem}.partner-owner .session-strip{margin-left:auto;gap:.5rem}
  .partner-owner #owner-session{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
  .partner-owner #owner-sign-out{padding:.5rem .65rem;font-size:.85rem}
- .owner-shell{padding:1rem}.owner-shell .owner-menu{margin-bottom:.25rem;padding:.6rem .75rem}
+ .owner-shell{padding:.5rem 1rem 1rem}.owner-shell .owner-menu{margin-bottom:.25rem;padding:.6rem .75rem}
  .owner-clearance{margin-bottom:.5rem}.owner-clearance summary{padding:.35rem 0}.owner-shell main>p{margin-bottom:1rem}
 }
 .owner-shell .owner-clearance details{margin:0;padding:0;border:0}
 .owner-shell>.owner-message{position:static;z-index:auto;margin:0 0 1rem;padding:1rem;border-radius:.4rem}
+@media(min-width:1000px) and (max-height:600px){
+ .owner-shell nav{position:static;max-height:none;overflow-y:visible}
+}

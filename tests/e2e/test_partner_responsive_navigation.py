@@ -9,7 +9,7 @@ from tests.e2e.test_partner_shell import install_partner_fixture
 from tests.e2e.test_partner_owner import install_owner_fixture
 
 
-@pytest.mark.parametrize('width,height,theme', [(320, 900, 'light'), (390, 900, 'dark'), (768, 900, 'light'), (1440, 900, 'dark'), (1440, 500, 'light'), (844, 390, 'dark')])
+@pytest.mark.parametrize('width,height,theme', [(320, 900, 'light'), (390, 900, 'dark'), (768, 900, 'light'), (1440, 900, 'dark'), (1440, 500, 'light'), (1440, 390, 'dark'), (844, 390, 'dark')])
 @pytest.mark.parametrize('owner', [False, True])
 def test_responsive_navigation_reaches_last_destination(width, height, theme, owner):
     workspace = running_operator_workspace() if owner else running_partner_shell()
@@ -45,6 +45,10 @@ def test_responsive_navigation_reaches_last_destination(width, height, theme, ow
         assert links.last.evaluate('(link) => {const a=link.getBoundingClientRect();return a.top>=0 && a.bottom<=innerHeight}')
         assert links.last.evaluate('(link) => {const a=link.getBoundingClientRect(),b=link.parentElement.getBoundingClientRect();return a.left>=b.left-1 && a.right<=b.right+1}')
         destination = links.last.inner_text()
+        for _ in range(links.count() - 1):
+            page.keyboard.press('Shift+Tab')
+        assert links.first.evaluate('(link) => link === document.activeElement')
+        assert links.first.evaluate('(link) => {const a=link.getBoundingClientRect();return a.top>=0 && a.bottom<=innerHeight}')
         links.last.click()
         page.wait_for_function('(label) => document.querySelector("nav [aria-current=page]")?.textContent === label', arg=destination)
         if compact:
