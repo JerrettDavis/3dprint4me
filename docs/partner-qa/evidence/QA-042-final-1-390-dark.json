@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-042",
   "stepId": "final-1",
-  "runId": "native-20261103-final-05",
+  "runId": "portal-polish-20261103-final-03",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
-  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
-  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
+  "sourceFingerprint": "44e11e7cef617c45ba71d6dc77a9eaccdaeefb6878f6d974f5075b195511fa17",
+  "startSha256": "b4bef6d199a76d73800544f33e8e1d88278484c0f1d9d6909e13d02e7005b740",
   "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_lead_review_correction_and_withdrawal_update_live_permission",
   "viewport": {
     "width": 390,
@@ -15,6 +15,6 @@
   },
   "theme": "dark",
   "screenshot": "../screenshots/QA-042-final-1-390-dark.png",
-  "sha256": "353e679f83cdf0b16eae657b626e5a5c81ae94b7dd24b66d7da8c3cfbcb5f854",
+  "sha256": "512a953db8776a307c01715f6f7897cf2f7ac15eb2f1df0168998ba4e4268500",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }

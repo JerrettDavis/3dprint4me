@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-053",
   "stepId": "final-1",
-  "runId": "native-20261103-final-05",
+  "runId": "portal-polish-20261103-final-03",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
-  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
-  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
+  "sourceFingerprint": "44e11e7cef617c45ba71d6dc77a9eaccdaeefb6878f6d974f5075b195511fa17",
+  "startSha256": "b4bef6d199a76d73800544f33e8e1d88278484c0f1d9d6909e13d02e7005b740",
   "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_native_only_owner_can_publish_forty_dollar_campaign_and_partner_sees_frozen_offer",
   "viewport": {
     "width": 390,
@@ -15,6 +15,6 @@
   },
   "theme": "dark",
   "screenshot": "../screenshots/QA-053-final-1-390-dark.png",
-  "sha256": "26d4993254550688466c89e4978b0f6b331028ee1f6f86a6a8fa93586a862fe2",
+  "sha256": "a62cc200ca0744095b61c7e6e44db67ec8cf033731cfb388b62fbd5cc9b8babe",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }

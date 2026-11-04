@@ -1,0 +1,211 @@
+{
+  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
+  "environment": "hosted",
+  "scope": "Anonymous production surfaces and manual theme/native control palette; authenticated synthetic workflows are verified separately.",
+  "observations": [
+    {
+      "surface": "work",
+      "url": "https://work.3dprint4.me/",
+      "viewport": {
+        "width": 390,
+        "height": 960
+      },
+      "osTheme": "dark",
+      "manualTheme": "light",
+      "motion": "reduce",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "work-390-manual-light.png",
+      "sha256": "1d8e6e16f2d16deed0dee997cf6cf47204ccff9d45b5fbdad82bfdc5e856e3de"
+    },
+    {
+      "surface": "owner",
+      "url": "https://work.3dprint4.me/partners",
+      "viewport": {
+        "width": 390,
+        "height": 960
+      },
+      "osTheme": "dark",
+      "manualTheme": "light",
+      "motion": "reduce",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "owner-390-manual-light.png",
+      "sha256": "832481a9fc9a86e5a244bc21042cf6fdd3c55dc5a602ca7c03b279302bacf2dc"
+    },
+    {
+      "surface": "owner-qa",
+      "url": "https://work.3dprint4.me/partners/qa",
+      "viewport": {
+        "width": 390,
+        "height": 960
+      },
+      "osTheme": "dark",
+      "manualTheme": "light",
+      "motion": "reduce",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "owner-qa-390-manual-light.png",
+      "sha256": "50a720159adf138cb0ad47032868d36a2cf50acb88323e728e4ba426741e5ab6"
+    },
+    {
+      "surface": "partner",
+      "url": "https://partners.3dprint4.me/",
+      "viewport": {
+        "width": 390,
+        "height": 960
+      },
+      "osTheme": "dark",
+      "manualTheme": "light",
+      "motion": "reduce",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "partner-390-manual-light.png",
+      "sha256": "860d9510db01b8017b3f013ac2d5f400b83bc711d1c137747a610789e8a41073"
+    },
+    {
+      "surface": "partner-qa",
+      "url": "https://partners.3dprint4.me/qa/join",
+      "viewport": {
+        "width": 390,
+        "height": 960
+      },
+      "osTheme": "dark",
+      "manualTheme": "light",
+      "motion": "reduce",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "partner-qa-390-manual-light.png",
+      "sha256": "90ced71446a208ea29f877b41dcd120ac8249adb7d086ecd5947c8509e891f70"
+    },
+    {
+      "surface": "review",
+      "url": "https://work.3dprint4.me/review-reader",
+      "viewport": {
+        "width": 390,
+        "height": 960
+      },
+      "osTheme": "dark",
+      "manualTheme": "light",
+      "motion": "reduce",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "review-390-manual-light.png",
+      "sha256": "c5d70b601a1435d1dbc486002c3abac62a06503473adc51716b6c91f82cd2ff9"
+    },
+    {
+      "surface": "work",
+      "url": "https://work.3dprint4.me/",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "osTheme": "light",
+      "manualTheme": "dark",
+      "motion": "no-preference",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "work-1440-manual-dark.png",
+      "sha256": "e510a1c0dd6bf2a806d53550125a86007f7ca605d124099b7543c3bcf9724420"
+    },
+    {
+      "surface": "owner",
+      "url": "https://work.3dprint4.me/partners",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "osTheme": "light",
+      "manualTheme": "dark",
+      "motion": "no-preference",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "owner-1440-manual-dark.png",
+      "sha256": "7e7c33133c2fb5413ee78f43be838aed0aef4a18c4ba39ab5c99cdda052fa0fc"
+    },
+    {
+      "surface": "owner-qa",
+      "url": "https://work.3dprint4.me/partners/qa",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "osTheme": "light",
+      "manualTheme": "dark",
+      "motion": "no-preference",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "owner-qa-1440-manual-dark.png",
+      "sha256": "b7b151c723ca8e90dafa6aaa281d38eb448ef959ade47bb808b75c75c5514a38"
+    },
+    {
+      "surface": "partner",
+      "url": "https://partners.3dprint4.me/",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "osTheme": "light",
+      "manualTheme": "dark",
+      "motion": "no-preference",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "partner-1440-manual-dark.png",
+      "sha256": "939d4633ed29f0ab75e78657182ec40fecd2398abc359724f7947b6676dacd52"
+    },
+    {
+      "surface": "partner-qa",
+      "url": "https://partners.3dprint4.me/qa/join",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "osTheme": "light",
+      "manualTheme": "dark",
+      "motion": "no-preference",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "partner-qa-1440-manual-dark.png",
+      "sha256": "e768f4dd8ea82dd0865752b647462ecebc466d520c1eeae8c98bf8868a8250ec"
+    },
+    {
+      "surface": "review",
+      "url": "https://work.3dprint4.me/review-reader",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "osTheme": "light",
+      "manualTheme": "dark",
+      "motion": "no-preference",
+      "actor": "anonymous",
+      "noDocumentOverflow": true,
+      "visibleFocus": true,
+      "pageErrors": 0,
+      "screenshot": "review-1440-manual-dark.png",
+      "sha256": "c43faaeb095a901fb6517db92eb22eca8ed809b0280c04349cb5f8d5738d3794"
+    }
+  ]
+}
