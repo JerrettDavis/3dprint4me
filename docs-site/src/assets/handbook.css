@@ -5,3 +5,10 @@
 @media(max-width:600px){.md-typeset{font-size:.84rem}.md-typeset h1{font-size:1.85rem}.md-typeset img{max-height:38rem}.md-content__inner{margin-inline:1rem}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media print{.md-typeset img{max-height:20cm;break-inside:avoid}}
+/* Equal-height desktop and phone viewports, with stacked comparisons on phones. */
+.screenshot-pair{display:grid;grid-template-columns:2.37037fr 1fr;gap:1rem;align-items:start;margin:1.5rem 0 .6rem;max-width:100%}
+.screenshot-view{display:block;min-width:0}.screenshot-label{display:block;font-size:.7rem;font-weight:650;color:var(--md-default-fg-color--light);margin-bottom:.5rem}
+.screenshot-view>a{display:block;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--md-default-fg-color--lightest);border-radius:.35rem;box-shadow:0 .35rem 1.4rem #0001}
+.screenshot-mobile>a{aspect-ratio:3/4}.md-typeset .screenshot-view img{width:100%;height:100%;max-height:none;object-fit:cover;object-position:top;display:block;margin:0;border:0;border-radius:0;box-shadow:none}
+.screenshot-pair+em{display:block;text-align:center;font-size:.75rem;color:var(--md-default-fg-color--light);margin-bottom:2rem}.screenshot-original{font-size:.75rem}
+@media(max-width:700px){.screenshot-pair{grid-template-columns:1fr;gap:1.1rem}.screenshot-mobile{width:min(100%,390px);justify-self:center}}

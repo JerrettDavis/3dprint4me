@@ -53,5 +53,7 @@ def prepare():
 if __name__=='__main__':
  prepare()
  subprocess.run([sys.executable,'-m','mkdocs','build','--strict','--clean'],cwd=ROOT,check=True)
+ from docs_screenshots import format_screenshots
+ format_screenshots(ROOT/'public/handbook')
  sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
  (ROOT/'public/handbook/build-info.json').write_text(json.dumps({'sourceCommit':sha,'hosting':'GitHub Pages','sourceBranch':'docs-source'},indent=2)+'\n',encoding='utf-8')

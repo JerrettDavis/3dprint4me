@@ -24,7 +24,7 @@ def handbook():
 def test_handbook_navigation_search_themes_and_images(handbook, width, theme, motion):
     output = ROOT/'docs-site/verification'
     output.mkdir(exist_ok=True)
-    with SiteBrowser(viewport=(width,960),color_scheme=theme,reduced_motion=motion) as site:
+    with SiteBrowser(viewport=(width,810 if width==1440 else 520),color_scheme=theme,reduced_motion=motion) as site:
         page=site.page
         failures=[];external=[]
         page.on("response",lambda r: failures.append((r.status,r.url)) if r.status>=400 else None)
@@ -36,7 +36,7 @@ def test_handbook_navigation_search_themes_and_images(handbook, width, theme, mo
         assert page.locator(':focus').count()==1
         assert page.locator(':focus').evaluate('(n)=>getComputedStyle(n).outlineStyle')!='none'
         page.keyboard.press('Tab')
-        page.screenshot(path=str(output/f'home-{width}-{theme}.png'),full_page=True,animations='disabled')
+        page.screenshot(path=str(output/f'home-{width}-{theme}.png'),full_page=False,animations='disabled')
         if width==390:
             page.locator('header label[for="__drawer"]').click()
             page.get_by_role('navigation',name='Navigation').first.get_by_role('link',name='Getting started',exact=True).click()
@@ -46,9 +46,13 @@ def test_handbook_navigation_search_themes_and_images(handbook, width, theme, mo
         page.goto(handbook+'/guides/partner/',wait_until='networkidle')
         page.locator('article img').first.wait_for()
         assert page.locator('article a img').count()==page.locator('article img').count()
+        assert page.locator('.screenshot-pair').evaluate_all('(pairs)=>pairs.length>=5&&pairs.every(p=>p.querySelectorAll("img").length===2)')
+        for selector,ratio in [('.screenshot-desktop>a',16/9),('.screenshot-mobile>a',3/4)]:
+            for frame in page.locator(selector).all():
+                box=frame.bounding_box();assert abs(box['width']/box['height']-ratio)<.02
         assert page.locator('article img').evaluate_all('(images)=>images.length>=5&&images.every(i=>i.complete&&i.naturalWidth>0)')
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
-        page.screenshot(path=str(output/f'partner-{width}-{theme}.png'),full_page=True,animations='disabled')
+        page.screenshot(path=str(output/f'partner-{width}-{theme}.png'),full_page=False,animations='disabled')
         initial=page.locator('body').get_attribute('data-md-color-scheme')
         for _ in range(3):
             page.locator('[data-md-component="palette"] label:visible').click()
@@ -64,7 +68,7 @@ def test_handbook_navigation_search_themes_and_images(handbook, width, theme, mo
         page.goto(handbook+'/reference/partner-qa/flows/QA-060/',wait_until='networkidle')
         assert page.locator('article img').evaluate_all('(images)=>images.length===28&&images.every(i=>i.complete&&i.naturalWidth>0)')
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
-        page.screenshot(path=str(output/f'bdd-qa060-{width}-{theme}.png'),full_page=True,animations='disabled')
+        page.screenshot(path=str(output/f'bdd-qa060-{width}-{theme}.png'),full_page=False,animations='disabled')
         assert not failures,failures
         assert not external,external
         site.assert_no_page_errors()

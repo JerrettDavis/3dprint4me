@@ -23,7 +23,7 @@ These test commands require the documented isolated native infrastructure. Revie
 
 The [60-scenario catalog](../bdd.md) includes descriptions, actual assertion summaries and screenshots. Each flow identifies its source test. A screenshot records a state; assertions establish behavior. Missing capture evidence is not a passing scenario.
 
-![Synthetic offline review reader](../../../docs/portal-polish/screenshots/populated/offline-review-unlocked-dark.png)
+![Synthetic offline review reader](../assets/guides/review-reader-mobile.png)
 *Synthetic decrypted review fixture. Production review packages remain private.*
 
 ## Handbook checks

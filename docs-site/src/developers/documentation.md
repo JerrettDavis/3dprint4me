@@ -28,3 +28,12 @@ After reviewing a docs commit, push the intended source to `docs-source`, watch 
 Revert the faulty docs commit on `docs-source` by pushing the reviewed revert. Manual dispatch is available once the workflow definition is present on the default branch. Wait for successful deployment and verify `build-info.json`. No database rollback is involved. When application work later reaches main, retain the workflow and documentation source there, then choose one authoritative publishing branch to avoid competing releases.
 
 Add a new reference or screenshot to the publication manifest and the reference index; review its contents and update its checksum. Keep the form disclaimers and evidence environments accurate. Do not refresh static pass counts without an actual run.
+
+
+## Screenshot pairs and proportions
+
+Every illustrated guide step presents a real desktop capture at **1440 × 810 (16:9)** and a real phone capture at **390 × 520 (3:4)**. The pair sits side by side on wide screens and stacks on phones. Follow the labels; select either image to inspect its original resolution.
+
+Regenerate the synthetic guide fixtures with `python scripts/capture-docs-guides.py` after installing the app/test dependencies and building the customizers. You can pass `work`, `owner`, `partner` or `reader_and_customizer` to refresh one group. Captures mask private input fields and never use real customer records. Review each resulting pair before updating its manifest checksum.
+
+`scripts/docs_screenshots.py` formats the built HTML. Guide filenames must have matching `-desktop.png` and `-mobile.png` siblings. Native BDD originals retain their recorded bytes and viewport sizes; their 16:9 / 3:4 preview frames are explicitly labeled **excerpt** and link to the original capture. A repeated native viewport links to its original rather than repeating the comparison. Missing counterparts fail the build. Do not stretch screenshots or crop away required evidence from the originals.

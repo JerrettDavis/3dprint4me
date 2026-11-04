@@ -18,7 +18,7 @@ Use the exact live or QA origin supplied with your invitation. The owner provide
 
 The owner signs into the work inbox and opens **Partners → Open QA workspace**. Confirm **QA only — representative stubs**, then create a synthetic run. The tester redeems its invitation in the QA participant portal. Follow the complete [QA journey](guides/qa.md) and [BDD catalog](bdd.md).
 
-![Owner QA workspace on a phone](../../docs/portal-polish/screenshots/owner-qa-390-dark.png)
+![Owner QA workspace](assets/guides/owner-qa-mobile.png)
 *Synthetic owner QA fixture. The persistent notice and stacked controls identify the testing workspace.*
 
 ### Develop locally
