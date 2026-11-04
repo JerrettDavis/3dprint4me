@@ -56,3 +56,42 @@ def test_portal_spacing_controls_focus_and_motion(width,theme,motion,surface):
         page.evaluate('window.scrollTo(0,0)')
         page.screenshot(path=str(out/f'{surface}-{width}-{theme}.png'),full_page=True,animations='disabled',mask=[page.locator('input[type=password],[data-secret],.owner-access-code')])
         assert not site.page_errors
+
+def test_qa_tools_explain_access_and_disable_controls_during_requests():
+    from playwright.sync_api import expect
+    with running_operator_workspace() as (_,origin,_),SiteBrowser() as site:
+        page=site.page;session=[];pending=[]
+        def respond(route):
+            if route.request.method=='POST':pending.append(route);return
+            if 'resource=session' in route.request.url:
+                session.append(route);return
+            route.fulfill(content_type='application/json',body='{"items":[]}')
+        page.route('**/api/operator-partner-qa*',respond)
+        with page.expect_request(lambda r:'operator-partner-qa' in r.url and 'resource=session' in r.url):
+            page.goto(origin+'/partners/qa')
+        page.wait_for_function('document.querySelector(".qa-banner")?.dataset.state==="checking"')
+        expect(page.get_by_role('button',name='Create synthetic QA run',exact=True)).to_be_disabled()
+        assert session
+        session.pop(0).fulfill(status=401,content_type='application/json',body='{"error":"Owner sign-in required."}')
+        page.get_by_role('heading',name='Owner sign-in required',exact=True).wait_for()
+        expect(page.get_by_role('button',name='Create synthetic QA run',exact=True)).to_be_disabled()
+        assert 'Sign in as the owner' in page.locator('#qa-run-result').inner_text()
+        expect(page.locator('.qa-tools')).to_be_hidden()
+        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-access-required.png'),full_page=True)
+        with page.expect_request(lambda r:'operator-partner-qa' in r.url and 'resource=session' in r.url):
+            page.get_by_role('button',name='Check access again',exact=True).click()
+        session.pop(0).fulfill(content_type='application/json',body='{"owner":{"id":"synthetic-owner"},"csrfToken":"synthetic-only"}')
+        page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
+        create=page.get_by_role('button',name='Create synthetic QA run',exact=True)
+        expect(create).to_be_enabled();expect(page.locator('.qa-tools')).to_be_visible()
+        with page.expect_request(lambda r:'operator-partner-qa' in r.url and r.method=='POST'):
+            create.click()
+        expect(create).to_be_disabled()
+        assert page.locator('.qa-tools').get_attribute('aria-busy')=='true'
+        assert 'Creating synthetic QA run' in page.locator('#qa-run-result').inner_text()
+        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-busy.png'),full_page=True)
+        assert pending
+        pending.pop(0).fulfill(status=503,content_type='application/json',body='{"error":"QA temporarily unavailable. Try again."}')
+        expect(create).to_be_enabled();assert 'Partner administration is temporarily unavailable.' in page.locator('#qa-run-result').inner_text()
+        assert page.locator('.qa-tools').get_attribute('aria-busy')=='false'
+        page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-retry.png'),full_page=True)

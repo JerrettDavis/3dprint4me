@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "runtimeSource": "ffdc2b2300b37744d572ef61e2950471bca3ddab",
+  "description": "Freshly rendered populated states from screenshot and browser verification; synthetic data only, not hosted workflow evidence.",
+  "captures": [
+    {
+      "file": "screenshots/populated/operator-detail-mobile-light.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "96d75037a1808cdbf0b4652f42cce03e2e7bbd9752cda5c922ea36655aeb0aad",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-conversation-390-dark.png",
+      "width": 350,
+      "height": 1096,
+      "sha256": "c39e405a948c8a0139c05e33a3af45a79edbfa43053a151b2d6dcedb6f7f4186",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-models-390-light.png",
+      "width": 350,
+      "height": 1005,
+      "sha256": "9193205cde295b538629547464b8b0a4c94c4ff466659351de66da9565c252c7",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-print-estimate-desktop-light.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "ee40fea3363cc816f145c2ced20eb365f8170e3008c07b07a792b9bb7af7d5c1",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-invoice-mobile-dark.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "dc67f53e15c597bd5fe26b576c099d945ff2d9c8237e94c4bb41d251e20b658d",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-spoolman-mobile-dark.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "b3a4c608b45849bb23c292ec64739014f5be3343652d3716632122d54320ba90",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-filament-proposal-desktop-light.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "6d69499e6849d10aeedbc321115769e3e9434151b4899f82309bfc7792e195bd",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-inquiry-detail-light.png",
+      "width": 390,
+      "height": 3025,
+      "sha256": "c88b3b397b8f949f3489f614eded83c85d5dba6ee5d7950ce008b7ae0a60e4a3",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-accounts-light.png",
+      "width": 320,
+      "height": 3780,
+      "sha256": "404641484e251b5ab1533dc33ca5ec0dc0b08dc655f68ea007e350e021a0c296",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-campaigns-dark.png",
+      "width": 390,
+      "height": 3300,
+      "sha256": "e852c772389fa05fb7cf82db46734c94ed5d317cbb1ffe98857542ae0d6effb3",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-gig-light.png",
+      "width": 1440,
+      "height": 3810,
+      "sha256": "a36e8e7e207a6f667e4767ca98fad08bd003337c03590bff0892d610af02b99b",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-finance-light.png",
+      "width": 320,
+      "height": 8011,
+      "sha256": "11b9030b57bf4170a64a4a1805fb43cc5f3f960319c9a26c90093b90f213369a",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-forecasts-dark.png",
+      "width": 390,
+      "height": 3181,
+      "sha256": "91df89490ac22ed1ffa486b08642dc1c28ce62c571fcc2eeb47b14da2c990958",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-leads-light.png",
+      "width": 320,
+      "height": 4300,
+      "sha256": "88dfa1ab5aa88a93917fd8bc4b36144256537c191821fd95aec0ca254b691cee",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-legal-version-light.png",
+      "width": 320,
+      "height": 8526,
+      "sha256": "758b5a9d3ef5c06d61110cc84ca82b33ca91c3c33b3e186178a0fed8c840142e",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-review-package-dark.png",
+      "width": 390,
+      "height": 5964,
+      "sha256": "9a46ab14b7c6f4bc0918918a793da912c9b09b426aff3821acf6fb0505f43fbc",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-review-feedback-light.png",
+      "width": 320,
+      "height": 2901,
+      "sha256": "0c5723d180f90132f9aacb9e6c91a176537c895b0c0d515a1862e8808f688f23",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-agreement-copy-light.png",
+      "width": 320,
+      "height": 2965,
+      "sha256": "9fcb5de40f2bb1b34819fc550e4f7a96bee3887ace6c577de43cc06699db60a2",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/operator-partners-weekly-statement-dark.png",
+      "width": 390,
+      "height": 1727,
+      "sha256": "7eb6460522bb38103f43bebfaee012877b9a1e7031c832b67bcd924a7d06cb62",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/partner-accepted-gig-light.png",
+      "width": 320,
+      "height": 2991,
+      "sha256": "3709985d4c3ab806385a6e79ade361af7092529cf45976fccd44668764927808",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/partner-agreement-light.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "0036ff80ef87838483ee9013509a999cd19ea5f3b535b8736467f466f103a57d",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/partner-visit-light.png",
+      "width": 390,
+      "height": 2350,
+      "sha256": "9af87f0d9d19f5ab62f7fd83786c15fd553d976617f0a39cc36b9698e274be81",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/partner-visit-contact-dark.png",
+      "width": 390,
+      "height": 3401,
+      "sha256": "3c53515873b3f851aaca6979acebb94dca7a17d78a1e13cd1247d7738831a8da",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/partner-referrals-light.png",
+      "width": 320,
+      "height": 2248,
+      "sha256": "44335cf0038f7407e13c61d45cdd80310e761b7f4e8c4149e79a83cf4abebe2d",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/partner-weekly-statements-dark.png",
+      "width": 390,
+      "height": 2401,
+      "sha256": "0a798f7069d2af913f989e96c2dd9b75f092cc160b105d8b1dcccd207ddb2f30",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/partner-offline-drafts-light.png",
+      "width": 320,
+      "height": 1251,
+      "sha256": "19d599d55b437c0f548ee40cf8622f3d5a3f21364b10952f04eec0e60d152007",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/partner-materials-partner-history-dark.png",
+      "width": 350,
+      "height": 776,
+      "sha256": "b4d9abf8ba8e5a78285feee63f8589fb7a0a37bd517c0ba03355b71bb06aa09a",
+      "kind": "synthetic-presentation-fixture"
+    },
+    {
+      "file": "screenshots/populated/offline-review-unlocked-dark.png",
+      "width": 390,
+      "height": 3477,
+      "sha256": "553b52349edb830ec6f08491fbb81dbb9a77c0dafdbbce9ec1c93cf58ba56c9f",
+      "kind": "synthetic-presentation-fixture"
+    }
+  ]
+}
