@@ -11,3 +11,9 @@ def test_qa_upgrade_updates_only_release_image_and_preserves_private_credentials
     assert 'PARTNER_QA_API_IMAGE=sha256:'+'b'*64 in (tmp_path/'compose.env').read_text()
     assert 'sha256:'+'a'*64 not in (tmp_path/'compose.env').read_text()
     assert state.read_bytes()==b'{"private":"unchanged-test-placeholder"}'
+
+
+def test_host_preflight_uses_the_verified_release_compose_path():
+    source=(Path(__file__).resolve().parents[2]/'deploy/platform/partner-qa-host.py').read_text(encoding='utf-8')
+    assert "str(source/'deploy/platform/compose.yml')" in source
+    assert "ROOT/'source/deploy/platform/compose.yml'" not in source
