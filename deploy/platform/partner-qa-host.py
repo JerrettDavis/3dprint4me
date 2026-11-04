@@ -52,6 +52,14 @@ def env(path):
 def literal(value):return "'"+value.replace("'","''")+"'"
 
 
+def migration_inventory(source):
+    match=re.search(r'export const MIGRATIONS = Object.freeze\(\[(.*?)\]\);',source,re.S)
+    if not match:raise ValueError('Reviewed migration inventory missing.')
+    names=json.loads('['+match.group(1)+']')
+    if len(names)!=16 or len(set(names))!=16 or any(not re.fullmatch(r'[0-9]{3}_[a-z0-9_]+\.sql',name) for name in names):raise ValueError('Reviewed migration inventory changed; inspect before applying.')
+    return names
+
+
 def prepare(config):
     release=config.get('release');phase=config.get('phase','preflight')
     if not re.fullmatch('[a-f0-9]{40}',release or '') or phase not in ['preflight','apply']:raise ValueError('Exact reviewed release and phase required.')
@@ -100,8 +108,7 @@ def prepare(config):
         with os.fdopen(fd,'wb') as f:f.write(dump)
     sql(qa_id,'qa_admin','3dprint4me_partner_qa',"REVOKE CREATE ON SCHEMA public FROM PUBLIC; DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='platform_backend') THEN CREATE ROLE platform_backend NOLOGIN; END IF; IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='platform_app') THEN CREATE ROLE platform_app LOGIN IN ROLE platform_backend; END IF; END $$; CREATE TABLE IF NOT EXISTS partner_qa_identity(singleton boolean PRIMARY KEY CHECK(singleton),realm text NOT NULL CHECK(realm='qa')); INSERT INTO partner_qa_identity(singleton,realm) SELECT true,'qa' WHERE NOT EXISTS(SELECT 1 FROM partner_qa_identity WHERE singleton=true);")
     sql(qa_id,'qa_admin','3dprint4me_partner_qa','ALTER TABLE partner_qa_identity ADD COLUMN IF NOT EXISTS cluster_identifier text; UPDATE partner_qa_identity SET cluster_identifier='+literal(qa_cluster)+' WHERE singleton=true; ALTER TABLE partner_qa_identity ALTER COLUMN cluster_identifier SET NOT NULL')
-    names=re.findall(r'"([0-9]{3}_[a-z0-9_]+\.sql)"',(source/'scripts/migrate-neon.mjs').read_text())
-    if len(names)!=16:raise ValueError('Reviewed migration inventory changed; inspect before applying.')
+    names=migration_inventory((source/'scripts/migrate-neon.mjs').read_text())
     for name in names:sql(qa_id,'qa_admin','3dprint4me_partner_qa',(source/'neon/migrations'/name).read_text())
     sql(qa_id,'qa_admin','3dprint4me_partner_qa','REVOKE ALL ON partner_qa_identity FROM PUBLIC,platform_backend; GRANT SELECT ON partner_qa_identity TO platform_backend; ALTER ROLE platform_app PASSWORD '+literal(state['qaAppPassword']))
     sql(qa_id,'qa_admin','3dprint4me_partner_qa',(source/'deploy/platform/partner-qa-identity.sql').read_text(encoding='utf-8-sig'))

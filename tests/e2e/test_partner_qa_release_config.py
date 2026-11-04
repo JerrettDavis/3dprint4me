@@ -23,3 +23,11 @@ def test_existing_nonnull_cluster_identity_is_not_reinserted_on_upgrade():
     source=(Path(__file__).resolve().parents[2]/'deploy/platform/partner-qa-host.py').read_text(encoding='utf-8')
     assert "INSERT INTO partner_qa_identity(singleton,realm) SELECT true,'qa' WHERE NOT EXISTS" in source
     assert "INSERT INTO partner_qa_identity VALUES" not in source
+
+
+def test_host_inventory_reads_the_export_once_without_guard_references():
+    root=Path(__file__).resolve().parents[2]
+    spec=importlib.util.spec_from_file_location('qa_inventory',root/'deploy/platform/partner-qa-host.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    names=module.migration_inventory((root/'scripts/migrate-neon.mjs').read_text(encoding='utf-8'))
+    assert len(names)==16 and len(set(names))==16
+    assert names[-1]=='016_partner_statement_rls.sql'
