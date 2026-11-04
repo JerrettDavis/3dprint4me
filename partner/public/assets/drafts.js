@@ -1,7 +1,8 @@
 // Device drafts are explicitly opt-in, non-authoritative business records. Never
 // persist contact fields, permission evidence, auth state or server error text.
-const PREPARE_PREFIX='3dp-partner-preparation-v1:';
-const PREFIX='3dp-partner-visit-v1:',UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const draftRealm=typeof location!=='undefined'&&(location.pathname==='/qa'||location.pathname.startsWith('/qa/'))?'qa-':'';
+const PREPARE_PREFIX='3dp-partner-'+draftRealm+'preparation-v1:';
+const PREFIX='3dp-partner-'+draftRealm+'visit-v1:',UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FIELDS=['gigId','expectedGigRevision','businessName','approximateArea','outcome','placement','sampleCount','visitedAt'];
 function payload(input){
  if(!input||Object.keys(input).some(k=>!FIELDS.includes(k)))throw new Error('Contact, consent and unrelated fields cannot enter a device draft.');

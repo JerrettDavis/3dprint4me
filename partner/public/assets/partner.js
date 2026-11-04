@@ -4,6 +4,15 @@ import {renderOfflineWorkspace} from './offline-workspace.js';
 import {createPartnerClient} from './client.js';
 import {clearVisitDrafts} from './drafts.js';
 import {renderVisitForm,renderDeviceDrafts,renderVisitHistory} from './visits.js';
+const qaMode=location.pathname==='/qa'||location.pathname.startsWith('/qa/');
+const realmPath=()=>qaMode?(location.pathname.slice(3)||'/'):location.pathname;
+const realmHref=value=>{const url=new URL(value,location.origin);if(!qaMode||url.origin!==location.origin||url.pathname==='/qa'||url.pathname.startsWith('/qa/'))return value;return '/qa'+(url.pathname==='/'?'':url.pathname)+url.search+url.hash;};
+const realmHistory={replaceState:(state,title,url)=>history.replaceState(state,title,realmHref(url)),pushState:(state,title,url)=>history.pushState(state,title,realmHref(url))};
+const qaBanner=document.createElement('aside');qaBanner.className='qa-banner';qaBanner.setAttribute('aria-label','Workspace mode');
+qaBanner.innerHTML=qaMode?'<strong>QA only — representative stubs</strong><p>Synthetic records, simulated reviews and payments. No legal effect, real work or funds.</p><a href="/" data-reload data-live>Return to live portal</a>':'<a href="/qa" data-reload data-live>Open QA workspace</a>';
+document.querySelector('header').after(qaBanner);
+function scopeQaLinks(){if(!qaMode)return;for(const a of document.querySelectorAll('a[href^="/"]:not([data-live])'))a.setAttribute('href',realmHref(a.getAttribute('href')));}
+new MutationObserver(scopeQaLinks).observe(document.body,{childList:true,subtree:true});scopeQaLinks();
 const main=document.querySelector('main'),nav=document.querySelector('nav'),message=document.querySelector('#message'),signOut=document.querySelector('#sign-out');
 nav.addEventListener('focusin',event=>{if(event.target.matches('a'))event.target.scrollIntoView({block:'nearest',inline:'nearest'});});
 function revealNavigation(){const current=nav.querySelector('[aria-current=page]');if(current&&nav.scrollWidth>nav.clientWidth)nav.scrollLeft+=current.getBoundingClientRect().left-nav.getBoundingClientRect().left-16;}
@@ -14,9 +23,8 @@ const status=value=>escape(String(value??'').replaceAll('_',' '));
 const paths=[['/','Overview'],['/gigs','Gigs'],['/visits','Visits'],['/activity','Optional activity'],['/earnings','Earnings'],['/referrals','Referrals'],['/agreements','Agreements'],['/profile','Profile'],['/help','Help']];
 let client,partner=null,generation=0;
 registerPartnerShell();
-const deviceChannel=typeof BroadcastChannel==='function'?new BroadcastChannel('3dp-partner-device'):null;
-if(deviceChannel)deviceChannel.onmessage=event=>{if(event.data==='uncertain-sign-out'){announce('Device sign-out could not be confirmed. Close this browser and ask the owner to revoke access.',true);return;}if(event.data!=='signed-out')return;++generation;client?.forget();signedOut();main.replaceChildren();clearOfflineShell().catch(()=>{});history.replaceState({},'','/');route().then(()=>announce('Signed out in another tab.'));};
-
+const deviceChannel=typeof BroadcastChannel==='function'?new BroadcastChannel(qaMode?'3dp-partner-qa-device':'3dp-partner-device'):null;
+if(deviceChannel)deviceChannel.onmessage=event=>{if(event.data==='uncertain-sign-out'){announce('Device sign-out could not be confirmed. Close this browser and ask the owner to revoke access.',true);return;}if(event.data!=='signed-out')return;++generation;client?.forget();signedOut();main.replaceChildren();clearOfflineShell().catch(()=>{});realmHistory.replaceState({},'','/');route().then(()=>announce('Signed out in another tab.'));};
 function announce(text,error=false){message.textContent=text;message.dataset.error=String(error);message.hidden=false;if(error){message.focus({preventScroll:true});message.scrollIntoView({block:'nearest'});}}
 function connection(){document.querySelector('#connection').hidden=navigator.onLine;}
 addEventListener('online',connection);addEventListener('offline',connection);connection();
@@ -25,19 +33,19 @@ try{const saved=localStorage.getItem('partner-theme');if(['light','dark','system
 document.documentElement.dataset.theme=theme.value;
 theme.addEventListener('change',()=>{document.documentElement.dataset.theme=theme.value;try{localStorage.setItem('partner-theme',theme.value);}catch{}});
 function signedOut(){partner=null;nav.hidden=true;nav.replaceChildren();signOut.hidden=true;}
-async function expired(){signedOut();history.replaceState({},'','/');await route();}
-function navigation(){nav.innerHTML=paths.map(([url,label])=>`<a href="${url}"${location.pathname===url?' aria-current="page"':''}>${label}</a>`).join('');nav.hidden=false;revealNavigation();signOut.hidden=false;}
-function download(filename,content,type='application/json'){const url=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+async function expired(){signedOut();realmHistory.replaceState({},'','/');await route();}
+function navigation(){nav.innerHTML=paths.map(([url,label])=>`<a href="${url}"${realmPath()===url?' aria-current="page"':''}>${label}</a>`).join('');nav.hidden=false;revealNavigation();signOut.hidden=false;}
+function download(filename,content,type='application/json'){if(qaMode){filename='QA-SIMULATED-'+filename;content=type.startsWith('application/json')?JSON.stringify({notice:'QA SAMPLE — NO LEGAL EFFECT — SIMULATED',data:JSON.parse(content)},null,2):'QA SAMPLE — NO LEGAL EFFECT — SIMULATED\n'+content;}const url=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function formSubmit(form,callback){let retryKey=crypto.randomUUID();form.addEventListener('input',()=>{retryKey=crypto.randomUUID();});form.addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter??form.querySelector('button');button.disabled=true;const current=generation;try{await callback(new FormData(form),retryKey);retryKey=crypto.randomUUID();}catch(error){if(current===generation){if(error.status===401){signedOut();await route();if(generation!==current+1)return;}announce(error.message,true);}}finally{button.disabled=false;}});}
 const facts=entries=>`<dl class="facts">${entries.map(([label,value])=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`).join('')}</dl>`;
 function help(){return `<h1>Help &amp; privacy</h1><section class="sheet"><h2>Your choice, every time</h2><p>No minimum hours or assignments. You may decline an offer, stop an unsafe visit or ask the owner about a fee. Optional activity records do not determine payment.</p><h2>Respect each business</h2><p>Stay within the permitted area and tasks on your offer. Respect no-soliciting signs. Ask permission before leaving samples or materials. You can record a business visit without adding anyone’s contact details.</p><h2>Ask before sharing contact details</h2><p>Explain the project follow-up purpose and the chosen contact method. Record contact details only after specific permission. Contact the owner promptly to correct details, withdraw permission or request deletion.</p><h2>No-app and recovery help</h2><p>Use the owner contact provided with your invitation for a paper or verbal alternative, to report a lost device, or to request a new single-use recovery code. No email, phone account, GitHub account or app installation is required.</p><h2>Shared devices</h2><p>Sign out when you finish. Downloaded files remain on your device; remove them yourself if the device is shared. Private records are loaded from the service and are not cached for offline browsing. The offline shell can open explicitly saved business-only drafts and prepared visit forms. These device records are not encrypted and do not sign you in.</p><h2>Payment records</h2><p>A payable is an amount owed. It is not confirmation of a bank transfer. Payments are recorded separately after actual settlement is verified. Ask the owner about a disputed or missing payment.</p></section>`;}
 function auth(join=false){
  main.innerHTML=`<div class="auth-copy"><h1>${join?'Set up your private access':'Your work. Your records.'}</h1><p>${join?'Use the single-use code given to you by the owner. The same process restores access after identity checks.':'Sign in to review your offers, agreed fees and payment records.'}</p></div><div class="notice">Access is by private invitation. No minimum hours or assignments. Contact the owner for help or a no-app alternative.</div><form class="auth-form"><label>${join?'Invitation or recovery code':'Account code'}<input name="account" ${join?'autocomplete="off"':'autocomplete="username"'} required spellcheck="false" autocapitalize="none"></label><label>${join?'Choose a passphrase':'Passphrase'}<input name="password" type="password" autocomplete="${join?'new-password':'current-password'}" minlength="15" maxlength="128" required></label>${join?'<p class="hint">Use 15–128 characters. Save your account code and passphrase somewhere private. Recovery revokes old sessions.</p>':''}<button class="primary">${join?'Set passphrase and continue':'Sign in'}</button></form><div class="actions"><a href="${join?'/':'/join'}">${join?'Back to sign-in':'Use an invitation or recovery code'}</a><a href="/help">Help &amp; privacy</a><a href="/drafts">Open device drafts</a></div>`;
  const authForm=main.querySelector('form'),authGeneration=generation;
- formSubmit(authForm,async data=>{const result=join?await client.redeem(data.get('account'),data.get('password')):await client.login(data.get('account'),data.get('password'));if(authGeneration!==generation)return;partner=result.partner;prepareOfflineShell().catch(()=>announce('Offline shell could not be prepared. Keep this page open to save device drafts.',true));authForm.reset();history.replaceState({},'','/');await route();});
+ formSubmit(authForm,async data=>{const result=join?await client.redeem(data.get('account'),data.get('password')):await client.login(data.get('account'),data.get('password'));if(authGeneration!==generation)return;partner=result.partner;prepareOfflineShell().catch(()=>announce('Offline shell could not be prepared. Keep this page open to save device drafts.',true));authForm.reset();realmHistory.replaceState({},'','/');await route();});
 }
 async function route(){
- const current=++generation;message.hidden=true;const path=location.pathname;
+ const current=++generation;message.hidden=true;const path=realmPath();
  if(partner)navigation();
  if(path==='/help'){main.innerHTML=help();return;}
  if(!partner&&(path==='/drafts'||!navigator.onLine)){renderOfflineWorkspace({root:main,client,announce,isCurrent:()=>current===generation,onUnauthorized:expired});return;}
@@ -57,7 +65,7 @@ async function route(){
    const data=await client.read('gig',{id:path.split('/')[2]});if(current!==generation)return;renderGig(data);
   }else if(path==='/visits/new'){
    const {item:gig}=await client.read('gig',{id:new URLSearchParams(location.search).get('gig')??''});if(current!==generation)return;
-   renderVisitForm({root:main,gig,client,accountId:partner.id,announce,isCurrent:()=>current===generation,onUnauthorized:expired,afterSaved:async()=>{history.replaceState({},'','/visits');await route();}});
+   renderVisitForm({root:main,gig,client,accountId:partner.id,announce,isCurrent:()=>current===generation,onUnauthorized:expired,afterSaved:async()=>{realmHistory.replaceState({},'','/visits');await route();}});
   }else if(path==='/drafts'){
    const accountId=partner.id;renderDeviceDrafts({root:main,client,accountId,announce,isCurrent:()=>current===generation,canSend:()=>partner?.id===accountId&&client.signedIn,onUnauthorized:expired});
   }else if(path==='/visits'){
@@ -114,7 +122,6 @@ function renderGig({item:g,events,negotiations=[],materials=[],materialsHasMore=
    finally{pending=false;for(const control of controls)control.disabled=false;}
   });
  }
-
 }
 function renderEarnings({items,totals:t}){
  const viewGeneration=generation;
@@ -147,9 +154,8 @@ function renderActivity(items){
   });
  }
 }
-
-document.addEventListener('click',event=>{const link=event.target.closest('a');if(!link||link.hasAttribute('data-reload')||event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey||link.origin!==location.origin)return;event.preventDefault();if(link.hash&&link.pathname===location.pathname&&link.search===location.search){document.getElementById(decodeURIComponent(link.hash.slice(1)))?.focus();return;}history.pushState({},'',link.href);route().then(()=>main.focus());});
+document.addEventListener('click',event=>{const link=event.target.closest('a');if(!link||link.hasAttribute('data-reload')||event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey||link.origin!==location.origin)return;event.preventDefault();if(link.hash&&link.pathname===realmPath()&&link.search===location.search){document.getElementById(decodeURIComponent(link.hash.slice(1)))?.focus();return;}realmHistory.pushState({},'',link.href);route().then(()=>main.focus());});
 addEventListener('popstate',()=>route());
-signOut.addEventListener('click',async()=>{++generation;main.replaceChildren();signedOut();let warning;deviceChannel?.postMessage('signed-out');try{clearVisitDrafts(localStorage);}catch{warning='Device drafts could not be cleared. Clear this browser’s site data before sharing the device.';}try{await clearOfflineShell();}catch{warning='Offline shell could not be cleared. Clear this browser site data before sharing the device.';}try{await client.logout();}catch(error){warning=error.message+' Device sign-out could not be confirmed. Close this browser and ask the owner to revoke access.';}history.replaceState({},'','/');await route();announce(warning??'Signed out.',!!warning);});
-async function boot(){const current=generation;try{const response=await fetch('/config.json',{cache:'no-store'});if(!response.ok)throw new Error();const config=await response.json();if(current!==generation)return;client=createPartnerClient({...config,onUncertainSignOut:()=>{deviceChannel?.postMessage('uncertain-sign-out');announce('Device sign-out could not be confirmed. Close this browser and ask the owner to revoke access.',true);}});if(!navigator.onLine){await route();return;}try{const session=await client.session();if(current!==generation)return;partner=session.partner;prepareOfflineShell().catch(()=>{});}catch(error){if(current!==generation)return;if(error.status!==401&&navigator.onLine)announce(error.message,true);}if(current===generation)await route();}catch{if(current===generation)main.innerHTML='<h1>Partner access is unavailable</h1><p>Try again later or contact the owner for a no-app alternative.</p>';}}
+signOut.addEventListener('click',async()=>{++generation;main.replaceChildren();signedOut();let warning;deviceChannel?.postMessage('signed-out');try{clearVisitDrafts(localStorage);}catch{warning='Device drafts could not be cleared. Clear this browser’s site data before sharing the device.';}try{await clearOfflineShell();}catch{warning='Offline shell could not be cleared. Clear this browser site data before sharing the device.';}try{await client.logout();}catch(error){warning=error.message+' Device sign-out could not be confirmed. Close this browser and ask the owner to revoke access.';}realmHistory.replaceState({},'','/');await route();announce(warning??'Signed out.',!!warning);});
+async function boot(){const current=generation;try{const response=await fetch('/config.json',{cache:'no-store'});if(!response.ok)throw new Error();const config=await response.json();if(current!==generation)return;client=createPartnerClient({...config,realm:qaMode?'qa':'live',onUncertainSignOut:()=>{deviceChannel?.postMessage('uncertain-sign-out');announce('Device sign-out could not be confirmed. Close this browser and ask the owner to revoke access.',true);}});if(!navigator.onLine){await route();return;}try{const session=await client.session();if(current!==generation)return;partner=session.partner;prepareOfflineShell().catch(()=>{});}catch(error){if(current!==generation)return;if(error.status!==401&&navigator.onLine)announce(error.message,true);}if(current===generation)await route();}catch{if(current===generation)main.innerHTML='<h1>Partner access is unavailable</h1><p>Try again later or contact the owner for a no-app alternative.</p>';}}
 await boot();

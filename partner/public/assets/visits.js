@@ -1,7 +1,7 @@
 import {prepareOfflineShell} from './pwa.js';
 import {createVisitDraftStore} from './drafts.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const localTime=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,19);
+const localTime=()=>new Date(Math.ceil(Date.now()/1000)*1000-new Date().getTimezoneOffset()*60000).toISOString().slice(0,19);
 export const CONTACT_PERMISSION_TEXT='I agree that 3dprint4.me may contact me about the stated project using my chosen contact method. I can withdraw this permission by contacting the owner.';
 function businessInput(form,gig){const data=new FormData(form);return {gigId:gig.id,expectedGigRevision:gig.revision,businessName:data.get('businessName'),approximateArea:data.get('approximateArea'),outcome:data.get('outcome'),placement:data.get('placement'),sampleCount:Number(data.get('sampleCount')),visitedAt:new Date(data.get('visitedAt')).toISOString()};}
 export function renderVisitForm({root,gig,client,accountId,announce,isCurrent,afterSaved,onUnauthorized,offline=false}){

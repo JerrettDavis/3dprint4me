@@ -35,13 +35,13 @@ test('review packages freeze signed sources, bounded reviewer grants and audited
   assert.deepEqual(listed.reviewers,manifest.reviewers);
   assert.equal(listed.program_id,f.programId);
   assert.equal(listed.manifest,undefined);
-  assert.equal(manifest.documents.length,7);assert.equal(manifest.private,true);assert.equal(manifest.programId,f.programId);
+  assert.equal(manifest.documents.length,15);assert.equal(manifest.private,true);assert.equal(manifest.programId,f.programId);
   assert.ok(verify(null,Buffer.from(canonicalJson(manifest)),keys.publicKey,Buffer.from(signature.signature,'base64')));
   for(const file of manifest.files)assert.equal(digest(files[file.name]),file.sha256);
   for(const version of versions){assert.ok(manifest.documents.some(d=>d.versionId===version.id&&d.sourceHash===version.content_sha256));}
   const cpa=manifest.documents.find(d=>d.templateKey==='cpa-cover-letter');
   assert.ok(strFromU8(files['review-checklist.csv']).split('\r\n').some(line=>line.includes(cpa.versionId)&&line.includes('accounting')));
-  assert.equal(Object.keys(files).filter(n=>n.endsWith('.docx')).length,7);
+  assert.equal(Object.keys(files).filter(n=>n.endsWith('.docx')).length,15);
   const [receipt]=await f.database.query`SELECT response_json FROM partner_command_keys WHERE operation='legal.export_package' AND completed_at IS NOT NULL`;
   assert.ok(!JSON.stringify(receipt).includes('Synthetic Counsel'));assert.ok(!JSON.stringify(receipt).includes('Synthetic facts'));
   assert.ok((await f.database.query`SELECT id FROM partner_audit_events WHERE action='legal.package_downloaded'`).length);
