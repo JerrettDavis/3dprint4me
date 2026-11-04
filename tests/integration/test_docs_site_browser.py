@@ -56,7 +56,8 @@ def test_handbook_navigation_search_themes_and_images(handbook, width, theme, mo
         assert page.locator('body').get_attribute('data-md-color-scheme')!=initial
         if width==390:page.locator('header .md-header__button[for="__search"]').click()
         expect(page.locator('.md-search-result__meta')).to_have_text('Type to start searching',timeout=30000)
-        page.locator('.md-search__input').fill('offline')
+        # Material observes keyup, not input; type as a user does after the index is ready.
+        page.locator('.md-search__input').press_sequentially('offline')
         page.locator('.md-search-result__item').first.wait_for(timeout=20000)
         assert page.locator('.md-search-result__item').count()>0
         page.keyboard.press('Escape')
