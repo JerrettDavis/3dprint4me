@@ -37,3 +37,13 @@ Root inbox task has 12 workflow checks plus a later 3-case short-viewport regres
 Verification evidence: full `npm test` exited successfully with 1,277 unit/contract tests, 432 browser tests (one existing skip), and 241/241 UX checks. The native disposable-environment browser suite passed 18 tests. Visual review subsequently found a sticky owner feedback message covering content; the final correction keeps feedback in document flow and focuses errors only. Its regression and related owner/layout modules passed 61 tests, and final static validation passed. No backend, database, integration, pricing or deployment configuration changed. Source/QA caches are v33/v10/v4. The final screenshot matrix and handbook rendering are being verified serially; completion is recorded below when their actual outputs pass.
 
 November 4 continuation: fresh full npm test passed 1,277 unit/contract tests, 433 browser tests with one existing skip, and 241 UX checks. All 168 screenshots and the preview board were regenerated; the complete board atlas and actual partner visit, owner gig and work inbox renders were inspected. All 40 handbook captures were refreshed. Independent final source review found no outstanding UI issue. Infrastructure follow-up adds separately tested recovery and optional-notification fixes; its release evidence is tracked in docs/INFRASTRUCTURE-VERIFICATION-2026-11-04.md. Main, production and handbook publication remain release gates until verified below.
+
+Final November 4 source `1360be638e664288f638d98124ac86585eab05d7` passes
+1,280 unit/contract tests, 435 browser tests (one existing Windows skip), 241 UX
+checks and all 60 native workflows. Its 142 redacted captures have validated
+source/run/JUnit provenance and were visually inspected. The 168-image board,
+owner accounts and refreshed guides were inspected. The strict 113-page handbook
+build, links and five documentation contract/browser checks pass. Both frontends,
+the guarded native release and restore-monitor correction are deployed; see the
+dated UI and infrastructure records. Main integration and Pages publication await
+their hosted release checks.

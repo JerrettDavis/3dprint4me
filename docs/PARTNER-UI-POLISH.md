@@ -90,8 +90,33 @@ Partner and owner navigation is grouped, with a labeled mobile menu. Partner dec
 
 The full `npm test` run passed 1,277 unit/contract checks, 432 browser checks (one existing skip), and 241 UX checks. Eighteen native PostgreSQL/browser workflows passed, including paused-program debt preservation and recovery; their disposable containers were removed. Subsequent visual inspection found the owner feedback overlap: its correction passed 61 affected tests, including a new 320-pixel non-overlap regression, and final static/architecture validation. No application source changed after those follow-up checks.
 
-Screenshot and handbook verification is recorded in the [implementation plan](superpowers/plans/2026-11-03-workspace-ux.md). Cache versions for this local release are work v33, participant v10 and QA participant v4. This redesign has not been deployed; the production release references above describe the earlier release.
+Screenshot and handbook verification is recorded in the [implementation plan](superpowers/plans/2026-11-03-workspace-ux.md). At that local checkpoint, cache versions were work v33, participant v10 and QA participant v4. Deployment had not yet occurred; the November 4 production record below supersedes that checkpoint.
 
 November 4 continuation verified the final source with 1,278 unit/contract tests, 433 browser tests (one existing skip), 241 UX checks, 168 regenerated screenshots and 40 refreshed guide captures. The full board and representative actual tasks were visually inspected. The strict 113-page handbook build, link checks, three documentation contracts and two desktop/mobile browser cases pass. Independent code review cleared the UI changes. Publication and production checks are separate release gates.
 
 Production workspace release (November 4): runtime source `6023204ad1ef65def0338088ce3fffaf920f206f` is deployed as owner `3dprint4me-operator-1l7q45t59` and participant `3dprint4me-partners-8eqke2r52`. All 98 served static files match the committed archive. The full 60-case native workflow suite passed, and a separate complete source-bound evidence run passed all 60 with 142 validated redacted captures. Live owner sign-in, grouped navigation, 390-pixel dark finance layout, desktop light landing and route focus were checked. Main integration and public handbook publication are tracked separately until their hosted checks finish.
+
+The subsequent Linux CI pass exposed short-window scrolling and phone font-metric
+bounds. Desktop navigation now uses document scrolling below 600 pixels high;
+phone accounts have less top padding. Strict forward/reverse keyboard checks pass,
+including 1440 × 390. Hosted upgrade tests fetch the pinned historical worker;
+QA migration review includes 017. Eight participant live/QA offline and upgrade
+checks pass, as does installed operator cache migration. Final cache versions are
+work v34, participant v11 and QA participant v5, with matching release markers.
+
+Static source `6db02713bef675a6f238b384441da3da410ff9a0` is deployed as owner
+`3dprint4me-operator-oxaz8279x` and participant `3dprint4me-partners-pnlplgzco`.
+All 98 files match the committed archive. The real owner accounts route loads,
+route focus reaches `owner-content`, and the participant sign-in renders correctly.
+Final native source `1360be638e664288f638d98124ac86585eab05d7` passes all 60
+workflows with 142 validated redacted captures; its additional source change fixes
+restore-monitor evidence expiry. The refreshed board, owner accounts and native
+contact sheet were visually inspected.
+
+Final local `npm test` passes 1,280 unit/contract tests, 435 browser tests with
+one existing Windows skip, and 241 UX checks. The complete native suite passes
+60/60, and all 142 evidence records validate against the final source fingerprint.
+The guarded native deployment of `1360be638e664288f638d98124ac86585eab05d7`
+passes schema, privileges, disabled-program checks, fresh backup, worker handover,
+no-message and unchanged-live-state checks. Its API and slicer image digests match
+the previously verified release; source includes the corrected QA host inventory.

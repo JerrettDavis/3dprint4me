@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-043",
   "stepId": "final-1",
-  "runId": "workspace-release-20261104-01",
+  "runId": "workspace-release-20261104-04",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "b4e76ab922fb428907868f22b692b5627a75ce95",
-  "sourceFingerprint": "afbbf97fe88d32a3ddd857fb56ed46e6b14e6837ffc745b0600555388ed7a77a",
-  "startSha256": "cc59f4219ab6a75f108caa9e318ff47e48095b688be5716a18a50e719f5b3a04",
+  "sourceCommit": "1360be638e664288f638d98124ac86585eab05d7",
+  "sourceFingerprint": "16db3cd8f8292ee94d694cd41dace56ad768c9b8e7ca78ceae4652751ea1e408",
+  "startSha256": "3e1badede63b273689cb1be4f9efd0616992be4cf5988f4d8c59eff939964166",
   "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_lost_response",
   "viewport": {
     "width": 1440,
@@ -15,6 +15,6 @@
   },
   "theme": "light",
   "screenshot": "../screenshots/QA-043-final-1-1440-light.png",
-  "sha256": "cd02561f9d12ed53e5c6745023f0b1edd2dab4586d95f80c8e2791c8a361bdeb",
+  "sha256": "bbbfdb93d1545f8cb42e50644ee91c979adce9c67c3f4ad29baab543b8eb95ad",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }

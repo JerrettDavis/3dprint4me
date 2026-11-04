@@ -68,6 +68,23 @@ cadence remains necessary; copying old assertions into fresh timestamps is not
 a valid way to suppress reminders. A full replacement-host/provider rebuild
 and a signed-out reboot remain separate from the successful database drill.
 
+The investigation also found that the 24-hour bundle expiry discarded restore
+evidence before its own 30-day deadline. The correction retains restore evidence
+for 30 days from its actual verification time, independently of daily controls;
+future or expired evidence remains unverified. Clock-based regression tests cover
+day two, the 30-day boundary and stale daily checks. Other controls still need
+actual daily revalidation. Today's heartbeat alone is not a durable resolution
+of every recurring reminder: never renew manual sign-in, billing, delivery or
+custody claims merely by copying their old values into a new report.
+
+The monitoring correction is deployed as Worker version
+`c3f30cb3-015e-4d23-8ffb-a295b49c7b2d`. Nine targeted status/alert tests, the
+status browser regression, deployment dry run and local edge-runtime scheduled
+invocation passed. A fresh authenticated read confirms the original restore
+timestamp remains intact, jobs are healthy, alert delivery is configured, and
+only off-site custody and provider credentials remain open. Existing secrets,
+routes, Durable Object binding and five-minute schedule are preserved.
+
 The latest workspace redesign was found uncommitted in the linked QA worktree;
 earlier production UI deployments do not prove that redesign reached main. Its
 release, current handbook and live checks must be recorded separately.
