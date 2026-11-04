@@ -41,6 +41,7 @@ def test_owner_editor_saves_typed_immutable_revision_without_approval():
         page=site.page;commands=install_legal_fixture(page)
         page.goto(origin+'/partners#legal/version/'+VERSION)
         page.get_by_role('heading',name='Services terms',exact=True).wait_for()
+        page.locator('summary').filter(has_text='Edit latest revision').click()
         form=page.locator('[data-legal-edit]')
         form.get_by_role('textbox',name='Markdown source',exact=True).fill(SOURCE+'\nOwner revision.')
         form.get_by_label('Change reason',exact=True).fill('Clarify objective terms.')
@@ -64,6 +65,7 @@ def test_owner_stale_save_retains_unsaved_text_and_compares_without_submitting_i
     with running_operator_workspace() as (_,origin,_),SiteBrowser(viewport=(320,844)) as site:
         page=site.page;commands=install_legal_fixture(page,conflict=True)
         page.goto(origin+'/partners#legal/version/'+VERSION)
+        page.locator('summary').filter(has_text='Edit latest revision').click()
         form=page.locator('[data-legal-edit]');source=form.get_by_role('textbox',name='Markdown source',exact=True)
         source.fill(SOURCE+'\nUnsaved owner proposal <img src=x onerror=unsafe()>')
         form.get_by_label('Change reason',exact=True).fill('Owner proposal')
@@ -143,6 +145,7 @@ def test_owner_review_request_and_retirement_never_fabricate_approval():
 def test_owner_late_unsaved_comparison_does_not_replace_a_newer_edit_or_route():
     with running_operator_workspace() as (_,origin,_),SiteBrowser() as site:
         page=site.page;install_legal_fixture(page);page.goto(origin+'/partners#legal/version/'+VERSION)
+        page.locator('summary').filter(has_text='Edit latest revision').click()
         form=page.locator('[data-legal-edit]');source=form.get_by_role('textbox',name='Markdown source',exact=True)
         source.fill('First private proposal')
         pending=[]
@@ -170,6 +173,7 @@ def test_owner_late_unsaved_comparison_does_not_replace_a_newer_edit_or_route():
 def test_owner_compare_access_denial_removes_unsaved_private_source():
     with running_operator_workspace() as (_,origin,_),SiteBrowser() as site:
         page=site.page;install_legal_fixture(page);page.goto(origin+'/partners#legal/version/'+VERSION)
+        page.locator('summary').filter(has_text='Edit latest revision').click()
         form=page.locator('[data-legal-edit]')
         form.get_by_role('textbox',name='Markdown source',exact=True).fill('Private unsaved owner document')
         def deny(route):
@@ -220,3 +224,16 @@ def test_owner_displays_exact_missing_review_gates_after_changed_clearance():
             assert page.locator('#owner-message').get_attribute('role')=='status'
             assert page.get_by_role('button',name='Publish reviewed revision',exact=True).is_enabled()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+
+def test_owner_legal_review_precedes_deliberate_revision_editing():
+    with running_operator_workspace() as (_,origin,_),SiteBrowser(viewport=(390,520)) as site:
+        page=site.page;install_legal_fixture(page)
+        page.goto(origin+'/partners#legal/version/'+VERSION)
+        page.get_by_role('heading',name='Services terms',exact=True).wait_for()
+        assert page.locator('[data-legal-edit]').is_hidden()
+        assert page.get_by_role('heading',name='Review clearance for this exact version',exact=True).is_visible()
+        assert page.get_by_role('heading',name='Clause concerns across revisions',exact=True).is_visible()
+        page.locator('summary').filter(has_text='Read exact saved Markdown').click()
+        assert SOURCE.strip() in page.locator('main pre').first.inner_text()
+        page.locator('summary').filter(has_text='Edit latest revision').click()
+        assert page.get_by_role('textbox',name='Markdown source',exact=True).is_visible()

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-021",
+  "stepId": "final-1",
+  "runId": "workspace-release-20261104-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "6d055960afc4a47b407e28d791ab5a87023f61e8",
+  "sourceFingerprint": "b374dfde520f75d9ffe450b522d44b84344d147599afcc0c72db02f0ebd36bb8",
+  "startSha256": "6df6bb4d6e83d5b5b22a0dc0bffe663830427e9a632304c46d02142861160e95",
+  "testNodeId": "tests/integration/test_partner_forecast_browser.py::test_native_forecast_earned_bonus_is_counted_once_and_incomplete_evidence_fails_safely",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "theme": "light",
+  "screenshot": "../screenshots/QA-021-final-1-1440-light.png",
+  "sha256": "9e5baddb7919d551e4268386604ef45c88880d59d9794e9a3d07c687bcb8cf38",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

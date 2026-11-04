@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          # Upgrade tests load a pinned historical service worker with git archive.
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v7

@@ -2,7 +2,9 @@ const resources=new Set(['gigs','gig','earnings','agreements','profile','visits'
 export class PartnerError extends Error {
  constructor(status,message){super(message);this.status=status;}
 }
-export function createPartnerClient({apiOrigin='https://api.3dprint4.me',fetch=globalThis.fetch,onUncertainSignOut=()=>{}}={}){
+export function createPartnerClient({apiOrigin='https://api.3dprint4.me',fetch=globalThis.fetch,onUncertainSignOut=()=>{},realm='live'}={}){
+ if(!['live','qa'].includes(realm))throw Error('Invalid partner realm.');
+ const apiPrefix=realm==='qa'?'/api/partner-qa/v1/':'/api/partner/v1/';
  const origin=new URL(apiOrigin);
  if(origin.origin!==apiOrigin||!(apiOrigin==='https://api.3dprint4.me'||(origin.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(origin.hostname))))throw new Error('Unsupported partner API origin.');
  let csrf=null,partner=null,epoch=0,forgottenAt=0,authQueue=Promise.resolve();
@@ -14,7 +16,7 @@ export function createPartnerClient({apiOrigin='https://api.3dprint4.me',fetch=g
   if(body!==undefined)headers['Content-Type']='application/json';
   if(write){if(!csrf)throw new PartnerError(401,'Sign in before continuing.');headers['X-CSRF-Token']=csrf;}
   let response;
-  try{response=await fetch(apiOrigin+'/api/partner/v1/'+path,{method:body!==undefined||write?'POST':'GET',credentials:'include',cache:'no-store',redirect:'error',headers,...(body!==undefined?{body:JSON.stringify(body)}:{})});}
+  try{response=await fetch(apiOrigin+apiPrefix+path,{method:body!==undefined||write?'POST':'GET',credentials:'include',cache:'no-store',redirect:'error',headers,...(body!==undefined?{body:JSON.stringify(body)}:{})});}
   catch{if(authentication&&expected<forgottenAt)onUncertainSignOut();throw new PartnerError(0,'Unable to reach the partner service. Check your connection and try again.');}
   let data;try{data=await response.json();}catch{if(authentication&&expected<forgottenAt)onUncertainSignOut();throw new PartnerError(503,'The partner service is temporarily unavailable. Try again later.');}
   if(!response.ok){if(response.status===401&&expected===epoch){csrf=null;partner=null;}throw new PartnerError(response.status,response.status>=500?'The partner service is temporarily unavailable. Try again later.':response.status===401?(['login','invite/redeem'].includes(path)?'Sign-in could not be completed. Check your details or contact the owner.':'Your session has ended. Sign in again.'):typeof data.error==='string'?data.error.slice(0,1000):'The request could not be completed.');}
@@ -22,7 +24,7 @@ export function createPartnerClient({apiOrigin='https://api.3dprint4.me',fetch=g
    if(expected<forgottenAt){
     // Set-Cookie is applied before JavaScript receives this superseded response.
     // Revoke that session using its own transient CSRF, without restoring local auth.
-    try{if(typeof data.csrfToken!=='string')throw Error();const revoked=await fetch(apiOrigin+'/api/partner/v1/logout',{method:'POST',credentials:'include',cache:'no-store',redirect:'error',headers:{'Accept':'application/json','X-CSRF-Token':data.csrfToken}});if(!revoked.ok&&revoked.status!==401)throw Error();}catch{onUncertainSignOut();}
+    try{if(typeof data.csrfToken!=='string')throw Error();const revoked=await fetch(apiOrigin+apiPrefix+'logout',{method:'POST',credentials:'include',cache:'no-store',redirect:'error',headers:{'Accept':'application/json','X-CSRF-Token':data.csrfToken}});if(!revoked.ok&&revoked.status!==401)throw Error();}catch{onUncertainSignOut();}
     throw new PartnerError(409,'Sign-in changed. Continue from the current page.');
    }
    // Keep the CSRF value transiently so a queued sign-out can revoke a newly

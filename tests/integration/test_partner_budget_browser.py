@@ -47,9 +47,8 @@ def test_native_budget_parallel_acceptances_do_not_oversubscribe():
         held=[]
         for page,gig in zip(w['pages'],offers):
             page.goto(w['origin']+'/gigs/'+gig['id'])
-            page.get_by_role('combobox',name='Action',exact=True).select_option('accept')
             page.route('**/api/partner/v1/commands',lambda route:held.append(route))
-            page.get_by_role('button',name='Save decision',exact=True).click()
+            page.get_by_role('button',name='Accept offer',exact=True).click()
         for _ in range(100):
             if len(held)==2:break
             w['owner'].wait_for_timeout(10)
@@ -82,7 +81,9 @@ def test_native_budget_acceptance_uses_deterministic_central_monday(instant,mond
     with reviewed_budget_workspace(clock=instant) as w:
         gig=w['offer'](5000);w['accept'](gig)
         assert w['read']('gig',gig['id'])['item']['authorizationWeek']==monday
-        assert monday in w['pages'][0].locator('main').inner_text()
+        page=w['pages'][0]
+        page.locator('.acceptance-record > summary').click()
+        assert monday in page.locator('.acceptance-record').inner_text()
         assert str(w['budgets']()[0]['week_start_local']).startswith(monday)
 
 
@@ -109,8 +110,7 @@ def test_native_budget_sunset_blocks_new_acceptance_preserves_review_and_payment
         gig=w['offer'](5000);extra=w['offer'](6000,partner=1);w['accept'](gig)
         w['fixture']['setClock']('2027-01-01T18:00:00Z')
         page=w['pages'][1];page.goto(w['origin']+'/gigs/'+extra['id'])
-        page.get_by_role('combobox',name='Action',exact=True).select_option('accept')
-        page.get_by_role('button',name='Save decision',exact=True).click()
+        page.get_by_role('button',name='Accept offer',exact=True).click()
         page.get_by_text('New engagement is unavailable until program reviews and activation are complete.',exact=True).wait_for()
         assert w['read']('gig',extra['id'])['item']['status']=='offered'
         payable=finish_gig(w,gig)

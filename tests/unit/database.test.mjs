@@ -56,3 +56,10 @@ test('callback rollback preserves safe domain conflicts and suppresses raw SQL f
     assert.deepEqual(calls,['BEGIN','ROLLBACK','release']);
   }
 });
+import {EventEmitter} from 'node:events';
+test('checked-out transaction connection loss prevents commit and does not leak raw errors',async()=>{
+ const client=new EventEmitter(),calls=[];client.on('error',()=>{});client.query=async text=>{calls.push(text);return {rows:[]};};client.release=()=>calls.push('release');
+ const database=createNativeDatabase({pool:{connect:async()=>client}});
+ await assert.rejects(database.withTransaction(async()=>{client.emit('error',Error('private connection credential'));return {ok:true};}),error=>error.status===502&&!error.message.includes('credential'));
+ assert.ok(!calls.includes('COMMIT'));assert.ok(calls.includes('ROLLBACK'));assert.equal(client.listenerCount('error'),1);
+});

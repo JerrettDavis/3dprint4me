@@ -22,6 +22,7 @@ export function publicSnapshot(state={},now=Date.now()) {
 }
 export function privateSnapshot(state={},now=Date.now()) {
   const control=fresh(state.control,now,86400000)?state.control.details:{};
+  const restoreVerifiedAt=fresh(state.control,now,30*86400000)?state.control.details.restoreVerifiedAt:undefined;
   const platform=fresh(state.platform,now)?state.platform.details:{};
   const backup=fresh(state.backup,now,6*3600000)?state.backup.details:{};
   const blockers=[];
@@ -31,7 +32,7 @@ export function privateSnapshot(state={},now=Date.now()) {
   else if(!fresh(state.backup,now,2*3600000))add('backup-aging','The latest backup is more than two hours old','Check the backup schedule.');
   if(backup.copied!==true)add('backup-copy','A second backup copy is not verified','Verify the copied encrypted snapshot.');
   if(control.backupUnattended!==true)add('backup-scheduler','Unattended backup execution is not verified','Register and verify a backup task that runs without an owner desktop session.');
-  if(!Number.isFinite(control.restoreVerifiedAt)||now-control.restoreVerifiedAt>30*86400000)add('restore-drill','A restore drill is missing or overdue','Restore into an isolated environment and record the result.');
+  if(!fresh({observedAt:restoreVerifiedAt},now,30*86400000))add('restore-drill','A restore drill is missing or overdue','Restore into an isolated environment and record the result.');
   if(control.offsiteVerified!==true)add('offsite','Physical off-site recovery and key custody are unverified','Verify a recovery copy and decryption access outside the local site.');
   if(control.neonOffloaded!==true||platform.provider!=='postgres'||control.sourceQuiet!==true)add('neon-exit','Neon offloading has not been verified','Verify database, sign-in, jobs, integrations and old writers before downgrade.');
   if(control.neonPlan!=='free'||!Number.isFinite(control.neonVerifiedAt)||now-control.neonVerifiedAt>86400000)add('neon-billing','Neon Free billing is not recently verified','Check the actual plan, quotas and any final accrued charges.');

@@ -1,0 +1,99 @@
+{
+  "url": "https://jerrettdavis.github.io/3dprint4me/",
+  "sourceCommit": "d97f68dace547c4d66551c4af804eb9b2eb102e2",
+  "scope": "Anonymous live pages, keyboard focus, responsive navigation, theme switching, local search and screenshot loading; no portal authentication or mutations.",
+  "checks": [
+    "390 dark reduced motion",
+    "1440 light normal motion"
+  ],
+  "screenshots": [
+    {
+      "file": "bdd-qa060-1440-light.png",
+      "sha256": "b5ea86fe55f3144c1601e037ff7798d2a127fca57f7096343e6acda99a3c7a66",
+      "size": [
+        1440,
+        810
+      ],
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "bdd-qa060-390-dark.png",
+      "sha256": "776467bfae1723572ca9710bc9263a6d37313006b03d776436e314b984921c78",
+      "size": [
+        390,
+        520
+      ],
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "home-1440-light.png",
+      "sha256": "d4c7ae5fc21860478e3d6000bcfa8f772e1cde4b561a0a2ba38d92db3cb44217",
+      "size": [
+        1440,
+        810
+      ],
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "home-390-dark.png",
+      "sha256": "f2278f9bbfe6de2194006f7cb706d7865629714ebfcb0937708f6ac9e6bd758b",
+      "size": [
+        390,
+        520
+      ],
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "paired-layout-1440.png",
+      "sha256": "d10e19b2f6ccf762a07873ed93ce3a26086764ae4c11fe2e8e745c47d49ca390",
+      "size": [
+        1440,
+        810
+      ],
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "paired-layout-390.png",
+      "sha256": "fa03c005851a3310e10244ad025a9e2259e3870fa90c668f1145026748c4c766",
+      "size": [
+        390,
+        520
+      ],
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "partner-1440-light.png",
+      "sha256": "3d6093c4278aac95686fa9f1ad1c3be7e4abe6e1ec2c08214b9151bdc6449fc9",
+      "size": [
+        1440,
+        810
+      ],
+      "environment": "hosted GitHub Pages"
+    },
+    {
+      "file": "partner-390-dark.png",
+      "sha256": "514f1833cb9de4971ae0fc25034c4f7988e8e7761a7027604b447cf2d06982f9",
+      "size": [
+        390,
+        520
+      ],
+      "environment": "hosted GitHub Pages"
+    }
+  ],
+  "screenshotPolicy": {
+    "desktop": {
+      "width": 1440,
+      "height": 810,
+      "aspect": "16:9"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 520,
+      "aspect": "3:4"
+    },
+    "guideStates": 20,
+    "guideCaptures": 40,
+    "comparisonGroups": 94,
+    "nativeEvidenceOriginals": "Unchanged; bounded excerpts link to originals"
+  }
+}

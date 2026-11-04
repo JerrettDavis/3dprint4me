@@ -1,0 +1,46 @@
+{
+  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
+  "records": [
+    {
+      "url": "https://work.3dprint4.me/assets/operator.css",
+      "sha256": "19d2f08361b8a0da2fd31223f49a4a6092d97f83e5f180a86f88ec18c1e6fbd7",
+      "matchesCommittedBytes": true
+    },
+    {
+      "url": "https://work.3dprint4.me/assets/partner-owner.css",
+      "sha256": "0dc9ccb71ca8b03c67264f67021cbf4ad870ac3345941a32a2280753f56e37c6",
+      "matchesCommittedBytes": true
+    },
+    {
+      "url": "https://work.3dprint4.me/qa-assets/partner-owner.js",
+      "sha256": "e4c053d45e2f583e8793b9ebbec3289ad1487005400b1ed36451f2042928ebd9",
+      "matchesCommittedBytes": true
+    },
+    {
+      "url": "https://work.3dprint4.me/partners/qa",
+      "sha256": "02add2a3bd4c1935315cce92a73ea281d4965cec82bfe9cad3920aef119ca047",
+      "matchesCommittedBytes": true
+    },
+    {
+      "url": "https://work.3dprint4.me/review-reader",
+      "sha256": "f35599cd722b933f021778b1208cfa5fafb1e0565b793d463d1656ae7375bbeb",
+      "matchesCommittedBytes": true
+    },
+    {
+      "url": "https://partners.3dprint4.me/qa/join",
+      "sha256": "26535bc8fd48ca2bf041a3e83e3899e6f46fef208e4bc6481f192de95083320c",
+      "matchesCommittedBytes": true
+    },
+    {
+      "url": "https://partners.3dprint4.me/assets/partner.css",
+      "sha256": "b658c271eed0a56891586b4a450b4611094ce692896f884eceee793c5ef54d91",
+      "matchesCommittedBytes": true
+    },
+    {
+      "url": "https://partners.3dprint4.me/qa-assets/partner.css",
+      "sha256": "b658c271eed0a56891586b4a450b4611094ce692896f884eceee793c5ef54d91",
+      "matchesCommittedBytes": true
+    }
+  ],
+  "privatePathsDenied": true
+}

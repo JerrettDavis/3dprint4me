@@ -39,6 +39,7 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   for(const file of MIGRATIONS)for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/'+file,import.meta.url),'utf8')))await admin.query(statement);
   for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/012_partner_outreach.sql',import.meta.url),'utf8')))await admin.query(statement);
   for(const statement of splitStatements(await readFile(new URL('../../neon/migrations/013_partner_weekly_statements.sql',import.meta.url),'utf8')))await admin.query(statement);
+  assert.deepEqual((await admin.query("SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND starts_with(c.relname,'partner_') AND NOT c.relrowsecurity ORDER BY relname")).rows,[], 'all private partner tables enable RLS');
   const programId=randomUUID(),campaignId=randomUUID(),partners=[randomUUID(),randomUUID()],gigs=[randomUUID(),randomUUID()];
   await admin.query("INSERT INTO partner_programs(id,label,starts_on,enabled,synthetic) VALUES($1,'Synthetic','2026-10-01',true,true)",[programId]);
   await admin.query("INSERT INTO partner_campaigns(id,program_id,title,terms,status) VALUES($1,$2,'Visits','{}','published')",[campaignId,programId]);
@@ -180,7 +181,7 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   const expiring=await own('profile.export',{});
   assert.equal((await purgeExpiredPartnerExports(database,{instant:new Date('2026-10-25T12:00Z')})).purged,1);
   await assert.rejects(app.read(actualPartner,'own-export',{id:expiring.batchId}),{status:410});
-  assert.equal((await financial('legal.seed_templates',{programId})).created,6);
+  assert.equal((await financial('legal.seed_templates',{programId})).created,14);
   const artifact=await financial('legal.export_package',{programId,versionIds:[legal.versionId],reviewers:[{name:'Native synthetic counsel',role:'attorney',scopes:['agreement_language']}],expiresAt:'2026-10-30T12:00:00Z',redactionConfirmed:true,factualBrief:'Synthetic native test.'});
   const packageDownload=await app.read(ownerSession.actor,'review-package',{id:artifact.id});
   assert.equal(digest(Buffer.from(packageDownload.data,'base64')),artifact.sha256);
@@ -215,7 +216,18 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   await assert.rejects(pool.query("UPDATE partner_weekly_statements SET csv='changed'"),e=>e.code==='42501');
   await assert.rejects(pool.query('DELETE FROM partner_weekly_statements'),e=>e.code==='42501');
   const statementVisitor=new pg.Pool(nativePoolOptions(url.replace('postgres@','partner_visitor@')));
-  try{await assert.rejects(statementVisitor.query('SELECT * FROM partner_weekly_statements'),e=>e.code==='42501');}finally{await statementVisitor.end();}
+  try{
+   await assert.rejects(statementVisitor.query('SELECT * FROM partner_weekly_statements'),e=>e.code==='42501');
+   await admin.query('GRANT SELECT ON partner_weekly_statements TO partner_visitor');
+   assert.deepEqual((await statementVisitor.query('SELECT * FROM partner_weekly_statements')).rows,[], 'RLS denies statement reads even after an accidental table grant');
+   await admin.query('ALTER TABLE partner_weekly_statements DISABLE ROW LEVEL SECURITY; DROP POLICY platform_backend_access ON partner_weekly_statements');
+   assert.equal((await statementVisitor.query('SELECT count(*)::int AS n FROM partner_weekly_statements')).rows[0].n,expectedStatements, 'legacy table reproduces accidental-grant exposure with real statement rows');
+   const correction=await readFile(new URL('../../neon/migrations/016_partner_statement_rls.sql',import.meta.url),'utf8');
+   for(let attempt=0;attempt<2;attempt++)for(const statement of splitStatements(correction))await admin.query(statement);
+   assert.deepEqual((await statementVisitor.query('SELECT * FROM partner_weekly_statements')).rows,[], 'idempotent correction closes legacy accidental-grant reads');
+   assert.deepEqual((await admin.query('SELECT id,csv,sha256 FROM partner_weekly_statements ORDER BY id')).rows,savedStatements, 'upgrade preserves every statement byte and identity');
+   assert.equal((await pool.query('SELECT count(*)::int AS n FROM partner_weekly_statements')).rows[0].n,expectedStatements, 'backend statement reads remain available');
+  }finally{await admin.query('REVOKE SELECT ON partner_weekly_statements FROM partner_visitor');await statementVisitor.end();}
   const expectedCommands=(await admin.query('SELECT count(*)::int AS n FROM partner_command_keys')).rows[0].n;
   await admin.query('CREATE DATABASE partner_restore');
   // Only this synthetic disposable container is touched. Stream the dump as

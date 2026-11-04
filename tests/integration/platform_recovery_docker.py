@@ -90,6 +90,9 @@ def main():
             with patch.object(bootstrap.rebuild,'run',fixture_runner(first)),patch.object(bootstrap.rebuild,'empty_docker',lambda:None),patch.object(os,'getuid',lambda:root.stat().st_uid,create=True),patch.object(bootstrap.sys,'platform','linux'):
                 result=bootstrap.bootstrap(root,release,'2610199',True)
             assert result['setup']=='passed'
+            # QA authorization policies refer to a cluster role absent from a
+            # database-only dump. Recovery must recreate it without login rights.
+            command(['docker','exec','-i',first,'psql','-U','platform_admin','-d','platform','-v','ON_ERROR_STOP=1'],data=b'CREATE ROLE partner_qa_auth NOLOGIN NOSUPERUSER NOBYPASSRLS; CREATE POLICY recovery_qa_role ON operators FOR SELECT TO partner_qa_auth USING (true);')
             original_check_output=subprocess.check_output
             def compose_ps(args,**kwargs):
                 if args[:2]==['docker','compose']:return first.encode()+b'\n'
@@ -100,6 +103,8 @@ def main():
             with patch.object(rebuilder,'run',fixture_runner(second)),patch.object(rebuilder,'empty_docker',lambda:None),patch.object(os,'getuid',lambda:0 if os.name=='nt' else destination.stat().st_uid,create=True),patch.object(rebuilder.sys,'platform','linux'):
                 restored=rebuilder.rebuild(destination,ROOT,release,archive,hashlib.sha256(archive).hexdigest(),True)
             assert restored['database_restore']=='passed'
+            role=command(['docker','exec',second,'psql','-U','platform_admin','-d','platform','-At','-c',"SELECT rolcanlogin OR rolsuper OR rolbypassrls FROM pg_roles WHERE rolname='partner_qa_auth'"]).decode().strip()
+            assert role=='f', 'Recovery QA role must be inert until separately provisioned'
             print(json.dumps({'native_postgres_setup_backup_rebuild':'passed','databases':2,'runtime_privilege_denials':'passed','network':'none','persistent_database_volumes':False,'host_and_provider_rebuild':'not-established'}))
     finally:
         for identity in containers:command(['docker','rm','--force',identity])

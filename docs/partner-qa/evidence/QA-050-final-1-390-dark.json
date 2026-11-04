@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-050",
+  "stepId": "final-1",
+  "runId": "workspace-release-20261104-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "6d055960afc4a47b407e28d791ab5a87023f61e8",
+  "sourceFingerprint": "b374dfde520f75d9ffe450b522d44b84344d147599afcc0c72db02f0ebd36bb8",
+  "startSha256": "6df6bb4d6e83d5b5b22a0dc0bffe663830427e9a632304c46d02142861160e95",
+  "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_optional_activity_work_submission_never_requires_a_timer",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "dark",
+  "screenshot": "../screenshots/QA-050-final-1-390-dark.png",
+  "sha256": "31344cbde7cfde79685ace826ce107e6d47bf4797646a3dd3535e4d4a48b66f6",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

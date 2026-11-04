@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-011",
+  "stepId": "final-1",
+  "runId": "workspace-release-20261104-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "6d055960afc4a47b407e28d791ab5a87023f61e8",
+  "sourceFingerprint": "b374dfde520f75d9ffe450b522d44b84344d147599afcc0c72db02f0ebd36bb8",
+  "startSha256": "6df6bb4d6e83d5b5b22a0dc0bffe663830427e9a632304c46d02142861160e95",
+  "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_acceptance_uses_deterministic_central_monday[2026-11-02T06:01:00Z-2026-11-02]",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "theme": "light",
+  "screenshot": "../screenshots/QA-011-final-1-1440-light.png",
+  "sha256": "1f2b232a2768fda9f4afa2c4d1b4690894fed38aa13f18247c5c22cb8d324028",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

@@ -10,6 +10,7 @@ from tests.integration.test_partner_statement_browser import sign_in
 def download_accounting(w,basis):
     owner=w['owner'];owner.goto(w['fixture']['ownerOrigin']+'/partners#finance')
     owner.get_by_role('heading',name='Partner finance',exact=True).wait_for()
+    owner.get_by_text('Create accounting CSV batch',exact=True).click()
     form=owner.locator('[data-finance-export]')
     form.get_by_role('combobox',name='Program',exact=True).select_option(w['programId'])
     form.get_by_role('combobox',name='Accounting basis',exact=True).select_option(basis)

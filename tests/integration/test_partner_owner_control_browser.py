@@ -19,6 +19,7 @@ def financial_counts(w):
 def test_native_only_owner_can_publish_forty_dollar_campaign_and_partner_sees_frozen_offer():
     with reviewed_budget_workspace(observe_outbound=True) as w:
         owner=w['owner'];owner.goto(w['fixture']['ownerOrigin']+'/partners#campaigns')
+        owner.locator('summary').filter(has_text='Create campaign draft').click()
         form=owner.locator('#campaign-create');form.get_by_role('combobox',name='Program',exact=True).select_option(w['programId'])
         form.get_by_label('Offer title',exact=True).fill('Synthetic permitted flyer campaign')
         form.get_by_label('Offered fee (USD)',exact=True).fill('40.00')
@@ -66,6 +67,9 @@ def test_native_program_pause_denies_unaccepted_work_without_erasing_prior_debt(
     with reviewed_budget_workspace() as w:
         old=w['offer'](4000);w['accept'](old);payable=finish_gig(w,old);new=w['offer'](2000)
         owner=w['owner'];owner.goto(w['fixture']['ownerOrigin']+'/partners#programs')
+        # The setup helper loaded this same URL before creating the program via API.
+        # Reload to fetch those new records rather than retaining the initial view.
+        owner.reload()
         form=owner.locator('[data-program="'+w['programId']+'"]')
         form.get_by_label('Enable new work after all clearance checks pass',exact=True).uncheck()
         form.get_by_role('button',name='Save program controls',exact=True).click()
@@ -73,7 +77,7 @@ def test_native_program_pause_denies_unaccepted_work_without_erasing_prior_debt(
         before=financial_counts(w)
         page=w['pages'][0];page.goto(w['origin']+'/gigs/'+new['id'])
         with page.expect_response(lambda r:r.request.method=='POST' and r.url.endswith('/api/partner/v1/commands')) as denied:
-            page.get_by_role('button',name='Save decision',exact=True).click()
+            page.get_by_role('button',name='Accept offer',exact=True).click()
         assert denied.value.status==409 and 'unavailable' in denied.value.json()['error'].lower()
         assert financial_counts(w)==before=={'reservations':1,'committed':4000,'payables':1}
         assert w['read']('gig',new['id'])['item']['status']=='offered'

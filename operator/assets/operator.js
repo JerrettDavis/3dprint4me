@@ -134,6 +134,13 @@ function nextWorkAction(item) {
 }
 function el(name, className, text) { const node = document.createElement(name); if (className) node.className = className; if (text != null) node.textContent = text; return node; }
 function createDomView(api) {
+  const filterDisclosure = document.querySelector('#queue-filters');
+  const compactFilters = matchMedia('(max-width:700px)');
+  filterDisclosure.open = !compactFilters.matches;
+  compactFilters.addEventListener('change', () => {
+    if (compactFilters.matches && filterDisclosure.contains(document.activeElement)) filterDisclosure.querySelector('summary').focus();
+    filterDisclosure.open = !compactFilters.matches;
+  });
   const q = selector => document.querySelector(selector); const list = q("#work-list"), detail = q("#detail-content"), placeholder = q("#detail-placeholder"), filters = q("#filters"), status = q("#status-message"), toast = q("#toast"); let controller, toastTimer;
   const view = {
     attach(value) { controller = value; }, filters: () => Object.fromEntries(new FormData(filters)), noteDraft: () => q("#private-note")?.value ?? "",
