@@ -29,3 +29,10 @@ test('partner shell release marker matches the worker cache version',async()=>{
  const worker=await readFile(resolve(root,'sw.js'),'utf8'),html=await readFile(resolve(root,'index.html'),'utf8');
  const version=/const CACHE='([^']+)'/.exec(worker)[1];assert.ok(html.includes('<meta name="partner-shell-release" content="'+version+'">'));
 });
+
+
+test('owner QA rewrite uses an extensionless destination with Vercel clean URLs',async()=>{
+ const config=JSON.parse(await readFile('operator/vercel.json','utf8'));
+ assert.equal(config.cleanUrls,true);
+ assert.equal(config.rewrites.find(r=>r.source==='/partners/qa').destination,'/partners-qa');
+});
