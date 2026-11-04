@@ -42,13 +42,13 @@ def test_responsive_navigation_reaches_last_destination(width, height, theme, ow
         for _ in range(links.count() - 1):
             page.keyboard.press('Tab')
         assert links.last.evaluate('(link) => link === document.activeElement')
-        assert links.last.evaluate('(link) => {const a=link.getBoundingClientRect();return a.top>=0 && a.bottom<=innerHeight}')
+        assert links.last.evaluate('(link) => {const a=link.getBoundingClientRect();return a.top>=0 && a.bottom<=innerHeight}'), links.last.bounding_box()
         assert links.last.evaluate('(link) => {const a=link.getBoundingClientRect(),b=link.parentElement.getBoundingClientRect();return a.left>=b.left-1 && a.right<=b.right+1}')
         destination = links.last.inner_text()
         for _ in range(links.count() - 1):
             page.keyboard.press('Shift+Tab')
         assert links.first.evaluate('(link) => link === document.activeElement')
-        assert links.first.evaluate('(link) => {const a=link.getBoundingClientRect();return a.top>=0 && a.bottom<=innerHeight}')
+        assert links.first.evaluate('(link) => {const a=link.getBoundingClientRect();return a.top>=0 && a.bottom<=innerHeight}'), links.first.bounding_box()
         links.last.click()
         page.wait_for_function('(label) => document.querySelector("nav [aria-current=page]")?.textContent === label', arg=destination)
         if compact:
