@@ -81,7 +81,9 @@ def test_native_budget_acceptance_uses_deterministic_central_monday(instant,mond
     with reviewed_budget_workspace(clock=instant) as w:
         gig=w['offer'](5000);w['accept'](gig)
         assert w['read']('gig',gig['id'])['item']['authorizationWeek']==monday
-        assert monday in w['pages'][0].locator('main').inner_text()
+        page=w['pages'][0]
+        page.locator('.acceptance-record > summary').click()
+        assert monday in page.locator('.acceptance-record').inner_text()
         assert str(w['budgets']()[0]['week_start_local']).startswith(monday)
 
 
