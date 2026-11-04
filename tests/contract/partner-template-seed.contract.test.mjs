@@ -3,16 +3,17 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createPartnerApplication } from '../../lib/partner-outreach/application.js';
 import { partnerFixture,ACTIVE_ENV,TEST_NOW } from '../support/partner-fixture.mjs';
-test('seven anonymized sources seed as private unapproved drafts and never overwrite owner revisions',async()=>{
+test('fifteen representative sources seed as private unapproved drafts and never overwrite owner revisions',async()=>{
  const f=await partnerFixture({reviewed:false});
  try{
   const app=createPartnerApplication({database:f.database,env:ACTIVE_ENV,allowSyntheticOwner:true,now:()=>new Date(TEST_NOW)});
   const run=(actor,action,input)=>app.execute({actor,action,input,key:randomUUID()});
   await assert.rejects(run(f.actor,'legal.seed_templates',{programId:f.programId}),{status:403});
-  assert.equal((await run(f.owner,'legal.seed_templates',{programId:f.programId})).created,7);
+  assert.equal((await run(f.owner,'legal.seed_templates',{programId:f.programId})).created,15);
   const rows=await f.database.query`SELECT v.*,d.template_key,d.status FROM partner_legal_versions v JOIN partner_legal_documents d ON d.id=v.document_id`;
-  assert.equal(rows.length,7);for(const row of rows){assert.equal(row.issuable,false);assert.equal(row.status,'draft');assert.match(row.markdown,/DRAFT|NONBINDING/);}
+  assert.equal(rows.length,15);for(const row of rows){assert.equal(row.issuable,false);assert.equal(row.status,'draft');assert.match(row.markdown,/REPRESENTATIVE STUB — DRAFT — UNREVIEWED — QA\/DISCUSSION ONLY/);}
   assert.ok(rows.find(r=>r.template_key==='cpa-cover-letter').required_scopes.includes('accounting'));
+  for(const key of ['payment-settlement-receipt','referral-bonus-schedule'])assert.ok(rows.find(r=>r.template_key===key).required_scopes.includes('accounting'));
   const covers=rows.filter(r=>r.template_key.endsWith('cover-letter')).map(r=>r.markdown).join(' ');
   for(const phrase of ['owner has periodically assisted','partner sought','distributing profits rather','LLC checking'])assert.ok(!covers.toLowerCase().includes(phrase.toLowerCase()),phrase);
   const master=rows.find(r=>r.template_key==='independent-marketing-services');assert.equal(master.variables_schema.weekly_authorization_default_usd.default,20000);

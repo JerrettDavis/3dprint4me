@@ -1,4 +1,5 @@
 # PROPOSED Permitted Outreach and Safety Policy
+**REPRESENTATIVE STUB — DRAFT — UNREVIEWED — QA/DISCUSSION ONLY**
 **DRAFT FOR ATTORNEY REVIEW / NOT EFFECTIVE**
 
 ## [POL-01] Respectful interactions
