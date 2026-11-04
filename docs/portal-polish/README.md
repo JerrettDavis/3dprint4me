@@ -19,7 +19,7 @@ Small corners soften editable controls; record lists keep meaningful separators 
 
 `tests/e2e/test_portal_polish.py` covers six surfaces at 390-pixel dark/reduced-motion and 1440-pixel light/normal-motion settings. It verifies document overflow, usable control sizes, visible keyboard focus, real success-icon CSS rendering, QA tool presentation and motion preferences. The screenshots below use synthetic presentation fixtures; they do not claim actual professional review or prove native persistence.
 
-The existing responsive navigation, offline/PWA and old-worker upgrade suite passed 28 cases. Full project checks, refreshed native BDD evidence and deployment verification are recorded after final verification.
+The existing responsive navigation, offline/PWA and old-worker upgrade suite passed 28 cases. A further QA access/pending/retry test verifies that controls remain hidden and disabled until owner access is verified, show busy feedback during a request and recover after a sanitized temporary error. Its status region stays outside the busy group for immediate announcements. Full project checks, refreshed native BDD evidence and deployment verification are recorded after final verification.
 
 ## Rendered examples
 
@@ -31,3 +31,38 @@ The existing responsive navigation, offline/PWA and old-worker upgrade suite pas
 - Offline review: [phone](screenshots/review-390-dark.png), [desktop](screenshots/review-1440-light.png).
 
 Production verification is pending for this polish pass. The prior production QA release remains documented in [the QA guide](../partner-qa/README.md).
+
+## Populated workflow samples
+
+The [capture inventory](populated-captures.json) records dimensions and checksums for selected populated screens preserved during screenshot and browser verification. These complement the 12 spacing/motion views above.
+
+- [operator detail mobile light](screenshots/populated/operator-detail-mobile-light.png)
+- [operator conversation 390 dark](screenshots/populated/operator-conversation-390-dark.png)
+- [operator models 390 light](screenshots/populated/operator-models-390-light.png)
+- [operator print estimate desktop light](screenshots/populated/operator-print-estimate-desktop-light.png)
+- [operator invoice mobile dark](screenshots/populated/operator-invoice-mobile-dark.png)
+- [operator spoolman mobile dark](screenshots/populated/operator-spoolman-mobile-dark.png)
+- [operator filament proposal desktop light](screenshots/populated/operator-filament-proposal-desktop-light.png)
+- [operator inquiry detail light](screenshots/populated/operator-inquiry-detail-light.png)
+- [operator partners accounts light](screenshots/populated/operator-partners-accounts-light.png)
+- [operator partners campaigns dark](screenshots/populated/operator-partners-campaigns-dark.png)
+- [operator partners gig light](screenshots/populated/operator-partners-gig-light.png)
+- [operator partners finance light](screenshots/populated/operator-partners-finance-light.png)
+- [operator partners forecasts dark](screenshots/populated/operator-partners-forecasts-dark.png)
+- [operator partners leads light](screenshots/populated/operator-partners-leads-light.png)
+- [operator partners legal version light](screenshots/populated/operator-partners-legal-version-light.png)
+- [operator partners review package dark](screenshots/populated/operator-partners-review-package-dark.png)
+- [operator partners review feedback light](screenshots/populated/operator-partners-review-feedback-light.png)
+- [operator partners agreement copy light](screenshots/populated/operator-partners-agreement-copy-light.png)
+- [operator partners weekly statement dark](screenshots/populated/operator-partners-weekly-statement-dark.png)
+- [partner accepted gig light](screenshots/populated/partner-accepted-gig-light.png)
+- [partner agreement light](screenshots/populated/partner-agreement-light.png)
+- [partner visit light](screenshots/populated/partner-visit-light.png)
+- [partner visit contact dark](screenshots/populated/partner-visit-contact-dark.png)
+- [partner referrals light](screenshots/populated/partner-referrals-light.png)
+- [partner weekly statements dark](screenshots/populated/partner-weekly-statements-dark.png)
+- [partner offline drafts light](screenshots/populated/partner-offline-drafts-light.png)
+- [partner materials partner history dark](screenshots/populated/partner-materials-partner-history-dark.png)
+- [offline review unlocked dark](screenshots/populated/offline-review-unlocked-dark.png)
+
+QA feedback samples: [owner access required](screenshots/owner-qa-access-required.png), [operation pending](screenshots/owner-qa-busy.png), [retry available](screenshots/owner-qa-retry.png).
