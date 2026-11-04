@@ -56,7 +56,7 @@ Do not clear those warnings by copying old assertions into a fresh heartbeat.
 Exact snapshot identities, hashes and aggregate restore results are retained in
 the owner-only backup reports, not in the public handbook or browser assets.
 
-## Remaining acceptance
+## Acceptance before the owner-authorized follow-up
 
 Verify independent physical off-site storage and key custody with the owner.
 Verify email delivery using an explicitly authorized diagnostic. The signed
@@ -88,3 +88,34 @@ routes, Durable Object binding and five-minute schedule are preserved.
 The latest workspace redesign was found uncommitted in the linked QA worktree;
 earlier production UI deployments do not prove that redesign reached main. Its
 release, current handbook and live checks must be recorded separately.
+
+## Owner-authorized follow-up, 18:23 UTC
+
+The owner authorized one diagnostic email. Production's configured API container
+sent it through the configured Resend sender to the configured owner recipient;
+the provider accepted it and the owner explicitly confirmed mailbox receipt.
+No customer request or invoice was created. Credentials were not broadened.
+
+The existing homelab Backblaze B2 repository now contains this service's exact
+November 4 complete checkpoint: database/configuration archive, private-object
+stream and checkpoint receipt. Each cloud copy was decrypted and read back with
+SHA-256 parity against its local source. Existing snapshots and billing caps
+were preserved. No full homelab download, repository initialization or pruning
+was performed. Exact identities remain in protected reports outside Git.
+
+The older Bitwarden CLI could not unlock or freshly authenticate. A separate
+official CLI 2026.10.1 download passed the publisher-provided SHA-256 check and
+authenticated with the owner's local password and two-step prompts. The exact
+vault-held repository password successfully decrypted the cloud copy. The
+original executable and profiles were preserved, and the new vault session was
+locked afterward. The owner's previously confirmed phone/vault/MFA access route
+remains the independent key-access evidence; a separate-device outage retrieval
+drill has not been performed and is not implied by this working-machine check.
+
+The signed control update changes email/provider and off-site acceptance, retains
+the actual Neon and restore timestamps, and references the protected evidence.
+A fresh authenticated collector read reports zero open blockers, healthy jobs
+and configured alerts. This is today's verified state. Recurring off-site copy
+has not been scheduled, and daily manual controls still require actual
+revalidation. A full replacement-host rebuild and signed-out reboot drill remain
+separate operational exercises; invoices remain disabled/draft-only.
