@@ -55,6 +55,12 @@ def test_portal_spacing_controls_focus_and_motion(width,theme,motion,surface):
         # Fictional presentation fixtures only. Mask all fields before recording pixels.
         page.evaluate('window.scrollTo(0,0)')
         page.screenshot(path=str(out/f'{surface}-{width}-{theme}.png'),full_page=True,animations='disabled',mask=[page.locator('input[type=password],[data-secret],.owner-access-code')])
+        opposite='light' if theme=='dark' else 'dark'
+        if surface=='work':
+            for _ in range(1 if opposite=='light' else 2):page.get_by_role('button',name='Change color theme',exact=True).click()
+        else:page.get_by_role('combobox',name='Theme',exact=True).select_option(opposite)
+        assert page.evaluate('getComputedStyle(document.documentElement).colorScheme')==opposite
+        assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
         assert not site.page_errors
 
 def test_qa_tools_explain_access_and_disable_controls_during_requests():

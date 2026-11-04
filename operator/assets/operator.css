@@ -99,3 +99,6 @@ button,.job-actions select,.job-actions input{border-radius:var(--portal-radius)
 
 .detail input:not([type=checkbox]):not([type=radio]),.detail select,.detail textarea{border:1px solid var(--line);border-radius:.4rem;padding:.8rem 1rem;background:var(--panel);max-width:100%}
 .detail form{row-gap:1.25rem}.detail form label{line-height:1.6}.detail p{max-width:75ch}
+
+/* Manual themes also select the matching native control palette. */
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
