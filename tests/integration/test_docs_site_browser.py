@@ -44,6 +44,7 @@ def test_handbook_navigation_search_themes_and_images(handbook, width, theme, mo
         assert page.locator('article h1').inner_text().startswith('Getting started')
         page.goto(handbook+'/guides/partner/',wait_until='networkidle')
         page.locator('article img').first.wait_for()
+        assert page.locator('article a img').count()==page.locator('article img').count()
         assert page.locator('article img').evaluate_all('(images)=>images.length>=5&&images.every(i=>i.complete&&i.naturalWidth>0)')
         assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
         page.screenshot(path=str(output/f'partner-{width}-{theme}.png'),full_page=True,animations='disabled')
