@@ -6,6 +6,18 @@ hosted deployment commands and operational acceptance checklist. Evidence below
 describes database/configuration and private-object checkpoint verification. The
 2026-10-24 update below establishes scheduled file backups, not a cold host rebuild.
 
+November 4 follow-up: [the infrastructure verification record](INFRASTRUCTURE-VERIFICATION-2026-11-04.md)
+supersedes the historical off-site, notification-outbox and email acceptance gaps
+below. The complete service checkpoint was copied to the existing encrypted
+Backblaze repository and each of its three files passed decrypted SHA-256
+readback. Vault-held decryption credentials were verified and relocked; the owner
+previously confirmed independent phone/vault/MFA access. One authorized diagnostic
+email was accepted and its receipt confirmed. The collector reports no open
+blockers. Recurring cloud copy is not scheduled by this verification; daily
+manual controls, a separate-device outage drill and a full host rebuild remain
+distinct operational work. Never refresh evidence timestamps merely to silence
+reminders.
+
 The storefront and operator shell remain on Vercel. Independent status runs on
 Vercel and Cloudflare; its protected operations view requires Vercel Authentication
 on **all deployments**. Local runtime uses the private PostgreSQL18 database,
