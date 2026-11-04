@@ -94,7 +94,7 @@ Screenshot and handbook verification is recorded in the [implementation plan](su
 
 November 4 continuation verified the final source with 1,278 unit/contract tests, 433 browser tests (one existing skip), 241 UX checks, 168 regenerated screenshots and 40 refreshed guide captures. The full board and representative actual tasks were visually inspected. The strict 113-page handbook build, link checks, three documentation contracts and two desktop/mobile browser cases pass. Independent code review cleared the UI changes. Publication and production checks are separate release gates.
 
-Production workspace release (November 4): runtime source `6023204ad1ef65def0338088ce3fffaf920f206f` is deployed as owner `3dprint4me-operator-1l7q45t59` and participant `3dprint4me-partners-8eqke2r52`. All 98 served static files match the committed archive. The full 60-case native workflow suite passed, and a separate complete source-bound evidence run passed all 60 with 142 validated redacted captures. Live owner sign-in, grouped navigation, 390-pixel dark finance layout, desktop light landing and route focus were checked. Main integration and public handbook publication are tracked separately until their hosted checks finish.
+Production workspace release (November 4): runtime source `6023204ad1ef65def0338088ce3fffaf920f206f` is deployed as owner `3dprint4me-operator-1l7q45t59` and participant `3dprint4me-partners-8eqke2r52`. All 98 served static files match the committed archive. The full 60-case native workflow suite passed, and a separate complete source-bound evidence run passed all 60 with 142 validated redacted captures. Live owner sign-in, grouped navigation, desktop landing and route focus were checked. Responsive phone/dark coverage is established by the automated fixtures; see the viewport qualification below. Main integration and public handbook publication are tracked separately until their hosted checks finish.
 
 The subsequent Linux CI pass exposed short-window scrolling and phone font-metric
 bounds. Desktop navigation now uses document scrolling below 600 pixels high;
@@ -120,3 +120,11 @@ The guarded native deployment of `1360be638e664288f638d98124ac86585eab05d7`
 passes schema, privileges, disabled-program checks, fresh backup, worker handover,
 no-message and unchanged-live-state checks. Its API and slicer image digests match
 the previously verified release; source includes the corrected QA host inventory.
+
+Live viewport qualification: the extension browser did not apply a subsequently
+requested 390 × 520 override to the existing owner tab; its measured viewport
+remained 1440 × 810. The earlier live matrix records requested widths without
+independent measured dimensions and therefore does not establish live phone-size
+acceptance. Phone, short-window, light/dark, reduced-motion and keyboard behavior
+are verified by the automated fixture/native runs and their actual-size captures.
+The live checks establish authenticated routes, page focus and served-byte parity.
