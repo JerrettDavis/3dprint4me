@@ -1,10 +1,10 @@
 // Static shell only. Private requests never enter Cache Storage.
-const CACHE='partner-qa-shell-v4',PREFIX='partner-qa-shell-';
+const CACHE='partner-qa-shell-v5',PREFIX='partner-qa-shell-';
 const STATIC=['/qa','/config.json','/manifest.webmanifest','/qa-assets/icon.svg','/qa-assets/icon-192.png','/qa-assets/icon-512.png','/qa-assets/partner.css','/qa-assets/partner.js','/qa-assets/client.js','/qa-assets/drafts.js','/qa-assets/visits.js','/qa-assets/pwa.js','/qa-assets/offline-workspace.js','/qa-assets/statements.js'];
 let work=Promise.resolve();
 function serialize(run){const result=work.then(run);work=result.catch(()=>{});return result;}
 async function prepare(){
- const cache=await caches.open(CACHE),marker='<meta name="partner-qa-shell-release" content="'+'partner-qa-shell-v4'+'">';
+ const cache=await caches.open(CACHE),marker='<meta name="partner-qa-shell-release" content="'+CACHE+'">';
  const existing=await Promise.all(STATIC.map(path=>cache.match(path)));
  if(existing.every(Boolean)&&(await existing[0].text()).includes(marker))return;
  // An old active worker must not reseed its version with a newly deployed shell.

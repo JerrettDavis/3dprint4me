@@ -26,8 +26,10 @@ test('partner displays the exact versioned server contact permission text',async
 
 
 test('partner shell release marker matches the worker cache version',async()=>{
- const worker=await readFile(resolve(root,'sw.js'),'utf8'),html=await readFile(resolve(root,'index.html'),'utf8');
- const version=/const CACHE='([^']+)'/.exec(worker)[1];assert.ok(html.includes('<meta name="partner-shell-release" content="'+version+'">'));
+ for(const [workerName,htmlName,marker] of [['sw.js','index.html','partner-shell-release'],['qa-sw.js','qa.html','partner-qa-shell-release']]){
+  const worker=await readFile(resolve(root,workerName),'utf8'),html=await readFile(resolve(root,htmlName),'utf8');
+  const version=/const CACHE='([^']+)'/.exec(worker)[1];assert.ok(html.includes('<meta name="'+marker+'" content="'+version+'">'));
+ }
 });
 
 
