@@ -9,6 +9,7 @@ import {renderOwnerLeads} from './partner-owner-leads.js';
 import {renderOwnerReferrals} from './partner-owner-referrals.js';
 import {mountPartnerAccess} from './partner-owner-access.js';
 import {createPartnerOwnerClient} from './partner-owner-client.js';
+document.querySelector('#qa-static-notice')?.remove();
 const qaMode=location.pathname==='/partners/qa';
 const qaTools=document.createElement('aside');qaTools.className='qa-banner';qaTools.setAttribute('aria-label','Workspace mode');
 qaTools.innerHTML=qaMode?'<strong>QA only — representative stubs</strong><p>Simulated clearance, consent and compensation. No real work or funds.</p><a href="/partners">Return to live portal</a><button id="qa-provision" type="button">Create synthetic QA run</button><label>QA program to retire<select id="qa-reset-program"></select></label><button id="qa-reset" type="button">Retire selected QA run</button><label>QA referral ID<input id="qa-referral-id" autocomplete="off"></label><button id="qa-customer-request" type="button">Simulate customer referral opt-in</button><p id="qa-run-result" role="status"></p>':'<a href="/partners/qa">Open QA workspace</a>';

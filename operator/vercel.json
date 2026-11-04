@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/partners/qa",
-      "destination": "/partners.html"
+      "destination": "/partners-qa.html"
     },
     {
       "source": "/work/:id",

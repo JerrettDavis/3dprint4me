@@ -29,4 +29,10 @@ DROP POLICY IF EXISTS partner_qa_auth_read ON public.operator_identity_bindings;
 CREATE POLICY partner_qa_auth_read ON public.operator_identity_bindings FOR SELECT TO partner_qa_auth USING(true);
 DROP POLICY IF EXISTS partner_qa_auth_read ON public.operators;
 CREATE POLICY partner_qa_auth_read ON public.operators FOR SELECT TO partner_qa_auth USING(true);
+CREATE OR REPLACE FUNCTION public.partner_qa_auth_identity()
+RETURNS TABLE(database_name text,cluster_identifier text)
+LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog
+AS $$ SELECT current_database()::text,system_identifier::text FROM pg_control_system() $$;
+REVOKE ALL ON FUNCTION public.partner_qa_auth_identity() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.partner_qa_auth_identity() TO partner_qa_auth,platform_backend;
 COMMIT;

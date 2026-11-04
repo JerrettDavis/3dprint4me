@@ -10,7 +10,7 @@ const server=createServer(async(req,res)=>{
  res.setHeader('Content-Security-Policy',`default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' ${apiOrigin}; worker-src 'self'; manifest-src 'self'; img-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'`);
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{Allow:'GET, HEAD'});res.end();return;}
  try{const url=new URL(req.url,'http://localhost');if(url.pathname==='/index.html'){res.writeHead(308,{Location:'/'});res.end();return;}if(url.pathname==='/config.json'){res.setHeader('Content-Type',types['.json']);res.end(JSON.stringify({apiOrigin}));return;}
- const path=url.pathname==='/qa'||url.pathname.startsWith('/qa/')||routes.has(url.pathname)||/^\/gigs\/[^/]+$/.test(url.pathname)?'/index.html':decodeURIComponent(url.pathname),target=resolve(root,'.'+path);
+ const path=url.pathname==='/qa'||url.pathname.startsWith('/qa/')?'/qa.html':routes.has(url.pathname)||/^\/gigs\/[^/]+$/.test(url.pathname)?'/index.html':decodeURIComponent(url.pathname),target=resolve(root,'.'+path);
  if(!target.startsWith(root+sep))throw new Error();const bytes=await readFile(target);res.writeHead(200,{'Content-Type':types[extname(target)]??'application/octet-stream'});res.end(req.method==='HEAD'?undefined:bytes);
  }catch{res.writeHead(404);res.end('Not found.');}
 });

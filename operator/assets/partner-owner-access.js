@@ -64,7 +64,7 @@ export function mountPartnerAccess({root,account,enrollmentAllowed,api,isCurrent
   secret.replaceChildren();const title=document.createElement('h4');title.textContent=kind==='recover'?'Private recovery handoff':'Private enrollment handoff';
   const label=document.createElement('label');label.append(document.createTextNode(kind==='recover'?'One-time recovery code':'One-time enrollment code'));
   const field=document.createElement('input');field.type='password';field.readOnly=true;field.autocomplete='off';field.spellcheck=false;field.value=token;label.append(field);
-  const note=document.createElement('p');note.textContent=`Expires ${new Date(expiresAt).toLocaleString()}. Open https://partners.3dprint4.me${location.pathname==='/partners/qa'?'/qa':''}/join separately and enter the code there. Never put the code in a URL or public message.`;
+  const note=document.createElement('p');note.textContent=`Expires ${new Date(expiresAt).toLocaleString()}. Open https://partners.3dprint4.me${(location.pathname==='/partners/qa'||new URL(import.meta.url).pathname.startsWith('/qa-assets/'))?'/qa':''}/join separately and enter the code there. Never put the code in a URL or public message.`;
   const buttons=document.createElement('div');buttons.className='owner-actions';
   const reveal=document.createElement('button');reveal.type='button';reveal.textContent='Reveal code';reveal.onclick=()=>{field.type=field.type==='password'?'text':'password';reveal.textContent=field.type==='password'?'Reveal code':'Mask code';};
   const select=document.createElement('button');select.type='button';select.textContent='Select code';select.onclick=()=>{field.type='text';reveal.textContent='Mask code';field.focus();field.select();};

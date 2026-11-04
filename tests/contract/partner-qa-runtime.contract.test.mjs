@@ -33,7 +33,7 @@ test('QA runtime keeps business writes in QA and canonical drafts blocked withou
  }finally{await f.close();}
 });
 test('QA preflight rejects overlap, missing sentinel, privileged role and real provider config',async()=>{
- const database=(name,realm='qa',privileged=false)=>({query:async strings=>strings.join('').includes('partner_qa_identity')?[{realm}]:strings.join('').includes('backend_member')?[{backend_member:false,business_read:false,auth_write:false}]:[{database_name:name,role_name:name==='live'?'partner_qa_auth':'platform_app',privileged}]});
+ const database=(name,realm='qa',privileged=false)=>({query:async strings=>strings.join('').includes('partner_qa_database_identity')?[{database_name:name,cluster_identifier:'qa-cluster'}]:strings.join('').includes('partner_qa_identity')?[{realm,cluster_identifier:'qa-cluster'}]:strings.join('').includes('partner_qa_auth_identity')?[{database_name:'live',cluster_identifier:'live-cluster'}]:strings.join('').includes('backend_member')?[{backend_member:false,business_read:false,auth_write:false}]:[{database_name:name,role_name:name==='live'?'partner_qa_auth':'platform_app',privileged}]});
  await assert.rejects(assertQaIsolation({qaDatabase:database('live'),ownerAuthDatabase:database('live'),env:{}}),/isolation/i);
  await assert.rejects(assertQaIsolation({qaDatabase:database('qa','live'),ownerAuthDatabase:database('live'),env:{}}),/isolation/i);
  await assert.rejects(assertQaIsolation({qaDatabase:database('qa','qa',true),ownerAuthDatabase:database('live'),env:{}}),/isolation/i);
@@ -45,4 +45,9 @@ test('QA rejects real contact channels and unmarked settlement or professional e
  for(const [action,input] of [['visit.record',{contact:{email:'person@real.example'}}],['lead.correct',{contact:{phone:'+12125551234'}}],['payment.record',{paymentReference:'ACTUAL-BANK-123'}],['legal.record_review',{reviewerName:'Actual attorney'}]])assert.throws(()=>assertQaSyntheticInput(action,input),/synthetic|SIMULATED/);
  assertQaSyntheticInput('visit.record',{contact:{email:'fictional@example.invalid',phone:'+12025550100'}});
  assertQaSyntheticInput('payment.record',{paymentReference:'QA-SIMULATED-001'});
+});
+test('runtime isolation rejects a QA database on the live PostgreSQL cluster',async()=>{
+ const auth={query:async strings=>strings.join('').includes('backend_member')?[{backend_member:false,business_read:false,auth_write:false}]:strings.join('').includes('partner_qa_auth_identity')?[{database_name:'live',cluster_identifier:'same-cluster'}]:[{database_name:'live',role_name:'partner_qa_auth',privileged:false}]};
+ const qa={query:async strings=>strings.join('').includes('partner_qa_database_identity')?[{database_name:'qa',cluster_identifier:'same-cluster'}]:strings.join('').includes('partner_qa_identity')?[{realm:'qa',cluster_identifier:'same-cluster'}]:[{database_name:'qa',role_name:'platform_app',privileged:false}]};
+ await assert.rejects(assertQaIsolation({qaDatabase:qa,ownerAuthDatabase:auth,env:{}}),/cluster|isolation/i);
 });

@@ -3225,70 +3225,74 @@
         },
         {
           "id": "action-08",
-          "description": "Confirm I have read this exact issued version."
+          "description": "Activate Download exact text"
         },
         {
           "id": "action-09",
-          "description": "Activate Record read acknowledgment"
+          "description": "Confirm I have read this exact issued version."
         },
         {
           "id": "action-10",
-          "description": "Open origin + '/qa/gigs/' + gig['id']"
+          "description": "Activate Record read acknowledgment"
         },
         {
           "id": "action-11",
-          "description": "Select Action 'accept'"
+          "description": "Open origin + '/qa/gigs/' + gig['id']"
         },
         {
           "id": "action-12",
-          "description": "Activate Save decision"
+          "description": "Select Action 'accept'"
         },
         {
           "id": "action-13",
-          "description": "Open fixture['ownerOrigin'] + '/partners/qa#referrals'"
+          "description": "Activate Save decision"
         },
         {
           "id": "action-14",
-          "description": "Open origin + '/qa/visits/new?gig=' + gig['id']"
+          "description": "Open fixture['ownerOrigin'] + '/partners/qa#referrals'"
         },
         {
           "id": "action-15",
-          "description": "Enter Business name 'QA fictional business ' + str(number)"
+          "description": "Open origin + '/qa/visits/new?gig=' + gig['id']"
         },
         {
           "id": "action-16",
-          "description": "Select Outcome 'accepted_material'"
+          "description": "Enter Business name 'QA fictional business ' + str(number)"
         },
         {
           "id": "action-17",
-          "description": "Select Permission to leave materials 'permission_received'"
+          "description": "Select Outcome 'accepted_material'"
         },
         {
           "id": "action-18",
-          "description": "Enter Samples left '1'"
+          "description": "Select Permission to leave materials 'permission_received'"
         },
         {
           "id": "action-19",
-          "description": "Activate Submit visit"
+          "description": "Enter Samples left '1'"
         },
         {
           "id": "action-20",
-          "description": "Select Action 'submit'"
+          "description": "Activate Submit visit"
         },
         {
           "id": "action-21",
-          "description": "Enter Reason or submission details 'QA ten simulated permitted visits complete.'"
+          "description": "Select Action 'submit'"
         },
         {
           "id": "action-22",
-          "description": "Open origin + '/qa/earnings'"
+          "description": "Enter Reason or submission details 'QA ten simulated permitted visits complete.'"
         },
         {
           "id": "action-23",
-          "description": "Activate Retire selected QA run"
+          "description": "Open origin + '/qa/earnings'"
         },
         {
           "id": "action-24",
+          "description": "Activate Retire selected QA run"
+        },
+        {
+          "id": "action-25",
           "description": "Reload the current page and revalidate its session"
         }
       ],
@@ -3303,6 +3307,8 @@
         "live['items'] == []",
         "page.evaluate(\"async api=>(await fetch(api+'/api/partner/v1/session',{credentials:'include'})).status\", api) == 401",
         "'/qa/agreements' in page.url",
+        "downloaded.suggested_filename.startswith('QA-SIMULATED-')",
+        "Path(downloaded.path()).read_text(encoding='utf-8') == exact",
         "next((p for p in read('ledger')['items'] if p['id'] == payable['id']))['outstandingCents'] == 2500",
         "batch['csv'].startswith('QA SAMPLE — NO LEGAL EFFECT — SIMULATED ACCOUNTING')",
         "read('leads')['items'] == []",
