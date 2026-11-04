@@ -19,6 +19,7 @@ Feature: qa
     When "Open origin + '/qa/gigs/' + gig['id']"
     When "Select Action 'accept'"
     When "Activate Save decision"
+    When "Open fixture['ownerOrigin'] + '/partners/qa#referrals'"
     When "Open origin + '/qa/visits/new?gig=' + gig['id']"
     When "Enter Business name 'QA fictional business ' + str(number)"
     When "Select Outcome 'accepted_material'"

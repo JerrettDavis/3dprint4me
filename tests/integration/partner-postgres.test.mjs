@@ -181,7 +181,7 @@ test('native PostgreSQL 18 enforces permissions, concurrent ceilings, replay and
   const expiring=await own('profile.export',{});
   assert.equal((await purgeExpiredPartnerExports(database,{instant:new Date('2026-10-25T12:00Z')})).purged,1);
   await assert.rejects(app.read(actualPartner,'own-export',{id:expiring.batchId}),{status:410});
-  assert.equal((await financial('legal.seed_templates',{programId})).created,6);
+  assert.equal((await financial('legal.seed_templates',{programId})).created,14);
   const artifact=await financial('legal.export_package',{programId,versionIds:[legal.versionId],reviewers:[{name:'Native synthetic counsel',role:'attorney',scopes:['agreement_language']}],expiresAt:'2026-10-30T12:00:00Z',redactionConfirmed:true,factualBrief:'Synthetic native test.'});
   const packageDownload=await app.read(ownerSession.actor,'review-package',{id:artifact.id});
   assert.equal(digest(Buffer.from(packageDownload.data,'base64')),artifact.sha256);
