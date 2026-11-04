@@ -49,6 +49,14 @@ def test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial():
         page.get_by_role('link',name='Agreements',exact=True).click();assert '/qa/agreements' in page.url
         page.get_by_role('heading',name='Your agreements',exact=True).wait_for()
         capture_partner_qa_step(page,scenario_id='QA-060',step_id='agreements')
+        exact=page.locator('pre.document').first.inner_text()
+        with page.expect_download() as agreement_download:
+            page.get_by_role('button',name='Download exact text',exact=True).first.click()
+        downloaded=agreement_download.value
+        assert downloaded.suggested_filename.startswith('QA-SIMULATED-')
+        from pathlib import Path
+        assert Path(downloaded.path()).read_text(encoding='utf-8')==exact
+
         page.get_by_label('I have read this exact issued version.',exact=True).check()
         page.get_by_role('button',name='Record read acknowledgment',exact=True).click()
         page.get_by_text('Read acknowledgment recorded.',exact=True).wait_for()
@@ -107,3 +115,4 @@ def test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial():
         assert len(read('programs')['items'])==1
         capture_partner_qa_step(owner,scenario_id='QA-060',step_id='retired')
         capture_partner_qa_step(page,scenario_id='QA-060',step_id='session-denied')
+

@@ -23,7 +23,8 @@ export async function qaPostgresFixture(){
  const live=await cluster('partner_live_test'),qa=await cluster('partner_qa_test');
  await live.admin.query('CREATE ROLE partner_qa_auth LOGIN');
  await live.admin.query(await readFile(new URL('../../deploy/platform/partner-qa-auth.sql',import.meta.url),'utf8'));
- await qa.admin.query("CREATE TABLE public.partner_qa_identity(singleton boolean PRIMARY KEY CHECK(singleton),realm text NOT NULL CHECK(realm='qa')); INSERT INTO public.partner_qa_identity VALUES(true,'qa'); REVOKE ALL ON public.partner_qa_identity FROM PUBLIC; GRANT SELECT ON public.partner_qa_identity TO platform_backend");
+ await qa.admin.query("CREATE TABLE public.partner_qa_identity(singleton boolean PRIMARY KEY CHECK(singleton),realm text NOT NULL CHECK(realm='qa'),cluster_identifier text NOT NULL); INSERT INTO public.partner_qa_identity SELECT true,'qa',system_identifier::text FROM pg_control_system(); REVOKE ALL ON public.partner_qa_identity FROM PUBLIC; GRANT SELECT ON public.partner_qa_identity TO platform_backend");
+ await qa.admin.query(await readFile(new URL('../../deploy/platform/partner-qa-identity.sql',import.meta.url),'utf8'));
  const auth=live.connect('partner_qa_auth'),business=qa.connect('platform_app');
  return {live,qa,auth,business,close};
  }catch(error){await close();throw error;}

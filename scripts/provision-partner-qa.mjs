@@ -13,8 +13,12 @@ export async function provisionPartnerQa({qaAdmin,ownerAdmin,apply=false}){
  const recheck=await identity(qaAdmin);if(recheck.cluster!==qa.cluster||recheck.db!==qa.db)throw Error('QA target changed.');
  await qaAdmin.query("REVOKE CREATE ON SCHEMA public FROM PUBLIC; DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='platform_backend') THEN CREATE ROLE platform_backend NOLOGIN; END IF; IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='platform_app') THEN CREATE ROLE platform_app LOGIN IN ROLE platform_backend; END IF; END $$; GRANT USAGE ON SCHEMA public TO platform_backend");
  await qaAdmin.query("CREATE TABLE IF NOT EXISTS public.partner_qa_identity(singleton boolean PRIMARY KEY CHECK(singleton),realm text NOT NULL CHECK(realm='qa')); INSERT INTO public.partner_qa_identity VALUES(true,'qa') ON CONFLICT DO NOTHING; REVOKE ALL ON public.partner_qa_identity FROM PUBLIC");
+ await qaAdmin.query('ALTER TABLE public.partner_qa_identity ADD COLUMN IF NOT EXISTS cluster_identifier text');
+ await qaAdmin.query('UPDATE public.partner_qa_identity SET cluster_identifier=$1 WHERE singleton=true',[qa.cluster]);
+ await qaAdmin.query('ALTER TABLE public.partner_qa_identity ALTER COLUMN cluster_identifier SET NOT NULL');
  for(const migration of MIGRATIONS)for(const sql of splitStatements(await readFile(new URL('../neon/migrations/'+migration,import.meta.url),'utf8')))await qaAdmin.query(sql);
  await qaAdmin.query('REVOKE ALL ON public.partner_qa_identity FROM platform_backend; GRANT SELECT ON public.partner_qa_identity TO platform_backend');
+ await qaAdmin.query(await readFile(new URL('../deploy/platform/partner-qa-identity.sql',import.meta.url),'utf8'));
  await ownerAdmin.query("DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='partner_qa_auth') THEN CREATE ROLE partner_qa_auth LOGIN NOINHERIT; END IF; END $$");
  await ownerAdmin.query(await readFile(new URL('../deploy/platform/partner-qa-auth.sql',import.meta.url),'utf8'));
  return {ok:true,phase:'apply',qaDatabase:qa.db};

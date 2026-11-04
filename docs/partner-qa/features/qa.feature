@@ -14,6 +14,7 @@ Feature: qa
     When "Enter Choose a passphrase 'Synthetic QA private passphrase'"
     When "Activate Set passphrase and continue"
     When "Activate Agreements"
+    When "Activate Download exact text"
     When "Confirm I have read this exact issued version."
     When "Activate Record read acknowledgment"
     When "Open origin + '/qa/gigs/' + gig['id']"

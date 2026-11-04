@@ -13,7 +13,7 @@
     "dev:workspace": "node scripts/dev-workspace.mjs",
     "operator:build": "node scripts/build-operator-auth.mjs",
     "assets:version": "node scripts/version-assets.mjs",
-    "validate": "node scripts/build-review-reader.mjs --check && node scripts/version-assets.mjs --check && node scripts/validate.mjs",
+    "validate": "node scripts/build-partner-qa-shell.mjs --check && node scripts/build-review-reader.mjs --check && node scripts/version-assets.mjs --check && node scripts/validate.mjs",
     "test:e2e": "python -m pytest tests/e2e -q",
     "audit": "python tests/audit/audit.py",
     "screenshots": "python scripts/capture_screenshots.py",
@@ -28,7 +28,8 @@
     "test:partner:postgres": "node --test tests/integration/partner-postgres.test.mjs tests/integration/partner-release-rehearsal.test.mjs tests/integration/partner-qa-postgres.test.mjs",
     "test:partner:browser": "python -m pytest tests/integration/test_partner_native_browser.py tests/integration/test_partner_budget_browser.py tests/integration/test_partner_auth_browser.py tests/integration/test_partner_gig_browser.py tests/integration/test_partner_consent_referral_browser.py tests/integration/test_partner_forecast_browser.py tests/integration/test_partner_statement_browser.py tests/integration/test_partner_owner_control_browser.py tests/integration/test_partner_ledger_browser.py tests/integration/test_partner_legal_acceptance_browser.py tests/integration/test_partner_materials_browser.py -q tests/integration/test_partner_qa_browser.py",
     "review:reader:build": "node scripts/build-review-reader.mjs",
-    "validate:partner:qa": "node scripts/validate-partner-qa-evidence.mjs"
+    "validate:partner:qa": "node scripts/validate-partner-qa-evidence.mjs",
+    "partner:qa:build": "node scripts/build-partner-qa-shell.mjs"
   },
   "homepage": "https://3dprint4.me",
   "keywords": [
