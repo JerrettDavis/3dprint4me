@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-028",
+  "stepId": "final-1",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_legal_acceptance_browser.py::test_native_review_package_excludes_unrelated_private_records_and_denies_anonymous_download",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "theme": "light",
+  "screenshot": "../screenshots/QA-028-final-1-1440-light.png",
+  "sha256": "838b307ed6bf52d7ba0cbce65ec9e6a2b22c3d6ef01e3b41b38a53ff314c0c8b",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

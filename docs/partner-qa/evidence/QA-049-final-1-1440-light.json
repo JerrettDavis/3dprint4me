@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-049",
+  "stepId": "final-1",
+  "runId": "native-20261103-final-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
+  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
+  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_optional_activity_partner_can_track_and_delete_own_elapsed_record",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "theme": "light",
+  "screenshot": "../screenshots/QA-049-final-1-1440-light.png",
+  "sha256": "5698b40f5ed292cb340554f516bb5bd07c106787006fe6ada9ae67e9fbdb82b7",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

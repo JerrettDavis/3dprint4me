@@ -9,8 +9,8 @@ All fifteen canonical sources are nonissuable. Seeding never overwrites owner ed
 - [PROPOSED Personal Bicycle Assistance Acknowledgment](bicycle-gift-acknowledgment.md) — attorney, cpa review pending.
 - [PROPOSED Permitted Outreach and Safety Policy](field-marketing-policy.md) — attorney review pending.
 - [PROPOSED Business Contact Follow-Up Consent Language](lead-privacy-consent.md) — attorney review pending.
-- [DRAFT FOR PROFESSIONAL REVIEW ONLY / NONBINDING**](review-cover-letter.md) — attorney review pending.
-- [DRAFT FOR PROFESSIONAL REVIEW ONLY / NONBINDING**](cpa-cover-letter.md) — cpa review pending.
+- [Attorney review cover letter](review-cover-letter.md) — attorney review pending.
+- [CPA review cover letter](cpa-cover-letter.md) — cpa review pending.
 - [Representative Partner onboarding and secure information handoff](partner-onboarding-checklist.md) — attorney, cpa review pending.
 - [Representative Referral and qualified-lead bonus schedule](referral-bonus-schedule.md) — attorney, cpa review pending.
 - [Representative Promotional materials custody and return record](materials-custody-record.md) — attorney review pending.
