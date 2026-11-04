@@ -143,3 +143,13 @@ participant deployment remains `3dprint4me-partners-pnlplgzco` with unchanged
 participant bytes. All 98 static files match the final archive. The full hosted
 pipeline remains a separate pending check; its earlier run passed 435 Linux
 browser cases before reporting the now-corrected owner viewport failure.
+
+Final release verification, November 4: the complete hosted pipeline for source
+`6d055960afc4a47b407e28d791ab5a87023f61e8` subsequently passed 1,280 unit/contract
+tests, 436 Linux browser tests, all 60 native workflows, 241 UX checks and the
+168-screenshot capture. PR 61 is merged. Main and the canonical handbook branch
+then reached `ab164315242e256055e26d079b45c4b97bbfde86`, including PR 62's bounded
+Pages deployment timeout correction. The Pages workflow succeeded, public build
+identity matched that commit, and all 182 reviewed public images matched their
+publication checksums. The public home page, partner guide images and scenario
+catalog rendered successfully. These results supersede the pending check above.
