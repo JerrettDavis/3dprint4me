@@ -28,6 +28,15 @@ Push reviewed source changes to `docs-source`. The **Publish handbook** workflow
 
 The [online maintenance guide](https://jerrettdavis.github.io/3dprint4me/developers/documentation/) covers the workflow and rollback. `build-info.json` on the public site identifies the actual deployed source. [Verification artifacts](verification/) distinguish hosted observations from local screenshots. Screenshots named for the OS theme may show the opposite manual theme after the theme-switch check.
 
+Pages deployment has a 30-minute action deadline inside a 35-minute job limit.
+The November 4 rollout reached `updating_pages` but was canceled by the action's
+ten-minute default before the new source became public. The longer bounded wait
+preserves failure reporting and cancellation at its deadline. A successful build
+or an accepted deployment does not prove publication: verify the public
+`build-info.json` source and reviewed image hashes after deployment completes.
+The automatic retry of that same build version immediately reported cancellation;
+the next attempt uses the new committed workflow version.
+
 ## November 3 verified screenshot revision
 
 [Release record](verification/release.json): deployed source `d97f68dace547c4d66551c4af804eb9b2eb102e2`, [successful Pages workflow](https://github.com/JerrettDavis/3dprint4me/actions/runs/41777149454). All 20 guide states have real desktop 1440 × 810 and phone 390 × 520 captures. The site presents 94 paired comparisons, side by side on wide screens and stacked on phones. Native BDD previews are bounded and labeled excerpts; their 142 original PNGs remain unchanged.
