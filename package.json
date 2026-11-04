@@ -29,7 +29,9 @@
     "test:partner:browser": "python -m pytest tests/integration/test_partner_native_browser.py tests/integration/test_partner_budget_browser.py tests/integration/test_partner_auth_browser.py tests/integration/test_partner_gig_browser.py tests/integration/test_partner_consent_referral_browser.py tests/integration/test_partner_forecast_browser.py tests/integration/test_partner_statement_browser.py tests/integration/test_partner_owner_control_browser.py tests/integration/test_partner_ledger_browser.py tests/integration/test_partner_legal_acceptance_browser.py tests/integration/test_partner_materials_browser.py -q tests/integration/test_partner_qa_browser.py",
     "review:reader:build": "node scripts/build-review-reader.mjs",
     "validate:partner:qa": "node scripts/validate-partner-qa-evidence.mjs",
-    "partner:qa:build": "node scripts/build-partner-qa-shell.mjs"
+    "partner:qa:build": "node scripts/build-partner-qa-shell.mjs",
+    "docs:build": "python scripts/build-docs.py",
+    "docs:check": "python scripts/validate-docs.py"
   },
   "homepage": "https://3dprint4.me",
   "keywords": [

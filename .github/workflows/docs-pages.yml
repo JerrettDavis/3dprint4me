@@ -1,0 +1,61 @@
+name: Publish handbook
+
+on:
+  push:
+    branches: [docs-source, main]
+    paths:
+      - 'docs-site/**'
+      - 'docs/**'
+      - 'scripts/build-docs.py'
+      - 'scripts/validate-docs.py'
+      - 'mkdocs.yml'
+      - 'requirements-docs.txt'
+      - '.github/workflows/docs-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: documentation-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-docs.txt
+      - run: python -m pip install -r requirements-docs.txt
+      - run: python scripts/build-docs.py
+      - run: python scripts/validate-docs.py
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m unittest tests.integration.test_docs_site
+      - run: python -m pytest tests/integration/test_docs_site_browser.py -q
+      - uses: actions/upload-artifact@v7
+        with:
+          name: handbook-browser-screenshots
+          path: docs-site/verification
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: public/handbook
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/docs-source' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v6
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5

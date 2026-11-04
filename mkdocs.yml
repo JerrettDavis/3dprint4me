@@ -1,0 +1,70 @@
+site_name: 3dprint4.me handbook
+site_description: Illustrated guides for customers, operators, partners, QA testers and developers.
+site_url: https://jerrettdavis.github.io/3dprint4me/
+docs_dir: .docs-source
+site_dir: public/handbook
+use_directory_urls: true
+theme:
+  name: material
+  font: false
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: '(prefers-color-scheme)'
+      toggle: {icon: material/brightness-auto, name: Switch to light mode}
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle: {icon: material/brightness-7, name: Switch to dark mode}
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle: {icon: material/brightness-4, name: Switch to system preference}
+plugins:
+  - search
+extra_css: [assets/handbook.css]
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc: {permalink: true}
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+validation:
+  nav: {omitted_files: info}
+  links: {anchors: info, unrecognized_links: info}
+nav:
+  - Start here:
+    - Welcome: index.md
+    - Getting started: getting-started.md
+  - User guides:
+    - Request a project: guides/customer.md
+    - Work inbox: guides/work.md
+    - Partner administration: guides/owner.md
+    - Partner portal: guides/partner.md
+    - Live QA and representative forms: guides/qa.md
+    - Troubleshooting: guides/troubleshooting.md
+  - Developers:
+    - Local setup: developers/index.md
+    - Architecture: reference/ARCHITECTURE.md
+    - Customizers: reference/GENERATORS.md
+    - Print estimation: reference/PRINT-ESTIMATION.md
+    - Partner API: reference/PARTNER-API.md
+    - Testing and BDD: developers/testing.md
+    - Deploy and recover: developers/deployment.md
+    - Maintain this handbook: developers/documentation.md
+  - Reference:
+    - Reference library: reference/index.md
+    - Forms catalog: reference/partner-qa/forms/README.md
+    - BDD scenario catalog: bdd.md
