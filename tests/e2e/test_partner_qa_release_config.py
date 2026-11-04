@@ -17,3 +17,9 @@ def test_host_preflight_uses_the_verified_release_compose_path():
     source=(Path(__file__).resolve().parents[2]/'deploy/platform/partner-qa-host.py').read_text(encoding='utf-8')
     assert "str(source/'deploy/platform/compose.yml')" in source
     assert "ROOT/'source/deploy/platform/compose.yml'" not in source
+
+
+def test_existing_nonnull_cluster_identity_is_not_reinserted_on_upgrade():
+    source=(Path(__file__).resolve().parents[2]/'deploy/platform/partner-qa-host.py').read_text(encoding='utf-8')
+    assert "INSERT INTO partner_qa_identity(singleton,realm) SELECT true,'qa' WHERE NOT EXISTS" in source
+    assert "INSERT INTO partner_qa_identity VALUES" not in source
