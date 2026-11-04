@@ -11,6 +11,9 @@ on:
       - 'scripts/validate-docs.py'
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
+      - 'requirements-dev.txt'
+      - 'tests/integration/test_docs_site*.py'
+      - 'tests/support/browser_harness.py'
       - '.github/workflows/docs-pages.yml'
   workflow_dispatch:
 
