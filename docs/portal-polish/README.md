@@ -17,7 +17,7 @@ Small corners soften editable controls; record lists keep meaningful separators 
 
 ## Verification
 
-`tests/e2e/test_portal_polish.py` covers six surfaces at 390-pixel dark/reduced-motion and 1440-pixel light/normal-motion settings. It verifies document overflow, usable control sizes, visible keyboard focus, real success-icon CSS rendering, QA tool presentation and motion preferences. The screenshots below use synthetic presentation fixtures; they do not claim actual professional review or prove native persistence.
+`tests/e2e/test_portal_polish.py` covers six surfaces at 390-pixel dark/reduced-motion and 1440-pixel light/normal-motion settings. It verifies document overflow, usable control sizes, visible keyboard focus, real success-icon CSS rendering, QA tool presentation and motion preferences. Every surface also selects a manual theme opposite to the operating system and verifies the native control palette follows that choice. The screenshots below use synthetic presentation fixtures; they do not claim actual professional review or prove native persistence.
 
 The existing responsive navigation, offline/PWA and old-worker upgrade suite passed 28 cases. A further QA access/pending/retry test verifies that controls remain hidden and disabled until owner access is verified, show busy feedback during a request and recover after a sanitized temporary error. Its status region stays outside the busy group for immediate announcements. Full project checks, refreshed native BDD evidence and deployment verification are recorded after final verification.
 

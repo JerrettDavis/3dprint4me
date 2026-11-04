@@ -41,3 +41,6 @@ footer{padding-block:2rem;margin-top:1rem}.message{padding:1.25rem;border-radius
 @media(max-width:700px){main{padding:2rem 1.25rem}.sheet{padding-block:1.75rem}.workspace-secondary,.settlement-summary{gap:1.75rem}.qa-banner{margin-block:1.25rem}h1{font-size:clamp(2.25rem,9vw,3rem)}}
 @keyframes partner-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:no-preference){button,.button,nav a,input,select,textarea{transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}button:hover:not(:disabled),.button:hover{transform:translateY(-1px)}button:active:not(:disabled),.button:active{transform:none}main>h1,.message:not([hidden]){animation:partner-enter .2s ease-out both}}
+
+/* Manual themes also select the matching native control palette. */
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
