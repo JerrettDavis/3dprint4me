@@ -4,11 +4,11 @@
   "rewrites": [
     {
       "source": "/qa",
-      "destination": "/qa.html"
+      "destination": "/qa"
     },
     {
       "source": "/qa/:path*",
-      "destination": "/qa.html"
+      "destination": "/qa"
     },
     {
       "source": "/visits/new",
