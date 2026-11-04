@@ -128,3 +128,18 @@ independent measured dimensions and therefore does not establish live phone-size
 acceptance. Phone, short-window, light/dark, reduced-motion and keyboard behavior
 are verified by the automated fixture/native runs and their actual-size captures.
 The live checks establish authenticated routes, page focus and served-byte parity.
+
+Final focus-margin follow-up: source `6d055960afc4a47b407e28d791ab5a87023f61e8`
+adds vertical focus scroll margins to the owner links and advances its cache to
+v35. GitHub's Ubuntu 24.04 runner passes all 45 focused workspace checks against
+that source merged with current main; an isolated Ubuntu/Node 22/Chromium run also
+passes all 45. Viewport assertions remain strict in both tab directions. The full
+local suite passes 1,280 unit/contract checks, 435 browser cases with one existing
+Windows skip, and 241 UX checks. All 60 native workflows pass, with 142 validated
+captures from `workspace-release-20261104-05` and an inspected contact sheet.
+
+Owner deployment `3dprint4me-operator-441f33xj4` serves that committed source;
+participant deployment remains `3dprint4me-partners-pnlplgzco` with unchanged
+participant bytes. All 98 static files match the final archive. The full hosted
+pipeline remains a separate pending check; its earlier run passed 435 Linux
+browser cases before reporting the now-corrected owner viewport failure.

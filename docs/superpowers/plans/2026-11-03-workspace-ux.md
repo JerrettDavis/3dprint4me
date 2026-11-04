@@ -47,3 +47,10 @@ build, links and five documentation contract/browser checks pass. Both frontends
 the guarded native release and restore-monitor correction are deployed; see the
 dated UI and infrastructure records. Main integration and Pages publication await
 their hosted release checks.
+
+The final owner focus-margin correction is source
+`6d055960afc4a47b407e28d791ab5a87023f61e8`: 45 focused checks pass on both
+GitHub Ubuntu and isolated Linux, all full local counts remain green, and native
+run `workspace-release-20261104-05` passes 60 cases with 142 validated captures.
+The v35 owner deployment matches the archive. Actual main integration and Pages
+publication are verified separately from these source checks.
