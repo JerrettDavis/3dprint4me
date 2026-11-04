@@ -5,6 +5,35 @@ import { publicSnapshot, privateSnapshot, validateHeartbeat, probeServices, upda
 import worker, { StatusState } from '../../status/worker.js';
 
 const now=1800000000000;
+test('signed functional checks provide dated capabilities without treating configuration as health',async()=>{
+  const verified=now-4*3600000;
+  const details={verifiedProvider:'postgres',filesVerifiedAt:verified,estimatesVerifiedAt:verified,emailVerifiedAt:verified};
+  const secret='f'.repeat(64),body=JSON.stringify({observedAt:now,nonce:'a'.repeat(32),details});
+  const signature=createHmac('sha256',secret).update('/heartbeat/control\n'+body).digest('hex');
+  const control=await validateHeartbeat({kind:'control',body,signature,secret,now});
+  const state={probes:{api:{ok:true,status:'operational',provider:'postgres',checkedAt:now}},platform:{observedAt:now,details:{provider:'postgres',database:true,jobs:true,files:null,estimates:null,email:null}},control};
+  const capability=(id,s=state)=>publicSnapshot(s,now).components.find(x=>x.id===id);
+  for(const id of ['files','estimates','email']){
+    const result=capability(id);
+    assert.equal(result.status,'operational');assert.equal(result.verifiedAt,verified);
+    assert.equal(result.validUntil,verified+86400000);assert.equal(result.checkedAt,now);
+    assert.equal(capability(id,{...state,control:undefined}).status,'unknown');
+    for(const value of [now-86400001,now+31000])assert.equal(capability(id,{...state,control:{...control,details:{...details,[id+'VerifiedAt']:value}}}).status,'unknown');
+    assert.equal(capability(id,{...state,control:{...control,details:{...details,verifiedProvider:'neon'}}}).status,'unknown');
+    assert.equal(capability(id,{...state,control:{...control,observedAt:now-86400001}}).status,'unknown');
+    assert.equal(capability(id,{...state,platform:{...state.platform,details:{...state.platform.details,[id]:false}}}).status,'unavailable');
+    assert.equal(capability(id,{...state,platform:{...state.platform,observedAt:now-720001}}).status,'unknown');
+    assert.equal(capability(id,{...state,probes:{api:{...state.probes.api,ok:false,status:'unavailable'}}}).status,'unknown');
+    assert.equal(capability(id,{...state,platform:{...state.platform,details:{...state.platform.details,database:false}}}).status,'unknown');
+  }
+  assert.equal(capability('estimates',{...state,platform:{...state.platform,details:{...state.platform.details,jobs:false}}}).status,'unknown');
+  assert.equal(capability('estimates',{...state,platform:{...state.platform,details:{...state.platform.details,files:false}}}).status,'unknown');
+  assert.equal(capability('files',{...state,probes:{api:{...state.probes.api,checkedAt:now-720001}}}).status,'unknown');
+  assert.equal(capability('files',{...state,probes:{api:{...state.probes.api,provider:'neon'}}}).status,'unknown');
+  assert.equal(capability('files',{...state,probes:{api:{...state.probes.api,checkedAt:now-11*60000}}}).checkedAt,now-11*60000,'Open tabs must expire the oldest prerequisite');
+  assert.equal(capability('files',{...state,control:{...control,observedAt:now-23*3600000}}).validUntil,now+3600000,'Open tabs must also expire the control container');
+  assert.ok(!JSON.stringify(publicSnapshot(state,now)).includes('verifiedProvider'));
+});
 test('restore evidence survives daily control expiry without refreshing billing or manual checks',async()=>{
   const secret='a'.repeat(64);
   const body=JSON.stringify({observedAt:now,nonce:'b'.repeat(32),details:{restoreVerifiedAt:now,neonPlan:'free',neonVerifiedAt:now,neonOffloaded:true,sourceQuiet:true,backupUnattended:true,offsiteVerified:true,credentialsReady:true,ownerLoginVerified:true,cutoverVerified:true}});
@@ -70,6 +99,8 @@ test('status transport denies private and internal routes; actor persists replay
   assert.equal(calls,1);calls=0;
   const publicResponse=await worker.fetch(new Request('https://status.example/api/public',{headers:{origin:'https://evil.example'}}),env);
   assert.equal(publicResponse.headers.get('access-control-allow-origin'),null);assert.equal(calls,1);
+  const alternate=await worker.fetch(new Request('https://status.example/api/public',{headers:{origin:'https://3dprint4me-status.vercel.app'}}),env);
+  assert.equal(alternate.headers.get('access-control-allow-origin'),'https://3dprint4me-status.vercel.app');
   const records=new Map();const ctx={storage:{get:async k=>records.get(k),put:async(k,v)=>records.set(k,v)},blockConcurrencyWhile:fn=>fn()};
   const secret='c'.repeat(64),time=Date.now();
   const actor=new StatusState(ctx,{STATUS_PLATFORM_SECRET:secret});

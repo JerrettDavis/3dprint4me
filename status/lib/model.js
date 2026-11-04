@@ -1,15 +1,26 @@
 export const STALE_MS=12*60000;
+export const FUNCTIONAL_MS=24*3600000;
 const fresh=(record,now,age=STALE_MS)=>Number.isFinite(record?.observedAt??record?.checkedAt)&&now-(record.observedAt??record.checkedAt)<=age&&(record.observedAt??record.checkedAt)<=now+30000;
 const names={storefront:'Storefront',operator:'Work inbox',api:'Request API',auth:'Operator sign-in',requests:'Project requests',files:'Private uploads',estimates:'Print estimates',email:'Request receipts'};
 const stateOf=(value)=>value===true?'operational':value===false?'unavailable':'unknown';
 export function publicSnapshot(state={},now=Date.now()) {
   const platform=fresh(state.platform,now)?state.platform.details:{};
+  const control=fresh(state.control,now,FUNCTIONAL_MS)?state.control.details:{};
+  const functionalScopes={files:'Verified private upload and read',estimates:'Completed model and slicer check',email:'Owner-confirmed delivery'};
   const components=Object.entries(names).map(([id,name])=>{
     const probe=state.probes?.[id];
     let status=probe?(fresh(probe,now)?probe.status??stateOf(probe.ok):'unknown'):
       stateOf(id==='requests'?(platform.database===true?true:platform.database):platform[id]);
-    if(['requests','files','estimates','email','auth'].includes(id)&&(!fresh(state.probes?.api,now)||state.probes.api.provider!==platform.provider))status='unknown';
-    return {id,name,status,checkedAt:probe?.checkedAt??state.platform?.observedAt??null};
+    const api=state.probes?.api;
+    let functional;
+    const verifiedAt=control[id+'VerifiedAt'];
+    if(functionalScopes[id]&&platform[id]===null&&platform.database===true&&
+      api?.ok===true&&(!api.status||api.status==='operational')&&control.verifiedProvider===platform.provider&&
+      fresh({observedAt:verifiedAt},now,FUNCTIONAL_MS)&&(id!=='estimates'||platform.jobs===true&&platform.files!==false)) {
+      status='operational';functional={verifiedAt,validUntil:Math.min(verifiedAt+FUNCTIONAL_MS,state.control.observedAt+FUNCTIONAL_MS),scope:functionalScopes[id]};
+    }
+    if(['requests','files','estimates','email','auth'].includes(id)&&(!fresh(api,now)||api.provider!==platform.provider))status='unknown';
+    return {id,name,status,checkedAt:functional?Math.min(state.platform.observedAt,api.checkedAt):probe?.checkedAt??state.platform?.observedAt??null,...functional};
   });
   // Provider reachability is never proof that a complete owner sign-in works.
   components.find(x=>x.id==='auth').scope='GitHub-reported API service status; owner sign-in verified separately';
@@ -49,7 +60,7 @@ export function privateSnapshot(state={},now=Date.now()) {
 const schemas={
   platform:{database:'boolean',provider:['postgres','neon','unknown'],email:[true,false,null],files:[true,false,null],estimates:[true,false,null],jobs:'boolean',diskFreePercent:'number',memoryUsedPercent:'number',restarts:'number'},
   backup:{success:'boolean',copied:'boolean'},
-  control:{neonPlan:['free','paid','unknown'],neonOffloaded:'boolean',neonVerifiedAt:'number',sourceQuiet:'boolean',restoreVerifiedAt:'number',offsiteVerified:'boolean',alertsConfigured:'boolean',credentialsReady:'boolean',ownerLoginVerified:'boolean',cutoverVerified:'boolean',backupUnattended:'boolean'}
+  control:{neonPlan:['free','paid','unknown'],neonOffloaded:'boolean',neonVerifiedAt:'number',sourceQuiet:'boolean',restoreVerifiedAt:'number',offsiteVerified:'boolean',alertsConfigured:'boolean',credentialsReady:'boolean',ownerLoginVerified:'boolean',cutoverVerified:'boolean',backupUnattended:'boolean',verifiedProvider:['postgres','neon'],filesVerifiedAt:'number',estimatesVerifiedAt:'number',emailVerifiedAt:'number'}
 };
 export async function validateHeartbeat({kind,body,signature,secret,now=Date.now(),lastObservedAt=0}) {
   if(!schemas[kind]||typeof body!=='string'||new TextEncoder().encode(body).length>16384||!secret||secret.length<48||!/^[a-f0-9]{64}$/.test(signature??''))throw new Error('Invalid evidence.');

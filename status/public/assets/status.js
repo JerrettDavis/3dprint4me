@@ -9,14 +9,15 @@ let snapshot,busy=false;
 const stamp=value=>Number.isFinite(value)?new Date(value).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'}):'Not recorded';
 function draw(){
   if(!snapshot)return;
-  const now=Date.now(),components=snapshot.components.slice(0,12).map(component=>({...component,status:Number.isFinite(component.checkedAt)&&now-component.checkedAt<=720000&&component.checkedAt<=now+30000&&states[component.status]?component.status:'unknown'}));
+  const now=Date.now(),components=snapshot.components.slice(0,12).map(component=>({...component,status:Number.isFinite(component.checkedAt)&&now-component.checkedAt<=720000&&component.checkedAt<=now+30000&&
+    (component.validUntil===undefined||Number.isFinite(component.validUntil)&&Number.isFinite(component.verifiedAt)&&component.verifiedAt<=now+30000&&component.validUntil-component.verifiedAt<=86400000&&component.validUntil>=now)&&states[component.status]?component.status:'unknown'}));
   const values=components.map(x=>x.status),overall=values.includes('unavailable')?'unavailable':values.includes('degraded')?'degraded':values.includes('unknown')||!values.length?'unknown':'operational';
   document.querySelector('.summary').dataset.state=overall;
   document.querySelector('#summary-title').textContent=summaries[overall];
   document.querySelector('#summary').textContent=overall==='unknown'?'A service is missing fresh evidence. Unverified checks stay visible.':'Based on dated checks from the independent monitor.';
   document.querySelector('#checked').textContent='Last scheduled check · '+stamp(snapshot.checkedAt);
   const list=document.querySelector('#components');list.replaceChildren();
-  for(const component of components){const row=document.createElement('li'),name=document.createElement('span'),badge=document.createElement('span');row.dataset.status=component.status;name.className='service-name';name.textContent=String(component.name).slice(0,120);badge.className='badge';badge.textContent=states[component.status];if(component.scope){const scope=document.createElement('small');scope.className='scope';scope.textContent=String(component.scope).slice(0,120);name.append(scope);}row.append(name,badge);list.append(row);}
+  for(const component of components){const row=document.createElement('li'),name=document.createElement('span'),badge=document.createElement('span');row.dataset.status=component.status;name.className='service-name';name.textContent=String(component.name).slice(0,120);badge.className='badge';badge.textContent=states[component.status];if(component.scope){const scope=document.createElement('small');scope.className='scope';scope.textContent=String(component.scope).slice(0,120)+(Number.isFinite(component.verifiedAt)?' · '+stamp(component.verifiedAt):'');name.append(scope);}row.append(name,badge);list.append(row);}
   const history=document.querySelector('#history');history.replaceChildren();
   for(const day of (snapshot.history??[]).slice(-30)){const bar=document.createElement('span');bar.dataset.failed=String(day.failed>0);bar.title=`${day.day}: ${day.checks} checks, ${day.failed} with a failure`;bar.setAttribute('aria-label',bar.title);history.append(bar);}
   if(!history.childElementCount){const text=document.createElement('p');text.textContent='History will appear as scheduled checks arrive.';history.append(text);}

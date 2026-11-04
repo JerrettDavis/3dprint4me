@@ -6,6 +6,10 @@ https://3dprint4me-operations.vercel.app. Neither uses local PostgreSQL or
 Authentik for rendering or sign-in. Vercel/Cloudflare remain shared providers;
 this is independence from the local host/ISP, not full provider independence.
 
+Both documented public origins are explicitly allowed to read the Worker's
+public snapshot through CORS. Unrecognized origins receive no CORS grant;
+private operations still requires its independent authentication boundary.
+
 The separate Vercel status project publishes only `status/public/`. The separate
 operations project publishes only `status/operations/public/` plus its fixed
 server function. Protect **all deployments** of the operations project using
@@ -29,6 +33,19 @@ This is provider-reported status, not proof of full owner sign-in. Application c
 database provider matches production's health response; candidate health alone
 cannot turn production green. Two failures open incidents; two successes clear
 them. Twelve-minute staleness is calculated both server-side and in an open tab.
+
+Configured capabilities remain unknown until functional evidence exists. Signed
+control reports may contain `verifiedProvider` (`postgres` or `neon`) and actual
+`filesVerifiedAt`, `estimatesVerifiedAt`, `emailVerifiedAt` timestamps. These name
+a successful private upload/read, completed model/slicer check, and confirmed
+receipt delivery respectively. They expire after 24 hours from the actual check,
+not arrival of a later heartbeat. Public status shows the check's date and scope.
+Fresh platform/database and production API evidence must still agree on the
+verified provider; failed prerequisites are never overridden. Estimates also need
+healthy jobs. Open tabs expire both current telemetry and functional acceptance.
+Never populate these fields from configuration alone or renew them without
+repeating the functional check. Automated collection does not send diagnostic
+emails; new manual diagnostic delivery still requires owner authorization.
 
 `POST /heartbeat/platform`, `/backup` and `/control` each use a separate secret.
 Send JSON `{observedAt,nonce,details}` with an HMAC-SHA256 hex

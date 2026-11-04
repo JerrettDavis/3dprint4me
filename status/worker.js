@@ -65,7 +65,7 @@ export default {
       const response=await stub.fetch(path==='/operations-reader'?new Request('https://status.internal/operations'):request);
       if(path==='/api/public') {
         const headers=new Headers(response.headers),origin=request.headers.get('origin');
-        const allowed=['https://status.3dprint4.me',...(env.DASHBOARD_ORIGINS??'').split(',')];
+        const allowed=['https://status.3dprint4.me','https://3dprint4me-status.vercel.app',...(env.DASHBOARD_ORIGINS??'').split(',')];
         if(allowed.includes(origin)){headers.set('Access-Control-Allow-Origin',origin);headers.set('Vary','Origin');}
         return new Response(response.body,{status:response.status,headers});
       }
