@@ -76,3 +76,8 @@ partner `dpl_52pR4hqKw3SUAcorMJbNWj4Fivzu`, owner
 Private local proofs are `partner-polish-live-proof.json`,
 `partner-polish-live-browser-proof.json` and the named test/capture/deployment logs
 in the session temporary directory. They contain no authentication credentials.
+
+
+## November 3, 2026 portal spacing and motion release
+
+Source `a72c529d88700d40e6d4dadb2f7e553c97050899` polishes work, owner, QA, participant and offline review surfaces. See the [release guide, populated screenshots and verification](portal-polish/README.md). Production owner deployment is `3dprint4me-operator-pof9s29zh`; participant deployment is `3dprint4me-partners-ckwm59bg1`. Worker versions are v32 / v9 / v3 (work / participant / QA participant). The API, database, actual approval flags and launch settings were unchanged.

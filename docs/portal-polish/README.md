@@ -19,7 +19,7 @@ Small corners soften editable controls; record lists keep meaningful separators 
 
 `tests/e2e/test_portal_polish.py` covers six surfaces at 390-pixel dark/reduced-motion and 1440-pixel light/normal-motion settings. It verifies document overflow, usable control sizes, visible keyboard focus, real success-icon CSS rendering, QA tool presentation and motion preferences. Every surface also selects a manual theme opposite to the operating system and verifies the native control palette follows that choice. The screenshots below use synthetic presentation fixtures; they do not claim actual professional review or prove native persistence.
 
-The existing responsive navigation, offline/PWA and old-worker upgrade suite passed 28 cases. A further QA access/pending/retry test verifies that controls remain hidden and disabled until owner access is verified, show busy feedback during a request and recover after a sanitized temporary error. Its status region stays outside the busy group for immediate announcements. Full project checks, refreshed native BDD evidence and deployment verification are recorded after final verification.
+The existing responsive navigation, offline/PWA and old-worker upgrade suite passed 28 cases. A further QA access/pending/retry test verifies that controls remain hidden and disabled until owner access is verified, show busy feedback during a request and recover after a sanitized temporary error. Its status region stays outside the busy group for immediate announcements. Full project checks passed 1,277 unit tests, 408 E2E tests (one existing Windows skip), and 241 UX checks. The final focused release suite passed 26 cases. The refreshed native BDD suite passed all 60 scenarios; its 142 redacted image records and 60 documentation mappings validate. The complete 168-image screenshot matrix was regenerated and its preview board visually inspected. An independent source review found no critical or important issues.
 
 ## Rendered examples
 
@@ -30,7 +30,9 @@ The existing responsive navigation, offline/PWA and old-worker upgrade suite pas
 - Participant QA profile: [phone](screenshots/partner-qa-390-dark.png), [desktop](screenshots/partner-qa-1440-light.png).
 - Offline review: [phone](screenshots/review-390-dark.png), [desktop](screenshots/review-1440-light.png).
 
-Production verification is pending for this polish pass. The prior production QA release remains documented in [the QA guide](../partner-qa/README.md).
+Production release source is `a72c529d88700d40e6d4dadb2f7e553c97050899`. Owner deployment: `3dprint4me-operator-pof9s29zh`; participant deployment: `3dprint4me-partners-ckwm59bg1`. Both existing production aliases serve the release. [Static production proof](hosted/static-proof.json) verifies eight HTML/assets against raw committed bytes, private source paths returning 404 and the QA CSP. Worker versions are work v32, participant v9 and QA participant v3.
+
+Actual GitHub owner sign-in was verified in production. The [authenticated QA screenshot](hosted/owner-qa-authenticated.png) shows the owner controls, persistent QA warning and an existing retired synthetic program. This check performed no business mutation. The earlier complete hosted workflow smoke and its separate backend release remain documented in [the QA guide](../partner-qa/README.md). No new attorney/CPA approval, real work or payment was created by this UI release.
 
 ## Populated workflow samples
 
@@ -66,3 +68,8 @@ The [capture inventory](populated-captures.json) records dimensions and checksum
 - [offline review unlocked dark](screenshots/populated/offline-review-unlocked-dark.png)
 
 QA feedback samples: [owner access required](screenshots/owner-qa-access-required.png), [operation pending](screenshots/owner-qa-busy.png), [retry available](screenshots/owner-qa-retry.png).
+
+
+## Live responsive verification
+
+[Hosted UI observations](hosted/ui-proof.json) record all six anonymous production surfaces at 390 and 1440 pixels: no horizontal document overflow, controls at least 44 pixels high, visible keyboard focus, no uncaught page errors, and manual light/dark themes opposite the OS with matching native control palettes. Each observation links its screenshot and checksum. These anonymous checks complement the actual authenticated owner check and the separately identified synthetic/native workflow evidence.

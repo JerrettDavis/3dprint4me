@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "scenarioId": "QA-004",
   "stepId": "final-1",
-  "runId": "native-20261103-final-05",
+  "runId": "portal-polish-20261103-final-03",
   "environment": "native",
   "result": "observed",
-  "sourceCommit": "ed02cde1fb9f746e4e5b3093f29dacfc38f68a12",
-  "sourceFingerprint": "c946c3802942ccfca7c9077f2ea32b493b502f176005c1834e08b36fbfbaa23a",
-  "startSha256": "df336b82dd99f9f3a1a0bf1d0c0a569a36c1b39a547eb5a898fb5402fdd89f84",
+  "sourceCommit": "a72c529d88700d40e6d4dadb2f7e553c97050899",
+  "sourceFingerprint": "44e11e7cef617c45ba71d6dc77a9eaccdaeefb6878f6d974f5075b195511fa17",
+  "startSha256": "b4bef6d199a76d73800544f33e8e1d88278484c0f1d9d6909e13d02e7005b740",
   "testNodeId": "tests/integration/test_partner_auth_browser.py::test_native_auth_other_earnings_and_existing_owner_work_api_deny_partner_credentials",
   "viewport": {
     "width": 1440,
@@ -15,6 +15,6 @@
   },
   "theme": "light",
   "screenshot": "../screenshots/QA-004-final-1-1440-light.png",
-  "sha256": "04d0a3af6e7dcaca87b59c5205e2fa1e20d80936f35ac6dbf50a2af37236d6c0",
+  "sha256": "7aa3f1110d8d0bb5dae0f2774af539f33b63ab5c12ae792323755360c02622a4",
   "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
 }
