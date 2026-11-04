@@ -6,6 +6,10 @@ https://3dprint4me-operations.vercel.app. Neither uses local PostgreSQL or
 Authentik for rendering or sign-in. Vercel/Cloudflare remain shared providers;
 this is independence from the local host/ISP, not full provider independence.
 
+Both documented public origins are explicitly allowed to read the Worker's
+public snapshot through CORS. Unrecognized origins receive no CORS grant;
+private operations still requires its independent authentication boundary.
+
 The separate Vercel status project publishes only `status/public/`. The separate
 operations project publishes only `status/operations/public/` plus its fixed
 server function. Protect **all deployments** of the operations project using

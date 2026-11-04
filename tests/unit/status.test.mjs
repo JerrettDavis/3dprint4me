@@ -99,6 +99,8 @@ test('status transport denies private and internal routes; actor persists replay
   assert.equal(calls,1);calls=0;
   const publicResponse=await worker.fetch(new Request('https://status.example/api/public',{headers:{origin:'https://evil.example'}}),env);
   assert.equal(publicResponse.headers.get('access-control-allow-origin'),null);assert.equal(calls,1);
+  const alternate=await worker.fetch(new Request('https://status.example/api/public',{headers:{origin:'https://3dprint4me-status.vercel.app'}}),env);
+  assert.equal(alternate.headers.get('access-control-allow-origin'),'https://3dprint4me-status.vercel.app');
   const records=new Map();const ctx={storage:{get:async k=>records.get(k),put:async(k,v)=>records.set(k,v)},blockConcurrencyWhile:fn=>fn()};
   const secret='c'.repeat(64),time=Date.now();
   const actor=new StatusState(ctx,{STATUS_PLATFORM_SECRET:secret});
