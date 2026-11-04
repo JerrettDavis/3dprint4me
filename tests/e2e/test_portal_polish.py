@@ -70,11 +70,11 @@ def test_qa_tools_explain_access_and_disable_controls_during_requests():
         with page.expect_request(lambda r:'operator-partner-qa' in r.url and 'resource=session' in r.url):
             page.goto(origin+'/partners/qa')
         page.wait_for_function('document.querySelector(".qa-banner")?.dataset.state==="checking"')
-        expect(page.get_by_role('button',name='Create synthetic QA run',exact=True)).to_be_disabled()
+        expect(page.get_by_role('button',name='Create synthetic QA run',exact=True,include_hidden=True)).to_be_disabled()
         assert session
         session.pop(0).fulfill(status=401,content_type='application/json',body='{"error":"Owner sign-in required."}')
         page.get_by_role('heading',name='Owner sign-in required',exact=True).wait_for()
-        expect(page.get_by_role('button',name='Create synthetic QA run',exact=True)).to_be_disabled()
+        expect(page.get_by_role('button',name='Create synthetic QA run',exact=True,include_hidden=True)).to_be_disabled()
         assert 'Sign in as the owner' in page.locator('#qa-run-result').inner_text()
         expect(page.locator('.qa-tools')).to_be_hidden()
         page.screenshot(path=str(ROOT/'docs/portal-polish/screenshots/owner-qa-access-required.png'),full_page=True)
@@ -82,7 +82,7 @@ def test_qa_tools_explain_access_and_disable_controls_during_requests():
             page.get_by_role('button',name='Check access again',exact=True).click()
         session.pop(0).fulfill(content_type='application/json',body='{"owner":{"id":"synthetic-owner"},"csrfToken":"synthetic-only"}')
         page.get_by_role('heading',name='Partner programs',exact=True).wait_for()
-        create=page.get_by_role('button',name='Create synthetic QA run',exact=True)
+        create=page.get_by_role('button',name='Create synthetic QA run',exact=True,include_hidden=True)
         expect(create).to_be_enabled();expect(page.locator('.qa-tools')).to_be_visible()
         with page.expect_request(lambda r:'operator-partner-qa' in r.url and r.method=='POST'):
             create.click()
