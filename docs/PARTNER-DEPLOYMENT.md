@@ -1,5 +1,22 @@
 # Partner release evidence and remaining gates
 
+## November 3 statement RLS correction
+
+The contractor-readiness audit found that `partner_weekly_statements` lacks the
+RLS setup present on other partner tables. Additive migration
+`016_partner_statement_rls.sql` enables RLS with the existing backend-role policy;
+it changes no statement bytes, immutable triggers, API role checks or launch flags.
+The native-only migration registry, committed-source archive requirements and
+guarded selected-database migration transaction now include 016. Rehearsal rejects
+disabled RLS on statements as it does on every other partner table. Existing 013
+is unchanged. Reviewed release `8b9659a7e4ab6cf8e46ba2b3506fb4ae778d4972` passed full
+regression, native upgrade/restore, images, isolated rollout and native-host rehearsal.
+After owner approval, its checkpointed flags-off production rollout passed all 13
+checks. Independent production reads confirm RLS on all 41 partner tables and the
+statement backend policy, with all launch flags still zero. Contractor activation
+and actual professional clearance remain outstanding. See
+[current readiness](CONTRACTOR-RELEASE-READINESS.md) for evidence and open gates.
+
 > Current production status: the owner-approved disabled rollout is deployed and
 > verified. See [production release evidence](PARTNER-PRODUCTION-RELEASE.md).
 > Production-pending statements below are historical checkpoints; actual
@@ -349,3 +366,14 @@ storefront/work/api/status records. Choose and record proxy/TTL behavior for the
 actual TLS design, verify Vercel certificate readiness and real HTTPS, and retain
 exact rollback data. No record/domain association or certificate deployment has
 been performed by this read-only query.
+
+
+## November 3, 2026: isolated QA inside the production portals
+
+This newer record supersedes earlier pending partner DNS/production preview notes above. Owner QA is live at <https://work.3dprint4.me/partners/qa>; participant QA is at <https://partners.3dprint4.me/qa>, with enrollment at `/qa/join`. See the [QA guide and hosted observations](partner-qa/README.md#hosted-verification) for exact release/image/deployment identities and the separate native BDD evidence.
+
+Guarded backend release `33271f1cf2fac1423f466e4f0b0057e3bccfc2e0` passed fresh dual-store checkpoint, disposable schema/access/session rehearsal, overlapping API smoke, jobs handover and existing-service checks. QA has a separate PostgreSQL 18 cluster, private credentials, restricted live-auth-only authorization and QA-only maintenance service. Production live business counts stayed zero and all three real launch flags stayed disabled. Provider delivery and real payments remain disabled in QA.
+
+The hosted smoke verified actual owner sign-in, synthetic provisioning, fifteen canonical discussion drafts, private participant enrollment, fictional agreement/read acknowledgment, run retirement and session revocation. Canonical drafts remain nonissuable; simulations do not establish attorney/CPA approval. The test run is retired and its history preserved. No new DNS records were needed or changed for this release.
+
+Vercel clean URL rewrites use extensionless QA destinations, following the [official configuration contract](https://vercel.com/docs/project-configuration/vercel-json). Only committed-source frontend assets were uploaded to the existing partner/operator projects. The storefront, tunnel, live PostgreSQL and slicer were preserved.

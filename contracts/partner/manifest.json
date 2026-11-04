@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "release": "draft-0.1.0",
+  "release": "draft-0.2.0",
   "legallyApproved": false,
   "templates": [
     {
@@ -60,6 +60,73 @@
         "cpa"
       ],
       "issueRequiresApproval": false
+    },
+    {
+      "key": "partner-onboarding-checklist",
+      "file": "partner-onboarding-checklist.md",
+      "reviewers": [
+        "attorney",
+        "cpa"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "referral-bonus-schedule",
+      "file": "referral-bonus-schedule.md",
+      "reviewers": [
+        "attorney",
+        "cpa"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "materials-custody-record",
+      "file": "materials-custody-record.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "work-submission-review-record",
+      "file": "work-submission-review-record.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "safety-cancellation-dispute-request",
+      "file": "safety-cancellation-dispute-request.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "payment-settlement-receipt",
+      "file": "payment-settlement-receipt.md",
+      "reviewers": [
+        "attorney",
+        "cpa"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "contact-correction-withdrawal-request",
+      "file": "contact-correction-withdrawal-request.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": true
+    },
+    {
+      "key": "qa-participant-instructions",
+      "file": "qa-participant-instructions.md",
+      "reviewers": [
+        "attorney"
+      ],
+      "issueRequiresApproval": true
     }
   ],
   "variables": {
@@ -128,6 +195,58 @@
       "required": false
     },
     "review_date": {
+      "type": "date",
+      "required": false
+    },
+    "record_reference": {
+      "type": "string",
+      "required": false
+    },
+    "terms_reference": {
+      "type": "string",
+      "required": false
+    },
+    "payment_method": {
+      "type": "string",
+      "required": false
+    },
+    "verification_reference": {
+      "type": "string",
+      "required": false
+    },
+    "consent_reference": {
+      "type": "string",
+      "required": false
+    },
+    "bonus_criteria": {
+      "type": "multiline",
+      "required": false
+    },
+    "materials_detail": {
+      "type": "multiline",
+      "required": false
+    },
+    "review_detail": {
+      "type": "multiline",
+      "required": false
+    },
+    "resolution_detail": {
+      "type": "multiline",
+      "required": false
+    },
+    "bonus_amount_usd": {
+      "type": "money",
+      "required": false
+    },
+    "payment_amount_usd": {
+      "type": "money",
+      "required": false
+    },
+    "bonus_max_awards": {
+      "type": "integer",
+      "required": false
+    },
+    "record_date": {
       "type": "date",
       "required": false
     }

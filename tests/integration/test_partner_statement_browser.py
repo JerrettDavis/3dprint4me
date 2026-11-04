@@ -48,8 +48,10 @@ def test_native_owner_schedules_weekly_statements_and_partners_download_only_the
         with page.expect_download() as pending:
             page.get_by_role('button',name='Download statement for 2026-11-02',exact=True).click()
         later=tmp_path/'native-weekly-retry.csv';pending.value.save_as(later);assert later.read_bytes()==original
+        owner.get_by_role('button',name='Workspace menu').click()
         owner.get_by_role('navigation').get_by_role('link',name='Finance',exact=True).click()
         owner.get_by_role('heading',name='Partner finance',exact=True).wait_for()
+        owner.get_by_role('button',name='Workspace menu').click()
         owner.get_by_role('navigation').get_by_role('link',name='Weekly statements',exact=True).click()
         form=owner.locator('[data-statement-schedule="'+w['programId']+'"]')
         form.get_by_label('Schedule weekly statements',exact=True).uncheck()

@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "runId": "workspace-release-20261104-05",
+  "environment": "native",
+  "sourceCommit": "6d055960afc4a47b407e28d791ab5a87023f61e8",
+  "sourceFingerprint": "b374dfde520f75d9ffe450b522d44b84344d147599afcc0c72db02f0ebd36bb8",
+  "sourceFingerprintAfter": "b374dfde520f75d9ffe450b522d44b84344d147599afcc0c72db02f0ebd36bb8",
+  "startSha256": "6df6bb4d6e83d5b5b22a0dc0bffe663830427e9a632304c46d02142861160e95",
+  "junitSha256": "e8e6fe3f24a85f45b15008186608e8f077ee79485b578ea6fd6292d8fb9ffbd7",
+  "cases": [
+    {
+      "testNodeId": "tests/integration/test_partner_auth_browser.py::test_native_auth_disabled_environment_blocks_redemption_without_consuming_invite",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_auth_browser.py::test_native_auth_initial_enrollment_without_github_has_private_host_cookie",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_auth_browser.py::test_native_auth_invitation_replay_from_another_browser_is_denied",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_auth_browser.py::test_native_auth_other_earnings_and_existing_owner_work_api_deny_partner_credentials",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_auth_browser.py::test_native_auth_revocation_interrupts_live_profile_mutation",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_acceptance_uses_deterministic_central_monday[2026-10-26T04:59:00Z-2026-10-19]",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_acceptance_uses_deterministic_central_monday[2026-10-26T05:01:00Z-2026-10-26]",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_acceptance_uses_deterministic_central_monday[2026-11-02T05:59:00Z-2026-10-26]",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_acceptance_uses_deterministic_central_monday[2026-11-02T06:01:00Z-2026-11-02]",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_commit_within_cap",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_parallel_acceptances_do_not_oversubscribe",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_reduced_cap_preserves_earned_obligations",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_budget_browser.py::test_native_budget_sunset_blocks_new_acceptance_preserves_review_and_payment",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_consent_referral_browser.py::test_native_business_visit_creates_no_personal_contact_or_followup_queue",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_consent_referral_browser.py::test_native_explicit_project_permission_records_exact_consent_version_before_owner_review",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_consent_referral_browser.py::test_native_original_twenty_dollar_sale_bonus_survives_new_ten_dollar_policy",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_consent_referral_browser.py::test_native_qualified_lead_bonus_survives_different_device_duplicate_evidence_once",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_consent_referral_browser.py::test_native_unconsented_email_is_rejected_without_contact_audit_or_notification_side_effects",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_consent_referral_browser.py::test_native_withdrawn_permission_suppresses_owner_contact_and_cannot_be_requalified",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_forecast_browser.py::test_native_forecast_earned_bonus_is_counted_once_and_incomplete_evidence_fails_safely",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_forecast_browser.py::test_native_forecasts_replace_fee_and_bonus_reserves_preserve_week_and_show_unfunded_debt",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_gig_browser.py::test_native_gig_accept_ten_unique_visits_submit_and_owner_review_without_attendance",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_gig_browser.py::test_native_gig_decline_has_no_obligation_or_penalty_and_future_offer_can_be_accepted",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_gig_browser.py::test_native_gig_offline_visit_and_work_submission_retry_after_committed_lost_responses",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_gig_browser.py::test_native_gig_unsafe_report_reaches_owner_without_location_tracking_or_retaliation",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_ledger_browser.py::test_native_separate_personal_gift_is_absent_from_partner_statement_and_contractor_exports",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_ledger_browser.py::test_native_unconfigured_invoice_ninja_preserves_durable_payable_and_manual_csv_without_customer_invoice",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_legal_acceptance_browser.py::test_native_review_package_excludes_unrelated_private_records_and_denies_anonymous_download",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_legal_acceptance_browser.py::test_native_unreviewed_issuance_returns_exact_missing_classification_and_language_gates",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_legal_acceptance_browser.py::test_native_version_b_requires_independent_reviews_new_issue_and_new_ack_without_changing_a",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_materials_browser.py::test_native_large_material_history_is_explicitly_partial_and_keeps_newest_records",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_materials_browser.py::test_native_owner_records_materials_with_durable_retry_and_partner_private_history",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_browser_replays_100_device_drafts_after_lost_committed_response",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_business_visits_and_specific_contact_permission_persist_privately",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_customer_referral_request_records_permission_without_creating_a_bonus",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_expired_visit_session_hides_the_private_form",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_http_read_results_match_published_api_schemas",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_late_login_cookie_after_other_tab_logout_is_revoked",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_optional_activity_gig_and_visit_screens_never_request_geolocation",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_optional_activity_partner_can_track_and_delete_own_elapsed_record",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_optional_activity_work_submission_never_requires_a_timer",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_console_uses_github_binding_and_preserves_obligations_while_paused",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_lost_response",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_lead_review_correction_and_withdrawal_update_live_permission",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_legal_editor_preserves_versions_comments_and_conflicting_draft",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_professional_package_decisions_and_returned_feedback",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_referral_conversion_requires_settlement_and_awards_once",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_scoped_bindings_typed_issue_ack_and_immutable_history",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_partner_browser_cookie_csrf_idor_and_logout",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_partner_counterproposal_persists_without_accepting_or_changing_fee",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_partner_fixture_removes_its_container_after_child_crash",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_prepared_visit_survives_offline_cold_reopen_and_manual_replay",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_native_existing_private_work_inbox_updates_while_storefront_and_status_routes_stay_separate",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_native_only_owner_can_publish_forty_dollar_campaign_and_partner_sees_frozen_offer",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_native_owner_suspension_ends_routes_but_preserves_payable_for_lawful_settlement",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_native_program_pause_denies_unaccepted_work_without_erasing_prior_debt",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_native_shell_port_reservations_are_distinct_and_exclude_other_binds_until_released",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_owner_control_browser.py::test_workspace_harness_allocates_distinct_ports_even_when_legacy_probe_reuses_one",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_qa_browser.py::test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial",
+      "status": "passed"
+    },
+    {
+      "testNodeId": "tests/integration/test_partner_statement_browser.py::test_native_owner_schedules_weekly_statements_and_partners_download_only_their_immutable_balances",
+      "status": "passed"
+    }
+  ],
+  "exitStatus": 0
+}

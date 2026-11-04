@@ -10,7 +10,7 @@ def reviewed_budget_workspace(clock='2026-10-26T12:00:00Z',*,work_seed=False,pro
     with native_partner_workspace(enable_reviewed_launch=True,clock=clock,work_seed=work_seed,program_flag_control=program_flag_control,observe_outbound=observe_outbound,statement_jobs=statement_jobs) as (origin,fixture),SiteBrowser(viewport=(390,844),reduced_motion='reduce') as site,ExitStack() as stack:
         api=fixture['apiOrigin'];owner=site.page
         site.context.add_cookies([{'name':'__Host-3dp-session','value':fixture['ownerToken'],'url':api.replace('http:','https:'),'httpOnly':True,'secure':True,'sameSite':'Strict'}])
-        owner.goto(fixture['ownerOrigin']+'/partners')
+        owner.goto(fixture['ownerOrigin']+'/partners#programs')
         owner.get_by_role('heading',name='Partner programs',exact=True).wait_for()
         def post(action,input):
             response=owner.evaluate("""async ({api,action,input})=>{const s=await(await fetch(api+'/api/operator-partners?resource=session',{credentials:'include'})).json();const r=await fetch(api+'/api/operator-partners',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':s.csrfToken},body:JSON.stringify({action,input,key:crypto.randomUUID()})});return {status:r.status,body:await r.json()};}""",{'api':api,'action':action,'input':input})
@@ -48,8 +48,8 @@ def reviewed_budget_workspace(clock='2026-10-26T12:00:00Z',*,work_seed=False,pro
             post('campaign.publish',{'campaignId':campaign['id'],'expectedRevision':1})
             return post('gig.offer',{'campaignId':campaign['id'],'partnerId':accounts[partner]['id']})
         def accept(gig,partner=0,expected=True):
-            page=pages[partner];page.goto(origin+'/gigs/'+gig['id']);page.get_by_role('combobox',name='Action',exact=True).select_option('accept')
-            page.get_by_role('button',name='Save decision',exact=True).click()
+            page=pages[partner];page.goto(origin+'/gigs/'+gig['id'])
+            page.get_by_role('button',name='Accept offer',exact=True).click()
             page.get_by_text('Offer accepted. Receipt' if expected else 'No additional budget is available for this authorization.',exact=not expected).wait_for()
         def budgets():return [r for r in read('budgets')['items'] if r['program_id']==program_id]
         yield {'origin':origin,'fixture':fixture,'site':site,'owner':owner,'pages':pages,'accounts':accounts,'invites':invites,'requests':requests,'programId':program_id,'post':post,'read':read,'offer':offer,'accept':accept,'budgets':budgets}
@@ -57,9 +57,8 @@ def reviewed_budget_workspace(clock='2026-10-26T12:00:00Z',*,work_seed=False,pro
 
 def finish_gig(workspace,gig,partner=0):
     page=workspace['pages'][partner];page.goto(workspace['origin']+'/gigs/'+gig['id'])
-    page.get_by_role('combobox',name='Action',exact=True).select_option('submit')
     page.get_by_label('Reason or submission details',exact=True).fill('Synthetic objective work completed.')
-    page.get_by_role('button',name='Save decision',exact=True).click();page.get_by_text('Decision recorded.',exact=True).wait_for()
+    page.get_by_role('button',name='Submit work for review',exact=True).click();page.get_by_text('Decision recorded.',exact=True).wait_for()
     for action in ['approve','make_payable']:
         row=workspace['read']('gig',gig['id'])['item']
         workspace['post']('gig.'+action,{'gigId':gig['id'],'expectedRevision':row['revision'],'reason':'Synthetic deliverables independently reviewed.'})

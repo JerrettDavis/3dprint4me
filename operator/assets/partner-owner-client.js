@@ -4,14 +4,16 @@ export class PartnerOwnerError extends Error {
 const gateLabels={program_environment:'Program launch setting',classification_environment:'Classification launch setting',accounting_environment:'Accounting launch setting',owner_activation:'Owner activation',published_agreement:'Published agreement',published_policy:'Published outreach policy',classification:'Classification review',agreement_language:'Agreement language review',solicitation_policy:'Outreach policy review',accounting:'Accounting review',program_dates:'Pilot dates'};
 function missingRequirements(data,status){if(status!==409||!Array.isArray(data.missingGates))return '';const labels=[...new Set(data.missingGates.slice(0,32).filter(code=>typeof code==='string'&&Object.hasOwn(gateLabels,code)).map(code=>gateLabels[code]))];return labels.length?' Missing requirements: '+labels.join('; ')+'.':'';}
 const resources=new Set(['programs','partners','campaigns','gigs','gig','budgets','audit','leads','visits','referrals','forecasts','statements','ledger','exports','export','legal','legal-version','legal-diff','review-package','review-feedback','legal-choices','agreements','agreement']);
-export function createPartnerOwnerClient({apiBase,fetchImpl=fetch}={}){
+export function createPartnerOwnerClient({apiBase,fetchImpl=fetch,realm='live'}={}){
+ if(!['live','qa'].includes(realm))throw Error('Invalid owner realm.');
+ const endpoint=realm==='qa'?'/api/operator-partner-qa':'/api/operator-partners';
  const url=new URL(apiBase);
  if(url.origin!==apiBase||!(apiBase==='https://api.3dprint4.me'||url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname)))throw new Error('Unsupported owner API origin.');
  let csrf=null,owner=null,epoch=0;
  function clear(){++epoch;csrf=null;owner=null;}
  async function request(query,{body,expected=epoch}={}){
   let response,data;
-  try{response=await fetchImpl(apiBase+'/api/operator-partners'+query,{method:body?'POST':'GET',credentials:'include',cache:'no-store',redirect:'error',headers:{Accept:'application/json',...(body?{'Content-Type':'application/json','X-CSRF-Token':csrf}:{})},...(body?{body:JSON.stringify(body)}:{})});}
+  try{response=await fetchImpl(apiBase+endpoint+query,{method:body?'POST':'GET',credentials:'include',cache:'no-store',redirect:'error',headers:{Accept:'application/json',...(body?{'Content-Type':'application/json','X-CSRF-Token':csrf}:{})},...(body?{body:JSON.stringify(body)}:{})});}
   catch{throw new PartnerOwnerError(0,'Unable to reach partner administration. Check your connection and try again.');}
   if(expected!==epoch)throw new PartnerOwnerError(401,'Owner access changed. Return to sign-in.');
   if([401,403].includes(response.status)){clear();throw new PartnerOwnerError(response.status,response.status===403?'Owner access is required.':'Owner sign-in is required.');}

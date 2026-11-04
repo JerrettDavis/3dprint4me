@@ -1,4 +1,5 @@
 # PROPOSED Business Contact Follow-Up Consent Language
+**REPRESENTATIVE STUB — DRAFT — UNREVIEWED — QA/DISCUSSION ONLY**
 **DRAFT FOR LEGAL/PRIVACY REVIEW**
 
 ## [CONSENT-01] Plain-language script

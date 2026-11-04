@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-060",
+  "stepId": "visits-recorded",
+  "runId": "workspace-release-20261104-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "6d055960afc4a47b407e28d791ab5a87023f61e8",
+  "sourceFingerprint": "b374dfde520f75d9ffe450b522d44b84344d147599afcc0c72db02f0ebd36bb8",
+  "startSha256": "6df6bb4d6e83d5b5b22a0dc0bffe663830427e9a632304c46d02142861160e95",
+  "testNodeId": "tests/integration/test_partner_qa_browser.py::test_production_portal_qa_isolated_lifecycle_and_canonical_stub_denial",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "theme": "light",
+  "screenshot": "../screenshots/QA-060-visits-recorded-1440-light.png",
+  "sha256": "3fe8e2dfe4632dc767d80a3d2fbdc338d950f1e84af48ce3f7481e84c996ea30",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

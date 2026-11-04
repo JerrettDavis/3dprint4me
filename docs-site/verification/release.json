@@ -1,0 +1,56 @@
+{
+  "verifiedAt": "2026-11-04T05:10:23.462618+00:00",
+  "url": "https://jerrettdavis.github.io/3dprint4me/",
+  "deployedSourceCommit": "d97f68dace547c4d66551c4af804eb9b2eb102e2",
+  "workflow": "https://github.com/JerrettDavis/3dprint4me/actions/runs/41777149454",
+  "workflowConclusion": "success",
+  "content": {
+    "htmlPages": 113,
+    "reviewedScreenshots": 182,
+    "bddScenarios": 60,
+    "redactedBddScreenshots": 142,
+    "representativeForms": 15,
+    "searchEntries": 683,
+    "guideStates": 20,
+    "guideViewportCaptures": 40,
+    "pairedComparisons": 94
+  },
+  "verification": {
+    "unitContractPassed": 1277,
+    "e2ePassed": 408,
+    "e2eExistingWindowsSkip": 1,
+    "uxChecksPassed": 241,
+    "docsContractPassed": 3,
+    "docsBrowserCasesPassedInCI": 2,
+    "hostedBrowserViewports": [
+      390,
+      1440
+    ],
+    "hostedScreenshotChecksumsPassed": 182,
+    "screenshotMatrix": 168,
+    "previewBoardVisuallyInspected": true,
+    "independentReviewCompleted": true,
+    "publicationManifestEnforced": true,
+    "checkedPrivatePathsReturn404": [
+      ".env",
+      "lib/database.js",
+      "api/partner/v1/session"
+    ],
+    "desktopCaptureSize": [
+      1440,
+      810
+    ],
+    "mobileCaptureSize": [
+      390,
+      520
+    ],
+    "pairedFrameGeometryVerified": true,
+    "guideContactSheetReviewed": true
+  },
+  "scope": "Documentation publication only. Existing historical native BDD evidence is included with its original source/run labels. No new native partner suite or real professional approval is claimed.",
+  "planCompleted": "docs/superpowers/plans/2026-11-03-docs-site.md",
+  "evidence": [
+    "hosted-proof.json",
+    "hosted-assets.json"
+  ]
+}

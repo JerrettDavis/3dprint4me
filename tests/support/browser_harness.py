@@ -205,12 +205,18 @@ class SiteBrowser:
         self.page.on("pageerror", lambda error: self.page_errors.append(str(error)))
 
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
-        if self.context:
-            self.context.close()
-        if self.browser:
-            self.browser.close()
-        if self._playwright:
-            self._playwright.stop()
+        try:
+            if exc_type is None and os.environ.get('PARTNER_QA_EVIDENCE_RUN'):
+                from tests.support.partner_qa_evidence import capture_final_partner_state
+                capture_final_partner_state(self)
+        finally:
+            try:
+                if self.context:self.context.close()
+            finally:
+                try:
+                    if self.browser:self.browser.close()
+                finally:
+                    if self._playwright:self._playwright.stop()
 
     def load(self, route: str, *, storage: dict[str, str] | None = None, storage_denied: bool = False) -> Page:
         if not self.context:

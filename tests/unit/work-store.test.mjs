@@ -14,6 +14,21 @@ const request = {
   contact: { name: "Customer", email: "customer@example.com" }
 };
 
+test('work notifications without enrolled devices are skipped without claiming delivery', async () => {
+  const { drainPushOutbox } = await import('../../lib/push-delivery.js');
+  const directory = await mkdtemp(join(tmpdir(), '3dp-no-subscribers-'));
+  try {
+    const store = createLocalWorkStore({ path: join(directory, 'state.json') });
+    await store.completeRequestWithWork(requestId, request, []);
+    const result = await drainPushOutbox({ store, transport: { send() { throw new Error('No device may be contacted'); } }, workerId: 'worker_no_devices' });
+    assert.equal(result.failed, 0);
+    const entry = (await store.snapshot()).outbox[0];
+    assert.equal(entry.state, 'skipped');
+    assert.equal(entry.deliveredAt ?? null, null);
+    assert.equal((await store.claimPushOutbox({ workerId: 'worker_no_devices', batchSize: 10 })).length, 0);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
 test("Neon completion creates submitted work, event and outbox in one atomic query", async () => {
   const calls = [];
   const query = async (strings, ...values) => {

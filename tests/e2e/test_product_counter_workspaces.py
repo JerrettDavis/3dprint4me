@@ -72,7 +72,7 @@ def test_owner_primary_action_remains_readable_in_dark_theme(explicit):
     with running_operator_workspace() as (_, origin, __), SiteBrowser(viewport=(390, 844), color_scheme='dark', service_workers='block') as site:
         page = site.page
         install_owner_fixture(page)
-        page.goto(origin + '/partners')
+        page.goto(origin + '/partners#programs')
         button = page.get_by_role('button', name='Save program controls', exact=True)
         button.wait_for()
         if explicit:

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "QA-043",
+  "stepId": "final-1",
+  "runId": "workspace-release-20261104-05",
+  "environment": "native",
+  "result": "observed",
+  "sourceCommit": "6d055960afc4a47b407e28d791ab5a87023f61e8",
+  "sourceFingerprint": "b374dfde520f75d9ffe450b522d44b84344d147599afcc0c72db02f0ebd36bb8",
+  "startSha256": "6df6bb4d6e83d5b5b22a0dc0bffe663830427e9a632304c46d02142861160e95",
+  "testNodeId": "tests/integration/test_partner_native_browser.py::test_native_owner_finance_preserves_payment_evidence_and_durable_csv_after_lost_response",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "dark",
+  "screenshot": "../screenshots/QA-043-final-1-390-dark.png",
+  "sha256": "d41ee42c40fce16ebe4ff6b391d0b87c0190a9079b86179fc0dd88b6ce646b32",
+  "description": "Observed rendered state after the documented step; not evidence for unpictured earlier actions."
+}

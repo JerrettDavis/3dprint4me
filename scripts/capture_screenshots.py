@@ -563,6 +563,7 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
     with running_operator_workspace() as (_,origin,_):
         for state,viewport,scheme in [('missing-review',(390,844),'dark'),('missing-review',(320,844),'light'),('statements',(390,844),'dark'),('statements',(320,844),'light'),('weekly-statement',(390,844),'dark'),('weekly-statement',(320,844),'light'),('programs',(320,844),'light'),('programs',(390,844),'dark'),('campaigns',(390,844),'dark'),('gig',(1440,1000),'light'),('accounts',(390,844),'dark'),('accounts',(320,844),'light'),('leads',(390,844),'dark'),('leads',(320,844),'light'),('leads-suppressed',(390,844),'dark'),('referrals',(390,844),'dark'),('referrals',(320,844),'light'),('finance',(390,844),'dark'),('finance',(320,844),'light'),('forecasts',(390,844),'dark'),('forecasts',(320,844),'light'),('accounting-export',(390,844),'dark'),('accounting-export',(320,844),'light'),('legal',(390,844),'dark'),('legal',(320,844),'light'),('legal-version',(390,844),'dark'),('legal-version',(320,844),'light'),('review-create',(390,844),'dark'),('review-create',(320,844),'light'),('review-package',(390,844),'dark'),('review-package',(320,844),'light'),('review-feedback',(390,844),'dark'),('review-feedback',(320,844),'light'),('agreements',(390,844),'dark'),('agreements',(320,844),'light'),('agreement-copy',(390,844),'dark'),('agreement-copy',(320,844),'light'),('program-bindings',(390,844),'dark'),('program-bindings',(320,844),'light')]:
             path=OUTPUT/f'operator-partners-{state}-{scheme}.png'
+            print(f'Capturing owner state: {state}, {viewport[0]}px, {scheme}',flush=True)
             with SiteBrowser(viewport=viewport,color_scheme=scheme,reduced_motion='reduce') as site:
                 page=site.page
                 if state in ['agreements','agreement-copy','program-bindings']:install_agreement_fixture(page,available=state!='program-bindings')
@@ -585,7 +586,10 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                         else:route.fallback()
                     page.route('**/api/operator-partners*',detail)
                 page.goto(origin+'/partners#'+('statements/'+STATEMENT if state=='weekly-statement' else 'agreements/copy/'+ISSUE if state=='agreement-copy' else 'programs' if state=='program-bindings' else 'legal/package/'+PACKAGE if state=='review-package' else 'legal/feedback/'+FEEDBACK if state=='review-feedback' else 'legal' if state=='review-create' else 'gig/'+GIG_ID if state=='gig' else 'partners' if state=='accounts' else 'leads' if state=='leads-suppressed' else 'finance/export/'+BATCH if state=='accounting-export' else 'legal/version/'+VERSION if state in ['legal-version','missing-review'] else state))
-                page.get_by_role('heading',level=1).wait_for()
+                try:
+                    page.get_by_role('heading',level=1).wait_for()
+                except Exception as error:
+                    raise RuntimeError(f'Owner capture did not reach a heading: state={state}, width={viewport[0]}, theme={scheme}, page_errors={site.page_errors}') from error
                 if state=='agreements':
                     form=page.locator('[data-issue-agreement]')
                     form.get_by_role('combobox',name='Program',exact=True).select_option(AGREEMENT_PROGRAM)
@@ -598,6 +602,7 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                     page.locator('[data-program-bindings]').get_by_role('combobox',name='Reviewed agreement',exact=True).select_option(AGREEMENT_VERSION)
                 if state=='agreement-copy' and scheme=='light':page.get_by_text('Compare with the exact source at issuance',exact=True).click()
                 if state=='accounts':
+                    page.get_by_text('Manage private access',exact=True).click()
                     page.get_by_label('I verified the identity of this partner and understand that issuing a code replaces all unused codes.',exact=True).check()
                     page.get_by_role('button',name='Issue recovery code',exact=True).click()
                     page.get_by_label('One-time recovery code',exact=True).wait_for()
@@ -617,10 +622,13 @@ def capture_partner_owner_states() -> list[tuple[str, Path]]:
                 if state=='missing-review':
                     page.get_by_role('button',name='Publish reviewed revision',exact=True).click()
                     page.get_by_text('This exact version is not approved. Missing requirements: Classification review; Agreement language review.',exact=True).wait_for()
-                if state=='legal-version' and scheme=='light':page.get_by_text('Typed variables and required reviews',exact=True).click()
+                if state=='legal-version' and scheme=='light':
+                    page.get_by_text('Edit latest revision',exact=True).click()
+                    page.get_by_text('Typed variables and required reviews',exact=True).click()
                 if state=='finance' and scheme=='light':page.locator('main details').evaluate_all('(xs)=>xs.forEach(x=>x.open=true)')
                 if state=='leads' and scheme=='light':page.get_by_text('Correct contact or purpose',exact=True).click()
                 if state=='campaigns':
+                    page.locator('summary').filter(has_text='Create campaign draft').click()
                     page.get_by_label('Offer title',exact=True).fill('Permitted business introductions')
                     page.get_by_label('Offered fee (USD)',exact=True).fill('40.00')
                     page.get_by_label('Permitted area',exact=True).fill('Tulsa permitted business areas')

@@ -88,7 +88,7 @@ Geometry code never ships to the server.
 | `id` | yes | URL-safe id; the registry key, page folder, `loadBuilder` key and draft key (`3dp-customize:<id>:v<version>`). |
 | `version` | yes | Positive integer. A request pins the version that produced its model; the server accepts `1..version`. Bump it when a parameter's meaning changes. |
 | `versionDefaults` | no | Trusted defaults keyed by historical generator version, applied by the server only to missing provenance fields before ordinary schema validation. The pumpkin uses version 1 → `optimize_cutouts: false`; new version 2 models default to true. |
-| `title`, `blurb` | yes | Catalog card text; `title` also prefills the order's project title ("Custom <title>"). |
+| `title`, `blurb` | yes | Catalog card text; `title` also prefills the order's project title (`"Custom <title>"`). |
 | `category` | yes | Catalog label key (`badges`, `tags`, `cards`, `plates`; anything else is title-cased). |
 | `origin` | yes | Where the design comes from (`"house"`, or the commission it derives from). |
 | `rights` | yes | `{ publishable: boolean, note: string }`. Only `publishable: true` generators appear in the catalog and sitemap (see [Provenance and rights](#provenance-and-rights)). |

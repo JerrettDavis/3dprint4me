@@ -76,3 +76,70 @@ partner `dpl_52pR4hqKw3SUAcorMJbNWj4Fivzu`, owner
 Private local proofs are `partner-polish-live-proof.json`,
 `partner-polish-live-browser-proof.json` and the named test/capture/deployment logs
 in the session temporary directory. They contain no authentication credentials.
+
+
+## November 3, 2026 portal spacing and motion release
+
+Source `a72c529d88700d40e6d4dadb2f7e553c97050899` polishes work, owner, QA, participant and offline review surfaces. See the [release guide, populated screenshots and verification](portal-polish/README.md). Production owner deployment is `3dprint4me-operator-pof9s29zh`; participant deployment is `3dprint4me-partners-ckwm59bg1`. Worker versions are v32 / v9 / v3 (work / participant / QA participant). The API, database, actual approval flags and launch settings were unchanged.
+
+## November 3–4 workspace redesign — local verification
+
+Three [interactive directions](design-concepts/2026-11-03/index.html) were reviewed independently. Both reviewers selected the Fluent task workspace, with the focused partner detail treatment from the iOS/Metro direction. The [voting record](design-concepts/2026-11-03/DECISION.md) records scores and prototype limitations.
+
+Partner and owner navigation is grouped, with a labeled mobile menu. Partner decisions use explicit state-specific actions; visit facts, permissioned contact and device drafts remain separate. Administration starts with gig review, with creation, private access, payment corrections and legal revision editing deliberately disclosed. The work inbox puts tools in normal page flow and collapses optional phone filters. Feedback has its own space above owner records and never overlays access controls. Existing server commands, revisions, consent, accepted terms, payment verification and rollout settings are preserved.
+
+The full `npm test` run passed 1,277 unit/contract checks, 432 browser checks (one existing skip), and 241 UX checks. Eighteen native PostgreSQL/browser workflows passed, including paused-program debt preservation and recovery; their disposable containers were removed. Subsequent visual inspection found the owner feedback overlap: its correction passed 61 affected tests, including a new 320-pixel non-overlap regression, and final static/architecture validation. No application source changed after those follow-up checks.
+
+Screenshot and handbook verification is recorded in the [implementation plan](superpowers/plans/2026-11-03-workspace-ux.md). At that local checkpoint, cache versions were work v33, participant v10 and QA participant v4. Deployment had not yet occurred; the November 4 production record below supersedes that checkpoint.
+
+November 4 continuation verified the final source with 1,278 unit/contract tests, 433 browser tests (one existing skip), 241 UX checks, 168 regenerated screenshots and 40 refreshed guide captures. The full board and representative actual tasks were visually inspected. The strict 113-page handbook build, link checks, three documentation contracts and two desktop/mobile browser cases pass. Independent code review cleared the UI changes. Publication and production checks are separate release gates.
+
+Production workspace release (November 4): runtime source `6023204ad1ef65def0338088ce3fffaf920f206f` is deployed as owner `3dprint4me-operator-1l7q45t59` and participant `3dprint4me-partners-8eqke2r52`. All 98 served static files match the committed archive. The full 60-case native workflow suite passed, and a separate complete source-bound evidence run passed all 60 with 142 validated redacted captures. Live owner sign-in, grouped navigation, desktop landing and route focus were checked. Responsive phone/dark coverage is established by the automated fixtures; see the viewport qualification below. Main integration and public handbook publication are tracked separately until their hosted checks finish.
+
+The subsequent Linux CI pass exposed short-window scrolling and phone font-metric
+bounds. Desktop navigation now uses document scrolling below 600 pixels high;
+phone accounts have less top padding. Strict forward/reverse keyboard checks pass,
+including 1440 × 390. Hosted upgrade tests fetch the pinned historical worker;
+QA migration review includes 017. Eight participant live/QA offline and upgrade
+checks pass, as does installed operator cache migration. Final cache versions are
+work v34, participant v11 and QA participant v5, with matching release markers.
+
+Static source `6db02713bef675a6f238b384441da3da410ff9a0` is deployed as owner
+`3dprint4me-operator-oxaz8279x` and participant `3dprint4me-partners-pnlplgzco`.
+All 98 files match the committed archive. The real owner accounts route loads,
+route focus reaches `owner-content`, and the participant sign-in renders correctly.
+Final native source `1360be638e664288f638d98124ac86585eab05d7` passes all 60
+workflows with 142 validated redacted captures; its additional source change fixes
+restore-monitor evidence expiry. The refreshed board, owner accounts and native
+contact sheet were visually inspected.
+
+Final local `npm test` passes 1,280 unit/contract tests, 435 browser tests with
+one existing Windows skip, and 241 UX checks. The complete native suite passes
+60/60, and all 142 evidence records validate against the final source fingerprint.
+The guarded native deployment of `1360be638e664288f638d98124ac86585eab05d7`
+passes schema, privileges, disabled-program checks, fresh backup, worker handover,
+no-message and unchanged-live-state checks. Its API and slicer image digests match
+the previously verified release; source includes the corrected QA host inventory.
+
+Live viewport qualification: the extension browser did not apply a subsequently
+requested 390 × 520 override to the existing owner tab; its measured viewport
+remained 1440 × 810. The earlier live matrix records requested widths without
+independent measured dimensions and therefore does not establish live phone-size
+acceptance. Phone, short-window, light/dark, reduced-motion and keyboard behavior
+are verified by the automated fixture/native runs and their actual-size captures.
+The live checks establish authenticated routes, page focus and served-byte parity.
+
+Final focus-margin follow-up: source `6d055960afc4a47b407e28d791ab5a87023f61e8`
+adds vertical focus scroll margins to the owner links and advances its cache to
+v35. GitHub's Ubuntu 24.04 runner passes all 45 focused workspace checks against
+that source merged with current main; an isolated Ubuntu/Node 22/Chromium run also
+passes all 45. Viewport assertions remain strict in both tab directions. The full
+local suite passes 1,280 unit/contract checks, 435 browser cases with one existing
+Windows skip, and 241 UX checks. All 60 native workflows pass, with 142 validated
+captures from `workspace-release-20261104-05` and an inspected contact sheet.
+
+Owner deployment `3dprint4me-operator-441f33xj4` serves that committed source;
+participant deployment remains `3dprint4me-partners-pnlplgzco` with unchanged
+participant bytes. All 98 static files match the final archive. The full hosted
+pipeline remains a separate pending check; its earlier run passed 435 Linux
+browser cases before reporting the now-corrected owner viewport failure.

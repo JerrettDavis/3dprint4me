@@ -1,5 +1,7 @@
 # 3dprint4.me
 
+**[Handbook: getting started, illustrated user guides, developer docs and BDD flows](https://jerrettdavis.github.io/3dprint4me/)**
+
 **[Public service status](https://status.3dprint4.me)** · **[Operations dashboard — sign-in required](https://3dprint4me-operations.vercel.app)**
 
 A production-oriented storefront and guided project intake for custom 3D modeling, printing, printer repair, tuning, consulting, and printer design.

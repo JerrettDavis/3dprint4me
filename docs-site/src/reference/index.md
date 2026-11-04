@@ -1,0 +1,26 @@
+# Reference library
+
+These canonical documents describe integration contracts and operational procedures. Dated release evidence is historical; consult the current user guides for the deployed QA entry points.
+
+- [Architecture](../../../docs/ARCHITECTURE.md)
+- [Domain Language](../../../docs/DOMAIN-LANGUAGE.md)
+- [Deployment Guide](../../../docs/DEPLOYMENT.md)
+- [Local platform operations](../../../docs/SELF-HOSTING.md)
+- [Stack setup, backup and disaster recovery](../../../docs/STACK-AUTOMATION.md)
+- [Platform recovery and backup automation](../../../docs/PLATFORM-RECOVERY.md)
+- [Operations Playbook](../../../docs/OPERATIONS.md)
+- [Operator inbox runbook](../../../docs/OPERATOR-INBOX.md)
+- [Work conversations and private model revisions](../../../docs/WORK-COMMUNICATIONS.md)
+- [Invoice Ninja invoicing](../../../docs/INVOICING.md)
+- [Spoolman inventory sync](../../../docs/SPOOLMAN.md)
+- [Print estimation, private models, and retention](../../../docs/PRINT-ESTIMATION.md)
+- [Parametric generators (Customize)](../../../docs/GENERATORS.md)
+- [Quick inquiry contract and operations](../../../docs/QUICK-INQUIRY.md)
+- [Direct GitHub operator authentication](../../../docs/GITHUB-OPERATOR-AUTH.md)
+- [Native partner API contract](../../../docs/PARTNER-API.md)
+- [Partner offline operation](../../../docs/PARTNER-OFFLINE.md)
+- [Partner release evidence and remaining gates](../../../docs/PARTNER-DEPLOYMENT.md)
+- [Private professional review handoff](../../../docs/PARTNER-REVIEW-HANDOFF.md)
+- [Contractor release readiness — 2026-11-02](../../../docs/CONTRACTOR-RELEASE-READINESS.md)
+- [Pricing Calibration](../../../docs/PRICING-CALIBRATION.md)
+- [Release Verification](../../../docs/VERIFICATION.md)

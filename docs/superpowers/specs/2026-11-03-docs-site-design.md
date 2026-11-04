@@ -1,0 +1,9 @@
+# GitHub Pages documentation site
+
+Build a complete public handbook for customers, operators, partners, QA testers and developers. Use MkDocs Material with local fonts, local search, responsive navigation, light/dark/system themes and quiet reduced-motion-aware styling. Preserve canonical repository Markdown and publish an explicit selection of reference documents, all 60 BDD flows and 15 representative forms. Use synthetic/redacted screenshots only, with captions and explanatory instructions. Exclude hosted authenticated captures, raw run metadata, private files, environment files and runtime code from the artifact.
+
+Use GitHub Pages at https://jerrettdavis.github.io/3dprint4me/ without changing storefront DNS. Generate only public/handbook as static output; temporary input staging is ignored. Maintain a dedicated docs-source branch so deploying documentation does not merge the unrelated feature branch into main. A Pages workflow builds, checks links and deploys the curated artifact. The request explicitly authorizes publication.
+
+My implementation choices: Python/MkDocs Material 9.8.0, a preparation script that maps canonical Markdown links into the site or into source links, and a custom teal/ink reading theme matching the portals. New user guides cover actual tasks and recovery rather than implementation internals. Historical reference notes stay labeled historical; current getting-started pages identify deployed QA separately from real activation. No analytics, external font service, credential collection or executable portal actions.
+
+Verify strict build, all internal links/images, artifact allowlist, search, mobile navigation/themes, screenshots and actual hosted URLs. Run repository checks required by AGENTS.md. Preserve pre-existing unstaged screenshots and audit files.
