@@ -9,8 +9,8 @@ The **3dprint4.me handbook** explains how to request fabrication, manage private
 - **QA tester:** [Run the production-portal QA journey](guides/qa.md) with synthetic records.
 - **Developer:** [Run locally](developers/index.md), explore the architecture and deploy changes.
 
-![Work inbox with incoming synthetic requests](../../docs/portal-polish/screenshots/work-1440-light.png)
-*Illustration: the private work inbox, populated with synthetic records. The handbook contains no customer work data.*
+![Work inbox empty-state layout](../../docs/portal-polish/screenshots/work-1440-light.png)
+*Illustration: the private work inbox, rendered with synthetic test fixtures. The handbook contains no customer work data.*
 
 ## Know which workspace you are in
 
@@ -19,4 +19,4 @@ The [storefront](https://3dprint4.me), [work inbox](https://work.3dprint4.me), [
 !!! warning "Representative forms are awaiting review"
     All fifteen canonical contractor forms are **representative stubs, draft and unreviewed**. QA simulation does not establish attorney/CPA approval, authorize real outreach, execute a contract or move funds. Real activation remains off pending actual version-bound review.
 
-[Get started](getting-started.md) · [Browse developer reference](reference/index.md) · [Browse all 60 BDD scenarios](bdd.md)
+[Get started](getting-started.md) Â· [Browse developer reference](reference/index.md) Â· [Browse all 60 BDD scenarios](bdd.md)

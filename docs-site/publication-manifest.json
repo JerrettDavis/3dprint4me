@@ -1440,7 +1440,7 @@
     {
       "file": "docs-site/src/developers/documentation.md",
       "output": "developers/documentation.md",
-      "sha256": "fabbe4150caa945f2890bff4c3dd492254af5fe652ded3d439408a752da4edf9"
+      "sha256": "adf3cc0cf64d37f3e6ae5acec7065c0e9922588caffffaa2fa7d2eeef37b5a13"
     },
     {
       "file": "docs-site/src/developers/index.md",
@@ -1490,7 +1490,7 @@
     {
       "file": "docs-site/src/index.md",
       "output": "index.md",
-      "sha256": "87b474e32cdec3132aaa4dcd59a686e10dcd0c0ef883fb501c8cbfbc31bce390"
+      "sha256": "e93c4c21590db063a2bc961fe1d26df955b79997e59ee40256933fe2aa066427"
     },
     {
       "file": "docs-site/src/reference/index.md",

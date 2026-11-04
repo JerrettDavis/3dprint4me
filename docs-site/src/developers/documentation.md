@@ -19,7 +19,7 @@ Open `http://127.0.0.1:8088/handbook/`. For the exact production subpath, serve 
 
 ## Publish
 
-The repository's GitHub Pages source is **GitHub Actions**. `.github/workflows/docs-pages.yml` builds on pushes to `docs-source` (and `main`) and supports manual dispatch. It uploads only `public/handbook` and deploys through the `github-pages` environment with `pages: write` and `id-token: write` scoped to the deployment job. The dedicated branch permits docs publication without merging unrelated application work into main.
+The repository's GitHub Pages source is **GitHub Actions**. `.github/workflows/docs-pages.yml` builds on pushes to `docs-source` (and `main`) and supports manual dispatch. It uploads only `public/handbook` and deploys through the `github-pages` environment with `pages: write` and `id-token: write` scoped to the deployment job. The dedicated branch permits docs publication without merging unrelated application work into main. The `github-pages` environment explicitly allows the `main` and `docs-source` branches; its default main-only rule must include `docs-source` for this workflow to deploy.
 
 After reviewing a docs commit, push the intended source to `docs-source`, watch the **Publish handbook** workflow, then verify the [public handbook](https://jerrettdavis.github.io/3dprint4me/), a nested guide, search and screenshot URLs. `build-info.json` identifies the source commit. Do not force-push over another maintainer's changes; fetch and inspect the branch first.
 

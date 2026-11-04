@@ -4,7 +4,8 @@ on:
   push:
     branches: [docs-source, main]
     paths:
-      - 'docs-site/**'
+      - 'docs-site/src/**'
+      - 'docs-site/publication-manifest.json'
       - 'docs/**'
       - 'scripts/build-docs.py'
       - 'scripts/validate-docs.py'
