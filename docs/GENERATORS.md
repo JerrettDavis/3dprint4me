@@ -13,13 +13,18 @@ Gridfinity uses a 42 mm grid, 7 mm bin height units and the MIT Gridfinity/Rebui
 (notices in `customizer/static/licenses/gridfinity.txt`). Baseplates offer standard magnetless,
 less-material magnetless and magnetic construction, with 1–6 rows and columns. Bins offer
 1.2–2.4 mm walls, dividers, paper-label shelves, optional stacking lips and optional 6 × 2 mm
-glue-in magnets. Print upright without supports; magnet pocket roofs require 6.2 mm bridges.
+glue-in magnets. Advanced controls allow 6–6.4 mm pocket diameters and 2–2.4 mm depths.
+Print upright without supports; magnet pocket roofs require bridges up to 6.4 mm. Multi-cell
+floors bridge the small gaps between rounded feet. The stacking lip ends in a printable 0.4 mm
+land, 4 mm above the nominal rim. See [geometry and slicing evidence](GRIDFINITY-PRINTABILITY.md).
 Physical fit has not been certified: print a single-cell fit sample before a full grid.
 
 **Vase is two print operations.** Select and download the shell and adapter separately with
 matching rows/columns. The shell is a solid positive volume for the slicer to hollow in spiral
 mode (0.4 mm nozzle, 0.45 mm line width, 0.2 mm layers, six bottom layers, no top/infill).
-The adapter has conventional feet and a flat glue land and must be printed normally. Glue the
+The local planning figures describe the solid shell input, not its final spiral material use;
+the page warns that the actual print estimate needs confirmation. The adapter has conventional
+feet and a flat glue land and must be printed normally. Glue the
 flat faces together after printing, aligning their outside edges. Only the selected component
 is downloaded or handed off to a print request; order the other component separately. Shell
 and adapter have distinct filenames and saved parameter provenance. Never apply spiral mode

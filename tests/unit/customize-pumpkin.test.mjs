@@ -120,7 +120,7 @@ test("advanced fields hide in Simple mode but remain in the schema, validated an
 
 test("other generators have no advanced fields and keep every control", async () => {
   const { GENERATORS } = await import("../../public/assets/js/customize/registry.js");
-  for (const g of Object.values(GENERATORS)) if (!["pumpkin", "gridfinity-base"].includes(g.id)) assert.equal(hasAdvanced(g), false, g.id);
+  for (const g of Object.values(GENERATORS)) if (!["pumpkin", "gridfinity-base", "gridfinity-bin"].includes(g.id)) assert.equal(hasAdvanced(g), false, g.id);
   const route = GENERATORS["route-shield"];
   assert.doesNotMatch(renderFormHtml(route, validateParams(route, {}).value, { advanced: false }), /data-field="top_text" hidden/);
 });
