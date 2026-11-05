@@ -1,5 +1,8 @@
 # Representative product images
 
+Execution and final release evidence: [PR #66](https://github.com/JerrettDavis/3dprint4me/pull/66).
+The validation notes below record intermediate runs; the PR records the final checks and deployment.
+
 **Goal:** Customers can browse representative images of every offered product without opening a generator. Correct the name-plate/display-sign mismatch and preserve honest descriptions.
 
 **Architecture:** Keep the static home catalog and the existing Customize catalog. Share a small isomorphic product-media manifest between the customizer and contract tests; the static home markup uses the same paths, checked by tests. Preserve existing genuine photos and CAD renders where representative; generate optimized local WebP illustrations for name plates, Wi-Fi tags, rating cards and pumpkins. Reassign the existing display-sign photo to its actual product.
