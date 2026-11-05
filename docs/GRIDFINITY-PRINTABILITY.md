@@ -1,6 +1,6 @@
 # Gridfinity geometry and slicing checks
 
-The generators use the 42 mm mating grid documented in [the design](superpowers/specs/2026-11-05-gridfinity-design.md).
+The generators use the 42 mm mating grid documented in [the design](https://github.com/JerrettDavis/3dprint4me/blob/main/docs/superpowers/specs/2026-11-05-gridfinity-design.md).
 They are intended to print upright without generated supports. Ordinary bridge tuning is required:
 magnet-pocket roofs bridge up to 6.4 mm; multi-cell bin floors and the vase adapter bridge the small
 gaps between rounded feet (up to about 8 mm at a cell junction). A paper-label shelf grows inward
@@ -16,7 +16,7 @@ Eight exported fixture pairs were sliced with Debian's PrusaSlicer 2.5.0, 0.4 mm
 standard/thin bins, a combined paper-label/divider/magnetic bin, a vase shell and its adapter.
 All eight produce continuous layer sequences and zero support paths. The spiral shell has
 2,768 rising extrusion moves above its six-layer floor, with zero wall retractions or travel moves.
-The [machine-readable report](gridfinity-slicing-report.json) records model SHA-256 digests,
+The [machine-readable report](https://github.com/JerrettDavis/3dprint4me/blob/main/docs/gridfinity-slicing-report.json) records model SHA-256 digests,
 layer counts, final layer heights and path types. Bridge and overhang paths remain expected.
 
 The original sharp stacking lip lost its final layer in slicing. The final lip truncates the
