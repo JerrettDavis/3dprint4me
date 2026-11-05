@@ -51,13 +51,13 @@ Files: definition `public/assets/js/customize/generators/gridfinity-bin.js`, bui
 Files: new Gridfinity browser tests, existing generator contract tests where cardinality is pinned, `docs/GENERATORS.md`, generated asset versions and screenshot artifacts as repository policy requires.
 
 - [x] Test catalog, presets, edits, recovery, offline downloads, request hand-off and vase exports in browser at desktop and 390 px.
-- [ ] Run build, asset versioning, full npm test and screenshots; inspect preview board and both new pages in light/dark themes.
+- [x] Run build, asset versioning, full npm test and screenshots; inspect preview board and both new pages in light/dark themes.
 - [x] Independent review against the complete spec; resolve findings and rerun affected checks.
 - [ ] Push PR, verify required CI, merge to origin/main, verify both deployments and live smoke including generator downloads and intake.
 
-## Progress — 2026-11-05
+## Pre-merge verification record — 2026-11-05
 
-Implementation is committed on `feat/gridfinity-generators`; draft PR #69: https://github.com/JerrettDavis/3dprint4me/pull/69 . Worktree `<repo-root>/dprint4me-gridfinity`, based on origin/main `0ec3bbe`. The original checkout's unrelated edits remain untouched.
+Implementation is committed on `feat/gridfinity-generators`; PR #69 (ready for review): https://github.com/JerrettDavis/3dprint4me/pull/69 . Worktree `<repo-root>/dprint4me-gridfinity`, based on origin/main `0ec3bbe`. The original checkout's unrelated edits remain untouched.
 
 Completed evidence:
 
@@ -68,12 +68,12 @@ Completed evidence:
 - Final `npm run screenshots` passed: 176 captures. Inspected the preview board's changed storefront/customizer region via cropped review sections (the original board is 132 MP and too large for the image tool) and new desktop/mobile captures directly. Customer guide, generator reference, image provenance and printability docs updated; reviewed publication hashes and nav updated for handbook publication.
 - Both Vercel previews deployed successfully. Storefront authenticated preview smoke passed four offline downloads (base, standard bin, vase shell, adapter), correct isolated settings and enabled request actions. CLI auto-link briefly created an empty worktree-named project; verified zero deployments, removed it and verified absence. Local `.vercel` now explicitly points to the existing storefront, and is ignored.
 
-Final verification still running:
+Verification and release state at this checkpoint:
 
-- `npm test` exec session **26744**, log `gridfinity-final-test.log`: final current-source unit phase passed all 1,309 checks; browser phase live with no failures observed through 74 percent. Poll this handle before starting another full suite.
+- Final `npm test` completed successfully (exec session 26744, terminal exit 0): 1,309 unit/contract checks, 479 browser checks with five environment skips, and all 241 UX checks. Log: `gridfinity-final-test.log`. No local test or screenshot process remains running.
 - Handbook checks complete: 115-page build/link validation, four integration unit checks and two browser theme/navigation/search checks pass. Logs: `gridfinity-docs-final.log`, `gridfinity-docs-browser.log`. The direct pytest wrapper misreported the browser invocation; a raw `pytest.main` run confirmed both pass.
-- GitHub verify job for PR #69 was live; poll current head checks before merging. Push the final screenshots/docs checkpoint, then let required CI pass. PR remains draft until complete validation.
+- GitHub verify job for PR #69 was live; poll current head checks before merging. Push the final screenshots/docs checkpoint, then let required CI pass. PR is ready; merge only after required checks for the final pushed commit pass.
 
 Earlier full browser run ended with 15 failures, all old catalog-count assertions or missing Gridfinity matrix edits/import quoting. Those were corrected and covered by the 31-check focused rerun. Earlier screenshot attempt failed during concurrent bundle rebuilding; final stable-build capture passed. Do not substitute those older runs for final full verification.
 
-Remaining release gates: finish final npm test and handbook checks; commit/push final reviewed screenshots/docs; final CI and review; mark PR ready, merge to origin/main; verify both production deployments, handbook publication and live same-origin/offline generator downloads. Physical sample fit is disclosed as unverified; the pixel editor remains a future revision as requested.
+Remaining release gates: final hosted CI for the audit-evidence commit; mark PR ready, merge to origin/main; verify both production deployments, handbook publication and live same-origin/offline generator downloads. Physical sample fit is disclosed as unverified; the pixel editor remains a future revision as requested.
