@@ -2,13 +2,13 @@
 // the load-failure vs build-error classification) lives in worker-core.js.
 import { loadEngine } from "./engine.js";
 import wasmUrl from "manifold-3d/manifold.wasm?url";
-import { buildModel } from "./model.js";
+import { buildModel, buildPresentationModel } from "./model.js";
 import { getGenerator } from "../../public/assets/js/customize/registry.js";
 import { loadBuilder } from "../generators/index.js";
 import { loadFont } from "./fonts.js";
 import { handleBuildRequest } from "./worker-core.js";
 
-const deps = { getGenerator, loadBuilder, loadEngine: () => loadEngine(() => wasmUrl), loadFont, buildModel };
+const deps = { getGenerator, loadBuilder, loadEngine: () => loadEngine(() => wasmUrl), loadFont, buildModel, buildPresentationModel };
 
 self.onmessage = async ({ data }) => {
   const { message, transfer } = await handleBuildRequest(data, deps);

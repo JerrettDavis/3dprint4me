@@ -123,5 +123,5 @@ export function initWindows(root, { onLayout = () => {} } = {}) {
   showTab(tab, { remember: false, open: false });
   layoutSoon();
 
-  return { reveal, showTab, layoutSoon, isCollapsed: name => collapsed[name] === true, isNarrow };
+  return { reveal, showTab, layoutSoon, setCollapsed, isCollapsed: name => collapsed[name] === true, isNarrow };
 }

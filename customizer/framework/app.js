@@ -12,6 +12,7 @@ import { DUR, enter, play, reducedMotion, setOpen } from "./motion.js";
 import { loadUi, saveUi } from "./ui-state.js";
 import { initWindows } from "./windows.js";
 import { createImageLoader, createLayerTracer, createTracer, drawTracePreview } from "./image-input.js";
+import { createPresentationControls } from './presentation-controls.js';
 import { createWorkerClient } from "./worker-client.js";
 import { buildFailureStatus } from "./build-status.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
@@ -145,10 +146,82 @@ function boot() {
   // as "Top" / "Bottom", not "Front" / "Back").
   let view = generator.initialView ?? "front";
   let form = null;
+  let realistic = false;
+  let modelView = view;
+  let presentationSeq = 0;
+  let presentationInput = null;
+  let presentationCache = null;
+  let lastPrintParts = null;
+  let previewWindowState = null;
+  const presentationClient = createWorkerClient();
+  const presentationControls = createPresentationControls(document.querySelector('.cz-bar'), onPresentationChange);
+
+  function presentationPhase(phase) {
+    presentationControls.update(realistic, phase);
+    if (els.stage) {
+      els.stage.dataset.presentationState = realistic ? phase : 'ready';
+      els.stage.setAttribute('aria-busy', String(realistic && phase === 'loading'));
+    }
+  }
+
+  function onPresentationChange(on) {
+    if (on && !realistic) modelView = view;
+    realistic = on;
+    if (on && !previewWindowState && windows?.isNarrow()) {
+      previewWindowState = Object.fromEntries(['settings', 'info'].map(name => [name, windows.isCollapsed(name)]));
+      for (const name of ['settings', 'info']) windows.setCollapsed(name, true, { animate: false, remember: false });
+    } else if (!on && previewWindowState) {
+      for (const [name, collapsed] of Object.entries(previewWindowState)) windows.setCollapsed(name, collapsed, { animate: false, remember: false });
+      previewWindowState = null;
+    }
+    selectView(on ? '3d' : modelView);
+    document.body.dataset.previewStyle = on ? 'realistic' : 'model';
+    if (on && els.bedToggle) {
+      els.bedToggle.setAttribute('aria-pressed', 'false');
+      viewer?.setBedMode(false);
+    }
+    if (!on && viewer) { viewer.setRealistic(false); if (lastPrintParts) viewer.setParts(lastPrintParts); }
+    renderPresentation();
+  }
+
+  async function renderPresentation() {
+    const ticket = ++presentationSeq;
+    const result = state.result;
+    if (!result || state.status !== 'ready') { presentationPhase(state.status === 'error' ? 'invalid' : 'loading'); return; }
+    presentationPhase(realistic ? 'loading' : 'ready');
+    const v = await ensureViewer();
+    if (ticket !== presentationSeq || result !== state.result) return;
+    if (!v) { presentationPhase('error'); return; }
+    try {
+      let parts = result.parts;
+      if (realistic && ['pumpkin', 'display-sign'].includes(generator.id)) {
+        if (presentationCache?.source !== result) {
+          const preview = await presentationClient.build(generator.id, presentationInput.params, { ...presentationInput.options, purpose: 'presentation' });
+          if (ticket !== presentationSeq || result !== state.result || !realistic) return;
+          presentationCache = { source: result, parts: preview.parts };
+        }
+        parts = presentationCache.parts;
+      }
+      if (ticket !== presentationSeq || result !== state.result) return;
+      v.setRealistic(realistic);
+      v.setView(view, { animate: false });
+      v.setParts(parts);
+      presentationPhase('ready');
+    } catch (error) {
+      if (error?.superseded || ticket !== presentationSeq) return;
+      presentationPhase('error');
+    }
+  }
 
   function setStatus(status, message, { retryable = true } = {}) {
     const changed = state.status !== status;
     state.status = status;
+    if (status !== 'ready') {
+      ++presentationSeq;
+      presentationClient.terminate();
+      presentationCache = null;
+      presentationPhase(status === 'error' ? 'invalid' : 'loading');
+    }
     if (els.status) {
       els.status.textContent = message ?? STATUS_TEXT[status] ?? "";
       els.status.dataset.state = status;
@@ -301,8 +374,7 @@ function boot() {
   }
 
   async function showResult(result) {
-    const v = await ensureViewer();
-    if (v && state.result === result) v.setParts(result.parts);
+    if (state.result === result) await renderPresentation();
   }
 
   // A trial build for Randomize: the same inputs as build() for a curated font, with no effect on
@@ -385,6 +457,8 @@ function boot() {
       const result = await client.build(generator.id, checked.value, options);
       if (seq !== buildSeq) return;
       state.result = result;
+      lastPrintParts = result.parts;
+      presentationInput = { params: checked.value, options };
       setNote("");
       renderWarnings(result.warnings ?? []);
       setStatus("ready");
@@ -657,6 +731,7 @@ function boot() {
 
   // Preview tabs: one shared panel, roving tabindex, arrow/Home/End keys.
   function selectView(next, focus = false) {
+    if (realistic && next !== '3d') return;
     view = next;
     for (const tab of els.tabs) {
       const active = tab.dataset.view === next;
@@ -667,7 +742,8 @@ function boot() {
         if (focus) tab.focus();
       }
     }
-    if (els.bedToggle) els.bedToggle.hidden = next !== "3d";
+    if (els.bedToggle) els.bedToggle.hidden = next !== "3d" || realistic;
+    els.tabs.forEach(tab => { tab.disabled = realistic && tab.dataset.view !== '3d'; });
     updateHint();
     viewer?.setView(next);
   }
@@ -677,7 +753,7 @@ function boot() {
     if (!els.hint) return;
     const parts = [];
     if (view === "3d") parts.push("Drag to turn, scroll or pinch to zoom.");
-    if ((generator.focus ?? []).length) parts.push("Click a part to jump to its settings.");
+    if (!realistic && (generator.focus ?? []).length) parts.push("Click a part to jump to its settings.");
     els.hint.textContent = parts.join(" ");
     els.hint.hidden = !parts.length;
   }
