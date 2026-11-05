@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
+from urllib.parse import urlsplit
 
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
@@ -14,6 +15,17 @@ ROOT = Path(__file__).resolve().parents[2]
 SITE_ROOT = ROOT / "public"
 CSS_PATH = SITE_ROOT / "assets/css/site.css"
 SYSTEM_CHROMIUM_PATH = Path(os.environ.get("CHROMIUM_PATH", "/usr/bin/chromium"))
+_OWNER_DIAGNOSTIC_ROUTES = {'/api/config', '/api/operator-partners', '/api/operator-partner-qa'} | {
+    '/assets/' + path.name for path in (ROOT / 'operator/assets').glob('*.js')
+}
+
+
+def diagnostic_request(url, status):
+    """Keep only fixed local owner routes; never log headers, query or bodies."""
+    parsed = urlsplit(url)
+    if parsed.hostname not in {'127.0.0.1', 'localhost', '::1'} or parsed.path not in _OWNER_DIAGNOSTIC_ROUTES:
+        return None
+    return {'route': parsed.path, 'status': status}
 
 
 def _module_source(path: Path) -> str:
@@ -177,6 +189,7 @@ class SiteBrowser:
         self.page: Page | None = None
         self.console: list[ConsoleEntry] = []
         self.page_errors: list[str] = []
+        self.owner_network: list[dict] = []
 
     def __enter__(self) -> "SiteBrowser":
         self._playwright = sync_playwright().start()
@@ -203,9 +216,31 @@ class SiteBrowser:
             return
         self.page.on("console", lambda message: self.console.append(ConsoleEntry(message.type, message.text)))
         self.page.on("pageerror", lambda error: self.page_errors.append(str(error)))
+        def record(url, status):
+            item = diagnostic_request(url, status)
+            if item is not None:
+                self.owner_network.append(item)
+                self.owner_network[:] = self.owner_network[-200:]
+        self.page.on('response', lambda response: record(response.url, response.status))
+        self.page.on('requestfailed', lambda request: record(request.url, 'failed'))
 
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
         try:
+            if exc_type is not None and self.page and not self.page.is_closed():
+                url = urlsplit(self.page.url)
+                if url.hostname in {'127.0.0.1', 'localhost', '::1'} and url.path in {'/partners', '/partners/qa'}:
+                    # Synthetic native tests only. Report structure and fixed state
+                    # labels, never page text, cookies, request values or tokens.
+                    try:
+                        state = self.page.evaluate("""() => ({ready:document.readyState,
+                            sessionVerified:document.querySelector('#owner-session')?.textContent==='Verified owner session',
+                            contentPresent:!!document.querySelector('#owner-content'),
+                            headings:document.querySelectorAll('#owner-content h1').length,
+                            retryVisible:!!document.querySelector('#owner-retry'),
+                            loadRetryVisible:!!document.querySelector('#reload-records')})""")
+                    except Exception:
+                        state = {'unavailable': True}
+                    print('Owner browser failure: ' + json.dumps({'state': state, 'pageErrorCount': len(self.page_errors), 'network': self.owner_network}))
             if exc_type is None and os.environ.get('PARTNER_QA_EVIDENCE_RUN'):
                 from tests.support.partner_qa_evidence import capture_final_partner_state
                 capture_final_partner_state(self)
