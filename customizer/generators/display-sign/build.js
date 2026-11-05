@@ -41,7 +41,7 @@ const COARSE_QR = "The QR code's modules are small for a 0.4 mm nozzle; make the
 
 const L = (n, what) => `${what} ${n}`;
 
-export default async function build(p, { wasm, font = null, fonts = {}, imageContours = null, imageLayers = null } = {}) {
+export default async function build(p, { wasm, font = null, fonts = {}, imageContours = null, imageLayers = null, presentation = false } = {}) {
   const { CrossSection, Manifold } = wasm;
   const warnings = [];
   const temps = [];
@@ -264,7 +264,16 @@ export default async function build(p, { wasm, font = null, fonts = {}, imageCon
     if (Math.max(maxX - minX, maxY - minY) > BED_MM) {
       warnings.push(`The model is ${Math.round(maxX - minX)} × ${Math.round(maxY - minY)} mm. That is larger than a typical ${BED_MM} mm print bed: choose "Sign only" or "Holder only" and order the other piece separately, or make it smaller.`);
     }
-    for (const pl of placements) solids.push(pl);
+    for (const pl of placements) {
+      if (!presentation) { solids.push(pl); continue; }
+      t(pl.solid);
+      const isHolder = pl.name.startsWith('Holder');
+      const layout = holderLayout(p);
+      const solid = isHolder
+        ? pl.solid.translate([0, sign ? boardTop + (p.tongue ? p.tongue_h_mm : 0) + GAP_MM + p.holder_d_mm / 2 : 0, 0])
+        : t(t(pl.solid.translate([0, boardTop + (holder && p.tongue ? p.tongue_h_mm : 0), -T / 2])).rotate([90 - (holder ? p.lean_deg : 0), 0, 0])).translate([0, holder ? layout.slotY : 0, holder ? p.seat_mm : T / 2]);
+      solids.push({ ...pl, solid });
+    }
     ok = true;
     const firstLine = String(p.t1_text ?? "").split("\n").map(s => s.trim()).find(Boolean) ?? "";
     return {
