@@ -309,3 +309,7 @@
 .cz-card-category{letter-spacing:0;text-transform:none}
 .cz-bar{border-top:3px solid #174b71}
 .cz-tab[aria-selected=true],.cz-bar-button[aria-pressed=true]{box-shadow:none;border-bottom:2px solid var(--accent)}
+
+/* Product illustrations stay readable in both themes. */
+.cz-card-media{position:relative;margin:0}
+.cz-card-media-label{position:absolute;right:0;top:0;padding:4px 8px;background:var(--surface);color:var(--ink);font-size:11px;line-height:1.4;border-bottom:1px solid var(--line);border-left:1px solid var(--line)}

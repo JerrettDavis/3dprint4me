@@ -72,6 +72,40 @@ def test_catalog_lists_route_shield(page: Page, base_url: str) -> None:
     expect(page).to_have_url(re.compile(r"/customize/g/route-shield/$"))
 
 
+@pytest.mark.parametrize('scheme', ['light', 'dark'])
+@pytest.mark.parametrize('width', [390, 1440])
+def test_browse_product_images_without_starting_customizer(browser: Browser, base_url: str, scheme: str, width: int) -> None:
+    context = browser.new_context(viewport={'width': width, 'height': 900}, color_scheme=scheme, reduced_motion='reduce')
+    page = context.new_page()
+    errors = []
+    requests = []
+    page.on('pageerror', lambda error: errors.append(str(error)))
+    page.on('request', lambda request: requests.append(request.url))
+    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin']
+    try:
+        for path, selector, count in [('/', '.cat-tile', 10), ('/customize/', '.cz-card', 6)]:
+            requests.clear()
+            page.goto(base_url + path)
+            expect(page.locator(selector)).to_have_count(count)
+            images = page.locator(selector + ' img')
+            assert images.count() == count
+            for img in images.all():
+                img.scroll_into_view_if_needed()
+                expect(img).to_have_js_property('complete', True)
+                assert img.evaluate('(img) => img.naturalWidth') >= 600
+                assert len(img.get_attribute('alt')) > 20
+            for id in ids:
+                assert page.locator(f'{selector} a[href="/customize/g/{id}/"], a{selector}[href="/customize/g/{id}/"]').count() == 1
+            assert page.locator(selector).filter(has_text='Illustrative render').count() == 4
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+            assert not page.workers
+            assert not any('.wasm' in url or '/worker-' in url for url in requests)
+            assert all(url.startswith(base_url + '/') for url in requests)
+            assert not errors
+    finally:
+        context.close()
+
+
 def test_route_shield_builds_and_continue_is_enabled(page: Page, base_url: str) -> None:
     # The production bundle wires Continue to the order hand-off, so it is enabled as soon as
     # a model that matches the settings is ready (and disabled while building or invalid).

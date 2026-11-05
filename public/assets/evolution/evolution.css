@@ -74,3 +74,5 @@ input::placeholder, textarea::placeholder { opacity: 1; }
 .continuation { margin-block: 1.5rem; padding-block: 1.25rem; border-block: 1px solid var(--line); }
 .continuation p { max-width: 42rem; line-height: 1.6; }
 .continuation .button { max-width: 100%; white-space: normal; }
+
+.cat-media-label{position:absolute;right:0;top:0;padding:4px 8px;background:var(--paper);color:var(--ink);font-size:11px;line-height:1.4;border-bottom:1px solid var(--line);border-left:1px solid var(--line)}
