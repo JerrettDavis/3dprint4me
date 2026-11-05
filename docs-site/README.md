@@ -28,14 +28,17 @@ Push reviewed source changes to `docs-source`. The **Publish handbook** workflow
 
 The [online maintenance guide](https://jerrettdavis.github.io/3dprint4me/developers/documentation/) covers the workflow and rollback. `build-info.json` on the public site identifies the actual deployed source. [Verification artifacts](verification/) distinguish hosted observations from local screenshots. Screenshots named for the OS theme may show the opposite manual theme after the theme-switch check.
 
-Pages deployment has a 30-minute action deadline inside a 35-minute job limit.
-The November 4 rollout reached `updating_pages` but was canceled by the action's
-ten-minute default before the new source became public. The longer bounded wait
-preserves failure reporting and cancellation at its deadline. A successful build
-or an accepted deployment does not prove publication: verify the public
-`build-info.json` source and reviewed image hashes after deployment completes.
-The automatic retry of that same build version immediately reported cancellation;
-the next attempt uses the new committed workflow version.
+Pages deployment has a ten-minute action deadline inside a fifteen-minute job
+limit. `actions/deploy-pages@v5` caps `timeout` at 600000 milliseconds; larger
+values are ignored with a warning. Increasing the job limit cannot extend it.
+If deployment stalls in `updating_pages`, inspect its status and GitHub Pages
+service health before rerunning the failed deploy job against the existing
+validated artifact. Keep the deployment failure visible; do not mark an accepted
+deployment as successful or skip its completion check. On November 4, run
+41893096715 timed out, then its failed-job rerun published the same build version
+in five seconds. A successful build or accepted deployment does not prove
+publication: verify the public `build-info.json` source and reviewed image hashes
+after deployment completes.
 
 ## November 3 verified screenshot revision
 
