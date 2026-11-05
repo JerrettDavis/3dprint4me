@@ -58,3 +58,17 @@ Files: new Gridfinity browser tests, existing generator contract tests where car
 ## Progress
 
 2026-11-05: Research and architecture recorded. Isolated worktree `G:/git/3dprint4me-gridfinity`, branch `feat/gridfinity-generators`, based on origin/main `0ec3bbe`. Original checkout contains unrelated edits and remains untouched. No implementation or release claim yet.
+
+### Implementation checkpoint
+
+- Shared constants, cell math and actual Manifold foot implemented; initial commit records upstream license and independent dimensional tests.
+- Both generators now have definitions, worker builders, pages, registry entries, sitemap entries and home/catalog cards. Base variants: standard/light/magnetic. Bin variants: standard/thin/divided/paper-label/magnetic, plus independently selected/downloaded vase shell and adapter.
+- Actual default geometry rendered to two local WebP catalog images by `scripts/capture_gridfinity_media.py`; image provenance documented. Mobile light/dark screenshots inspected. Full preview board still needs a successful final capture and inspection.
+- Focused geometry tests: 11 pass, covering fixed profile stations, connectivity, maximum plates/bins, magnetic roof probes, mating-foot clearance in socket and stacking lip, and raw-count clamping recovery.
+- Browser checks: 7 pass (offline edits/downloads, draft recovery, isolated vase settings, mobile light/dark). Request hand-off, preset-selection and committed blank-field browser coverage remain to add.
+- Targeted legacy/schema/media regression command passed 90 tests. Initial full unit run passed 1298/1302; four failures were the pinned six-generator list, advanced-field assumption, missing screenshot routes, and missing home media. Those were fixed and covered by the 90-test rerun. Initial baseline was contaminated by adding the deliberately failing new test while it ran; do not call it a clean baseline.
+- Reviewer found raw cell-count edits threw from `footprint()` before clamping; reproduced with a failing test and fixed by guarding raw counts in bin rules. Reviewer also requested actual sliced lip/vase evidence, floor/shelf/divider measurements, intake provenance tests, and adjustable magnet clearance promised by the spec. These remain open. No proven collision in foot/socket/lip intersections; the lip ends in a sharp edge that still requires slicing/printability review.
+- `npm run screenshots` failed on a Customize ready-state timeout while bundles were being rebuilt concurrently. No definitive page identified in its traceback. Re-run only after final build is stable; do not treat this as a product failure or a passed screenshot gate without reproduction.
+- Current full `npm test` is running in exec session **24356**, output `gridfinity-full-test.log`. Poll that same handle before starting another suite. It was confirmed live and in unit tests at this checkpoint. All earlier unit/browser/screenshot processes are terminal. Browser output: `gridfinity-browser.log`; targeted regression output: `gridfinity-regression.log`.
+- Installed slicers: `C:/Program Files/OrcaSlicer/orca-slicer.exe`, `C:/Program Files/Bambu Studio/bambu-studio.exe`. Orca `--help` returned 0 with empty output, so actual CLI slicing remains unverified; use existing private slicer tooling or documented CLI after investigation.
+- No push, PR, merge or deployment yet. Full objective remains active. Next: close reviewer findings, run final full suite, capture/inspect screenshots, obtain final review, then PR/green CI/merge/live verification.
