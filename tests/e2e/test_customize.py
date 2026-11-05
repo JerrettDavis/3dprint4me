@@ -72,6 +72,8 @@ def test_realistic_preview_is_local_and_preserves_print_download(page: Page, bas
     if generator_id == 'wifi-tag':
         page.get_by_label('Network password', exact=True).fill('local-preview-example')
     wait_ready(page)
+    expect(page.locator('#cz-stage canvas')).to_be_visible(timeout=BUILD_TIMEOUT)
+    page.context.set_offline(True)
     toggle = page.get_by_role('button', name='Realistic preview', exact=True)
     toggle.focus()
     page.keyboard.press('Enter')
