@@ -9,6 +9,10 @@ parameters as provenance. The uploaded 3MF is the object that is estimated and p
 
 Launch set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`.
 
+All six have local representative images on the home shop and Customize catalog, without
+building a model. See [Product browsing images](PRODUCT-IMAGES.md) for media assignments,
+illustration provenance, generation prompts and the catalog update checks.
+
 This document describes the contract **as implemented**. Where the design spec
 ([2026-10-02-parametric-generators-design.md](superpowers/specs/2026-10-02-parametric-generators-design.md))
 differs, this document and the code win (see [Differences from the design spec](#differences-from-the-design-spec)).

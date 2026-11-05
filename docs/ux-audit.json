@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-11-04T18:59:55.282207+00:00",
+  "generatedAt": "2026-11-05T03:42:41.839014+00:00",
   "status": "pass",
   "summary": {
     "checks": 241,
@@ -65,14 +65,14 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "11 images loaded and each has an alt attribute."
+      "details": "16 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "58 visible interactive elements have accessible names."
+      "details": "60 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "165 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "179 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -737,7 +737,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "4 images loaded and each has an alt attribute."
+      "details": "8 images loaded and each has an alt attribute."
     },
     {
       "route": "/customize/",
@@ -779,7 +779,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "63 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "69 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -905,14 +905,14 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "11 images loaded and each has an alt attribute."
+      "details": "16 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "52 visible interactive elements have accessible names."
+      "details": "54 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -947,7 +947,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "155 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "169 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -1577,7 +1577,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "4 images loaded and each has an alt attribute."
+      "details": "8 images loaded and each has an alt attribute."
     },
     {
       "route": "/customize/",
@@ -1619,7 +1619,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "57 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "63 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -1739,12 +1739,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 58,
-        "imageCount": 11,
-        "headingCount": 27
+        "interactiveCount": 60,
+        "imageCount": 16,
+        "headingCount": 29
       },
       "contrast": {
-        "checked": 165,
+        "checked": 179,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2020,11 +2020,11 @@
         "contentWidth": 1440,
         "viewportWidth": 1440,
         "interactiveCount": 32,
-        "imageCount": 4,
+        "imageCount": 8,
         "headingCount": 11
       },
       "contrast": {
-        "checked": 63,
+        "checked": 69,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2089,12 +2089,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 52,
-        "imageCount": 11,
-        "headingCount": 25
+        "interactiveCount": 54,
+        "imageCount": 16,
+        "headingCount": 27
       },
       "contrast": {
-        "checked": 155,
+        "checked": 169,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2370,11 +2370,11 @@
         "contentWidth": 390,
         "viewportWidth": 390,
         "interactiveCount": 27,
-        "imageCount": 4,
+        "imageCount": 8,
         "headingCount": 11
       },
       "contrast": {
-        "checked": 57,
+        "checked": 63,
         "complexSkipped": 0,
         "failures": []
       }
