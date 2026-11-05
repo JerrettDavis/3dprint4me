@@ -21,6 +21,24 @@ The [Customize catalog](https://3dprint4.me/customize/) builds models in your br
 
 Sensitive customizer fields such as a Wi-Fi password stay in the browser as values. Their geometry can exist in the model, so treat the finished model as private too. Do not include credentials in filenames, descriptions or reference images.
 
+### Gridfinity bases and bins
+
+Choose a [Gridfinity baseplate](https://3dprint4.me/customize/g/gridfinity-base/) or
+[Gridfinity bin](https://3dprint4.me/customize/g/gridfinity-bin/) for a 42 mm storage grid.
+Set rows and columns, then choose a starting design. Baseplates offer standard rails,
+less material or magnet pockets. Bins offer thin walls, dividers, a paper-label shelf,
+stacking lips and optional magnets. Advanced settings can adjust magnet-pocket clearance.
+Check the displayed dimensions against your printer bed and print a one-cell fit sample first.
+Glue magnets after printing and check their polarity.
+
+For a **spiral vase**, download the shell and matching adapter separately. Print the shell
+alone in spiral mode and print the adapter normally, then glue their flat faces together.
+Only the selected component goes with each download or print request; request the other
+component separately if ordering both. Shell planning figures describe the solid slicer input,
+so the shop confirms actual spiral material use before printing. The
+[printability reference](../../../docs/GRIDFINITY-PRINTABILITY.md) explains the settings and
+the geometry/slicing checks. Physical fit still needs a sample print on your printer.
+
 ## 4. Review and send
 
 Read the summary, contact details and permissions before submitting. Browser estimates are **non-binding**; final material, model repair, production and delivery decisions can change the quote. Keep the confirmation or recoverable copy supplied by the site.

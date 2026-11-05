@@ -7,7 +7,31 @@ preview, local planning facts, and **Continue to request**, which hands the buil
 ordinary print request on `/order.html`. The server never builds geometry; it re-validates the
 parameters as provenance. The uploaded 3MF is the object that is estimated and printed.
 
-Launch set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`.
+Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`.
+
+Gridfinity uses a 42 mm grid, 7 mm bin height units and the MIT Gridfinity/Rebuilt mating profile
+(notices in `customizer/static/licenses/gridfinity.txt`). Baseplates offer standard magnetless,
+less-material magnetless and magnetic construction, with 1–6 rows and columns. Bins offer
+1.2–2.4 mm walls, dividers, paper-label shelves, optional stacking lips and optional 6 × 2 mm
+glue-in magnets. Advanced controls allow 6–6.4 mm pocket diameters and 2–2.4 mm depths.
+Print upright without supports; magnet pocket roofs require bridges up to 6.4 mm. Multi-cell
+floors bridge the small gaps between rounded feet. The stacking lip ends in a printable 0.4 mm
+land, 4 mm above the nominal rim. See [geometry and slicing evidence](GRIDFINITY-PRINTABILITY.md).
+Physical fit has not been certified: print a single-cell fit sample before a full grid.
+
+**Vase is two print operations.** Select and download the shell and adapter separately with
+matching rows/columns. The shell is a solid positive volume for the slicer to hollow in spiral
+mode (0.4 mm nozzle, 0.45 mm line width, 0.2 mm layers, six bottom layers, no top/infill).
+The local planning figures describe the solid shell input, not its final spiral material use;
+the page warns that the actual print estimate needs confirmation. The adapter has conventional
+feet and a flat glue land and must be printed normally. Glue the
+flat faces together after printing, aligning their outside edges. Only the selected component
+is downloaded or handed off to a print request; order the other component separately. Shell
+and adapter have distinct filenames and saved parameter provenance. Never apply spiral mode
+to an adapter or to a combined shell/adapter job. Verify the actual sliced toolpath before printing.
+
+The future pixel occupancy editor is not part of this release. Research and numeric decisions:
+[`2026-11-05-gridfinity-design.md`](superpowers/specs/2026-11-05-gridfinity-design.md).
 
 All six have local representative images on the home shop and Customize catalog, without
 building a model. See [Product browsing images](PRODUCT-IMAGES.md) for media assignments,

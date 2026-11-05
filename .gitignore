@@ -32,3 +32,5 @@ public/customize/
 # Generated documentation staging and static output
 .docs-source/
 public/handbook/
+
+.vercel

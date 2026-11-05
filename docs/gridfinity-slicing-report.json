@@ -1,0 +1,144 @@
+[
+  {
+    "name": "base-standard",
+    "modelSha256": "46a431cfbc664caaebfab50555ccf6e5130ea5c7ce5ec903270b4737421444f6",
+    "layers": 24,
+    "lastLayerMm": 4.8,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 51,
+      "External perimeter": 49,
+      "Solid infill": 11,
+      "Internal infill": 8
+    },
+    "supportPaths": 0
+  },
+  {
+    "name": "base-light",
+    "modelSha256": "c7860fc30534045bf49f0a93f479696313239ebe26982f60860f0e603b63d399",
+    "layers": 24,
+    "lastLayerMm": 4.8,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 53,
+      "External perimeter": 34,
+      "Solid infill": 19
+    },
+    "supportPaths": 0
+  },
+  {
+    "name": "base-magnetic",
+    "modelSha256": "5c829e4c1f019c55239850c23a0d4e5c5a95c25c37971babcb7f54f2f5d20922",
+    "layers": 40,
+    "lastLayerMm": 8.0,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 115,
+      "External perimeter": 113,
+      "Solid infill": 14,
+      "Internal infill": 19,
+      "Bridge infill": 2,
+      "Top solid infill": 1
+    },
+    "supportPaths": 0
+  },
+  {
+    "name": "bin-standard",
+    "modelSha256": "cc84fef1c55d956ee063739040204ba227ced33e00e3b00be1b69c01090e8603",
+    "layers": 230,
+    "lastLayerMm": 46.0,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 264,
+      "External perimeter": 264,
+      "Solid infill": 15,
+      "Internal infill": 29,
+      "Bridge infill": 1,
+      "Top solid infill": 1
+    },
+    "supportPaths": 0
+  },
+  {
+    "name": "bin-thin",
+    "modelSha256": "77a9e32274d5707bed24252f6f6fd6089207ce0ac19f01d1e3941101f237b33e",
+    "layers": 210,
+    "lastLayerMm": 42.0,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 210,
+      "External perimeter": 210,
+      "Solid infill": 15,
+      "Internal infill": 23,
+      "Bridge infill": 1,
+      "Top solid infill": 1
+    },
+    "supportPaths": 0
+  },
+  {
+    "name": "bin-labeled-divided-magnetic",
+    "modelSha256": "ea4741df04c24335a0ec82680d27a5b5f3a9b16017e28c4c7ed3f42b5e559817",
+    "layers": 230,
+    "lastLayerMm": 46.0,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 918,
+      "External perimeter": 876,
+      "Solid infill": 135,
+      "Internal infill": 152,
+      "Bridge infill": 18,
+      "Overhang perimeter": 8,
+      "Top solid infill": 2
+    },
+    "supportPaths": 0
+  },
+  {
+    "name": "vase-shell",
+    "modelSha256": "29f68a64cad8e362e4522424c31083bb1b52cc70a2d7a8f65a24201a39a613f5",
+    "layers": 180,
+    "lastLayerMm": 36.0,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "External perimeter": 7,
+      "Solid infill": 5,
+      "Top solid infill": 1
+    },
+    "supportPaths": 0,
+    "spiralMoves": 2768,
+    "wallRetracts": 0,
+    "wallTravelMoves": 0,
+    "floorLayers": 6,
+    "solidFloorLayerHeightsMm": [
+      0.2,
+      0.4,
+      0.6,
+      0.8,
+      1.0,
+      1.2
+    ]
+  },
+  {
+    "name": "vase-adapter",
+    "modelSha256": "ed50540b08d32eb376cb0915d59a36a225cd7269a57ed7144ad1761c04d399d9",
+    "layers": 30,
+    "lastLayerMm": 6.0,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 106,
+      "External perimeter": 106,
+      "Solid infill": 48,
+      "Internal infill": 85,
+      "Overhang perimeter": 8,
+      "Bridge infill": 2,
+      "Top solid infill": 1
+    },
+    "supportPaths": 0
+  }
+]

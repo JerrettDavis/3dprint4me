@@ -1,6 +1,12 @@
 # Product browsing images
 
-The home shop (`public/index.html`) shows all six public generators and four service starting points. `/customize/` uses `public/assets/js/customize/product-media.js` for the same generator images and descriptions. Browsing either page requires no geometry build, worker, WASM, credentials or external image host. The home markup stays static and works without JavaScript; unit contracts prevent drift against the public registry and Customize cards.
+The home shop (`public/index.html`) shows all eight public generators and four service starting points. `/customize/` uses `public/assets/js/customize/product-media.js` for the same generator images and descriptions. Browsing either page requires no geometry build, worker, WASM, credentials or external image host. The home markup stays static and works without JavaScript; unit contracts prevent drift against the public registry and Customize cards.
+
+Gridfinity baseplate and bin images are captured from the actual default Manifold geometry by
+`python scripts/capture_gridfinity_media.py` after `npm run customizer:build`. UI overlays are
+hidden during capture; the render is resized/cropped to 640 × 480 WebP. These are illustrative
+renders, not photographs or physical fit evidence, and use no AI-generated imagery or customer
+data. Generated files: `public/assets/images/products/gridfinity-{base,bin}.webp`.
 
 ## Provenance and honesty
 
