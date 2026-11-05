@@ -26,7 +26,7 @@ async function loading(step) {
  * a customer font that won't parse stays a build error.
  */
 export async function handleBuildRequest(data, deps) {
-  const { id, generatorId, params, fontId, fontBytes, fontKey, locationFontIds = [], imageContours = null, imageLayers = null } = data ?? {};
+  const { id, generatorId, params, fontId, fontBytes, fontKey, locationFontIds = [], imageContours = null, imageLayers = null, purpose } = data ?? {};
   try {
     const def = deps.getGenerator(generatorId);
     if (!def || !Object.hasOwn(deps.loadBuilder, generatorId)) throw new Error("Unknown generator.");
@@ -36,8 +36,10 @@ export async function handleBuildRequest(data, deps) {
     // Per-location overrides: curated fonts by id (a map; ids the page did not ask for are absent).
     const fonts = {};
     for (const fid of Array.isArray(locationFontIds) ? locationFontIds.slice(0, 16) : []) fonts[fid] = await deps.loadFont({ fontId: fid });
-    const out = await deps.buildModel({ ...def, build }, params, { wasm, font, fonts, imageContours, imageLayers });
-    return { message: { id, ok: true, result: out }, transfer: [out.data.buffer] };
+    const presentation = purpose === 'presentation';
+    const buildResult = presentation ? deps.buildPresentationModel : deps.buildModel;
+    const out = await buildResult({ ...def, build }, params, { wasm, font, fonts, imageContours, imageLayers, ...(presentation ? { presentation: true } : {}) });
+    return { message: { id, ok: true, result: out }, transfer: presentation ? [] : [out.data.buffer] };
   } catch (error) {
     const message = { id, ok: false, error: String(error?.message ?? error).slice(0, 300) };
     if (error?.retryable) Object.assign(message, { retryable: true, code: typeof error.code === "string" ? error.code : LOAD_FAILED });

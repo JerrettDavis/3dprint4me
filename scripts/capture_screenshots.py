@@ -148,6 +148,10 @@ def capture_customize_states() -> list[tuple[str, Path]]:
     captured: list[tuple[str, Path]] = []
     with running_server() as base_url:
         for label, route, filename, viewport, scheme, ready, prepare in [
+            ("Name plate realistic · desktop · light", "/customize/g/name-plate/", "customize-realistic-name-plate-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, show_realistic_preview),
+            ("Name plate realistic · mobile · dark", "/customize/g/name-plate/", "customize-realistic-name-plate-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, show_realistic_preview),
+            ("Pumpkin realistic · desktop · dark", "/customize/g/pumpkin/", "customize-realistic-pumpkin-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, show_realistic_preview),
+            ("Display sign realistic · desktop · light", "/customize/g/display-sign/", "customize-realistic-display-sign-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, show_realistic_preview),
             ("Customize catalog · desktop · light", "/customize/", "customize-catalog-desktop-light.png", (1440, 1000), "light", None, None),
             ("Customize catalog · mobile · dark", "/customize/", "customize-catalog-mobile-dark.png", (390, 844), "dark", None, None),
             ("Route shield · desktop · light", "/customize/g/route-shield/", "customize-route-shield-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
@@ -198,6 +202,11 @@ def capture_customize_states() -> list[tuple[str, Path]]:
                 site.assert_no_page_errors(allow_console_warnings=("GL Driver Message", "GPU stall"))
             captured.append((label, path))
     return captured
+
+
+def show_realistic_preview(page) -> None:
+    page.get_by_role('button', name='Realistic preview', exact=True).click()
+    page.wait_for_selector('#cz-stage[data-presentation-state="ready"][data-presentation="realistic"]', timeout=30000)
 
 
 def show_3d_preview(page) -> None:

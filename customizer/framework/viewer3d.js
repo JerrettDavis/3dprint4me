@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { DUR, play, reducedMotion } from './motion.js';
+import { createStudio, finishMaterial } from './studio.js';
 
 // Everything lives in the printer's Z-up frame (millimetres), matching the 3MF.
 const BED = 256; // Bambu Lab X1/P1/A1 Max-class 256 x 256 mm build plate
@@ -114,7 +116,7 @@ function makeBed() {
 // coplanar faces.
 function makeBadgeMesh(parts) {
   const group = new THREE.Group();
-  for (const p of parts) {
+  for (const [index, p] of parts.entries()) {
     const { vertices, triangles } = p.mesh;
     const positions = new Float32Array(triangles.length * 9);
     triangles.forEach((tri, i) => tri.forEach((vi, k) => {
@@ -123,8 +125,8 @@ function makeBadgeMesh(parts) {
     }));
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geo.computeVertexNormals();
-    const mesh = new THREE.Mesh(geo, mat(p.color, { roughness: .5, flatShading: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
+    toCreasedNormals(geo, .55);
+    const mesh = new THREE.Mesh(geo, mat(p.color, { roughness: .5, flatShading: true, polygonOffset: true, polygonOffsetFactor: index ? -1 : 1, polygonOffsetUnits: index ? -2 : 1 }));
     mesh.userData.name = p.name;
     group.add(mesh);
   }
@@ -163,6 +165,8 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
   renderer.domElement.setAttribute('aria-label', label);
 
   const scene = new THREE.Scene();
+  let studio = null;
+  let realistic = false;
   const camera = new THREE.PerspectiveCamera(35, 1, 1, 4000);
   camera.up.set(0, 0, 1);
   const ortho = new THREE.OrthographicCamera(-50, 50, 50, -50, -2000, 2000);
@@ -171,7 +175,8 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
   controls.enableDamping = false;
   controls.maxPolarAngle = Math.PI;
 
-  scene.add(new THREE.HemisphereLight(0xdfeeff, 0x1b2a38, 1.1));
+  const ambient = new THREE.HemisphereLight(0xdfeeff, 0x1b2a38, 1.1);
+  scene.add(ambient);
   const sun = new THREE.DirectionalLight(0xffffff, 2);
   sun.position.set(-150, -250, 400);
   scene.add(sun);
@@ -251,7 +256,7 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
   };
 
   // Orbiting under the model is only blocked when the opaque bed is shown.
-  function limitOrbit() { controls.maxPolarAngle = bedMode ? Math.PI / 2 - .02 : Math.PI; }
+  function limitOrbit() { controls.maxPolarAngle = bedMode || realistic ? Math.PI / 2 - .02 : Math.PI; }
 
   // Floating tool windows cover part of the canvas: shift the projection so the model is
   // centred in the free space, without moving the camera.
@@ -328,8 +333,8 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
   function layout() {
     limitOrbit();
     const flat = view !== '3d';
-    bed.visible = refs.visible = bedMode && !flat;
-    stage.visible = !bedMode && !flat;
+    bed.visible = refs.visible = bedMode && !flat && !realistic;
+    stage.visible = !bedMode && !flat && !realistic;
     controls.enabled = !flat;
     if (!model) return;
     if (bedMode && !flat) model.position.set(-45, 0, 0);
@@ -365,7 +370,7 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
     for (const mesh of model.children) {
       if (!mesh.isMesh) continue;
       const key = mesh.userData.section;
-      const level = key && key === hl.selected ? 'selected' : key && key === hl.hover ? 'hover' : null;
+      const level = realistic ? null : key && key === hl.selected ? 'selected' : key && key === hl.hover ? 'hover' : null;
       mesh.material.emissive.setHex(level ? ACCENT : 0x000000);
       mesh.material.emissiveIntensity = level ? LEVEL[level] : 0;
       if (level || mesh.userData.edges) {
@@ -386,7 +391,7 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
   const ndc = new THREE.Vector2();
   const raycaster = new THREE.Raycaster();
   function partAt(clientX, clientY) {
-    if (!model) return null;
+    if (!model || realistic) return null;
     const rect = dom.getBoundingClientRect();
     if (!rect.width || !rect.height) return null;
     ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
@@ -472,6 +477,7 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
       finishSwap();
       const old = model;
       model = makeBadgeMesh(parts);
+      model.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; finishMaterial(o.material, realistic); } });
       // Centre XY on the origin, rest on Z=0.
       const box = new THREE.Box3().setFromObject(model);
       const c = box.getCenter(new THREE.Vector3());
@@ -481,7 +487,8 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
       dims = { w: size3.x, d: size3.y, h: size3.z };
       tagParts();
       layout();
-      if (first) { resize(); frame(); }
+      if (first || realistic) { resize(); frame(); }
+      if (realistic) fitShadow();
       frameOrtho();
       paintHighlights();
       if (old) {
@@ -502,6 +509,29 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
       return dims;
     },
     setView,
+    setRealistic(on) {
+      container.dataset.presentation = on ? 'realistic' : 'model';
+      if (realistic === Boolean(on)) return;
+      finishSwap();
+      realistic = Boolean(on);
+      if (realistic && !studio) { studio = createStudio(renderer); scene.add(studio.floor); }
+      if (studio) studio.floor.visible = realistic;
+      scene.environment = realistic ? studio.environment : null;
+      scene.background = realistic ? new THREE.Color('#ddd2bf') : null;
+      renderer.toneMapping = realistic ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
+      renderer.toneMappingExposure = .9;
+      renderer.shadowMap.enabled = realistic;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      sun.castShadow = realistic;
+      sun.intensity = realistic ? 1.8 : 2;
+      ambient.intensity = realistic ? .45 : 1.1;
+      under.intensity = realistic ? 0 : 1.2;
+      if (realistic) { bedMode = false; clearHover(); fitShadow(); }
+      model?.traverse(o => { if (o.isMesh) finishMaterial(o.material, realistic); });
+      paintHighlights(); layout(); frame('front', false); render();
+      container.dataset.presentation = realistic ? 'realistic' : 'model';
+      renderer.domElement.setAttribute('aria-label', `${label}${realistic ? ' — realistic studio view' : ''}`);
+    },
     setBedMode(on) {
       finishSwap();
       bedMode = on;
@@ -518,7 +548,7 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
     setHighlight(next) { hl = { hover: next?.hover ?? null, selected: next?.selected ?? null }; paintHighlights(); },
     /** A short glow on a section's parts (after it was selected). */
     pulse(key) {
-      if (!model || !key || reducedMotion()) return;
+      if (!model || !key || reducedMotion() || realistic) return;
       const meshes = model.children.filter(m => m.isMesh && m.userData.section === key);
       if (!meshes.length) return;
       pulseRun?.cancel();
@@ -531,6 +561,7 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
       inset = { left: next?.left ?? 0, right: next?.right ?? 0, top: next?.top ?? 0, bottom: next?.bottom ?? 0 };
       applyViewOffset();
       frameOrtho();
+      if (realistic) frame('front', false);
       render();
     },
     show() { resize(); render(); },
@@ -546,9 +577,21 @@ export function createViewer(container, { label = '3D model preview' } = {}) {
       controls.dispose();
       scene.traverse(o => { o.geometry?.dispose(); o.material?.map?.dispose?.(); o.material?.dispose?.(); });
       renderer.dispose();
+      studio?.dispose();
       renderer.domElement.remove();
     },
     get dims() { return dims; },
     BED
   };
+
+  function fitShadow() {
+    const span = Math.max(dims.w, dims.d, dims.h, 40);
+    const reach = span * 1.4;
+    Object.assign(sun.shadow.camera, { left: -reach, right: reach, top: reach, bottom: -reach, near: 1, far: 2500 });
+    sun.shadow.camera.updateProjectionMatrix();
+    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.normalBias = .18;
+    sun.shadow.bias = -.0003;
+    sun.shadow.needsUpdate = true;
+  }
 }

@@ -63,6 +63,98 @@ def wait_settled(page: Page) -> None:
     wait_ready(page)
 
 
+@pytest.mark.parametrize('generator_id', ['route-shield', 'wifi-tag', 'rating-card', 'name-plate', 'pumpkin', 'display-sign'])
+def test_realistic_preview_is_local_and_preserves_print_download(page: Page, base_url: str, generator_id: str) -> None:
+    errors, requests = [], []
+    page.on('pageerror', lambda error: errors.append(str(error)))
+    page.on('request', lambda request: requests.append(request.url))
+    page.goto(f'{base_url}/customize/g/{generator_id}/')
+    if generator_id == 'wifi-tag':
+        page.get_by_label('Network password', exact=True).fill('local-preview-example')
+    wait_ready(page)
+    toggle = page.get_by_role('button', name='Realistic preview', exact=True)
+    toggle.focus()
+    page.keyboard.press('Enter')
+    expect(toggle).to_have_attribute('aria-pressed', 'true')
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation-state', 'ready', timeout=BUILD_TIMEOUT)
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation', 'realistic')
+    expect(page.get_by_role('button', name='Continue to request', exact=True)).to_be_enabled()
+    expect(page.locator('#cz-bed-toggle')).to_be_hidden()
+    assert all(url.startswith(base_url + '/') or url.startswith('blob:') for url in requests)
+    page.get_by_role('button', name='Model', exact=True).click()
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation', 'model')
+    assert not errors
+
+
+@pytest.mark.parametrize('scheme', ['light', 'dark'])
+def test_realistic_preview_mobile_reacts_to_edits_offline(browser: Browser, base_url: str, scheme: str) -> None:
+    context = browser.new_context(viewport={'width': 390, 'height': 844}, color_scheme=scheme, reduced_motion='reduce')
+    page = context.new_page()
+    try:
+        page.goto(base_url + '/customize/g/name-plate/')
+        wait_ready(page)
+        page.get_by_role('button', name='Realistic preview', exact=True).click()
+        expect(page.locator('#cz-stage')).to_have_attribute('data-presentation-state', 'ready', timeout=BUILD_TIMEOUT)
+        first = page.locator('#cz-stage canvas').screenshot()
+        context.set_offline(True)
+        page.get_by_role('button', name='Settings', exact=True).click()
+        text = page.locator('#cz-form input[type=text]').first
+        text.fill('JAMIE')
+        text.blur()
+        wait_settled(page)
+        expect(page.locator('#cz-stage')).to_have_attribute('data-presentation-state', 'ready', timeout=BUILD_TIMEOUT)
+        assert page.locator('#cz-stage canvas').screenshot() != first
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        page.get_by_role('button', name='Model', exact=True).click()
+        expect(page.locator('#cz-stage')).to_have_attribute('data-presentation', 'model')
+    finally:
+        context.close()
+
+
+def test_realistic_failure_recovery_keeps_original_print_bytes(page: Page, base_url: str) -> None:
+    page.goto(base_url + '/customize/g/pumpkin/')
+    wait_ready(page)
+
+    def download_bytes():
+        page.get_by_role('button', name='Download my model', exact=True).click()
+        with page.expect_download() as info:
+            page.get_by_role('button', name='No, just give me my file', exact=True).click()
+        return Path(info.value.path()).read_bytes()
+
+    before = download_bytes()
+    page.evaluate("() => { window.originalWorker = window.Worker; window.Worker = class { constructor() { throw new Error('synthetic unavailable worker'); } }; }")
+    page.get_by_role('button', name='Realistic preview', exact=True).click()
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation-state', 'error', timeout=BUILD_TIMEOUT)
+    expect(page.get_by_role('button', name='Continue to request', exact=True)).to_be_enabled()
+    assert download_bytes() == before
+    page.evaluate('window.Worker = window.originalWorker; delete window.originalWorker')
+    page.get_by_role('button', name='Retry preview', exact=True).click()
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation-state', 'ready', timeout=BUILD_TIMEOUT)
+    assert download_bytes() == before
+    for _ in range(3):
+        page.get_by_role('button', name='Model', exact=True).click()
+        page.get_by_role('button', name='Realistic preview', exact=True).click()
+    page.get_by_role('button', name='Model', exact=True).click()
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation', 'model')
+
+
+def test_realistic_preview_hides_stale_model_when_settings_are_invalid(page: Page, base_url: str) -> None:
+    page.goto(base_url + '/customize/g/name-plate/')
+    wait_ready(page)
+    page.get_by_role('button', name='Realistic preview', exact=True).click()
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation-state', 'ready', timeout=BUILD_TIMEOUT)
+    text = page.locator('#cz-form input[type=text]').first
+    text.fill('')
+    text.blur()
+    expect(page.locator('body')).to_have_attribute('data-build-state', 'error')
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation-state', 'invalid')
+    expect(page.locator('#cz-stage canvas')).to_be_hidden()
+    text.fill('MORGAN')
+    text.blur()
+    wait_settled(page)
+    expect(page.locator('#cz-stage')).to_have_attribute('data-presentation-state', 'ready', timeout=BUILD_TIMEOUT)
+
+
 def test_catalog_lists_route_shield(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/")
     link = page.get_by_role("link", name=re.compile("Route shield"))

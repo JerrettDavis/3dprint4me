@@ -63,6 +63,20 @@ export const MESH_CLEAN_TOLERANCE_MM = 1e-6;
 
 const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 
+// Display geometry has no file, metadata or parameters. It never replaces print output.
+export async function buildPresentationModel(generator, params, ctx) {
+  const built = await generator.build(params, { ...ctx, presentation: true });
+  try {
+    return { parts: built.solids.map(s => {
+      const color = normalizeColor(s.color);
+      if (!color) throw fail('invalid-color', 'A preview part has an invalid color.');
+      return { name: s.name, color, mesh: manifoldToMesh(s.solid) };
+    }) };
+  } finally {
+    for (const s of built.solids) free(s.solid);
+  }
+}
+
 export async function buildModel(generator, params, ctx) {
   const built = await generator.build(params, ctx);
   const { solids = [], warnings = [], title = generator.title ?? generator.id, filenameBase = generator.id, slicerSettings } = built;
