@@ -127,12 +127,16 @@ def test_owner_menu_breakpoint_preserves_a_visible_keyboard_target():
         assert page.evaluate("document.activeElement.matches('#partner-navigation [aria-current=page]')")
 
 
-def test_owner_accounts_start_with_a_record_in_short_phone_view():
-    with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,520)) as site:
+@pytest.mark.parametrize('motion', ['no-preference', 'reduce'])
+def test_owner_accounts_start_with_a_record_in_short_phone_view(motion):
+    with running_operator_workspace() as (_,origin,_), SiteBrowser(viewport=(390,520), reduced_motion=motion) as site:
         page=site.page;install_access_fixture(page)
         page.goto(origin+'/partners#partners')
         heading=page.get_by_role('heading',name='Partner accounts',exact=True)
         heading.wait_for()
+        # Visibility precedes the 200 ms portal-enter transform completing.
+        # Measure the settled layout instead of a scheduler-dependent frame.
+        heading.evaluate('async node => { await Promise.all(node.getAnimations().map(animation => animation.finished)); }')
         assert heading.bounding_box()['y'] < 220
         assert page.get_by_role('heading',name='Synthetic Access Partner',exact=True).bounding_box()['y'] < 520
         assert page.locator('header').get_by_text('Open QA workspace',exact=True).count()==0
