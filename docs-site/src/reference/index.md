@@ -15,6 +15,7 @@ These canonical documents describe integration contracts and operational procedu
 - [Spoolman inventory sync](../../../docs/SPOOLMAN.md)
 - [Print estimation, private models, and retention](../../../docs/PRINT-ESTIMATION.md)
 - [Parametric generators (Customize)](../../../docs/GENERATORS.md)
+- [Product browsing images and provenance](../../../docs/PRODUCT-IMAGES.md)
 - [Quick inquiry contract and operations](../../../docs/QUICK-INQUIRY.md)
 - [Direct GitHub operator authentication](../../../docs/GITHUB-OPERATOR-AUTH.md)
 - [Native partner API contract](../../../docs/PARTNER-API.md)
