@@ -148,6 +148,10 @@ def capture_customize_states() -> list[tuple[str, Path]]:
     captured: list[tuple[str, Path]] = []
     with running_server() as base_url:
         for label, route, filename, viewport, scheme, ready, prepare in [
+            ("Gridfinity base · desktop · light", "/customize/g/gridfinity-base/", "customize-gridfinity-base-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Gridfinity base · mobile · dark", "/customize/g/gridfinity-base/", "customize-gridfinity-base-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
+            ("Gridfinity bin · desktop · light", "/customize/g/gridfinity-bin/", "customize-gridfinity-bin-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Gridfinity bin · mobile · dark", "/customize/g/gridfinity-bin/", "customize-gridfinity-bin-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
             ("Name plate realistic · desktop · light", "/customize/g/name-plate/", "customize-realistic-name-plate-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, show_realistic_preview),
             ("Name plate realistic · mobile · dark", "/customize/g/name-plate/", "customize-realistic-name-plate-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, show_realistic_preview),
             ("Pumpkin realistic · desktop · dark", "/customize/g/pumpkin/", "customize-realistic-pumpkin-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, show_realistic_preview),

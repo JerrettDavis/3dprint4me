@@ -26,7 +26,7 @@ test('every public generator has the same representative local image on both bro
 });
 
 test('all home products have shipped raster images and name plate does not reuse display sign', () => {
-  assert.equal(cards.length, 10);
+  assert.equal(cards.length, 12);
   for (const card of cards) {
     const src = card.match(/<img[^>]+src="([^"]+)"/)?.[1];
     assert.ok(src?.startsWith('/assets/images/'), card);

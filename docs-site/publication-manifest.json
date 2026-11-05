@@ -25,12 +25,12 @@
     {
       "file": "docs/GENERATORS.md",
       "output": "reference/GENERATORS.md",
-      "sha256": "140dbecaa185ed4c229f9547a0290823c99012c8ac0c6d87a669978f60f7c47d"
+      "sha256": "e4e73a2cae8ba629f50a49b8f883dc7e91a801620cb83ad45edadbf91cd41e2d"
     },
     {
       "file": "docs/PRODUCT-IMAGES.md",
       "output": "reference/PRODUCT-IMAGES.md",
-      "sha256": "7e7e4e1110b2580295eb224cb7576a2dcb1b551622e8e0773628c0c2b247187a"
+      "sha256": "3571a284f344e50754c3e6f8d2285500456e091e6ba1f2e387dfc70f62d11866"
     },
     {
       "file": "docs/GITHUB-OPERATOR-AUTH.md",
@@ -1245,7 +1245,7 @@
     {
       "file": "docs-site/src/guides/customer.md",
       "output": "guides/customer.md",
-      "sha256": "ddf4c0dabf4d709b8352d3f91f690beebda0adf9adf1f98867e151a02ad2e7f4"
+      "sha256": "bf79fbbd5c08e6612731015a024d0ca02f60a34b9f7f45085c10b9997f1f3c37"
     },
     {
       "file": "docs-site/src/guides/owner.md",
@@ -1481,6 +1481,11 @@
       "file": "docs-site/src/assets/guides/work-queue-mobile.png",
       "output": "assets/guides/work-queue-mobile.png",
       "sha256": "7076fd071f087897272323e2c0c23232265d8d16cd742b426cc3f4af43bd2515"
+    },
+    {
+      "file": "docs/GRIDFINITY-PRINTABILITY.md",
+      "output": "reference/GRIDFINITY-PRINTABILITY.md",
+      "sha256": "a950388f95f5fe49af52e35d0bd112abf3a183992253e1c2e35ea75e09a29652"
     }
   ]
 }
