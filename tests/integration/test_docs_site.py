@@ -3,6 +3,15 @@ from unittest.mock import patch
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 class DocsSiteBuild(unittest.TestCase):
+ def test_product_image_provenance_is_reviewed_and_linked(self):
+  manifest=json.loads((ROOT/'docs-site/publication-manifest.json').read_text(encoding='utf-8'))
+  entries={entry['file']:entry['output'] for entry in manifest['files']}
+  self.assertEqual(entries.get('docs/PRODUCT-IMAGES.md'),'reference/PRODUCT-IMAGES.md')
+  module=runpy.run_path(str(ROOT/'scripts/build-docs.py'))
+  module['prepare']()
+  generators=(ROOT/'.docs-source/reference/GENERATORS.md').read_text(encoding='utf-8')
+  self.assertIn('](PRODUCT-IMAGES.md)',generators)
+  self.assertIn('AI-generated',(ROOT/'.docs-source/reference/PRODUCT-IMAGES.md').read_text(encoding='utf-8'))
  def test_guides_publish_paired_bounded_screenshots(self):
   from PIL import Image
   assets=ROOT/'docs-site/src/assets/guides'

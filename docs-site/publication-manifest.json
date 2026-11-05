@@ -25,7 +25,12 @@
     {
       "file": "docs/GENERATORS.md",
       "output": "reference/GENERATORS.md",
-      "sha256": "2b5bfd3e198d42bd705412b28514a7e29b8acc09e6d478bb7959374b69fad590"
+      "sha256": "6792bf51f27f6a502edcced22daf99f3b23f5b95e735f1d12d869a2e43612f65"
+    },
+    {
+      "file": "docs/PRODUCT-IMAGES.md",
+      "output": "reference/PRODUCT-IMAGES.md",
+      "sha256": "8e6ba60654325f7de28fa6fce8b0dacb4a6f72cc070acda64015c742bef3942d"
     },
     {
       "file": "docs/GITHUB-OPERATOR-AUTH.md",
@@ -1275,7 +1280,7 @@
     {
       "file": "docs-site/src/reference/index.md",
       "output": "reference/index.md",
-      "sha256": "b787f980b8ed338bc6afaf260cfda4e5805ad03f9b5e31d5fbf4a4ac841b793c"
+      "sha256": "fe395604f8477569d1d97b9c1899b66eff536a9cb57937fd2f8b144f64947071"
     },
     {
       "file": "docs-site/src/assets/guides/conversation-desktop.png",
