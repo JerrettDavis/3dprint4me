@@ -40,6 +40,13 @@
 .cz-title{min-width:0;margin:0;overflow:hidden;font-size:1.05rem;font-weight:800;line-height:1.2;letter-spacing:-.02em;text-overflow:ellipsis;white-space:nowrap}
 .cz-bar-views{display:flex;align-items:center;justify-content:center;gap:.5rem}
 .cz-bar-actions{display:flex;justify-content:flex-end;gap:.5rem}
+.cz-presentation{flex:none;display:flex;align-items:center;gap:.6rem 1rem;padding:.3rem clamp(.75rem,2vw,1.25rem);border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
+.cz-presentation-switch{display:flex;gap:.25rem;flex:none}
+.cz-presentation-note{margin:0;color:var(--muted);font-size:.75rem;line-height:1.4;flex:1;min-width:180px}
+.cz-presentation .cz-bar-button{font-size:.8rem;padding:.3rem .7rem}
+.cz-stage[data-presentation-state="loading"] canvas,.cz-stage[data-presentation-state="error"] canvas,.cz-stage[data-presentation-state="invalid"] canvas{visibility:hidden}
+body[data-preview-style="realistic"] .cz-hint{color:#3c3327}
+@media(max-width:599px){.cz-presentation{gap:.2rem .5rem}.cz-presentation-note{flex-basis:100%;font-size:.7rem}.cz-presentation-switch{flex:1}.cz-presentation-switch button{flex:1}}
 .cz-bar-actions .button{min-height:44px;padding:.5rem 1.1rem;white-space:nowrap}
 .cz-short{display:none}
 

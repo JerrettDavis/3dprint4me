@@ -19,6 +19,37 @@ differs, this document and the code win (see [Differences from the design spec](
 
 ## Where the code lives
 
+### Realistic preview
+
+Every generator offers **Model / Realistic preview**. Model retains front/back/3D editing,
+part picking and the optional print bed. Realistic preview shows the configured product in
+perspective on a procedural tabletop, with local studio lighting, smooth curved surfaces and
+shadows. It is illustrative: actual filament colors, layer lines and finish vary. It uses
+the customer's geometry and colors, not catalog images or a remote AI service.
+Orbit and zoom remain available; flat views and print-bed controls are reserved for Model.
+On narrow screens, entering the realistic view temporarily collapses Settings/Facts and
+returning to Model restores their previous state. Settings can still be opened while previewing.
+
+Most products reuse their built mesh. Pumpkin and display sign lazily request geometry-only
+presentation builds in a separate local worker: lids, stems and glue-in pieces are assembled,
+signs stand in their holders, and pumpkin face supports are removed. The print builder still
+exports the original supported geometry and bed layout. Presentation results contain only
+`parts`, never 3MF bytes, parameters, filenames, metadata or a hand-off record. The UI stores
+them only in memory. `buildPresentationModel` sets the trusted builder context flag
+`presentation: true`; it does not modify generator parameters or versioned provenance.
+
+Edits invalidate the old presentation immediately. Pending/invalid/failed views hide stale
+geometry; failed presentation builds offer **Retry preview** without disabling a valid print
+download or request. Switching modes restores the original print meshes. No preview-specific
+external requests, assets, logs or persistence are added; the existing sensitive-field and
+same-origin/offline constraints apply unchanged. WebGL failure retains the existing model
+build/download/request fallback. Studio frames render on demand and respect reduced motion.
+
+Implementation: `customizer/framework/{presentation-controls,studio,viewer3d,app}.js`, the
+geometry-only branch of `worker-core.js`/`model.js`, and presentation placements in the pumpkin
+and display-sign builders. Tests: `tests/unit/customize-presentation.test.mjs` and the realistic
+preview cases in `tests/e2e/test_customize.py`.
+
 ### Pumpkin face printability (generator version 3)
 
 Cut-through faces default to **Optimize cutouts for printing**. Original decorative outlines

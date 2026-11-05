@@ -105,12 +105,12 @@ export function createWorkerClient({
   return {
     // imageContours: a traced customer image as plain [[x, y], ...] arrays (never the image).
     // imageLayers: the same, one { index, contours } per palette color (multi-color logos).
-    build(generatorId, params, { fontId, fontBytes, fontKey, locationFontIds, imageContours, imageLayers } = {}) {
+    build(generatorId, params, { fontId, fontBytes, fontKey, locationFontIds, imageContours, imageLayers, purpose } = {}) {
       supersede(inFlight);
       supersede(queued);
       const id = ++nextId;
       return new Promise((resolve, reject) => {
-        const entry = { id, message: { generatorId, params, fontId, fontBytes, fontKey, locationFontIds, imageContours, imageLayers }, resolve, reject, settled: false, timer: undefined };
+        const entry = { id, message: { generatorId, params, fontId, fontBytes, fontKey, locationFontIds, imageContours, imageLayers, ...(purpose ? { purpose } : {}) }, resolve, reject, settled: false, timer: undefined };
         if (inFlight) queued = entry;
         else post(entry);
       });

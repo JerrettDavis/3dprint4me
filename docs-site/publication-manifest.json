@@ -25,12 +25,12 @@
     {
       "file": "docs/GENERATORS.md",
       "output": "reference/GENERATORS.md",
-      "sha256": "6792bf51f27f6a502edcced22daf99f3b23f5b95e735f1d12d869a2e43612f65"
+      "sha256": "140dbecaa185ed4c229f9547a0290823c99012c8ac0c6d87a669978f60f7c47d"
     },
     {
       "file": "docs/PRODUCT-IMAGES.md",
       "output": "reference/PRODUCT-IMAGES.md",
-      "sha256": "8e6ba60654325f7de28fa6fce8b0dacb4a6f72cc070acda64015c742bef3942d"
+      "sha256": "7e7e4e1110b2580295eb224cb7576a2dcb1b551622e8e0773628c0c2b247187a"
     },
     {
       "file": "docs/GITHUB-OPERATOR-AUTH.md",

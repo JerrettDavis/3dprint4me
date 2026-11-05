@@ -119,13 +119,13 @@ export default async function build(p, ctx) {
       const fb = faceBox(p, g);
       if (fb.top > g.top * 0.8) throw new Error("The face reaches the top of the pumpkin. Move the face lower or make it smaller.");
       if (fb.bottom < zBase + 2) throw new Error("The face reaches the base. Move the face higher or make it smaller.");
-      const parts = buildFace(CrossSection, faceSpec(p), fb.width, t, { optimize: faceStyle === 'cutout' && p.optimize_cutouts !== false });
+      const parts = buildFace(CrossSection, faceSpec(p), fb.width, t, { optimize: !ctx.presentation && faceStyle === 'cutout' && p.optimize_cutouts !== false });
       warnings.push(...facePrintWarnings(p, faceStyle, parts, glueIn));
       const reach = g.a * (1 + g.ob) + 5;
       const prism = cs => t(t(t(cs.extrude(reach)).rotate([90, 0, 0])).translate([0, 0, fb.centerZ]));
       if (faceStyle === "cutout") {
         if (parts.main) shell = t(shell.subtract(prism(parts.main)));
-        onePiece(shell, "The cut-through face would separate part of the pumpkin. Make the face smaller or use an inlay.");
+        if (!ctx.presentation) onePiece(shell, "The cut-through face would separate part of the pumpkin. Make the face smaller or use an inlay.");
       } else {
         const depth = Math.min(p.face_depth_mm, hollow ? (faceStyle === "engraved" ? Math.max(0.4, wall - 0.8) : wall) : Infinity);
         const skin = hollow && depth >= wall - 1e-9 ? c0 : shrunk(depth);
@@ -216,6 +216,10 @@ export default async function build(p, ctx) {
       let cursor = bb.min[0], count = 0;
       const rowTop = bb.min[1] - BED_GAP;
       for (const { name, solid } of gluePieces) {
+        if (ctx.presentation) {
+          solids.push({ name: `${name} piece`, solid: finish(solid.translate([0, 0, dz])), color: p.body_color });
+          continue;
+        }
         for (const comp of t(solid).decompose().map(x => t(x))) {
           const lying = t(comp.rotate([-90, 0, 0]));
           const b = lying.boundingBox();
@@ -231,16 +235,17 @@ export default async function build(p, ctx) {
     if (bowl) {
       const zs = splitCut(p, g).z;
       const lidBox = lidSolid.boundingBox();
-      const dx = right + BED_GAP - lidBox.min[0];
-      const lidFinal = finish(lidSolid.translate([dx, 0, -zs]));
+      const dx = ctx.presentation ? 0 : right + BED_GAP - lidBox.min[0];
+      const lidDz = ctx.presentation ? dz : -zs;
+      const lidFinal = finish(lidSolid.translate([dx, 0, lidDz]));
       solids.push({ name: "Lid", solid: lidFinal, color: p.body_color });
       right = lidFinal.boundingBox().max[0];
-      stemAnchor = { dx, dz: -zs };
+      stemAnchor = { dx, dz: lidDz };
     }
     if (stem && stemMode !== "none") {
       const anchor = stemAnchor ?? { dx: 0, dz };
       let placed;
-      if (stem.loose) {
+      if (stem.loose && !ctx.presentation) {
         const flipped = t(stem.solid.rotate([180, 0, 0]));
         const box = flipped.boundingBox();
         placed = finish(flipped.translate([right + BED_GAP + sizes.flangeR - (box.min[0] + box.max[0]) / 2, 0, -box.min[2]]));

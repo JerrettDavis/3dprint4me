@@ -4,6 +4,11 @@ The home shop (`public/index.html`) shows all six public generators and four ser
 
 ## Provenance and honesty
 
+The customizers separately offer **Model / Realistic preview**, rendered locally from the
+customer's actual configured geometry. Those interactive studio views do not use these catalog
+images or an image-generation service. See [Realistic preview](GENERATORS.md#realistic-preview)
+for support removal, assembled presentation and the strict separation from printable files.
+
 `public/assets/images/products/{name-plate,wifi-tag,rating-card,pumpkin}.webp` are AI-generated **illustrative renders**, created with the built-in image-generation tool on November 4, 2026. They show representative design possibilities, not customer prints, proofs, exact geometry exports, guaranteed finishes or verified QR codes. Both catalogs display “Illustrative render.” The QR patterns in the Wi-Fi scene are illustrative; do not scan them to join a network. No credentials were supplied to generation.
 
 The existing `projects/plate-plug-signs.jpg` belongs to **Display sign and holder**, not Name plate. Existing `route-66-magnets.jpg` is a printed Route shield example. Practical-service cards retain their existing project assets; Print my file uses `emergency-stop-render.png`, marked “CAD example,” as an example of printable parts. These examples do not promise that an uploaded file will be printable or that a custom part will fit without review. Original portfolio provenance remains in `public/assets/evolution/projects.js` and `public/portfolio.html`.
