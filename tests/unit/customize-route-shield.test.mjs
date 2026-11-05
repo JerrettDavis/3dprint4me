@@ -58,7 +58,7 @@ test("registry rejects inherited ids and lists public generators", () => {
   assert.equal(getGenerator("toString"), undefined);
   assert.equal(getGenerator("constructor"), undefined);
   assert.equal(getGenerator("nope"), undefined);
-  assert.deepEqual(listPublicGenerators().map(g => g.id), ["route-shield", "wifi-tag", "rating-card", "name-plate", "pumpkin", "display-sign"]);
+  assert.deepEqual(listPublicGenerators().map(g => g.id), ["route-shield", "wifi-tag", "rating-card", "name-plate", "pumpkin", "display-sign", "gridfinity-base", "gridfinity-bin"]);
 });
 
 test("listPublicGenerators filters on rights.publishable", () => {

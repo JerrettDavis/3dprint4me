@@ -5,15 +5,15 @@
 // five-color palette. The logo is never a parameter: the page traces it in the browser (snapped to
 // the palette) and passes only the outline layers to the build (ctx.imageLayers or
 // ctx.imageContours), so it never reaches drafts, the hand-off record or the server.
-import { contrastRatio } from "../color.js?v=a125651b1a572233";
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY, locationFontField } from "../fonts.js?v=a125651b1a572233";
-import { qrModuleEstimate } from "../qr.js?v=a125651b1a572233";
+import { contrastRatio } from "../color.js?v=620da4c591693b3b";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY, locationFontField } from "../fonts.js?v=620da4c591693b3b";
+import { qrModuleEstimate } from "../qr.js?v=620da4c591693b3b";
 import {
   BOARD_CLEAR_MM, BOARD_H, BOARD_W, CARD_POCKET_MARGIN_MM, COLOR_SLOTS, COORD, DECO_KINDS, DECO_SLOTS,
   HOLDER_TEXT_SLOTS, HOLDER_WALL_MM, MIN_BODY_MM, PALETTE_KEYS, RADIUS_KINDS, STROKE_KINDS, TEXT_SLOTS,
   decoKeys, hasDeco, hasHolderText, hasText, holderLayout, holderTextKeys, pocketWidthMm, qrPayload, slotHex, textKeys, wantsHolder, wantsSign
-} from "../sign.js?v=a125651b1a572233";
-import { DESIGNS, PRESETS } from "./display-sign-designs.js?v=a125651b1a572233";
+} from "../sign.js?v=620da4c591693b3b";
+import { DESIGNS, PRESETS } from "./display-sign-designs.js?v=620da4c591693b3b";
 
 const EPS = 1e-6;
 const round1 = v => Math.round(v * 10) / 10;

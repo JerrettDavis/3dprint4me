@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cellCenters, footprint, footSection, GRIDFINITY } from '../../public/assets/js/customize/gridfinity.js';
 import { loadEngine } from '../../customizer/framework/engine.js';
+import { clampParams, validateParams } from '../../public/assets/js/customize/schema.js';
 
 test('Gridfinity rectangular occupancy uses fixed 42 mm cell centers', () => {
   assert.deepEqual(cellCenters(1, 1), [[0, 0]]);
@@ -9,6 +10,32 @@ test('Gridfinity rectangular occupancy uses fixed 42 mm cell centers', () => {
   assert.deepEqual(footprint(3, 2), { width: 125.5, depth: 83.5 });
   assert.deepEqual(footprint(1, 1), { width: 41.5, depth: 41.5 });
   assert.equal(GRIDFINITY.heightUnit, 7);
+});
+
+test('baseplate variants build connected rails and reduced-material plate uses less material', async () => {
+  const { default: g } = await import('../../public/assets/js/customize/generators/gridfinity-base.js');
+  const { default: build } = await import('../../customizer/generators/gridfinity-base/build.js');
+  const wasm = await loadEngine();
+  const volumes = {};
+  for (const style of ['standard', 'light', 'magnetic']) {
+    const v = validateParams(g, { style, columns: 2, rows: 2 });
+    assert.ok(v.ok, v.errors?.join(';'));
+    const out = await build(v.value, { wasm });
+    try {
+      const s = out.solids[0].solid;
+      assert.equal(s.status(), 'NoError');
+      const pieces = s.decompose();
+      try { assert.equal(pieces.length, 1, style); } finally { pieces.forEach(p => p.delete()); }
+      const b = s.boundingBox();
+      assert.equal(b.max[0] - b.min[0], 84);
+      assert.equal(b.max[1] - b.min[1], 84);
+      assert.equal(b.min[2], 0);
+      volumes[style] = s.volume();
+    } finally { out.solids.forEach(p => p.solid.delete()); }
+  }
+  assert.ok(volumes.light < volumes.standard * 0.75);
+  assert.ok(volumes.magnetic > volumes.standard);
+  assert.equal(validateParams(g, { columns: 7 }).ok, false);
 });
 
 test('Gridfinity foot has the independently specified two chamfers and vertical waist', () => {
@@ -49,4 +76,125 @@ test('real Manifold foot sections match the compatibility profile and remain con
       } finally { s.delete(); }
     }
   } finally { solid.delete(); }
+});
+
+test('baseplate edge footprints stay connected within the 20 second build budget', async () => {
+  const { default: g } = await import('../../public/assets/js/customize/generators/gridfinity-base.js');
+  const { default: build } = await import('../../customizer/generators/gridfinity-base/build.js');
+  const wasm = await loadEngine();
+  for (const [columns, rows] of [[1, 1], [1, 6], [6, 1], [6, 6]]) {
+    for (const style of ['standard', 'light', 'magnetic']) {
+      const p = validateParams(g, { columns, rows, style }).value;
+      const start = performance.now();
+      const out = build(p, { wasm });
+      try {
+        const s = out.solids[0].solid;
+        assert.equal(s.status(), 'NoError');
+        const pieces = s.decompose();
+        try { assert.equal(pieces.length, 1, `${columns}x${rows} ${style}`); } finally { pieces.forEach(p => p.delete()); }
+        assert.ok(performance.now() - start < 20000);
+      } finally { out.solids.forEach(p => p.solid.delete()); }
+    }
+  }
+});
+
+test('magnetic plate glue pockets open down with a 1 mm roof beneath the socket', async () => {
+  const { default: g } = await import('../../public/assets/js/customize/generators/gridfinity-base.js');
+  const { default: build } = await import('../../customizer/generators/gridfinity-base/build.js');
+  const wasm = await loadEngine();
+  const out = build(validateParams(g, { columns: 1, rows: 1, style: 'magnetic' }).value, { wasm });
+  const probe = wasm.Manifold.cylinder(0.1, 0.1, 0.1, 12);
+  const volumeAt = (x, y, z) => {
+    const placed = probe.translate([x, y, z]);
+    const hit = out.solids[0].solid.intersect(placed);
+    try { return hit.volume(); } finally { hit.delete(); placed.delete(); }
+  };
+  try {
+    for (const x of [-13, 13]) for (const y of [-13, 13]) {
+      assert.ok(volumeAt(x, y, 0.1) < 1e-8);
+      assert.ok(volumeAt(x, y, 2.1) < 1e-8);
+      assert.ok(volumeAt(x, y, 2.25) > 0.002);
+      assert.ok(volumeAt(x, y, 3.05) > 0.002);
+    }
+    assert.ok(volumeAt(0, 0, 0.1) > 0.002);
+    assert.ok(volumeAt(0, 0, 3.3) < 1e-8);
+  } finally { probe.delete(); out.solids.forEach(p => p.solid.delete()); }
+});
+
+test('bin variants validate, build connected solids and isolate vase print settings', async () => {
+  const { default: g } = await import('../../public/assets/js/customize/generators/gridfinity-bin.js');
+  const { default: build } = await import('../../customizer/generators/gridfinity-bin/build.js');
+  const wasm = await loadEngine();
+  for (const [name, params] of Object.entries({ standard: {}, magnetic: { magnets: true }, labeled: { label_shelf: true }, divided: { compartments_x: 2, compartments_y: 2 }, thin: { wall_mm: 1.2 }, shell: { style: 'vase', stacking_lip: false }, adapter: { style: 'vase', stacking_lip: false, vase_part: 'adapter' } })) {
+    const checked = validateParams(g, params);
+    assert.ok(checked.ok, `${name}: ${checked.errors?.join(';')}`);
+    const out = build(checked.value, { wasm });
+    try {
+      assert.equal(out.solids.length, 1);
+      const s = out.solids[0].solid;
+      assert.equal(s.status(), 'NoError', name);
+      const pieces = s.decompose();
+      try { assert.equal(pieces.length, 1, name); } finally { pieces.forEach(p => p.delete()); }
+      assert.equal(s.boundingBox().min[2], 0);
+      assert.ok(s.volume() > 0);
+      if (name === 'shell') assert.equal(out.slicerSettings.spiral_mode, '1');
+      else assert.ok(!out.slicerSettings?.spiral_mode || out.slicerSettings.spiral_mode === '0');
+      if (['shell', 'adapter'].includes(name)) assert.ok(out.filenameBase.endsWith(`vase-${name}`));
+    } finally { out.solids.forEach(p => p.solid.delete()); }
+  }
+  for (const params of [{ style: 'vase' }, { style: 'vase', stacking_lip: false, magnets: true }, { height_units: 2, label_shelf: true }, { columns: 1, compartments_x: 6 }]) {
+    assert.equal(validateParams(g, params).ok, false);
+  }
+});
+
+test('bin form safely clamps a temporarily blank or out-of-range cell count', async () => {
+  const { default: g } = await import('../../public/assets/js/customize/generators/gridfinity-bin.js');
+  const defaults = validateParams(g, {}).value;
+  for (const columns of [0, 7, NaN]) {
+    assert.doesNotThrow(() => clampParams(g, { ...defaults, columns }, 'columns'));
+    assert.equal(validateParams(g, { ...defaults, columns }).ok, false);
+  }
+});
+
+test('standard feet clear both sockets and stacking lips without geometric interference', async () => {
+  const { gridFoot } = await import('../../customizer/generators/gridfinity/shared.js');
+  const { default: bin } = await import('../../public/assets/js/customize/generators/gridfinity-bin.js');
+  const { default: base } = await import('../../public/assets/js/customize/generators/gridfinity-base.js');
+  const { default: buildBin } = await import('../../customizer/generators/gridfinity-bin/build.js');
+  const { default: buildBase } = await import('../../customizer/generators/gridfinity-base/build.js');
+  const wasm = await loadEngine();
+  const foot = gridFoot(wasm);
+  try {
+    for (const style of ['standard', 'light', 'magnetic']) {
+      const out = buildBase(validateParams(base, { columns: 1, rows: 1, style }).value, { wasm });
+      const inserted = foot.translate([0, 0, style === 'magnetic' ? 3.2 : style === 'light' ? -2.6 : 0]);
+      const hit = inserted.intersect(out.solids[0].solid);
+      try { assert.ok(hit.volume() < 1e-6, style); }
+      finally { hit.delete(); inserted.delete(); out.solids.forEach(p => p.solid.delete()); }
+    }
+    const out = buildBin(validateParams(bin, { columns: 1, rows: 1 }).value, { wasm });
+    const inserted = foot.translate([0, 0, 42]);
+    const hit = inserted.intersect(out.solids[0].solid);
+    try { assert.ok(hit.volume() < 1e-6, 'stacking lip clears the inserted standard foot'); }
+    finally { hit.delete(); inserted.delete(); out.solids.forEach(p => p.solid.delete()); }
+  } finally { foot.delete(); }
+});
+
+test('bin minimum strips and maximum divided magnetic footprint remain connected within budget', async () => {
+  const { default: g } = await import('../../public/assets/js/customize/generators/gridfinity-bin.js');
+  const { default: build } = await import('../../customizer/generators/gridfinity-bin/build.js');
+  const wasm = await loadEngine();
+  for (const params of [{ columns: 1, rows: 1, height_units: 2 }, { columns: 1, rows: 6 }, { columns: 6, rows: 1 }, { columns: 6, rows: 6, height_units: 12, magnets: true, label_shelf: true, compartments_x: 6, compartments_y: 6 }]) {
+    const checked = validateParams(g, params);
+    assert.ok(checked.ok);
+    const start = performance.now();
+    const out = build(checked.value, { wasm });
+    try {
+      const s = out.solids[0].solid;
+      assert.equal(s.status(), 'NoError');
+      const pieces = s.decompose();
+      try { assert.equal(pieces.length, 1); } finally { pieces.forEach(p => p.delete()); }
+      assert.ok(performance.now() - start < 20000);
+    } finally { out.solids.forEach(p => p.solid.delete()); }
+  }
 });

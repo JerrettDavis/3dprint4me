@@ -1,9 +1,11 @@
-import routeShield from "./generators/route-shield.js?v=a125651b1a572233";
-import wifiTag from "./generators/wifi-tag.js?v=a125651b1a572233";
-import ratingCard from "./generators/rating-card.js?v=a125651b1a572233";
-import namePlate from "./generators/name-plate.js?v=a125651b1a572233";
-import pumpkin from "./generators/pumpkin.js?v=a125651b1a572233";
-import displaySign from "./generators/display-sign.js?v=a125651b1a572233";
-export const GENERATORS = Object.freeze({ [routeShield.id]: routeShield, [wifiTag.id]: wifiTag, [ratingCard.id]: ratingCard, [namePlate.id]: namePlate, [pumpkin.id]: pumpkin, [displaySign.id]: displaySign });
+import routeShield from "./generators/route-shield.js?v=620da4c591693b3b";
+import wifiTag from "./generators/wifi-tag.js?v=620da4c591693b3b";
+import ratingCard from "./generators/rating-card.js?v=620da4c591693b3b";
+import namePlate from "./generators/name-plate.js?v=620da4c591693b3b";
+import pumpkin from "./generators/pumpkin.js?v=620da4c591693b3b";
+import displaySign from "./generators/display-sign.js?v=620da4c591693b3b";
+import gridfinityBase from './generators/gridfinity-base.js?v=620da4c591693b3b';
+import gridfinityBin from './generators/gridfinity-bin.js?v=620da4c591693b3b';
+export const GENERATORS = Object.freeze({ [routeShield.id]: routeShield, [wifiTag.id]: wifiTag, [ratingCard.id]: ratingCard, [namePlate.id]: namePlate, [pumpkin.id]: pumpkin, [displaySign.id]: displaySign, [gridfinityBase.id]: gridfinityBase, [gridfinityBin.id]: gridfinityBin });
 export const getGenerator = id => Object.prototype.hasOwnProperty.call(GENERATORS, id) ? GENERATORS[id] : undefined;
 export const listPublicGenerators = () => Object.values(GENERATORS).filter(g => g.rights.publishable);
