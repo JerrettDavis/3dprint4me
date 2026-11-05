@@ -63,7 +63,7 @@ def wait_settled(page: Page) -> None:
     wait_ready(page)
 
 
-@pytest.mark.parametrize('generator_id', ['route-shield', 'wifi-tag', 'rating-card', 'name-plate', 'pumpkin', 'display-sign'])
+@pytest.mark.parametrize('generator_id', ['route-shield', 'wifi-tag', 'rating-card', 'name-plate', 'pumpkin', 'display-sign', 'gridfinity-base', 'gridfinity-bin'])
 def test_realistic_preview_is_local_and_preserves_print_download(page: Page, base_url: str, generator_id: str) -> None:
     errors, requests = [], []
     page.on('pageerror', lambda error: errors.append(str(error)))
@@ -175,9 +175,9 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
     requests = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.on('request', lambda request: requests.append(request.url))
-    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin']
+    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin']
     try:
-        for path, selector, count in [('/', '.cat-tile', 10), ('/customize/', '.cz-card', 6)]:
+        for path, selector, count in [('/', '.cat-tile', 12), ('/customize/', '.cz-card', 8)]:
             requests.clear()
             page.goto(base_url + path)
             expect(page.locator(selector)).to_have_count(count)
@@ -190,7 +190,7 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
                 assert len(img.get_attribute('alt')) > 20
             for id in ids:
                 assert page.locator(f'{selector} a[href="/customize/g/{id}/"], a{selector}[href="/customize/g/{id}/"]').count() == 1
-            assert page.locator(selector).filter(has_text='Illustrative render').count() == 4
+            assert page.locator(selector).filter(has_text='Illustrative render').count() == 6
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert not page.workers
             assert not any('.wasm' in url or '/worker-' in url for url in requests)
@@ -1144,7 +1144,7 @@ document.addEventListener('securitypolicyviolation', e => window.__cspViolations
 
 def test_the_matrix_covers_every_registered_generator() -> None:
     registry = (ROOT / "public/assets/js/customize/registry.js").read_text(encoding="utf-8")
-    registered = sorted(re.findall(r'import \w+ from "\./generators/([a-z0-9-]+)\.js', registry))
+    registered = sorted(re.findall(r'''import \w+ from ["']\./generators/([a-z0-9-]+)\.js''', registry))
     assert registered and registered == GENERATOR_IDS, (registered, GENERATOR_IDS)
 
 
@@ -1178,6 +1178,8 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
     elif generator_id == "pumpkin":
         # No text to type: the width is a whole number of millimetres, unique per run inside the store.
         key, label, value = "diameter_mm", None, str(60 + int(token[:4], 16) % 100)
+    elif generator_id in {"gridfinity-base", "gridfinity-bin"}:
+        key, label, value = "columns", None, str(1 + int(token[:4], 16) % 6)
     else:  # a new generator needs a flow here (see test_the_matrix_covers_every_registered_generator)
         pytest.fail(f"No matrix flow for generator {generator_id}")
     if label is None:

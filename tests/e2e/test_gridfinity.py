@@ -7,6 +7,7 @@ import pytest
 from playwright.sync_api import expect
 
 from tests.e2e.test_customize import base_url, browser, page, wait_ready, wait_settled
+from tests.support.operator_harness import running_operator_workspace
 
 
 def download(page):
@@ -75,3 +76,59 @@ def test_gridfinity_mobile_layout_and_screenshot(browser, base_url, scheme, gene
         page.screenshot(path=str(output / f'{generator_id}-{scheme}-mobile.png'), full_page=True)
     finally:
         context.close()
+
+
+def test_bin_committed_blank_and_out_of_range_dimensions_recover(page, base_url):
+    errors = []
+    page.on('pageerror', lambda error: errors.append(str(error)))
+    page.goto(base_url + '/customize/g/gridfinity-bin/')
+    wait_ready(page)
+    for value, expected in [('', '2'), ('0', '1'), ('7', '6')]:
+        page.locator('#cz-columns').fill(value)
+        page.locator('#cz-columns').blur()
+        wait_settled(page)
+        expect(page.locator('#cz-columns')).to_have_value(expected)
+    assert not errors
+
+
+@pytest.mark.parametrize('generator_id,design', [('gridfinity-base', 'magnetic'), ('gridfinity-bin', 'divided'), ('gridfinity-bin', 'vase'), ('gridfinity-bin', 'adapter')])
+def test_gridfinity_design_private_intake_preserves_component_provenance(browser, generator_id, design):
+    with running_operator_workspace() as (storefront, operator, store_path):
+        context = browser.new_context(viewport={'width': 1280, 'height': 900})
+        page = context.new_page()
+        try:
+            page.goto(f'{storefront}/customize/g/{generator_id}/')
+            wait_ready(page)
+            page.locator(f'button.cz-design[data-design="{design}"]').click()
+            wait_settled(page)
+            expected_component = 'adapter' if design == 'adapter' else 'shell' if design == 'vase' else None
+            page.get_by_role('button', name='Continue to request', exact=True).click()
+            expect(page.locator('#customize-notice')).to_have_text('Loaded from the customizer — review and continue.')
+            page.locator('#next-button').click()
+            expect(page.locator('#file-list')).to_contain_text(generator_id)
+            if expected_component:
+                expect(page.locator('#file-list')).to_contain_text('vase-' + expected_component)
+            page.locator('#next-button').click()
+            page.locator('#name').fill('Gridfinity QA')
+            page.locator('#email').fill('gridfinity-qa@example.com')
+            page.locator('#next-button').click()
+            page.locator('#terms').check()
+            page.locator('#submit-button').click()
+            page.locator('#submission-state.visible').wait_for(state='visible', timeout=15000)
+            state = json.loads(store_path.read_text(encoding='utf-8'))
+            stored = [record['request'] for record in state['requests'] if record['request'].get('customization')]
+            assert len(stored) == 1
+            custom = stored[0]['customization']
+            assert custom['generatorId'] == generator_id
+            assert custom['generatorVersion'] == 1
+            if expected_component:
+                assert custom['params']['style'] == 'vase'
+                assert custom['params']['vase_part'] == expected_component
+            elif generator_id == 'gridfinity-base':
+                assert custom['params']['style'] == 'magnetic'
+            else:
+                assert custom['params']['compartments_x'] == custom['params']['compartments_y'] == 2
+            saved = json.loads(page.evaluate("localStorage.getItem('3dp-submitted-requests')"))[0]
+            assert saved['customization'] == {'generatorId': generator_id, 'generatorVersion': 1}
+        finally:
+            context.close()

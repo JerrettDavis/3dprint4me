@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cellCenters, footprint, footSection, GRIDFINITY } from '../../public/assets/js/customize/gridfinity.js';
 import { loadEngine } from '../../customizer/framework/engine.js';
+import { normalizeCustomization } from '../../lib/customization/domain.js';
 import { clampParams, validateParams } from '../../public/assets/js/customize/schema.js';
 
 test('Gridfinity rectangular occupancy uses fixed 42 mm cell centers', () => {
@@ -30,6 +31,7 @@ test('baseplate variants build connected rails and reduced-material plate uses l
       assert.equal(b.max[0] - b.min[0], 84);
       assert.equal(b.max[1] - b.min[1], 84);
       assert.equal(b.min[2], 0);
+      assert.equal(b.max[2], style === 'magnetic' ? 7.95 : 4.75, 'magnetless variants retain full foot seating height');
       volumes[style] = s.volume();
     } finally { out.solids.forEach(p => p.solid.delete()); }
   }
@@ -137,7 +139,13 @@ test('bin variants validate, build connected solids and isolate vase print setti
       try { assert.equal(pieces.length, 1, name); } finally { pieces.forEach(p => p.delete()); }
       assert.equal(s.boundingBox().min[2], 0);
       assert.ok(s.volume() > 0);
-      if (name === 'shell') assert.equal(out.slicerSettings.spiral_mode, '1');
+      if (name === 'shell') {
+        assert.equal(out.slicerSettings.spiral_mode, '1');
+        assert.equal(out.slicerSettings.top_shell_thickness, '0');
+        assert.equal(out.slicerSettings.bottom_shell_thickness, '1.2');
+        assert.equal(out.slicerSettings.outer_wall_line_width, '0.45');
+        assert.equal(out.slicerSettings.wall_loops, '1');
+      }
       else assert.ok(!out.slicerSettings?.spiral_mode || out.slicerSettings.spiral_mode === '0');
       if (['shell', 'adapter'].includes(name)) assert.ok(out.filenameBase.endsWith(`vase-${name}`));
     } finally { out.solids.forEach(p => p.solid.delete()); }
@@ -167,7 +175,7 @@ test('standard feet clear both sockets and stacking lips without geometric inter
   try {
     for (const style of ['standard', 'light', 'magnetic']) {
       const out = buildBase(validateParams(base, { columns: 1, rows: 1, style }).value, { wasm });
-      const inserted = foot.translate([0, 0, style === 'magnetic' ? 3.2 : style === 'light' ? -2.6 : 0]);
+      const inserted = foot.translate([0, 0, style === 'magnetic' ? 3.2 : 0]);
       const hit = inserted.intersect(out.solids[0].solid);
       try { assert.ok(hit.volume() < 1e-6, style); }
       finally { hit.delete(); inserted.delete(); out.solids.forEach(p => p.solid.delete()); }
@@ -197,4 +205,73 @@ test('bin minimum strips and maximum divided magnetic footprint remain connected
       assert.ok(performance.now() - start < 20000);
     } finally { out.solids.forEach(p => p.solid.delete()); }
   }
+});
+
+test('magnet pocket clearance is bounded, adjustable and changes geometry in both generators', async () => {
+  const wasm = await loadEngine();
+  for (const id of ['base', 'bin']) {
+    const { default: g } = await import(`../../public/assets/js/customize/generators/gridfinity-${id}.js`);
+    const { default: build } = await import(`../../customizer/generators/gridfinity-${id}/build.js`);
+    const values = { columns: 1, rows: 1, ...(id === 'base' ? { style: 'magnetic' } : { magnets: true }) };
+    for (const bad of [{ magnet_diameter_mm: 6.5 }, { magnet_depth_mm: 2.5 }]) assert.equal(validateParams(g, { ...values, ...bad }).ok, false);
+    const volumes = [];
+    for (const [magnet_diameter_mm, magnet_depth_mm] of [[6, 2], [6.4, 2.4]]) {
+      const checked = validateParams(g, { ...values, magnet_diameter_mm, magnet_depth_mm });
+      assert.ok(checked.ok, checked.errors?.join(';'));
+      const out = build(checked.value, { wasm });
+      try { volumes.push(out.solids[0].solid.volume()); } finally { out.solids.forEach(p => p.solid.delete()); }
+    }
+    assert.ok(volumes[1] < volumes[0], `${id}: larger pockets remove more material`);
+  }
+});
+
+test('server normalization pins each vase component and rejects incompatible options', () => {
+  for (const vase_part of ['shell', 'adapter']) {
+    const out = normalizeCustomization({ generatorId: 'gridfinity-bin', generatorVersion: 1, params: { style: 'vase', vase_part, stacking_lip: false } });
+    assert.equal(out.params.vase_part, vase_part);
+    assert.equal(out.params.style, 'vase');
+  }
+  for (const invalid of [{ magnets: true }, { stacking_lip: true }, { label_shelf: true }, { compartments_x: 2 }]) {
+    assert.throws(() => normalizeCustomization({ generatorId: 'gridfinity-bin', generatorVersion: 1, params: { style: 'vase', stacking_lip: false, ...invalid } }), e => e.status === 400 && e.details?.code === 'customization-stale');
+  }
+  assert.throws(() => normalizeCustomization({ generatorId: 'gridfinity-base', generatorVersion: 1, params: { rows: 7 } }), e => e.status === 400);
+});
+
+test('stacking lip ends in a printable 0.4 mm land rather than a zero-width knife edge', async () => {
+  const { default: g } = await import('../../public/assets/js/customize/generators/gridfinity-bin.js');
+  const { default: build } = await import('../../customizer/generators/gridfinity-bin/build.js');
+  const wasm = await loadEngine();
+  const out = build(validateParams(g, { columns: 1, rows: 1 }).value, { wasm });
+  const cube = wasm.Manifold.cube([0.1, 1, 0.05]);
+  const probe = cube.translate([20.45, -0.5, 45.9]);
+  const hit = out.solids[0].solid.intersect(probe);
+  try {
+    assert.equal(out.solids[0].solid.boundingBox().max[2], 46);
+    assert.ok(hit.volume() > 0.0049);
+  } finally { hit.delete(); probe.delete(); cube.delete(); out.solids.forEach(p => p.solid.delete()); }
+});
+
+test('bin floor, 1.2 mm dividers and the 45 degree shelf underside match their dimensions', async () => {
+  const { default: g } = await import('../../public/assets/js/customize/generators/gridfinity-bin.js');
+  const { default: build } = await import('../../customizer/generators/gridfinity-bin/build.js');
+  const wasm = await loadEngine();
+  const out = build(validateParams(g, { stacking_lip: false, label_shelf: true, compartments_x: 2, compartments_y: 2 }).value, { wasm });
+  const probe = wasm.Manifold.cube([0.05, 0.05, 0.05]);
+  const contains = (x, y, z) => {
+    const moved = probe.translate([x, y, z]);
+    const hit = out.solids[0].solid.intersect(moved);
+    try { return hit.volume() > 0.00012; } finally { hit.delete(); moved.delete(); }
+  };
+  try {
+    assert.ok(contains(10, 10, 5.85), 'floor under the cavity');
+    assert.ok(!contains(10, 10, 5.96), 'cavity starts 1.2 mm above the 4.75 mm foot');
+    assert.ok(contains(0.5, 10, 15));
+    assert.ok(!contains(0.7, 10, 15));
+    assert.ok(contains(10, 0.5, 15));
+    assert.ok(!contains(10, 0.7, 15));
+    // Shelf starts at z32.8, y40.25; at z36.8 its ramp has grown inward 4 mm.
+    assert.ok(contains(10, 37, 36.8));
+    assert.ok(!contains(10, 35.5, 36.8));
+    assert.ok(contains(10, 33, 41));
+  } finally { probe.delete(); out.solids.forEach(p => p.solid.delete()); }
 });

@@ -1,4 +1,4 @@
-import { footprint } from '../gridfinity.js?v=620da4c591693b3b';
+import { footprint } from '../gridfinity.js?v=f04e5c873638cdb8';
 
 const vase = p => p.style === 'vase';
 const presets = {
@@ -34,15 +34,17 @@ export default {
   schema: {
     columns: { type: 'int', label: 'Columns', min: 1, max: 6, step: 1, default: 2, group: 'size' },
     rows: { type: 'int', label: 'Rows', min: 1, max: 6, step: 1, default: 2, group: 'size' },
-    height_units: { type: 'int', label: 'Height units', min: 2, max: 12, step: 1, default: 6, group: 'size', help: '7 mm per unit to the rim, including the standard feet. A stacking lip adds 4.4 mm.' },
+    height_units: { type: 'int', label: 'Height units', min: 2, max: 12, step: 1, default: 6, group: 'size', help: '7 mm per unit to the rim, including the standard feet. A stacking lip adds 4 mm and has a printable 0.4 mm top rim.' },
     style: { type: 'enum', label: 'Print style', default: 'standard', group: 'construction', options: [{ value: 'standard', label: 'Standard bin' }, { value: 'vase', label: 'Spiral vase · two separate prints' }], help: 'Print upright without supports. A vase needs a separately printed adapter glued underneath.' },
     vase_part: { type: 'enum', label: 'Vase print component', default: 'shell', group: 'construction', visibleWhen: vase, options: [{ value: 'shell', label: 'Shell · spiral mode' }, { value: 'adapter', label: 'Adapter · normal printing' }], help: 'Download each component separately. The shell is exported solid for your slicer to hollow in spiral mode. Only the selected component goes with a print request; request both separately.' },
     wall_mm: { type: 'number', label: 'Wall thickness', min: 1.2, max: 2.4, step: 0.2, default: 1.6, unit: 'mm', group: 'construction', visibleWhen: p => !vase(p) },
     stacking_lip: { type: 'bool', label: 'Stacking lip', default: true, group: 'construction', visibleWhen: p => !vase(p) },
-    magnets: { type: 'bool', label: '6 × 2 mm magnet pockets', default: false, group: 'construction', visibleWhen: p => !vase(p), help: 'Downward-open 6.2 × 2.2 mm glue pockets. Check polarity before gluing; roofs bridge 6.2 mm.' },
+    magnets: { type: 'bool', label: '6 × 2 mm magnet pockets', default: false, group: 'construction', visibleWhen: p => !vase(p), help: 'Downward-open glue pockets, default 6.2 × 2.2 mm. Check polarity before gluing; roofs bridge up to 6.4 mm.' },
     compartments_x: { type: 'int', label: 'Compartments across', min: 1, max: 6, step: 1, default: 1, group: 'inside', visibleWhen: p => !vase(p) },
     compartments_y: { type: 'int', label: 'Compartments front to back', min: 1, max: 6, step: 1, default: 1, group: 'inside', visibleWhen: p => !vase(p) },
     label_shelf: { type: 'bool', label: 'Paper-label shelf', default: false, group: 'inside', visibleWhen: p => !vase(p), help: 'An 8 mm shelf with a 45° underside for a paper label. Minimum bin height: 3 units. Text is not printed into this shelf.' },
+    magnet_diameter_mm: { type: 'number', label: 'Magnet pocket diameter', min: 6, max: 6.4, step: 0.1, default: 6.2, unit: 'mm', group: 'construction', advanced: true, randomize: false, visibleWhen: p => !vase(p) && p.magnets, help: 'For nominal 6 mm magnets. Allow glue clearance and test a sample.' },
+    magnet_depth_mm: { type: 'number', label: 'Magnet pocket depth', min: 2, max: 2.4, step: 0.1, default: 2.2, unit: 'mm', group: 'construction', advanced: true, randomize: false, visibleWhen: p => !vase(p) && p.magnets },
     color: { type: 'color', label: 'Bin color', default: '#d6a052', group: 'colors' }
   }, rules,
   onParamChange(key, p) {
@@ -52,3 +54,4 @@ export default {
   },
   presets, designs: Object.entries(presets).map(([id, params]) => ({ id, label: { standard: 'Standard bin', thin: 'Thin walls', magnetic: 'Magnetic bin', labeled: 'Paper-label shelf', divided: 'Four compartments', vase: 'Vase shell', adapter: 'Vase adapter' }[id], blurb: ['vase', 'adapter'].includes(id) ? 'Download the shell and adapter separately, then glue together after printing.' : 'An editable starting point for your storage.', params })), defaultDesign: 'standard'
 };
+
