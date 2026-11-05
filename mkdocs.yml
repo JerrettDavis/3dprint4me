@@ -59,6 +59,7 @@ nav:
     - Local setup: developers/index.md
     - Architecture: reference/ARCHITECTURE.md
     - Customizers: reference/GENERATORS.md
+    - Product imagery: reference/PRODUCT-IMAGES.md
     - Print estimation: reference/PRINT-ESTIMATION.md
     - Partner API: reference/PARTNER-API.md
     - Testing and BDD: developers/testing.md
