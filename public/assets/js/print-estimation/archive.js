@@ -1,6 +1,6 @@
-import { modelFormat } from "./geometry.js?v=c07fea27517ea4b2";
-import { ModelAnalysisError } from "./mesh.js?v=c07fea27517ea4b2";
-import { readZipDirectory, readZipEntry } from "./three-mf.js?v=c07fea27517ea4b2";
+import { modelFormat } from "./geometry.js?v=69e68f22fd869aa8";
+import { ModelAnalysisError } from "./mesh.js?v=69e68f22fd869aa8";
+import { readZipDirectory, readZipEntry } from "./three-mf.js?v=69e68f22fd869aa8";
 
 // Shared, dependency-free ZIP model-pack inspector (browser and server run the same rules).
 // Entries are untrusted: only the central directory is believed, only STL/3MF entries are
