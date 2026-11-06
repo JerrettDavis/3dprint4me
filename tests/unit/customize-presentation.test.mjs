@@ -22,7 +22,7 @@ const volume = part => Math.abs(part.mesh.triangles.reduce((sum, triangle) => {
 
 test('presentation is geometry only and cannot change print bytes or params', async () => {
   const gen = await generator('pumpkin');
-  const params = { ...defaults(gen), style: 'bowl', face: 'cute', face_style: 'cutout', optimize_cutouts: true, stem: 'peg' };
+  const params = { ...defaults(gen), body_source: 'parametric', style: 'bowl', face: 'cute', face_style: 'cutout', optimize_cutouts: true, stem: 'peg' };
   const before = structuredClone(params);
   const print = await buildModel(gen, params, { wasm });
   const preview = await buildPresentationModel(gen, params, { wasm });

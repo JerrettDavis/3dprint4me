@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=a05ef1b8f24d83f3";
-import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=a05ef1b8f24d83f3";
+import { contrastRatio } from "../color.js?v=b632f1361c919227";
+import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=b632f1361c919227";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -23,6 +23,11 @@ const hasStem = o => o.stem !== "none" && !noTop(o);
 const hasCheeks = o => hasFace(o) && ["cute", "happy", "adorable", "wink", "love", "tongue", "custom"].includes(o.face);
 
 function rules(o) {
+  if (o.body_source === "reference") {
+    const message = "Choose a hat, or include the pumpkin in your download.";
+    const invalid = o.export_parts === "hat" && o.topper === "none";
+    return { limits: {}, errors: invalid ? [message] : [], fieldErrors: invalid ? { topper: message } : {} };
+  }
   const fieldErrors = {};
   const errors = [];
   const add = (keys, message) => { errors.push(message); for (const k of keys) fieldErrors[k] ??= message; };
@@ -106,6 +111,12 @@ const notVase = o => !isVase(o);
 const stemShown = o => !noTop(o);
 
 const SCHEMA = {
+  body_source: { type: "enum", label: "Pumpkin body", options: [{ value: "reference", label: "Happy pumpkin · original 46 mm" }, { value: "parametric", label: "Parametric · customize shape and face" }], default: "reference", randomize: false, group: "type", section: "type", help: "Original body: 45.95 × 45.99 × 29.95 mm, with its unchanged round 4 mm socket. The festive hats share this exact pumpkin." },
+  topper: { type: "enum", label: "Festive hat", options: [{ value: "none", label: "No hat" }, { value: "witch", label: "Witch · curled point and buckle" }, { value: "santa", label: "Santa · folded tip and fluffy trim" }, { value: "baseball", label: "Baseball · panels and stitched visor" }], default: "witch", randomize: false, visibleWhen: { body_source: "reference" }, group: "hat", section: "hat" },
+  export_parts: { type: "enum", label: "Parts to download", options: [{ value: "both", label: "Pumpkin and hat" }, { value: "hat", label: "Hat only · for an existing pumpkin" }, { value: "pumpkin", label: "Pumpkin only" }], default: "both", randomize: false, visibleWhen: { body_source: "reference" }, group: "hat", section: "hat", help: "Print parts separately. The moulded underside and overhangs need slicer supports; check the layer preview. Physical peg fit has not been print-tested." },
+  hat_clearance_mm: { type: "number", label: "Peg diameter clearance", min: 0.1, max: 0.6, step: 0.05, default: 0.3, unit: "mm", advanced: true, randomize: false, visibleWhen: o => o.body_source === "reference" && o.topper !== "none", group: "hat", section: "hat", help: "0.3 mm makes a 3.7 mm round peg for the original 4 mm hole. Increase if your printer makes a tight fit." },
+  hat_trim_color: { type: "color", label: "Hat trim color", default: "#e6b64d", visibleWhen: o => o.body_source === "reference" && o.topper !== "none", group: "colors", section: "hat" },
+  hat_color: { type: "color", label: "Hat color", default: "#593274", visibleWhen: o => o.body_source === "reference" && o.topper !== "none", group: "colors", section: "hat" },
   style: { type: "enum", label: "Pumpkin type", options: [
     { value: "solid", label: "Solid" },
     { value: "hollow", label: "Hollow shell" },
@@ -233,7 +244,15 @@ const SCHEMA = {
   cheek_color: { type: "color", label: "Cheek color", default: "#ff7f9e", advanced: true, visibleWhen: o => o.multicolor && hasCheeks(o) && o.face_style !== "cutout" && o.cheeks, group: "colors", section: "colors" }
 };
 
+// Reference mode consumes only its own controls; retained parametric settings restore on return.
+for (const [key, field] of Object.entries(SCHEMA)) {
+  if (["body_source", "topper", "export_parts", "hat_clearance_mm", "hat_color", "hat_trim_color", "body_color"].includes(key)) continue;
+  const old = field.visibleWhen;
+  field.visibleWhen = o => o.body_source !== "reference" && (!old || (typeof old === "function" ? old(o) : Object.entries(old).every(([k,v]) => Array.isArray(v) ? v.includes(o[k]) : o[k] === v)));
+}
+
 const SECTIONS = {
+  hat: "Festive hat",
   type: "Pumpkin type",
   shape: "Size and shape",
   ribs: "Lobes",
@@ -243,6 +262,8 @@ const SECTIONS = {
   colors: "Colors"
 };
 const FOCUS = [
+  { part: "Hat", section: "hat" },
+  { part: "Pumpkin · original", section: "type" },
   { part: "Pumpkin", section: "shape" },
   { part: "Bowl", section: "shape" },
   { part: "Lid", section: "type" },
@@ -261,9 +282,16 @@ const PRESETS = {
   vase: { style: "vase", segments: 12, rib_depth_pct: 14, diameter_mm: 100 }
 };
 
+// Existing designs explicitly retain their original parametric geometry.
+for (const preset of Object.values(PRESETS)) Object.assign(preset, { body_source: "parametric", topper: "none" });
+Object.assign(PRESETS, { witch: {}, santa: { hat_trim_color: "#fff3df", hat_color: "#c82936", topper: "santa" }, baseball: { hat_trim_color: "#d6e5ef", hat_color: "#2468a7", topper: "baseball" } });
+
 // Ready-made designs, offered before customizing. Each is a partial parameter set over the
 // defaults (the default design is the cute solid pumpkin).
 const DESIGNS = [
+  { id: "witch", label: "Little witch", blurb: "The original happy pumpkin with a curled witch hat, buckle and sculpted star.", group: "Festive hats", params: PRESETS.witch },
+  { id: "santa", label: "Santa pumpkin", blurb: "A folded Santa hat with a scalloped cuff and tufted pompom on the original pumpkin.", group: "Festive hats", params: PRESETS.santa },
+  { id: "baseball", label: "Ballpark pumpkin", blurb: "A paneled cap with a stitched visor and top button on the original pumpkin.", group: "Festive hats", params: PRESETS.baseball },
   { id: "cute", label: "Cute pumpkin", blurb: "A solid pumpkin with an inlaid cute face and a green stem. The default.", group: "Solid", params: PRESETS.cute },
   { id: "knitted", label: "Knitted pumpkin", blurb: "Cosy knit stitches with a cute face.", group: "Solid", params: PRESETS.knitted },
   { id: "ghost", label: "Ghost pumpkin", blurb: "A pale pumpkin with a spooky inlaid face.", group: "Solid", params: { body_color: "#efe8da", face: "spooky", segments: 12, rib_depth_pct: 10, face_color: "#2b2b3a" } },
@@ -278,15 +306,17 @@ const DESIGNS = [
   { id: "vase", label: "Pumpkin vase", blurb: "A single-wall ribbed vase for your slicer's vase mode.", group: "Containers", params: PRESETS.vase }
 ];
 
+for (const d of DESIGNS) if (d.group !== "Festive hats") d.params = { body_source: "parametric", topper: "none", ...d.params };
+
 export default {
   id: "pumpkin",
-  version: 3,
-  versionDefaults: { 1: { optimize_cutouts: false } },
+  version: 4,
+  versionDefaults: { 1: { optimize_cutouts: false, body_source: "parametric", topper: "none" }, 2: { body_source: "parametric", topper: "none" }, 3: { body_source: "parametric", topper: "none" } },
   title: "Pumpkin",
   blurb: "Design a pumpkin: solid, hollow tealight cover, vase or bowl with a lid, with a face, knit or lattice surface, and a plug-in or attached stem.",
   category: "seasonal",
   origin: "house",
-  rights: { publishable: true, note: "House design, generated from first principles; reference models were only studied for proportions and printability." },
+  rights: { publishable: true, note: "Parametric body and hats are house designs. Original happy body is the user-supplied PumpkinHappyEyesstl.stl, preserved at its original size and socket." },
   schema: SCHEMA,
   rules,
   errorField,
@@ -294,7 +324,7 @@ export default {
   focus: FOCUS,
   presets: PRESETS,
   designs: DESIGNS,
-  defaultDesign: "cute",
+  defaultDesign: "witch",
   // A pumpkin is a round 3D object: start in 3D and call the flat views what they show.
   initialView: "3d",
   viewLabels: { front: "Top", back: "Bottom" }
