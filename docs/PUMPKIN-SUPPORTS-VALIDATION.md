@@ -36,3 +36,9 @@ inspection; do not infer reliable release or universal printer compatibility fro
 a successful slice. Use 0.16 mm layers and remove support material after printing.
 
 The branch's PR records final full-test, screenshot, CI and deployment outcomes.
+
+Final cap detail check: the first thinner stitch revision was visible in renders but omitted
+by the 0.16 mm slicing profile. A failing relief-section test reproduced that issue.
+Fitted-cap stitches now have 0.56 mm width and 0.36 mm raised relief; actual G-code
+shows the two stitch rows on layers Z=5.64 and 5.80 mm above the visor. The original
+30 mm mesh hash is unchanged. All 12 focused geometry/export/resource tests pass.

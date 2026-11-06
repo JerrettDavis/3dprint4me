@@ -41,6 +41,15 @@ test('every fitted crown size keeps the bill roots inside its dome', async () =>
   }
 });
 
+test('visor stitches retain printable relief above the bill surface', async () => {
+  const wasm=await loadEngine(), cap=buildTopper(wasm,'baseball');
+  const section=cap.slice(30.45);
+  const front=wasm.CrossSection.square([40,10]).translate([-20,-30]);
+  const detail=section.intersect(front);
+  try {assert.ok(detail.area()>.25,'outboard stitching survives more than one 0.16 mm layer above bill');}
+  finally {detail.delete();front.delete();section.delete();cap.delete();}
+});
+
 test('downloads include removable supports under Santa pompom; presentation omits them', async () => {
   const wasm = await loadEngine();
   const p = validateParams(pumpkin, { ...pumpkin.presets.santa, export_parts: 'hat' }).value;
