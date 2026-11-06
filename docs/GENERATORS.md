@@ -162,7 +162,7 @@ The definition is isomorphic: it must import nothing browser-only, because `lib/
 imports it through the registry (the Vercel function bundle includes `public/assets/js/**`).
 Geometry code never ships to the server.
 
-### Reference pumpkin and festive hats (version 4)
+### Reference pumpkin and festive hats (version 5)
 
 The pumpkin now defaults to the supplied original happy pumpkin and a curled witch hat.
 Santa and baseball presets use the same exact 45.9473 × 45.9884 × 29.9548 mm body and
@@ -188,10 +188,19 @@ slightly asymmetric. New hats reuse this mount without altering the body/socket.
 The download offers both parts, hat only, or pumpkin only. Printable color volumes partition
 the hat into its main surface and contrasting trim, without overlapping paint geometry. The
 download lays parts out on the bed; Realistic preview assembles them. Local facts describe
-the download layout, not the assembled height. Supports are enabled for the hollow roof,
-moulded seat, visor/brim and hanging details. Inspect the slicer layer preview; 0.16 mm layers
+the download layout, not the assembled height. Removable support geometry is included by default
+under the hollow roof, moulded seat, visor/brim and hanging details (including Santa's pompom).
+The support builder samples actual mesh intersections on a 2.4 mm grid and adds 1.3 mm
+posts with 0.45 mm tapered tips and 0.16 mm vertical release gaps, trimmed to the model.
+Support solids are separate from the unchanged shell and hat; Realistic preview omits them.
+Automatic slicer support is disabled when included supports are selected. Turning that option
+off restores automatic slicer support. Inspect layer coverage and removal access; 0.16 mm layers
 help preserve raised detail. Geometry clearance is checked computationally; physical fit
-requires a printed sample. Use LED lights only.
+requires a printed sample. Support removal is also unverified physically. Use LED lights only.
+
+Version 5 broadens the cap crown to 36 mm, anchors both bill roots within its surface, and
+uses smaller stitching and low-profile vents. Version 4 provenance retains the original
+30 mm crown and omitted support geometry; its round mount and reference shell are unchanged.
 
 For a new style, add its builder and registry/schema/design entries, test connected geometry,
 body collision, peg clearance, analyzer-clean color/export combinations and offline hand-off,
