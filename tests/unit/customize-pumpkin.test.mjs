@@ -16,7 +16,7 @@ const wasm = await loadEngine();
 const { default: build } = await loadBuilder.pumpkin();
 const gen = { ...pumpkin, build };
 const inflateRaw = async (b, max) => new Uint8Array(inflateRawSync(b, { maxOutputLength: max }));
-const defaults = Object.fromEntries(Object.entries(pumpkin.schema).map(([k, d]) => [k, d.default]));
+const defaults = { ...Object.fromEntries(Object.entries(pumpkin.schema).map(([k, d]) => [k, d.default])), body_source: "parametric", topper: "none" };
 const check = over => validateParams(pumpkin, clampParams(pumpkin, { ...defaults, ...over }));
 const ok = over => { const r = check(over); assert.ok(r.ok, r.errors.join("; ")); return r.value; };
 
@@ -102,7 +102,7 @@ test("a peg is limited by the stem width", () => {
 test("advanced fields hide in Simple mode but remain in the schema, validated and built", () => {
   assert.ok(hasAdvanced(pumpkin));
   const advanced = Object.entries(pumpkin.schema).filter(([, d]) => d.advanced).map(([k]) => k);
-  const simple = Object.entries(pumpkin.schema).filter(([, d]) => !d.advanced).map(([k]) => k);
+  const simple = Object.entries(pumpkin.schema).filter(([, d]) => !d.advanced && isFieldVisible(d, defaults, false)).map(([k]) => k);
   assert.ok(advanced.length >= 15 && simple.length >= 8 && simple.length <= 17, `${simple.length} simple controls`);
   for (const k of ["style", "diameter_mm", "segments", "decoration", "face", "stem", "multicolor", "body_color"]) assert.ok(simple.includes(k), `${k} is a simple control`);
   const values = ok({});
@@ -466,14 +466,14 @@ test("bottom hole size narrows the opening of an open-bottom shell; a tealight n
   assert.deepEqual(clean(small), [], "analyzer clean");
   assert.ok(small.analysis.volumeMm3 > wide.analysis.volumeMm3, "a smaller hole leaves more floor");
   const def = (await import("../../public/assets/js/customize/generators/pumpkin.js")).default;
-  const tight = def.rules({ ...Object.fromEntries(Object.entries(def.schema).map(([k, v]) => [k, v.default])), ...base, tealight_fit: true, bottom_hole_pct: 30 });
+  const tight = def.rules({ ...Object.fromEntries(Object.entries(def.schema).map(([k, v]) => [k, v.default])), ...base, body_source: "parametric", tealight_fit: true, bottom_hole_pct: 30 });
   assert.ok(tight.fieldErrors.bottom_hole_pct, "too small for a tealight");
 });
 
 test("bottom hole can open past the base, up to 2.4 mm below the mouth, and stays printable", async () => {
   const base = { style: "hollow", opening: "bottom", face: "traditional", face_style: "cutout", stem: "none", wall_mm: 2, diameter_mm: 120, multicolor: false };
   const def = (await import("../../public/assets/js/customize/generators/pumpkin.js")).default;
-  const full = Object.fromEntries(Object.entries(def.schema).map(([k, v]) => [k, v.default]));
+  const full = { ...Object.fromEntries(Object.entries(def.schema).map(([k, v]) => [k, v.default])), body_source: "parametric" };
   const max = def.rules({ ...full, ...base }).limits.bottom_hole_pct[1];
   assert.ok(max > 100, `the hole can grow past the base (max ${max}%)`);
   const std = await make(base);

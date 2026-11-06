@@ -21,7 +21,7 @@ BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
 DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 3}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 4}
 
 
 @pytest.fixture(scope="module")
@@ -1176,6 +1176,9 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
     elif generator_id == "display-sign":
         key, label, value = "t1_text", "Text 1", f"SIGN {token[:6].upper()}"
     elif generator_id == "pumpkin":
+        wait_ready(page)
+        page.locator('[name="body_source"]').select_option('parametric')
+        wait_settled(page)
         # No text to type: the width is a whole number of millimetres, unique per run inside the store.
         key, label, value = "diameter_mm", None, str(60 + int(token[:4], 16) % 100)
     elif generator_id in {"gridfinity-base", "gridfinity-bin"}:
@@ -1855,13 +1858,16 @@ def test_name_plate_offers_common_names_and_randomizes_to_a_buildable_plate(page
 # --- Pumpkin: Simple / Advanced, designs and the type switches ---------------------------------
 
 def pick_design(page: Page, label: str) -> None:
-    page.evaluate("""(label) => { const n = [...document.querySelectorAll('.cz-design-name')].find(e => e.textContent.trim() === label); n.closest('button').click(); }""", label)
+    page.evaluate("""(label) => { const n = [...document.querySelectorAll('.cz-design-name')].find(e => e.childNodes[0].textContent.trim() === label); n.closest('button').click(); }""", label)
     wait_settled(page)
 
 
 def test_the_pumpkin_starts_simple_and_advanced_shows_the_shape_controls(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/pumpkin/")
     wait_ready(page)
+    expect(page.locator("[data-field='topper']")).to_be_visible()
+    page.locator("[name='body_source']").select_option("parametric")
+    wait_settled(page)
     level = page.locator("#cz-level")
     expect(level).to_be_visible()
     expect(level.get_by_role("button", name="Simple")).to_have_attribute("aria-pressed", "true")
@@ -1885,6 +1891,9 @@ def test_the_pumpkin_starts_simple_and_advanced_shows_the_shape_controls(page: P
 def test_a_rule_error_on_a_hidden_advanced_setting_can_be_reached(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/pumpkin/")
     wait_ready(page)
+    expect(page.locator("[data-field='topper']")).to_be_visible()
+    page.locator("[name='body_source']").select_option("parametric")
+    wait_settled(page)
     # A hollow ridged pumpkin with the deepest grooves has a wall too thin in the grooves: the fix
     # is the (advanced) wall thickness.
     page.locator("[name='style']").select_option("hollow")
@@ -1911,6 +1920,9 @@ def test_other_generators_have_no_simple_advanced_switch(page: Page, base_url: s
 def test_the_pumpkin_types_switch_their_own_controls(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/pumpkin/")
     wait_ready(page)
+    expect(page.locator("[data-field='topper']")).to_be_visible()
+    page.locator("[name='body_source']").select_option("parametric")
+    wait_settled(page)
     style = page.locator("[name='style']")
     style.select_option("hollow")
     expect(page.locator("[data-field='opening']")).to_be_visible()
@@ -1987,3 +1999,30 @@ def test_the_download_dialog_offers_an_stl_with_the_same_parts_combined(browser:
         assert not data.startswith(b"solid"), "binary STL, not ASCII"
     finally:
         page.context.close()
+
+
+@pytest.mark.parametrize("design,style,color", [("Little witch","witch","#593274"),("Santa pumpkin","santa","#c82936"),("Ballpark pumpkin","baseball","#2468a7")])
+def test_festive_pumpkin_presets_offline_preview_download_and_handoff(page: Page, base_url: str, design: str, style: str, color: str) -> None:
+    errors, urls = [], []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.on("request", lambda r: urls.append(r.url))
+    page.emulate_media(reduced_motion="reduce")
+    page.goto(base_url + "/customize/g/pumpkin/")
+    wait_ready(page)
+    page.context.set_offline(True)
+    pick_design(page, design)
+    expect(page.locator("[name=body_source]")).to_have_value("reference")
+    expect(page.locator("[name=topper]")).to_have_value(style)
+    expect(page.locator("[name=hat_color]")).to_have_value(color)
+    expect(page.locator("[data-field=diameter_mm]")).to_be_hidden()
+    page.get_by_role("button", name="Realistic preview", exact=True).click()
+    expect(page.locator("#cz-stage")).to_have_attribute("data-presentation-state", "ready", timeout=BUILD_TIMEOUT)
+    with page.expect_download() as info:
+        page.get_by_role("button", name="Download my model", exact=True).click()
+        page.get_by_role("button", name="No, just give me my file", exact=True).click()
+    assert Path(info.value.path()).read_bytes()[:2] == b"PK"
+    page.context.set_offline(False)
+    page.get_by_role("button", name="Continue to request", exact=True).click()
+    expect(page.locator("#customize-notice")).to_have_text("Loaded from the customizer — review and continue.")
+    assert not errors
+    assert all(u.startswith(base_url + "/") or u.startswith("blob:") for u in urls)
