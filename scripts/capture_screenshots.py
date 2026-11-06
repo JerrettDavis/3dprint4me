@@ -209,6 +209,10 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Pumpkin santa hat mobile dark", "/customize/g/pumpkin/", "customize-pumpkin-santa-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, festive_pumpkin("Santa pumpkin")),
             ("Pumpkin baseball hat desktop light", "/customize/g/pumpkin/", "customize-pumpkin-baseball-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Ballpark pumpkin")),
             ("Pumpkin baseball hat mobile dark", "/customize/g/pumpkin/", "customize-pumpkin-baseball-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, festive_pumpkin("Ballpark pumpkin")),
+            ("Witch included supports", "/customize/g/pumpkin/", "customize-pumpkin-witch-supports.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Little witch", support_view="3d")),
+            ("Santa included supports", "/customize/g/pumpkin/", "customize-pumpkin-santa-supports.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Santa pumpkin", support_view="3d")),
+            ("Santa support underside", "/customize/g/pumpkin/", "customize-pumpkin-santa-supports-bottom.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Santa pumpkin", support_view="back")),
+            ("Baseball included supports", "/customize/g/pumpkin/", "customize-pumpkin-baseball-supports.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Ballpark pumpkin", support_view="3d")),
             ("Pumpkin cute · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin()),
             ("Pumpkin lantern advanced · desktop · dark", "/customize/g/pumpkin/", "customize-pumpkin-lantern-advanced-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, pumpkin("Jack-o'-lantern", advanced=True)),
             ("Pumpkin optimized cutout · mobile · light", "/customize/g/pumpkin/", "customize-pumpkin-cutout-mobile-light.png", (390, 844), "light", GENERATOR_READY, pumpkin("Jack-o'-lantern", support_notes=True)),
@@ -346,13 +350,21 @@ def pumpkin(design: str | None = None, *, advanced: bool = False, optimize: bool
     return prepare
 
 
-def festive_pumpkin(design: str):
+def festive_pumpkin(design: str, *, support_view: str | None = None):
     def prepare(page) -> None:
         page.emulate_media(reduced_motion="reduce")
         page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
         page.evaluate("""label => [...document.querySelectorAll('.cz-design-name')].find(e => e.childNodes[0].textContent.trim() === label).closest('button').click()""", design)
         page.locator('#cz-form:not([data-settling])').wait_for(state='attached')
         page.locator(GENERATOR_READY).wait_for(state='attached', timeout=30000)
+        if support_view:
+            page.locator('[name=export_parts]').select_option('hat')
+            page.locator('#cz-form:not([data-settling])').wait_for(state='attached')
+            page.locator(GENERATOR_READY).wait_for(state='attached', timeout=30000)
+            page.get_by_role('button', name='Model', exact=True).click()
+            page.locator(f'[data-view="{support_view}"]').click()
+            page.wait_for_timeout(500)
+            return
         page.get_by_role('button', name='Realistic preview', exact=True).click()
         page.locator('#cz-stage[data-presentation-state="ready"]').wait_for(state='attached', timeout=30000)
         page.wait_for_timeout(300)

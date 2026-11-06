@@ -21,7 +21,7 @@ BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
 DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 4}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 5}
 
 
 @pytest.fixture(scope="module")
@@ -2014,13 +2014,29 @@ def test_festive_pumpkin_presets_offline_preview_download_and_handoff(page: Page
     expect(page.locator("[name=body_source]")).to_have_value("reference")
     expect(page.locator("[name=topper]")).to_have_value(style)
     expect(page.locator("[name=hat_color]")).to_have_value(color)
+    expect(page.locator("[name=hat_supports]")).to_be_checked()
     expect(page.locator("[data-field=diameter_mm]")).to_be_hidden()
     page.get_by_role("button", name="Realistic preview", exact=True).click()
     expect(page.locator("#cz-stage")).to_have_attribute("data-presentation-state", "ready", timeout=BUILD_TIMEOUT)
     with page.expect_download() as info:
         page.get_by_role("button", name="Download my model", exact=True).click()
         page.get_by_role("button", name="No, just give me my file", exact=True).click()
-    assert Path(info.value.path()).read_bytes()[:2] == b"PK"
+    import zipfile
+    import defusedxml.ElementTree as xml
+    with zipfile.ZipFile(info.value.path()) as archive:
+        metadata = json.loads(archive.read("Metadata/customizer.json"))
+        assert metadata["hat_supports"] is True
+        assert metadata["cap_crown_mm"] == 36
+        settings = xml.fromstring(archive.read("Metadata/model_settings.config"))
+        support_ids = [part.attrib["id"] for part in settings.findall(".//part")
+                       if any(m.attrib.get("key") == "name" and m.attrib.get("value", "").startswith("Support")
+                              for m in part.findall("metadata"))]
+        assert len(support_ids) == 2, support_ids
+        model = xml.fromstring(archive.read("3D/3dmodel.model"))
+        ns = {"m": "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"}
+        for support_id in support_ids:
+            triangles = model.find(f".//m:object[@id='{support_id}']/m:mesh/m:triangles", ns)
+            assert triangles is not None and len(triangles) > 10
     page.context.set_offline(False)
     page.get_by_role("button", name="Continue to request", exact=True).click()
     expect(page.locator("#customize-notice")).to_have_text("Loaded from the customizer — review and continue.")

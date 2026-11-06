@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=b632f1361c919227";
-import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=b632f1361c919227";
+import { contrastRatio } from "../color.js?v=c07fea27517ea4b2";
+import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=c07fea27517ea4b2";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -113,7 +113,9 @@ const stemShown = o => !noTop(o);
 const SCHEMA = {
   body_source: { type: "enum", label: "Pumpkin body", options: [{ value: "reference", label: "Happy pumpkin · original 46 mm" }, { value: "parametric", label: "Parametric · customize shape and face" }], default: "reference", randomize: false, group: "type", section: "type", help: "Original body: 45.95 × 45.99 × 29.95 mm, with its unchanged round 4 mm socket. The festive hats share this exact pumpkin." },
   topper: { type: "enum", label: "Festive hat", options: [{ value: "none", label: "No hat" }, { value: "witch", label: "Witch · curled point and buckle" }, { value: "santa", label: "Santa · folded tip and fluffy trim" }, { value: "baseball", label: "Baseball · panels and stitched visor" }], default: "witch", randomize: false, visibleWhen: { body_source: "reference" }, group: "hat", section: "hat" },
-  export_parts: { type: "enum", label: "Parts to download", options: [{ value: "both", label: "Pumpkin and hat" }, { value: "hat", label: "Hat only · for an existing pumpkin" }, { value: "pumpkin", label: "Pumpkin only" }], default: "both", randomize: false, visibleWhen: { body_source: "reference" }, group: "hat", section: "hat", help: "Print parts separately. The moulded underside and overhangs need slicer supports; check the layer preview. Physical peg fit has not been print-tested." },
+  export_parts: { type: "enum", label: "Parts to download", options: [{ value: "both", label: "Pumpkin and hat" }, { value: "hat", label: "Hat only · for an existing pumpkin" }, { value: "pumpkin", label: "Pumpkin only" }], default: "both", randomize: false, visibleWhen: { body_source: "reference" }, group: "hat", section: "hat", help: "Print parts separately. Removable supports are included by default; inspect the layer preview before printing. Physical peg fit has not been print-tested." },
+  hat_supports: { type: "bool", label: "Include removable supports", default: true, randomize: false, visibleWhen: { body_source: "reference" }, group: "hat", section: "hat", help: "Includes breakaway support geometry in the download, including under Santa's pompom. Print at 0.16 mm layers, inspect the layer preview, and remove supports after printing. Finished preview hides supports." },
+  cap_crown_mm: { type: "number", label: "Cap crown diameter", help: "36 mm is the fuller fitted cap. Sizes 31�40 mm keep the bill edges flush; 30 mm restores the original smaller cap profile.", min: 30, max: 40, step: 1, default: 36, unit: "mm", advanced: true, randomize: false, visibleWhen: o => o.body_source === "reference" && o.topper === "baseball", group: "hat", section: "hat" },
   hat_clearance_mm: { type: "number", label: "Peg diameter clearance", min: 0.1, max: 0.6, step: 0.05, default: 0.3, unit: "mm", advanced: true, randomize: false, visibleWhen: o => o.body_source === "reference" && o.topper !== "none", group: "hat", section: "hat", help: "0.3 mm makes a 3.7 mm round peg for the original 4 mm hole. Increase if your printer makes a tight fit." },
   hat_trim_color: { type: "color", label: "Hat trim color", default: "#e6b64d", visibleWhen: o => o.body_source === "reference" && o.topper !== "none", group: "colors", section: "hat" },
   hat_color: { type: "color", label: "Hat color", default: "#593274", visibleWhen: o => o.body_source === "reference" && o.topper !== "none", group: "colors", section: "hat" },
@@ -246,7 +248,7 @@ const SCHEMA = {
 
 // Reference mode consumes only its own controls; retained parametric settings restore on return.
 for (const [key, field] of Object.entries(SCHEMA)) {
-  if (["body_source", "topper", "export_parts", "hat_clearance_mm", "hat_color", "hat_trim_color", "body_color"].includes(key)) continue;
+  if (["body_source", "topper", "export_parts", "hat_supports", "cap_crown_mm", "hat_clearance_mm", "hat_color", "hat_trim_color", "body_color"].includes(key)) continue;
   const old = field.visibleWhen;
   field.visibleWhen = o => o.body_source !== "reference" && (!old || (typeof old === "function" ? old(o) : Object.entries(old).every(([k,v]) => Array.isArray(v) ? v.includes(o[k]) : o[k] === v)));
 }
@@ -310,8 +312,8 @@ for (const d of DESIGNS) if (d.group !== "Festive hats") d.params = { body_sourc
 
 export default {
   id: "pumpkin",
-  version: 4,
-  versionDefaults: { 1: { optimize_cutouts: false, body_source: "parametric", topper: "none" }, 2: { body_source: "parametric", topper: "none" }, 3: { body_source: "parametric", topper: "none" } },
+  version: 5,
+  versionDefaults: { 1: { optimize_cutouts: false, body_source: "parametric", topper: "none" }, 2: { body_source: "parametric", topper: "none" }, 3: { body_source: "parametric", topper: "none" }, 4: { cap_crown_mm:30, hat_supports:false } },
   title: "Pumpkin",
   blurb: "Design a pumpkin: solid, hollow tealight cover, vase or bowl with a lid, with a face, knit or lattice surface, and a plug-in or attached stem.",
   category: "seasonal",

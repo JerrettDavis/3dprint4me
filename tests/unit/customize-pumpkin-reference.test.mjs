@@ -19,6 +19,11 @@ test('reference pumpkin defaults and festive presets use the exact supplied body
   const d = validateParams(pumpkin, {});
   assert.equal(d.value.body_source, 'reference');
   assert.equal(d.value.topper, 'witch');
+  assert.equal(d.value.cap_crown_mm, 36);
+  assert.equal(d.value.hat_supports, true);
+  const previous = normalizeCustomization({ generatorId:'pumpkin', generatorVersion:4, params:{} });
+  assert.equal(previous.params.cap_crown_mm,30);
+  assert.equal(previous.params.hat_supports,false);
   for (const style of ['witch', 'santa', 'baseball']) {
     const preset = pumpkin.presets[style];
     assert.ok(preset, `${style} gallery preset`);
