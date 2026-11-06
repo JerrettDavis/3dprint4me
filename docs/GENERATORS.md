@@ -11,13 +11,37 @@ Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, 
 
 Gridfinity uses a 42 mm grid, 7 mm bin height units and the MIT Gridfinity/Rebuilt mating profile
 (notices in `customizer/static/licenses/gridfinity.txt`). Baseplates offer standard magnetless,
-less-material magnetless and magnetic construction, with 1–6 rows and columns. Bins offer
+less-material magnetless, solid magnetic and magnetic light construction, with 1–6 rows and columns. Bins offer
 1.2–2.4 mm walls, dividers, paper-label shelves, optional stacking lips and optional 6 × 2 mm
 glue-in magnets. Advanced controls allow 6–6.4 mm pocket diameters and 2–2.4 mm depths.
 Print upright without supports; magnet pocket roofs require bridges up to 6.4 mm. Multi-cell
 floors bridge the small gaps between rounded feet. The stacking lip ends in a printable 0.4 mm
 land, 4 mm above the nominal rim. See [geometry and slicing evidence](GRIDFINITY-PRINTABILITY.md).
 Physical fit has not been certified: print a single-cell fit sample before a full grid.
+
+**Magnetic light baseplates** use open cells and rounded corner magnet tabs inspired by
+[RIP_Plo-Koon's Magnet Light Baseplate](https://www.printables.com/model/250550-gridfinity-magnet-light-baseplate).
+Four upward-open pockets per cell sit on the standard 26 mm magnet spacing. Small optional
+through-holes under the pockets allow removal or screw fastening; turn them off for closed
+glue pockets. These pockets print open from above and have no bridge roof. Check screw head
+clearance and magnet polarity before assembly. The other magnetic construction retains its
+original downward-open pockets and solid subfloor.
+
+Choose **Magnetic light**, **Magnetic fit sample**, or **Tight magnet sample** in the design gallery.
+Advanced controls change the actual geometry: base thickness below the sockets (2.4–5 mm),
+cell opening (30–39.6 mm before the corner tabs), tab walls (0.8–2 mm), magnet pocket diameter
+(5.8–6.6 mm in 0.01 mm steps), pocket depth (2–2.4 mm), and through-hole diameter (2.8–3.6 mm).
+The total height is the base thickness plus the fixed 4.75 mm mating profile; grid pitch and
+magnet centers do not scale. Default 6.5 mm pockets provide glue clearance for nominal
+6 × 2 mm magnets; 6.09 mm is a tight-fit starting point, not a guaranteed press fit. At least
+0.4 mm remains beneath each pocket (around any through-hole), and outer rails remain at least
+1.2 mm wide. Committed form edits clamp depth/thickness to preserve that floor; direct invalid
+server submissions are rejected. Larger openings and thinner tabs reduce stiffness. These are
+independent configurable geometry inspired by the reference's appearance, not a measured CAD
+replica or a certified physical fit. All controls remain local, saved in the draft and revalidated
+as provenance on private request hand-off.
+The widest openings create a short bridging ledge (at most 1.9 mm) beneath the mating rails;
+tune bridging and cooling on a sample before printing a full baseplate.
 
 **Vase is two print operations.** Select and download the shell and adapter separately with
 matching rows/columns. The shell is a solid positive volume for the slicer to hollow in spiral

@@ -17,6 +17,9 @@ const cases = [
   ['base-standard', 'gridfinity-base', { columns: 1, rows: 1 }],
   ['base-light', 'gridfinity-base', { columns: 1, rows: 1, style: 'light' }],
   ['base-magnetic', 'gridfinity-base', { columns: 1, rows: 1, style: 'magnetic', magnet_diameter_mm: 6.4, magnet_depth_mm: 2.4 }],
+  ['base-magnetic-light', 'gridfinity-base', { columns: 1, rows: 1, style: 'magnetic-light' }],
+  ['base-magnetic-light-thin-wide', 'gridfinity-base', { columns: 2, rows: 2, style: 'magnetic-light', light_base_mm: 2.4, magnet_depth_mm: 2, light_opening_mm: 39.6, light_tab_wall_mm: 0.8, light_magnet_diameter_mm: 6.6 }],
+  ['base-magnetic-light-closed', 'gridfinity-base', { columns: 1, rows: 1, style: 'magnetic-light', light_through_holes: false, light_magnet_diameter_mm: 6.09 }],
   ['bin-standard', 'gridfinity-bin', { columns: 1, rows: 1 }],
   ['bin-thin', 'gridfinity-bin', { columns: 1, rows: 1, wall_mm: 1.2, stacking_lip: false }],
   ['bin-labeled-divided-magnetic', 'gridfinity-bin', { label_shelf: true, compartments_x: 2, compartments_y: 2, magnets: true, magnet_diameter_mm: 6.4, magnet_depth_mm: 2.4 }],
@@ -39,7 +42,7 @@ for (const [name, id, input] of cases) {
   stl += `endsolid ${name}\n`;
   await writeFile(join(dir, `${name}.stl`), stl);
   await writeFile(join(dir, `${name}.3mf`), out.data);
-  manifest.push({ name, id, params: checked.value, triangles: out.metrics.triangles, sha256: createHash('sha256').update(out.data).digest('hex'), warnings: out.warnings });
+  manifest.push({ name, id, params: checked.value, triangles: out.metrics.triangles, sha256: createHash('sha256').update(out.data).digest('hex'), stlSha256: createHash('sha256').update(stl).digest('hex'), warnings: out.warnings });
 }
 await writeFile(join(dir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 console.log(`Exported ${manifest.length} Gridfinity fixture pairs to ${dir}`);

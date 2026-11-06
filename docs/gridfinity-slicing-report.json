@@ -1,7 +1,7 @@
 [
   {
     "name": "base-standard",
-    "modelSha256": "46a431cfbc664caaebfab50555ccf6e5130ea5c7ce5ec903270b4737421444f6",
+    "modelSha256": "7f3ee2b19bd2dd0edd1de46a7a87b56b3bcdbfb363961214a8be5fb835c4f514",
     "layers": 24,
     "lastLayerMm": 4.8,
     "pathTypes": {
@@ -12,25 +12,27 @@
       "Solid infill": 11,
       "Internal infill": 8
     },
-    "supportPaths": 0
+    "supportPaths": 0,
+    "stlSha256": "5c96365538840dd9aa946b554707778881595612fac36bd55650cf69ac844159"
   },
   {
     "name": "base-light",
-    "modelSha256": "c7860fc30534045bf49f0a93f479696313239ebe26982f60860f0e603b63d399",
+    "modelSha256": "e2e4df4e408611752663d8e1bd757024f4f03fca949d2676dde16bc2af360559",
     "layers": 24,
     "lastLayerMm": 4.8,
     "pathTypes": {
       "Custom": 2,
       "Skirt/Brim": 1,
-      "Perimeter": 53,
-      "External perimeter": 34,
+      "Perimeter": 51,
+      "External perimeter": 32,
       "Solid infill": 19
     },
-    "supportPaths": 0
+    "supportPaths": 0,
+    "stlSha256": "e5af466eaf228cd74cd31d1f5438565318fbacf7673f95700566423bc08f9d8d"
   },
   {
     "name": "base-magnetic",
-    "modelSha256": "5c829e4c1f019c55239850c23a0d4e5c5a95c25c37971babcb7f54f2f5d20922",
+    "modelSha256": "e072c6d4ec21044174661c2c6e4d63d379327c76ded554cd32feecc9b125ecf8",
     "layers": 40,
     "lastLayerMm": 8.0,
     "pathTypes": {
@@ -43,28 +45,85 @@
       "Bridge infill": 2,
       "Top solid infill": 1
     },
-    "supportPaths": 0
+    "supportPaths": 0,
+    "stlSha256": "4b28a8bee3b4a91d5724244fdaba177b1bf4d75de3a95bc514ed7f7a631d24e7"
+  },
+  {
+    "name": "base-magnetic-light",
+    "modelSha256": "65819adc7928d20f5985b2680e68db129bd43d5819741d7d19ad8bc222468889",
+    "layers": 38,
+    "lastLayerMm": 7.6,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 118,
+      "External perimeter": 107,
+      "Solid infill": 26,
+      "Top solid infill": 6,
+      "Internal infill": 29,
+      "Bridge infill": 4
+    },
+    "supportPaths": 0,
+    "stlSha256": "4a9115af693957226120466dbc5af641cb954769e77447f0c1458d1316fef394"
+  },
+  {
+    "name": "base-magnetic-light-thin-wide",
+    "modelSha256": "828e4470a6b4ef94697f7a9650a95161c7095e1916038ea2b0f5daea0e77cf96",
+    "layers": 36,
+    "lastLayerMm": 7.2,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 244,
+      "External perimeter": 229,
+      "Solid infill": 76,
+      "Top solid infill": 11,
+      "Internal infill": 76,
+      "Bridge infill": 16,
+      "Overhang perimeter": 32
+    },
+    "supportPaths": 0,
+    "stlSha256": "578c55a03d20c28b193b55cacd97e8e2ffccfa38bb942d2ad6b46ae8cef6cd77"
+  },
+  {
+    "name": "base-magnetic-light-closed",
+    "modelSha256": "bd3495696f3c007c4e9a185417804eb3e4d03b9682f72a365af84dddcf55cd8c",
+    "layers": 38,
+    "lastLayerMm": 7.6,
+    "pathTypes": {
+      "Custom": 2,
+      "Skirt/Brim": 1,
+      "Perimeter": 106,
+      "External perimeter": 95,
+      "Solid infill": 26,
+      "Top solid infill": 5,
+      "Internal infill": 29,
+      "Bridge infill": 4
+    },
+    "supportPaths": 0,
+    "stlSha256": "59ee956476b0b4218cb874ba63fb022c60c8f78a3dac4547aeb2667ac50d6cc5"
   },
   {
     "name": "bin-standard",
-    "modelSha256": "cc84fef1c55d956ee063739040204ba227ced33e00e3b00be1b69c01090e8603",
+    "modelSha256": "499fb2eebd4c31578e8ae244f4a86a6725a58885a884387c8439a40c8b888758",
     "layers": 230,
     "lastLayerMm": 46.0,
     "pathTypes": {
       "Custom": 2,
       "Skirt/Brim": 1,
-      "Perimeter": 264,
-      "External perimeter": 264,
+      "Perimeter": 257,
+      "External perimeter": 257,
       "Solid infill": 15,
       "Internal infill": 29,
       "Bridge infill": 1,
       "Top solid infill": 1
     },
-    "supportPaths": 0
+    "supportPaths": 0,
+    "stlSha256": "ebe53cf3c05c3c94d6837c190604955a4917ffd5b877a57d9845a0e93e355756"
   },
   {
     "name": "bin-thin",
-    "modelSha256": "77a9e32274d5707bed24252f6f6fd6089207ce0ac19f01d1e3941101f237b33e",
+    "modelSha256": "10c8415ddff995d14601ed4dc4ff11544059a337290cfe1c1e934e2f52627587",
     "layers": 210,
     "lastLayerMm": 42.0,
     "pathTypes": {
@@ -77,29 +136,31 @@
       "Bridge infill": 1,
       "Top solid infill": 1
     },
-    "supportPaths": 0
+    "supportPaths": 0,
+    "stlSha256": "fd10bdc419b24be2c807c63008ea3c95154045d45e20874716e0e45acc1462c5"
   },
   {
     "name": "bin-labeled-divided-magnetic",
-    "modelSha256": "ea4741df04c24335a0ec82680d27a5b5f3a9b16017e28c4c7ed3f42b5e559817",
+    "modelSha256": "70fe113a64d7759f0b7fcc42b9e438efacdde1b15e8c1e4cb9a8904d9aeac2d9",
     "layers": 230,
     "lastLayerMm": 46.0,
     "pathTypes": {
       "Custom": 2,
       "Skirt/Brim": 1,
-      "Perimeter": 918,
-      "External perimeter": 876,
+      "Perimeter": 922,
+      "External perimeter": 882,
       "Solid infill": 135,
       "Internal infill": 152,
       "Bridge infill": 18,
       "Overhang perimeter": 8,
       "Top solid infill": 2
     },
-    "supportPaths": 0
+    "supportPaths": 0,
+    "stlSha256": "38067b09df4ecc7f56d122ffe28741a3275b4fe97ebac5c0615db5afe9fde5bf"
   },
   {
     "name": "vase-shell",
-    "modelSha256": "29f68a64cad8e362e4522424c31083bb1b52cc70a2d7a8f65a24201a39a613f5",
+    "modelSha256": "45b4915d6dea1e900f27d123b74e529934749fae4bedfe3db09ddc0fa6629cd7",
     "layers": 180,
     "lastLayerMm": 36.0,
     "pathTypes": {
@@ -110,6 +171,7 @@
       "Top solid infill": 1
     },
     "supportPaths": 0,
+    "stlSha256": "dcccc21bfdd73765588c4c568de6bc984b30b215607ea20694a968634238b6fb",
     "spiralMoves": 2768,
     "wallRetracts": 0,
     "wallTravelMoves": 0,
@@ -125,7 +187,7 @@
   },
   {
     "name": "vase-adapter",
-    "modelSha256": "ed50540b08d32eb376cb0915d59a36a225cd7269a57ed7144ad1761c04d399d9",
+    "modelSha256": "546ede9912a36e72bab2558b69d2247f448b1c1e7394ac72be00bb0d8dcd4bbe",
     "layers": 30,
     "lastLayerMm": 6.0,
     "pathTypes": {
@@ -139,6 +201,7 @@
       "Bridge infill": 2,
       "Top solid infill": 1
     },
-    "supportPaths": 0
+    "supportPaths": 0,
+    "stlSha256": "5c1317da80edfb66c0d0113f5d6fd8490983757b2266813ec1f2fa145c8cdefe"
   }
 ]
