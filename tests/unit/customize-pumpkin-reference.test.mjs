@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
 import { loadEngine } from '../../customizer/framework/engine.js';
 import pumpkin from '../../public/assets/js/customize/generators/pumpkin.js';
 import { validateParams } from '../../public/assets/js/customize/schema.js';
@@ -31,10 +30,6 @@ test('reference pumpkin defaults and festive presets use the exact supplied body
 });
 
 const moduleUrl = new URL('../../customizer/generators/pumpkin/reference.js', import.meta.url);
-
-test('exact reference pumpkin has a worker-only loader', () => {
-  assert.ok(existsSync(moduleUrl), 'reference mesh loader must exist');
-});
 
 test('reference shell preserves measured dimensions and round socket without moving its axis', async () => {
   const { referencePumpkin, REFERENCE } = await import(moduleUrl);

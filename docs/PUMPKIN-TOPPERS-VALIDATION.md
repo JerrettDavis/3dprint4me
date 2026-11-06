@@ -52,5 +52,13 @@ should inspect their layer preview and support placement. No physical print has 
 
 ## Release gates
 
+Full local `npm test` passed validation, unit/contract checks, 488 browser tests
+(five existing skips) and 241 UX checks. The final focused reference/topper suite has
+eight passing behavioral tests, including all export choices and resource cleanup.
+The serial `npm run screenshots` completed 184 captures; the preview board was visually
+inspected with complete mobile hat views. The handbook build/link checks, four handbook
+integration tests and two handbook browser tests also passed.
+
 The full test command, main CI, merge and live production checks must pass before this
-feature is considered released. See the implementation plan for outstanding gates.
+feature is considered released. The current merge/deployment outcome is recorded in
+[PR #72](https://github.com/JerrettDavis/3dprint4me/pull/72).
