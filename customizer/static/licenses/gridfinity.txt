@@ -1,3 +1,14 @@
+Magnetic light baseplate inspiration
+
+RIP_Plo-Koon — Gridfinity Magnet Light Baseplate
+https://www.printables.com/model/250550-gridfinity-magnet-light-baseplate
+The magnetic light construction independently recreates the open frame,
+rounded corner magnet tabs and optional through-holes shown in that design.
+Its configurable dimensions are our own; no source CAD or mesh was copied.
+This reference is not a claim of identical dimensions or certified physical fit.
+
+Mating profile notices follow.
+
 MIT License
 
 Copyright (c) 2023 Kenneth Hodson
