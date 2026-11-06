@@ -4,20 +4,30 @@ The generators use the 42 mm mating grid documented in [the design](https://gith
 They are intended to print upright without generated supports. Ordinary bridge tuning is required:
 magnet-pocket roofs bridge up to 6.4 mm; multi-cell bin floors and the vase adapter bridge the small
 gaps between rounded feet (up to about 8 mm at a cell junction). A paper-label shelf grows inward
-on a 45 degree ramp. Magnet pockets open down and are glued after printing.
+on a 45 degree ramp. Solid-base and bin magnet pockets open down and are glued after printing.
+The magnetic light baseplate instead has top-open pockets on rounded corner tabs, with optional
+smaller bores through the floors and open cell centers. Its pockets need no bridge roof.
+Its base thickness and opening size are configurable; minimum outer rail width is 1.2 mm and
+minimum pocket-floor thickness is 0.4 mm. Thin floors and wide openings reduce stiffness.
+At the largest openings, an inward ledge below the fixed mating rails bridges up to 1.9 mm;
+tune bridging and cooling on a sample. The toolpath report includes expected bridge and
+overhang paths for this case, with generated supports disabled.
 
 These are geometry and toolpath checks, not physical test prints or a calibrated printer profile.
 Print a one-cell fit sample and check magnet dimensions and polarity before a full batch.
 
 ## Evidence recorded 2026-11-05
 
-Eight exported fixture pairs were sliced with Debian's PrusaSlicer 2.5.0, 0.4 mm nozzle,
+Eleven exported fixture pairs were sliced with Debian's PrusaSlicer 2.5.0, 0.4 mm nozzle,
 0.2 mm layers, generic PLA and `support_material = 0`: standard/light/magnetic plates,
-standard/thin bins, a combined paper-label/divider/magnetic bin, a vase shell and its adapter.
-All eight produce continuous layer sequences and zero support paths. The spiral shell has
+standard/thin bins, a combined paper-label/divider/magnetic bin, a vase shell and its adapter,
+plus default magnetic light, minimum-thickness/maximum-opening 2 × 2 magnetic light,
+and closed-bottom/tight-pocket magnetic light plates.
+All eleven produce continuous layer sequences and zero support paths. The spiral shell has
 2,768 rising extrusion moves above its six-layer floor, with zero wall retractions or travel moves.
-The [machine-readable report](https://github.com/JerrettDavis/3dprint4me/blob/main/docs/gridfinity-slicing-report.json) records model SHA-256 digests,
+The [machine-readable report](https://github.com/JerrettDavis/3dprint4me/blob/main/docs/gridfinity-slicing-report.json) records 3MF and STL SHA-256 digests,
 layer counts, final layer heights and path types. Bridge and overhang paths remain expected.
+STL digests identify the sliced geometry independently of ZIP timestamps in fresh 3MF exports.
 
 The original sharp stacking lip lost its final layer in slicing. The final lip truncates the
 last 0.4 mm of that taper, leaving a 0.4 mm land at 4 mm above the nominal bin rim. This
