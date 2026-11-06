@@ -25,7 +25,7 @@
     {
       "file": "docs/GENERATORS.md",
       "output": "reference/GENERATORS.md",
-      "sha256": "e4e73a2cae8ba629f50a49b8f883dc7e91a801620cb83ad45edadbf91cd41e2d"
+      "sha256": "b75b7c07487fc6c12d0ef50511b984b7d3092ded3af4a6103a59562ba7747d0c"
     },
     {
       "file": "docs/PRODUCT-IMAGES.md",
@@ -1485,7 +1485,7 @@
     {
       "file": "docs/GRIDFINITY-PRINTABILITY.md",
       "output": "reference/GRIDFINITY-PRINTABILITY.md",
-      "sha256": "a950388f95f5fe49af52e35d0bd112abf3a183992253e1c2e35ea75e09a29652"
+      "sha256": "bf44b756eec486e6ab5a7a3a133676b201c7ba3647d4ada5428c6ec0c7fab442"
     }
   ]
 }
