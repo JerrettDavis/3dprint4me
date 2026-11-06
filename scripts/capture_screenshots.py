@@ -112,6 +112,13 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
         ratio = card_width / image.width
         resized = image.resize((card_width, int(image.height * ratio)), Image.Resampling.LANCZOS)
         if resized.height > 820:
+            # Keep the complete festive model visible in the review board. A top-only
+            # crop of these mobile studios shows the toolbar and cuts off the hat.
+            if path.stem.startswith(('customize-pumpkin-witch-mobile-', 'customize-pumpkin-santa-mobile-', 'customize-pumpkin-baseball-mobile-')):
+                resized.thumbnail((card_width, 820), Image.Resampling.LANCZOS)
+                fitted = Image.new('RGB', (card_width, 820), '#edf0f3')
+                fitted.paste(resized, ((card_width - resized.width) // 2, 0))
+                resized = fitted
             # These viewport captures show a late approval error near the footer.
             # Keep that changed state visible in the board's bounded thumbnail.
             top = resized.height - 820 if path.stem.startswith(('operator-partners-missing-review-','partner-materials-owner-error-')) else 0
@@ -196,6 +203,12 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Name plate keychain Mary Ann (Bangers) · desktop · light", "/customize/g/name-plate/", "customize-name-plate-keychain-mary-ann-bangers-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, name_plate(font="bangers", name="Mary Ann", plate="none", loop=True)),
             ("Name plate font picker · desktop · light", "/customize/g/name-plate/", "customize-name-plate-picker-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, name_plate(font="caveat-brush", name="Jordan", open_picker=True)),
             ("Name plate font picker · mobile · dark", "/customize/g/name-plate/", "customize-name-plate-picker-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, name_plate(font="righteous", name="Jordan", open_picker=True)),
+            ("Pumpkin witch hat desktop light", "/customize/g/pumpkin/", "customize-pumpkin-witch-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Little witch")),
+            ("Pumpkin witch hat mobile dark", "/customize/g/pumpkin/", "customize-pumpkin-witch-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, festive_pumpkin("Little witch")),
+            ("Pumpkin santa hat desktop light", "/customize/g/pumpkin/", "customize-pumpkin-santa-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Santa pumpkin")),
+            ("Pumpkin santa hat mobile dark", "/customize/g/pumpkin/", "customize-pumpkin-santa-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, festive_pumpkin("Santa pumpkin")),
+            ("Pumpkin baseball hat desktop light", "/customize/g/pumpkin/", "customize-pumpkin-baseball-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Ballpark pumpkin")),
+            ("Pumpkin baseball hat mobile dark", "/customize/g/pumpkin/", "customize-pumpkin-baseball-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, festive_pumpkin("Ballpark pumpkin")),
             ("Pumpkin cute · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin()),
             ("Pumpkin lantern advanced · desktop · dark", "/customize/g/pumpkin/", "customize-pumpkin-lantern-advanced-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, pumpkin("Jack-o'-lantern", advanced=True)),
             ("Pumpkin optimized cutout · mobile · light", "/customize/g/pumpkin/", "customize-pumpkin-cutout-mobile-light.png", (390, 844), "light", GENERATOR_READY, pumpkin("Jack-o'-lantern", support_notes=True)),
@@ -330,6 +343,19 @@ def pumpkin(design: str | None = None, *, advanced: bool = False, optimize: bool
         if support_notes:
             show_facts(page)
         page.wait_for_timeout(700)
+    return prepare
+
+
+def festive_pumpkin(design: str):
+    def prepare(page) -> None:
+        page.emulate_media(reduced_motion="reduce")
+        page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
+        page.evaluate("""label => [...document.querySelectorAll('.cz-design-name')].find(e => e.childNodes[0].textContent.trim() === label).closest('button').click()""", design)
+        page.locator('#cz-form:not([data-settling])').wait_for(state='attached')
+        page.locator(GENERATOR_READY).wait_for(state='attached', timeout=30000)
+        page.get_by_role('button', name='Realistic preview', exact=True).click()
+        page.locator('#cz-stage[data-presentation-state="ready"]').wait_for(state='attached', timeout=30000)
+        page.wait_for_timeout(300)
     return prepare
 
 

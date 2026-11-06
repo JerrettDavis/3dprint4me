@@ -162,6 +162,42 @@ The definition is isomorphic: it must import nothing browser-only, because `lib/
 imports it through the registry (the Vercel function bundle includes `public/assets/js/**`).
 Geometry code never ships to the server.
 
+### Reference pumpkin and festive hats (version 4)
+
+The pumpkin now defaults to the supplied original happy pumpkin and a curled witch hat.
+Santa and baseball presets use the same exact 45.9473 × 45.9884 × 29.9548 mm body and
+unchanged round Ø4 mm socket. Select **Parametric** to restore the original editable
+shape/face/surface generator; existing designs and version 1–3 provenance retain that mode.
+Reference mode hides controls it does not consume rather than pretending to resize the original.
+
+The original is the user-supplied `PumpkinHappyEyesstl.stl` (SHA-256
+`8bf2485d6549eb3fdfaca9ac3ecf6e6911a4b961474a4787dfc13a6a3c7cd991`). The import script
+`python scripts/import-pumpkin-reference.py <path>` requires development-only Python trimesh;
+it keeps all original main-shell coordinates and removes 98 microscopic disconnected debris
+triangles. The exact shell and its crown envelope are compressed into worker-only
+`customizer/generators/pumpkin/reference-data.js`; runtime decoding uses the existing fflate
+dependency, with no new requests, external resources or uploaded source parameters.
+
+Hat style builders live in `customizer/generators/pumpkin/toppers/`, registered through
+`TOPPER_BUILDERS`. Each returns a connected detailed solid in assembled reference coordinates.
+The shared mount subtracts the exact filled crown envelope with 0.2 mm seating clearance,
+then adds a round tapered peg (3.7 mm diameter by default, adjustable diameter clearance).
+Do not center the reference on its bounding box: its socket axis is X=Y=0 and the shell is
+slightly asymmetric. New hats reuse this mount without altering the body/socket.
+
+The download offers both parts, hat only, or pumpkin only. Printable color volumes partition
+the hat into its main surface and contrasting trim, without overlapping paint geometry. The
+download lays parts out on the bed; Realistic preview assembles them. Local facts describe
+the download layout, not the assembled height. Supports are enabled for the hollow roof,
+moulded seat, visor/brim and hanging details. Inspect the slicer layer preview; 0.16 mm layers
+help preserve raised detail. Geometry clearance is checked computationally; physical fit
+requires a printed sample. Use LED lights only.
+
+For a new style, add its builder and registry/schema/design entries, test connected geometry,
+body collision, peg clearance, analyzer-clean color/export combinations and offline hand-off,
+then render front/side/underside views for visual review. Keep the reference checksum, bounds
+and socket tests unchanged.
+
 ## Definition
 
 `public/assets/js/customize/generators/<id>.js` default-exports a plain object:

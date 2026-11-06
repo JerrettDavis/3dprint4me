@@ -9,7 +9,7 @@ import { clampParams, validateParams } from '../../public/assets/js/customize/sc
 import { normalizeCustomization } from '../../lib/customization/domain.js';
 
 const wasm = await loadEngine();
-const defaults = Object.fromEntries(Object.entries(pumpkin.schema).map(([k, d]) => [k, d.default]));
+const defaults = { ...Object.fromEntries(Object.entries(pumpkin.schema).map(([k, d]) => [k, d.default])), body_source: "parametric", topper: "none" };
 
 test('legacy pumpkin provenance does not claim its original face was optimized', () => {
   const params = { style: 'hollow', face_style: 'cutout' };
