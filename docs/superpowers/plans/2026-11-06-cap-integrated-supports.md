@@ -17,3 +17,7 @@ Review ruling: preserve the explicit 30 mm legacy mesh; derive bill width and st
 Validation in progress: focused geometry and resource tests pass; three automatic-support-OFF slices succeeded; actual Santa G-code layers and clear support screenshots approved. Full regression, normal screenshot board and release checks remain required.
 
 Local evidence: 1,323 unit/contract tests pass; broad browser run 485 pass and five existing skips, with only three new archive-location assertions failing; those corrected tests subsequently all pass (support IDs verified against meshes). UX 241/241; 188 screenshots complete and festive board region visually inspected; handbook build/link checks and final static validation pass. Hosted full npm test remains the final coherent full-suite gate.
+
+Slicer ruling: increase fitted-cap stitch radius to 0.28 mm at Z=30.28 mm. Actual
+G-code omitted the thinner visible-only relief. The new relief test failed before
+the change and passes afterward; both stitch rows now survive two 0.16 mm layers.
