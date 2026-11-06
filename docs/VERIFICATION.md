@@ -1857,3 +1857,18 @@ browser checks (447.66s),1,231unit checks,336LinuxE2E (700.76s),241UX,153capture
 and uploaded artifacts. Its isolated archive-built rollout checked68requests with
 zero failures; both companion images and all fixture cleanup passed. These are
 separate scoped runs, not aggregated request counts. No production candidate rollout or migration has occurred.
+
+## Pumpkin topper CI runtime budget (2026-11-06)
+
+[Hosted run 42158968816](https://github.com/JerrettDavis/3dprint4me/actions/runs/42158968816)
+passed its native database/recovery/rollout/browser checks, 1,320 unit/contract tests,
+489 browser tests (four existing skips), and all 241 UX checks. Screenshot generation
+was still advancing through the owner captures when GitHub cancelled the job. Its
+authoritative annotation states: "The job has exceeded the maximum execution time
+of 45m0s". The artifact upload completed, but the cancelled job is not a successful
+verification run.
+
+The Verify job now permits 60 minutes for the complete expanded suite and screenshot
+generation. All existing steps and individual operation/test deadlines are preserved.
+A fresh successful run remains required before the pumpkin release is merged, followed
+by main CI, production deployment, and live generator checks.

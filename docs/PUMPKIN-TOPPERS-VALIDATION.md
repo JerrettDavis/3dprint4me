@@ -52,6 +52,12 @@ should inspect their layer preview and support placement. No physical print has 
 
 ## Release gates
 
+Hosted run 42158968816 passed all 1,320 unit/contract tests, 489 browser tests
+(four existing skips), 241 UX checks and the native integration steps. GitHub then
+cancelled the job during screenshot generation at its 45-minute limit. The job
+budget is now 60 minutes; every existing test, screenshot and artifact step remains
+required. That cancelled run is not treated as a green release check.
+
 Full local `npm test` passed validation, unit/contract checks, 488 browser tests
 (five existing skips) and 241 UX checks. The final focused reference/topper suite has
 eight passing behavioral tests, including all export choices and resource cleanup.
