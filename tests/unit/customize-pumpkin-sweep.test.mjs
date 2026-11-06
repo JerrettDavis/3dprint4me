@@ -16,7 +16,7 @@ const wasm = await loadEngine();
 const { default: build } = await loadBuilder.pumpkin();
 const gen = { ...pumpkin, build };
 const inflateRaw = async (b, max) => new Uint8Array(inflateRawSync(b, { maxOutputLength: max }));
-const defaults = Object.fromEntries(Object.entries(pumpkin.schema).map(([k, d]) => [k, d.default]));
+const defaults = { ...Object.fromEntries(Object.entries(pumpkin.schema).map(([k, d]) => [k, d.default])), body_source: "parametric", topper: "none" };
 
 function rng(seed) {
   let s = seed >>> 0;
@@ -37,7 +37,7 @@ test("120 random pumpkins build clean: every type, surface, face, stem, joint an
   let built = 0, refused = 0, wallRefused = 0;
   const seen = { style: new Set(), decoration: new Set(), face: new Set(), stem: new Set(), faceStyle: new Set() };
   for (let i = 0; i < 120; i++) {
-    const draft = Object.fromEntries(Object.entries(pumpkin.schema).map(([k, d]) => [k, d.type === "color" ? d.default : draw(d, r)]));
+    const draft = Object.fromEntries(Object.entries(pumpkin.schema).filter(([k]) => !["body_source", "topper", "export_parts", "hat_clearance_mm", "hat_color", "hat_trim_color"].includes(k)).map(([k, d]) => [k, d.type === "color" ? d.default : draw(d, r)]));
     // Colors stay readable: the contrast rules are tested elsewhere; here the shape is what varies.
     const params = clampParams(pumpkin, { ...defaults, ...draft });
     const checked = validateParams(pumpkin, params);

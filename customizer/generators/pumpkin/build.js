@@ -26,6 +26,7 @@ const free = o => { try { o?.delete?.(); } catch { /* best effort */ } };
 const STYLE_TITLE = { solid: "solid", hollow: "hollow", vase: "vase", bowl: "bowl" };
 
 export default async function build(p, ctx) {
+  if (p.body_source === "reference") return (await import("./reference-build.js")).default(p, ctx);
   const { wasm } = ctx;
   const { Manifold, CrossSection } = wasm;
   const temps = [];
