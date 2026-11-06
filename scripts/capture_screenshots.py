@@ -143,6 +143,16 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
 GENERATOR_READY = "body[data-build-state='ready']"
 
 
+def magnetic_light(page) -> None:
+    if page.viewport_size['width'] < 900:
+        page.get_by_role('button', name='Settings', exact=True).click()
+    page.locator('#cz-style').select_option('magnetic-light')
+    page.locator('#cz-form:not([data-settling])').wait_for(state='attached')
+    page.locator(GENERATOR_READY).wait_for(state='attached', timeout=30000)
+    page.locator('#cz-level').get_by_role('button', name='Advanced', exact=True).click()
+    page.locator('#cz-light_base_mm').scroll_into_view_if_needed()
+
+
 def capture_customize_states() -> list[tuple[str, Path]]:
     """Vite-built /customize pages need real HTTP (WASM, module worker, CSP), so they use the dev server."""
     captured: list[tuple[str, Path]] = []
@@ -150,6 +160,8 @@ def capture_customize_states() -> list[tuple[str, Path]]:
         for label, route, filename, viewport, scheme, ready, prepare in [
             ("Gridfinity base · desktop · light", "/customize/g/gridfinity-base/", "customize-gridfinity-base-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
             ("Gridfinity base · mobile · dark", "/customize/g/gridfinity-base/", "customize-gridfinity-base-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
+            ("Magnetic light · desktop · light", "/customize/g/gridfinity-base/", "customize-gridfinity-magnetic-light-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, magnetic_light),
+            ("Magnetic light · mobile · dark", "/customize/g/gridfinity-base/", "customize-gridfinity-magnetic-light-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, magnetic_light),
             ("Gridfinity bin · desktop · light", "/customize/g/gridfinity-bin/", "customize-gridfinity-bin-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
             ("Gridfinity bin · mobile · dark", "/customize/g/gridfinity-bin/", "customize-gridfinity-bin-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
             ("Name plate realistic · desktop · light", "/customize/g/name-plate/", "customize-realistic-name-plate-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, show_realistic_preview),

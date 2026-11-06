@@ -4,6 +4,7 @@ Usage: python scripts/check-gridfinity-gcode.py <fixture-directory>
 See docs/GRIDFINITY-PRINTABILITY.md for the reproducible slicing command.
 """
 import json
+import hashlib
 from pathlib import Path
 import re
 import sys
@@ -22,6 +23,9 @@ for fixture in manifest:
     layers = [float(z) for z in re.findall(r'^;Z:([\d.]+)', text, re.M)]
     assert layers and all(0 < b - a < 0.201 for a, b in zip(layers, layers[1:])), path
     row = {'name': fixture['name'], 'modelSha256': fixture['sha256'], 'layers': len(layers), 'lastLayerMm': layers[-1], 'pathTypes': dict(types), 'supportPaths': 0}
+    if 'stlSha256' in fixture:
+        assert hashlib.sha256((root / (fixture['name'] + '.stl')).read_bytes()).hexdigest() == fixture['stlSha256'], 'STL differs from exported fixture manifest.'
+        row['stlSha256'] = fixture['stlSha256']
     if fixture['name'] == 'bin-standard':
         assert abs(layers[-1] - 46) < 0.01, 'The finite stacking lip must survive slicing.'
     if fixture['name'] == 'vase-shell':
