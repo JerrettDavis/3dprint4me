@@ -162,7 +162,7 @@ The definition is isomorphic: it must import nothing browser-only, because `lib/
 imports it through the registry (the Vercel function bundle includes `public/assets/js/**`).
 Geometry code never ships to the server.
 
-### Reference pumpkin and festive hats (version 5)
+### Reference pumpkin and festive hats (version 7)
 
 The pumpkin now defaults to the supplied original happy pumpkin and a curled witch hat.
 Santa and baseball presets use the same exact 45.9473 × 45.9884 × 29.9548 mm body and
@@ -180,26 +180,28 @@ dependency, with no new requests, external resources or uploaded source paramete
 
 Hat style builders live in `customizer/generators/pumpkin/toppers/`, registered through
 `TOPPER_BUILDERS`. Each returns a connected detailed solid in assembled reference coordinates.
-The shared mount subtracts the exact filled crown envelope with 0.2 mm seating clearance,
-then adds a round tapered peg (3.7 mm diameter by default, adjustable diameter clearance).
-Do not center the reference on its bounding box: its socket axis is X=Y=0 and the shell is
-slightly asymmetric. New hats reuse this mount without altering the body/socket.
+The shared seat deforms the lower hat around the measured upper shoulders, including the
+asymmetric lobes, then subtracts the filled reference crown and shell with 0.2 mm vertical
+clearance. Upper details settle 3 mm lower. The witch brim is sized to the upper shoulders;
+outboard visor surfaces continue the shoulder height rather than wrapping down over the face.
+The exact body and 4 mm socket remain unchanged. Do not center the reference on its bounding
+box: its socket axis is X=Y=0 and the shell is slightly asymmetric.
 
 The download offers both parts, hat only, or pumpkin only. Printable color volumes partition
-the hat into its main surface and contrasting trim, without overlapping paint geometry. The
-download lays parts out on the bed; Realistic preview assembles them. Local facts describe
+the hat into its main surface and contrasting trim; the trim mask follows the same contour map.
+The download lays parts out on the bed; Realistic preview assembles them. Local facts describe
 the download layout, not the assembled height. The reference pumpkin exports unchanged, without
-added supports. The baseball cap is trimmed at the bill underside (Z=28.2 mm in assembled
-coordinates), giving its crown and bill one flat print base. Its mounting pin prints separately
-upright and fits a 4 mm blind bore in the cap; insert the pin into the cap and original pumpkin
-socket, gluing the cap end if needed. Neither cap nor pumpkin enables automatic slicer supports.
-Witch and Santa hats retain the optional removable support geometry beneath their moulded seats,
-brims and hanging details, including Santa's pompom. Turning off that option enables automatic
-slicer supports for those hats. The support option is hidden for the cap and pumpkin-only exports.
+added supports. All three hats have curved fitted undersides and offer removable support
+geometry beneath their seats, brims and hanging details, including Santa's pompom. Turning off
+that option enables automatic slicer supports for the hat. Pumpkin-only exports omit supports.
+The baseball cap retains a separate upright mounting pin and a 4 mm blind bore; insert the pin
+into the cap and original pumpkin socket, gluing the cap end if needed.
 Inspect bridges and overhangs in the layer preview. Use 0.16 mm layers to preserve raised detail.
 Physical fit, bridge quality and support removal still require printed samples. Use LED lights only.
 
-Version 6 removes reference pumpkin supports and gives the cap a flat base and separate pin.
+Version 7 replaces level lower edges with pumpkin-specific contoured seats and restores
+support generation for the curved cap. Version 6 introduced the separate cap pin and a flat
+cap base; the flat cut is superseded by the contoured fit.
 
 Version 5 broadens the cap crown to 36 mm, anchors both bill roots within its surface, and
 uses smaller stitching and low-profile vents. Version 4 provenance retains the original
@@ -628,7 +630,7 @@ and an entry to `FONTS` in
 | `rating-card` | 2 | `corner_style` (round/chamfer/notch), `border_style`, `frame_style`, widths/insets, `groove_depth_mm`, `divider` (none/caption/icon/both), `caption_font`. Raised decorations print in `icon_color` (the card already uses five colors). |
 | `name-plate` | 2 | New default plate `hug` ("Contour"): the letters grown by exactly `plate_margin_mm` (1-10, default 3) with round joins, clipped to ink ± margin, holes filled; constant thickness everywhere, never thicker above/below any letter. `none` keeps its hard-edged rectangular connector bars; they start/end inside each neighbour across the whole centre band (rows sampled), so slanted letters (A, V) are overlapped in every row. Old `none`/`pill`/`rect` values stay valid. |
 | `name-plate` (office sign) | 2 (no bump) | `size: "office"` makes the standard 8 × 2 in desk sign (203.2 × 50.8 mm): a rounded rectangle regardless of `plate`, the name centered in the room inside a 5 mm margin (at most `height_mm` tall), no keychain loop. `plate_image: "custom"` (office only; `onParamChange` resets it when the size goes back to `fit`) adds the customer's image at the left, traced in the browser like the rating card (`image` spec, `ctx.imageContours`, never a parameter), as an extra "Image" part in `image_color`, raised or inlaid with the style. Defaults (`fit`, no image) keep old requests identical. |
-| `pumpkin` | 6 | Types: `style` solid / hollow / vase / bowl (`opening` bottom (tealight cover) / top / sealed for hollow; `tealight_fit` enforces a 41 mm opening and 17 mm of cavity; `bottom_hole_pct` sizes the hole in the base as a share of the flat base width, never under 20 mm, at least 41 mm with a tealight, and past 100% up to the width 2.4 mm below the mouth's lower edge — `maxBottomHolePct`; a wider hole lifts the base plane so a full wall surrounds it). Shape: width, `height_pct`, `boxiness_pct`, `taper_pct`, `oblong_pct`, `twist_deg`, `dimple_pct`, `concavity_pct` (pinches both poles inward for a squat, nested-stem pumpkin; the top sinks and the base becomes a shallow dish inside the flat rim, up to 16% of the height), `flat_base_pct` (never under 30 mm across), `segments` (6-16 lobes), `rib_depth_pct`, `rib_sharpness`, `irregularity_pct` + `seed`. Surface: `decoration` smooth / ridges / knit / lattice (hollow only; diamond, round or slot holes keep at least 1.6 mm bars). Face: `face` presets (traditional, cute, adorable, awesome, cool/sunglasses, wink, heart eyes, star-struck, tongue out, cat, happy, spooky, angry, scared, surprised, sleepy) or custom eyes/nose/mouth; `face_size_pct` (Simple mode) scales the whole face; `face_style` inlay (own-color part) / engraved / cutout (hollow or bowl); inlay with `multicolor: false` (a non-AMS printer) becomes **glue-in pieces**: pockets in the pumpkin, and loose pieces 0.15 mm smaller all round and 0.2 mm shallower, each a separate part named `Face piece N` / `Cheeks piece N`, lying flat outer side up in a row in front of the pumpkin (a little support under the curve helps). Stem: `stem` fused (pocket in the body; one part in single color) / peg (separate part printed upside down, D-keyed peg, a plain keyed hole in the top, running on through the wall of a hollow pumpkin; no holder inside, nothing to support) / none; the peg switch is independent of `multicolor`. Parts: "Pumpkin" (or "Bowl" + "Lid"), "Stem", "Face", "Cheeks"; at most four colors. A vase is the **solid** body cut flat at the opening, with no face or stem; the 3MF presets `spiral_mode` (the slicer makes the one-line wall). A bowl splits at `split_pct` with a tongue (bowl) and recess (lid), 0.25 mm clearance, and the lid, stem and face never overlap the bowl. Geometry: a closed ring mesh wrapped as a Manifold; the hollow's cavity is the smooth surface inset along the meridian normal by the wall (an even wall for any shape; checked to stay inside the real surface, retried a little thicker with a note, then refused with a readable error); faces, the stem pocket and a bowl's joint use the same inset. `geometry().top` is the true top (a deep dimple lowers the shoulders), used for the lid split and face limits. Vertex pairs that coincide at 3MF precision are merged and the zero-area fin dropped in `manifoldToMesh` (`weldSlivers`), so boolean seams don't trip the analyzer. |
+| `pumpkin` | 7 | Types: `style` solid / hollow / vase / bowl (`opening` bottom (tealight cover) / top / sealed for hollow; `tealight_fit` enforces a 41 mm opening and 17 mm of cavity; `bottom_hole_pct` sizes the hole in the base as a share of the flat base width, never under 20 mm, at least 41 mm with a tealight, and past 100% up to the width 2.4 mm below the mouth's lower edge — `maxBottomHolePct`; a wider hole lifts the base plane so a full wall surrounds it). Shape: width, `height_pct`, `boxiness_pct`, `taper_pct`, `oblong_pct`, `twist_deg`, `dimple_pct`, `concavity_pct` (pinches both poles inward for a squat, nested-stem pumpkin; the top sinks and the base becomes a shallow dish inside the flat rim, up to 16% of the height), `flat_base_pct` (never under 30 mm across), `segments` (6-16 lobes), `rib_depth_pct`, `rib_sharpness`, `irregularity_pct` + `seed`. Surface: `decoration` smooth / ridges / knit / lattice (hollow only; diamond, round or slot holes keep at least 1.6 mm bars). Face: `face` presets (traditional, cute, adorable, awesome, cool/sunglasses, wink, heart eyes, star-struck, tongue out, cat, happy, spooky, angry, scared, surprised, sleepy) or custom eyes/nose/mouth; `face_size_pct` (Simple mode) scales the whole face; `face_style` inlay (own-color part) / engraved / cutout (hollow or bowl); inlay with `multicolor: false` (a non-AMS printer) becomes **glue-in pieces**: pockets in the pumpkin, and loose pieces 0.15 mm smaller all round and 0.2 mm shallower, each a separate part named `Face piece N` / `Cheeks piece N`, lying flat outer side up in a row in front of the pumpkin (a little support under the curve helps). Stem: `stem` fused (pocket in the body; one part in single color) / peg (separate part printed upside down, D-keyed peg, a plain keyed hole in the top, running on through the wall of a hollow pumpkin; no holder inside, nothing to support) / none; the peg switch is independent of `multicolor`. Parts: "Pumpkin" (or "Bowl" + "Lid"), "Stem", "Face", "Cheeks"; at most four colors. A vase is the **solid** body cut flat at the opening, with no face or stem; the 3MF presets `spiral_mode` (the slicer makes the one-line wall). A bowl splits at `split_pct` with a tongue (bowl) and recess (lid), 0.25 mm clearance, and the lid, stem and face never overlap the bowl. Geometry: a closed ring mesh wrapped as a Manifold; the hollow's cavity is the smooth surface inset along the meridian normal by the wall (an even wall for any shape; checked to stay inside the real surface, retried a little thicker with a note, then refused with a readable error); faces, the stem pocket and a bowl's joint use the same inset. `geometry().top` is the true top (a deep dimple lowers the shoulders), used for the lid split and face limits. Vertex pairs that coincide at 3MF precision are merged and the zero-area fin dropped in `manifoldToMesh` (`weldSlivers`), so boolean seams don't trip the analyzer. |
 
 Old drafts and requests stay valid: missing keys take their defaults, and the server accepts versions 1..current.
 

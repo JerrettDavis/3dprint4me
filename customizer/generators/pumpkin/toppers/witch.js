@@ -3,7 +3,7 @@ import { loft, tools } from './shapes.js';
 export default function witch(wasm, t) {
   const { union, front, star, line } = tools(wasm, t);
   const { CrossSection } = wasm;
-  const brim = loft(wasm, [[0,25.5,18],[0,26,20],[0,27.2,20.5],[0,28.5,16],[0,30.5,10]], t, { ripple: 0.025, waves: 3 });
+  const brim = loft(wasm, [[0,25.5,17.9],[0,26,18],[0,27.2,18],[0,28.5,15.5],[0,30.5,10]], t, { ripple: 0.025, waves: 3 });
   const cone = loft(wasm, [[0,28,10.8],[0,34,10],[0,40,8.3],[0.8,47,6.2],[2.5,53,4.2],[5,57,2.8,25],[8,59,1.6,60],[11,59,0.3,100]], t, { ripple: 0.025, waves: 7 });
   const band = loft(wasm, [[0,30,11.2],[0,34.2,10.6],[0,35,10.2]], t);
   const outer = t(CrossSection.square([7,5], true));

@@ -6,7 +6,7 @@ export default function baseball(wasm, t, { crownDiameter = 36 } = {}) {
   const legacy = crownDiameter === 30, r = crownDiameter/2;
   const billHalfWidth = legacy ? 16 : Math.min(16,Math.sqrt((r-.7)**2-25)-.4);
   const profile = legacy ? [[14.65,30],[14.25,33],[12.65,36],[9.8,39],[5.6,41],[.3,41.9]] : [[r,30],[r,33],[r-.6,36],[r-2.7,39],[r-6,42],[r-11.5,44],[.3,44.8]];
-  const crown = loft(wasm, legacy ? [[0,26.5,14.2],[0,30,14.7],[0,33,14.2],[0,36,12.6],[0,39,9.7],[0,41,5.5],[0,41.8,.2]] : [[0,26.5,r-.7],...profile.map(([rad,z])=>[0,z,rad-.05])], t);
+  const crown = loft(wasm, legacy ? [[0,26.5,14.7],[0,30,14.7],[0,33,14.2],[0,36,12.6],[0,39,9.7],[0,41,5.5],[0,41.8,.2]] : [[0,26.5,r],...profile.map(([rad,z])=>[0,z,rad-.05])], t);
   const band = loft(wasm, [[0,27.5,legacy?14.8:r-.5],[0,29.3,legacy?15:r],[0,30,legacy?14.7:r]], t);
   // Wide curved visor, with a rounded lip and two embossed stitch rows.
   const outline = [];
