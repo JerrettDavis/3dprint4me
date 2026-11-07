@@ -2,10 +2,10 @@
 // the TOP face. The password is sensitive: it lives only in the QR geometry of the model file
 // and is redacted from drafts, the hand-off record, the server, email and webhooks.
 
-import { luminance, contrastRatio } from "../color.js?v=59eac4c848925584";
+import { luminance, contrastRatio } from "../color.js?v=f08802bc754ad644";
 
-import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY, locationFontField } from "../fonts.js?v=59eac4c848925584";
-import { qrScaleField } from "../qr.js?v=59eac4c848925584";
+import { fontSchema, fontRule, FONT_SPEC, FONT_ACK_KEY, locationFontField } from "../fonts.js?v=f08802bc754ad644";
+import { qrScaleField } from "../qr.js?v=f08802bc754ad644";
 
 export { contrastRatio };
 
