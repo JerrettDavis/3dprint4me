@@ -1,4 +1,4 @@
-"""Orthographic review of the actual cap mesh and shared bill/crown bed plane."""
+"""Orthographic review of the actual cap mesh and pumpkin-fitted seat."""
 import json
 import math
 from pathlib import Path
@@ -20,14 +20,15 @@ def main():
     result = subprocess.run(['node', '--input-type=module', '-e', NODE], cwd=ROOT,
                             capture_output=True, text=True, encoding='utf-8', check=True)
     mesh = json.loads(result.stdout)
-    vertices = [[x, y, z-28.2] for x, y, z in mesh['vertices']]
+    base = min(v[2] for v in mesh['vertices'])
+    vertices = [[x, y, z-base] for x, y, z in mesh['vertices']]
     triangles = [[vertices[v] for v in face] for face in mesh['triangles']]
     image = Image.new('RGB', (1600, 650), '#eef3f6')
     draw = ImageDraw.Draw(image)
     title = ImageFont.load_default(size=28)
     font = ImageFont.load_default(size=19)
     draw.text((30, 24), 'Baseball cap: actual exported geometry', fill='#183444', font=title)
-    views = [('Front', (0, 2, 1)), ('Side: bill and crown share Z=0', (1, 2, 0)), ('Underside: moulded seat and pin socket', (0, 1, 2))]
+    views = [('Front', (0, 2, 1)), ('Side: curved shoulder profile', (1, 2, 0)), ('Underside: moulded seat and pin socket', (0, 1, 2))]
     for i, (label, axes) in enumerate(views):
         x0 = 20 + i * 530
         draw.rounded_rectangle((x0, 88, x0+510, 595), radius=12, fill='white')
@@ -48,8 +49,8 @@ def main():
         if i < 2:
             draw.line((x0+20, 442, x0+490, 442), fill='#d65c2f', width=3)
             draw.text((x0+25, 463), 'Print bed: Z=0 mm', font=font, fill='#a44422')
-    draw.text((30, 615), '36 mm crown. Separate mounting pin prints beside the cap. No added supports.', font=font, fill='#183444')
-    output = ROOT / 'screenshots/pumpkin-cap-flat-base.png'
+    draw.text((30, 615), '36 mm crown. Contoured seat; print with supports and the separate mounting pin.', font=font, fill='#183444')
+    output = ROOT / 'screenshots/pumpkin-cap-fitted-seat.png'
     image.save(output)
     print(output)
 
