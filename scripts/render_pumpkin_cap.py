@@ -52,11 +52,11 @@ def main():
             base = (45, 118, 172)
             draw.polygon(points, fill=tuple(int(c*light) for c in base))
         if i < 2:
-            rim_y = 440-(28-base_z)*scale
+            rim_y = 440-((base_z if args.style == 'baseball' else 28)-base_z)*scale
             draw.line((x0+20, rim_y, x0+490, rim_y), fill='#207b51', width=2)
             draw.line((x0+20, 442, x0+490, 442), fill='#d65c2f', width=3)
             draw.text((x0+25, 463), 'Print bed: Z=0 mm', font=font, fill='#a44422')
-    note = '36 mm crown. Flat base, internal mould; separate mounting pin.' if args.style == 'baseball' else 'Flat outer rim, recessed pumpkin mould and attached mounting peg.'
+    note = '36 mm crown. Snug moulded seat, flat 2 mm outer land; separate mounting pin.' if args.style == 'baseball' else 'Flat outer rim, recessed pumpkin mould and attached mounting peg.'
     draw.text((30, 615), note, font=font, fill='#183444')
     output = ROOT / ('screenshots/pumpkin-cap-fitted-seat.png' if args.style == 'baseball' else f'screenshots/pumpkin-{args.style}-flat-base.png')
     image.save(output)
