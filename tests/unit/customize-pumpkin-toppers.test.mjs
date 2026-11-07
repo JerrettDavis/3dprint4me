@@ -81,7 +81,7 @@ for (const [style, radius] of [['witch',17.4],['santa',14.5],['baseball',17.8]])
         const underside=hat.rayCast([x,y,bodyTop+.001],[x,y,60])[0];
         assert.ok(underside, `${style} covers seat at ${r} mm, angle ${i}`);
         const gap=underside.position[2]-bodyTop;
-        if (r === radius) assert.ok(Math.abs(underside.position[2]-28)<.001, `${style} rim must be flat at 28 mm, got ${underside.position[2]}`);
+        if (r === radius) assert.ok(Math.abs(underside.position[2]-(style==='baseball' ? hat.boundingBox().min[2] : 28))<.001, `${style} outer rim must stay flat, got ${underside.position[2]}`);
         else assert.ok(gap>=.18 && gap<.5, `${style} internal seat gap ${gap.toFixed(3)} mm at ${r} mm, angle ${i}`);
       }
     } finally { crown.delete(); hat.delete(); }
@@ -97,13 +97,22 @@ test('every cap size preserves its flat outer rim without collisions', async () 
       const collision=body.intersect(hat);
       try {
         assert.ok(collision.volume()<.001,`${diameter} mm cap clears pumpkin`);
-        // Keep the sample on the upper shoulder for caps extending past it.
-        const r=Math.min(17.8,diameter/2-.6);
+        // Probe the deeper mould near the edge on every supported crown size.
+        const innerRadius=(diameter===30?14.7:diameter/2)-3.5;
+        for(let i=0;i<16;i++) {
+          const a=i*Math.PI/8,x=innerRadius*Math.cos(a),y=innerRadius*Math.sin(a);
+          const z=body.rayCast([x,y,60],[x,y,0])[0].position[2];
+          const hit=hat.rayCast([x,y,z+.001],[x,y,60])[0];
+          assert.ok(hit && hit.position[2]-z>=.18 && hit.position[2]-z<.5,
+            `${diameter} mm cap closely follows the inner shoulder at angle ${i}`);
+        }
+        // Sample the actual outer rim, including the larger crown sizes.
+        const r=diameter/2-.6;
         for(let i=0;i<16;i++) {
           const a=i*Math.PI/8,x=r*Math.cos(a),y=r*Math.sin(a);
           const z=body.rayCast([x,y,60],[x,y,0])[0].position[2];
           const hit=hat.rayCast([x,y,z+.001],[x,y,60])[0];
-          assert.ok(hit && Math.abs(hit.position[2]-28)<.001,`${diameter} mm cap edge stays flat at angle ${i}: ${hit?.position[2]}`);
+          assert.ok(hit && Math.abs(hit.position[2]-hat.boundingBox().min[2])<.001,`${diameter} mm cap edge stays flat at angle ${i}: ${hit?.position[2]}`);
         }
       } finally {collision.delete();hat.delete();}
     }
@@ -116,12 +125,14 @@ for (const [style, crownDiameter] of [['witch',36],['santa',36],['baseball',30],
     const wasm=await loadEngine(), hat=buildTopper(wasm,style,{crownDiameter});
     try {
       // A continuous 1 mm thick annulus, at least 1.3 mm wide, survives intact.
-      const outer=wasm.Manifold.cylinder(1,14.3,14.3,96).translate([0,0,28]);
-      const inner=wasm.Manifold.cylinder(1,13,13,96).translate([0,0,28]);
+      const base=style==='baseball' ? hat.boundingBox().min[2] : 28;
+      const radius=style==='baseball' ? (crownDiameter===30?14.7:crownDiameter/2) : 14.7;
+      const outer=wasm.Manifold.cylinder(1,radius-.4,radius-.4,192).translate([0,0,base]);
+      const inner=wasm.Manifold.cylinder(1,radius-1.7,radius-1.7,192).translate([0,0,base]);
       const rim=outer.subtract(inner), missing=rim.subtract(hat);
-      try { assert.ok(missing.volume()<.001, `${style} has ${missing.volume()} mm³ missing from its rim`); }
+      try { assert.ok(missing.volume()<.001, `${style} has ${missing.volume()} cubic mm missing from its rim`); }
       finally { outer.delete(); inner.delete(); rim.delete(); missing.delete(); }
-      const below=wasm.Manifold.cube([60,60,27.999]).translate([-30,-30,0]);
+      const below=wasm.Manifold.cube([60,60,base-.001]).translate([-30,-30,0]);
       const low=hat.intersect(below), peg=wasm.Manifold.cylinder(28,2,2,64);
       const stray=low.subtract(peg);
       try { assert.ok(stray.volume()<.001,'nothing except the mounting peg extends below the flat base'); }
@@ -140,3 +151,21 @@ for (const style of ['witch','santa','baseball']) {
     } finally {hat.delete();temps.forEach(o=>o.delete());}
   });
 }
+
+test('ball cap mould reaches near its edge while retaining a flat structural rim', async () => {
+  const { buildTopper } = await import('../../customizer/generators/pumpkin/toppers/index.js');
+  const wasm=await loadEngine(), body=referencePumpkin(wasm), cap=buildTopper(wasm,'baseball');
+  try {
+    assert.ok(cap.boundingBox().min[2]<26.2,'cap sits lower on the pumpkin');
+    const footprint=cap.slice(cap.boundingBox().min[2]+.001);
+    try { assert.ok(footprint.area()<450,'flat underside leaves substantially less unused area'); }
+    finally {footprint.delete();}
+    for(let i=0;i<64;i++) {
+      const a=i*Math.PI/32, x=14.5*Math.cos(a), y=14.5*Math.sin(a);
+      const z=body.rayCast([x,y,60],[x,y,0])[0].position[2];
+      const hit=cap.rayCast([x,y,z+.001],[x,y,60])[0];
+      assert.ok(hit && hit.position[2]-z>=.18 && hit.position[2]-z<.5,
+        `close internal fit near edge at angle ${i}: ${hit?.position[2]-z}`);
+    }
+  } finally {body.delete();cap.delete();}
+});
