@@ -212,7 +212,7 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Witch included supports", "/customize/g/pumpkin/", "customize-pumpkin-witch-supports.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Little witch", support_view="3d")),
             ("Santa included supports", "/customize/g/pumpkin/", "customize-pumpkin-santa-supports.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Santa pumpkin", support_view="3d")),
             ("Santa support underside", "/customize/g/pumpkin/", "customize-pumpkin-santa-supports-bottom.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Santa pumpkin", support_view="back")),
-            ("Baseball included supports", "/customize/g/pumpkin/", "customize-pumpkin-baseball-supports.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Ballpark pumpkin", support_view="3d")),
+            ("Baseball flat print base and separate pin", "/customize/g/pumpkin/", "customize-pumpkin-baseball-supports.png", (1440, 1000), "light", GENERATOR_READY, festive_pumpkin("Ballpark pumpkin", support_view="3d")),
             ("Pumpkin cute · desktop · light", "/customize/g/pumpkin/", "customize-pumpkin-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, pumpkin()),
             ("Pumpkin lantern advanced · desktop · dark", "/customize/g/pumpkin/", "customize-pumpkin-lantern-advanced-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, pumpkin("Jack-o'-lantern", advanced=True)),
             ("Pumpkin optimized cutout · mobile · light", "/customize/g/pumpkin/", "customize-pumpkin-cutout-mobile-light.png", (390, 844), "light", GENERATOR_READY, pumpkin("Jack-o'-lantern", support_notes=True)),

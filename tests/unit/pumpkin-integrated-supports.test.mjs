@@ -74,3 +74,53 @@ test('downloads include removable supports under Santa pompom; presentation omit
     finally { hit.delete(); probe.delete(); }
   } finally { for (const result of [model,preview]) result.solids.forEach(s=>s.solid.delete()); }
 });
+
+test('reference pumpkin and flat cap export without supports and share a bed plane', async () => {
+  const wasm = await loadEngine();
+  for (const diameter of [30, 36, 40]) {
+    const p = validateParams(pumpkin, { ...pumpkin.presets.baseball, cap_crown_mm: diameter }).value;
+    const result = build(p, { wasm });
+    try {
+      assert.ok(!result.solids.some(s => s.name.startsWith('Support')), 'no support solids for pumpkin or cap');
+      assert.equal(result.slicerSettings.enable_support, '0');
+      const capParts = result.solids.filter(s => s.name.startsWith('Hat'));
+      const cap = wasm.Manifold.union(capParts.map(s => s.solid));
+      const bed = cap.slice(.01);
+      try {
+        assert.ok(Math.abs(cap.boundingBox().min[2]) < .001);
+        assert.ok(bed.area() > 200, 'crown and visor have substantial bed contact, not just the peg');
+        const bounds = bed.bounds();
+        assert.ok(bounds.max[1] > 12 && bounds.min[1] < -20, 'dome and bill meet the same base plane');
+      } finally { bed.delete(); cap.delete(); }
+      assert.ok(result.solids.some(s => s.name.startsWith('Mount pin')), 'separate pin preserves socket mounting');
+    } finally { result.solids.forEach(s => s.solid.delete()); }
+  }
+});
+
+test('reference pumpkin never adds supports, and the separate cap pin fits both assembled sockets', async () => {
+  const wasm = await loadEngine();
+  for (const topper of ['none', 'witch', 'santa', 'baseball']) for (const hat_supports of [false, true]) {
+    const p = validateParams(pumpkin, { topper, hat_supports, export_parts: 'pumpkin' }).value;
+    const result = build(p, { wasm });
+    try {
+      assert.equal(result.solids.length, 1);
+      assert.equal(result.slicerSettings.enable_support, '0');
+    } finally { result.solids.forEach(s => s.solid.delete()); }
+  }
+  for (const clearance of [.1, .3, .6]) {
+    const p = validateParams(pumpkin, { ...pumpkin.presets.baseball, hat_clearance_mm: clearance }).value;
+    const result = build(p, { wasm, presentation: true });
+    try {
+      const pin = result.solids.find(s => s.name.startsWith('Mount pin')).solid;
+      assert.ok(pin.volume() > 50, 'substantial mounting pin');
+      for (const other of result.solids.filter(s => !s.name.startsWith('Mount pin'))) {
+        const collision = pin.intersect(other.solid);
+        try { assert.ok(collision.volume() < .001, `pin clears ${other.name}`); }
+        finally { collision.delete(); }
+      }
+      const seated = pin.slice(30.8);
+      try { assert.ok(seated.area() > 8, 'pin extends into cap socket above the pumpkin'); }
+      finally { seated.delete(); }
+    } finally { result.solids.forEach(s => s.solid.delete()); }
+  }
+});
