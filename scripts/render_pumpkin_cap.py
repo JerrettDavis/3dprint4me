@@ -1,4 +1,5 @@
 """Orthographic review of the actual cap mesh and pumpkin-fitted seat."""
+import argparse
 import json
 import math
 from pathlib import Path
@@ -17,18 +18,22 @@ try { console.log(JSON.stringify(manifoldToMesh(cap))); } finally { cap.delete()
 
 
 def main():
-    result = subprocess.run(['node', '--input-type=module', '-e', NODE], cwd=ROOT,
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--style', choices=['baseball', 'witch', 'santa'], default='baseball')
+    args = parser.parse_args()
+    label = {'baseball': 'Baseball cap', 'witch': 'Witch hat', 'santa': 'Santa hat'}[args.style]
+    result = subprocess.run(['node', '--input-type=module', '-e', NODE.replace("'baseball'", repr(args.style))], cwd=ROOT,
                             capture_output=True, text=True, encoding='utf-8', check=True)
     mesh = json.loads(result.stdout)
-    base = min(v[2] for v in mesh['vertices'])
-    vertices = [[x, y, z-base] for x, y, z in mesh['vertices']]
+    base_z = min(v[2] for v in mesh['vertices'])
+    vertices = [[x, y, z-base_z] for x, y, z in mesh['vertices']]
     triangles = [[vertices[v] for v in face] for face in mesh['triangles']]
     image = Image.new('RGB', (1600, 650), '#eef3f6')
     draw = ImageDraw.Draw(image)
     title = ImageFont.load_default(size=28)
     font = ImageFont.load_default(size=19)
-    draw.text((30, 24), 'Baseball cap: actual exported geometry', fill='#183444', font=title)
-    views = [('Front', (0, 2, 1)), ('Side: curved shoulder profile', (1, 2, 0)), ('Underside: moulded seat and pin socket', (0, 1, 2))]
+    draw.text((30, 24), f'{label}: actual exported geometry', fill='#183444', font=title)
+    views = [('Front', (0, 2, 1)), ('Side: flat lower rim', (1, 2, 0)), ('Underside: moulded seat and pin socket', (0, 1, 2))]
     for i, (label, axes) in enumerate(views):
         x0 = 20 + i * 530
         draw.rounded_rectangle((x0, 88, x0+510, 595), radius=12, fill='white')
@@ -47,10 +52,13 @@ def main():
             base = (45, 118, 172)
             draw.polygon(points, fill=tuple(int(c*light) for c in base))
         if i < 2:
+            rim_y = 440-(28-base_z)*scale
+            draw.line((x0+20, rim_y, x0+490, rim_y), fill='#207b51', width=2)
             draw.line((x0+20, 442, x0+490, 442), fill='#d65c2f', width=3)
             draw.text((x0+25, 463), 'Print bed: Z=0 mm', font=font, fill='#a44422')
-    draw.text((30, 615), '36 mm crown. Contoured seat; print with supports and the separate mounting pin.', font=font, fill='#183444')
-    output = ROOT / 'screenshots/pumpkin-cap-fitted-seat.png'
+    note = '36 mm crown. Flat base, internal mould; separate mounting pin.' if args.style == 'baseball' else 'Flat outer rim, recessed pumpkin mould and attached mounting peg.'
+    draw.text((30, 615), note, font=font, fill='#183444')
+    output = ROOT / ('screenshots/pumpkin-cap-fitted-seat.png' if args.style == 'baseball' else f'screenshots/pumpkin-{args.style}-flat-base.png')
     image.save(output)
     print(output)
 

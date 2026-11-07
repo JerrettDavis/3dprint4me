@@ -43,7 +43,7 @@ export default function buildReference(p, ctx) {
       filenameBase: `happy-pumpkin-${p.topper}-${p.export_parts}`,
       warnings: [
         'Original happy pumpkin: 45.95 × 45.99 × 29.95 mm, unchanged round 4 mm socket. The round peg has adjustable diameter clearance; physical fit has not been print-tested.',
-        ...(supportedHat ? ['The contoured hat seat follows this pumpkin’s shoulders with 0.2 mm vertical clearance. The curved underside needs supports when printed upright.' + (p.topper === 'baseball' ? ' The cap uses a separate mounting pin; glue its cap end if needed.' : '')] : []),
+        ...(supportedHat ? ['The flat outer hat base surrounds an internal pumpkin mould with 0.2 mm vertical clearance. The recess and hanging details may need supports when printed upright.' + (p.topper === 'baseball' ? ' The cap uses a separate mounting pin; glue its cap end if needed.' : '')] : []),
         'Size and planning figures describe the laid-out download parts. Realistic preview shows how they assemble.',
         p.export_parts === 'pumpkin' || p.topper === 'none' ? 'The pumpkin prints without added supports. Inspect bridges and overhangs in the layer preview.' : p.hat_supports ? 'Removable support posts are included beneath the hat seat, brim and hanging details. Print at 0.16 mm layers and remove the support solids after printing. The pumpkin has no added supports. Finished preview hides supports; physical removal has not been tested.' : 'Hat supports are omitted. Inspect the hat seat, brim and hanging details in your slicer and add supports where needed. The pumpkin has no added supports.',
         'Use an LED light only, never a flame.'

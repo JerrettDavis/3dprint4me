@@ -42,7 +42,7 @@ test('every fitted crown size keeps the bill roots inside its dome', async () =>
   }
 });
 
-test('visor stitches retain relief on the contoured bill', async () => {
+test('visor stitches retain relief on the flat bill', async () => {
   const wasm=await loadEngine(), cap=buildTopper(wasm,'baseball');
   try {
     const at=a=>cap.rayCast([14.2*Math.cos(a),-5+16.2*Math.sin(a),60],
@@ -78,7 +78,7 @@ test('downloads include removable supports under Santa pompom; presentation omit
   } finally { for (const result of [model,preview]) result.solids.forEach(s=>s.solid.delete()); }
 });
 
-test('contoured cap exports fitted seat supports and a separate mounting pin', async () => {
+test('flat cap exports internal seat supports and a separate mounting pin', async () => {
   const wasm=await loadEngine();
   for(const diameter of [30,36,40]) {
     const p=validateParams(pumpkin,{...pumpkin.presets.baseball,cap_crown_mm:diameter}).value;
@@ -86,7 +86,7 @@ test('contoured cap exports fitted seat supports and a separate mounting pin', a
 
     try {
       const support=result.solids.find(s=>s.name.startsWith('Support · baseball'));
-      assert.ok(support,'curved cap underside has removable supports');
+      assert.ok(support,'internal cap recess has removable supports');
       assert.ok(Math.abs(support.solid.boundingBox().min[2])<.001,'supports start at bed');
       const cap=wasm.Manifold.union(result.solids.filter(s=>s.name.startsWith('Hat')).map(s=>s.solid));
       const contact=support.solid.intersect(cap);

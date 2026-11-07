@@ -14,7 +14,7 @@ export default function baseball(wasm, t, { crownDiameter = 36 } = {}) {
     const a = Math.PI + i / 48 * Math.PI;
     outline.push([Math.cos(a)*billHalfWidth, (legacy ? -7 : -5) + Math.sin(a)*18]);
   }
-  const visor = t(t(t(new CrossSection([outline])).extrude(2)).translate([0,0,28.2]));
+  const visor = t(t(t(new CrossSection([outline])).extrude(2)).translate([0,0,26.5]));
   const seams = [];
   for (let i=0; i<6; i++) {
     const a = i / 6 * Math.PI * 2;
@@ -31,7 +31,7 @@ export default function baseball(wasm, t, { crownDiameter = 36 } = {}) {
   for (const inset of [1.8,3.6]) for(let i=0;i<26;i++) {
     const a = Math.PI + .12 + i/25*(Math.PI-.24);
     const r=billHalfWidth-inset, ry=18-inset;
-    stitches.push(line([[r*Math.cos(a-.016),(legacy?-7:-5)+ry*Math.sin(a-.016),legacy?30.23:30.28],[r*Math.cos(a+.016),(legacy?-7:-5)+ry*Math.sin(a+.016),legacy?30.23:30.28]],legacy?.32:.28));
+    stitches.push(line([[r*Math.cos(a-.016),(legacy?-7:-5)+ry*Math.sin(a-.016),legacy?28.53:28.58],[r*Math.cos(a+.016),(legacy?-7:-5)+ry*Math.sin(a+.016),legacy?28.53:28.58]],legacy?.32:.28));
   }
   const badge=front(star(2.4,1.2),1.3,legacy?-13.1:-r+.65,34.6);
   return union([crown,band,visor,ball(1.4,[0,0,legacy?42:44.8],28),...seams,...stitches,badge]);
