@@ -21,7 +21,7 @@ BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
 DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 8}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 9}
 
 
 @pytest.fixture(scope="module")
