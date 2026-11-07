@@ -58,7 +58,8 @@ for (const style of ['witch', 'santa', 'baseball']) {
       // Below the lowest brim, inside the pumpkin cavity, this isolates the peg.
       const pegSection = hat.slice(25);
       try {
-        assert.ok(pegSection.area() > 8 && pegSection.area() < 11.5, 'round peg passes through hollow crown');
+        if (style === 'baseball') assert.equal(pegSection.area(), 0, 'cap uses a separate mounting pin to print flat');
+        else assert.ok(pegSection.area() > 8 && pegSection.area() < 11.5, 'round peg passes through hollow crown');
       } finally { pegSection.delete(); }
     } finally { body.delete(); hat.delete(); }
   });
