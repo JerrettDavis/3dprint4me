@@ -162,7 +162,7 @@ The definition is isomorphic: it must import nothing browser-only, because `lib/
 imports it through the registry (the Vercel function bundle includes `public/assets/js/**`).
 Geometry code never ships to the server.
 
-### Reference pumpkin and festive hats (version 5)
+### Reference pumpkin and festive hats (version 7)
 
 The pumpkin now defaults to the supplied original happy pumpkin and a curled witch hat.
 Santa and baseball presets use the same exact 45.9473 × 45.9884 × 29.9548 mm body and
