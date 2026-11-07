@@ -2,13 +2,13 @@ import { referenceCrown, referencePumpkin } from '../reference.js';
 import witch from './witch.js';
 import santa from './santa.js';
 import baseball from './baseball.js';
-import { contourSeat } from './seat.js';
+import { flatSeat } from './seat.js';
 import { trimMask } from './trim.js';
 
 export const TOPPER_BUILDERS = Object.freeze({ witch, santa, baseball });
 
-// Both faces of the lower hat follow the reference crown. The exact mould
-// removes interpolation error on the inside and leaves 0.2 mm vertical clearance.
+// The exterior base stays planar; the exact crown mould is confined to the
+// interior, leaving 0.2 mm vertical clearance and a substantial uncut outer rim.
 export function buildTopper(wasm, style, { clearance = .3, crownDiameter = 36, trim = false } = {}) {
   const builder = TOPPER_BUILDERS[style];
   if (!builder) throw new Error('Choose a supported pumpkin hat.');
@@ -23,8 +23,8 @@ export function buildTopper(wasm, style, { clearance = .3, crownDiameter = 36, t
     }
 
     const crown=t(t(referencePumpkin(wasm)).add(t(referenceCrown(wasm,0))));
-    const refined=t(raw.refineToLength(.5));
-    const shaped=t(refined.warp(contourSeat(crown,style)));
+    const refined=t(raw.refineToLength(1));
+    const shaped=t(refined.warp(flatSeat(style)));
     if(trim) return shaped.translate([0,0,0]);
     const mould=t(crown.add(t(crown.translate([0,0,.2]))));
     const seated=t(shaped.subtract(mould));

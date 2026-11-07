@@ -18,7 +18,7 @@ test('reference export choices own only returned solids and free intermediates o
       const p = validateParams(pumpkin, { ...pumpkin.presets[topper], export_parts }).value;
       const result = await build(p, { wasm: tracked.ctxWasm });
       assert.equal(tracked.live.size, result.solids.length);
-      assert.equal(result.warnings.some(w=>w.includes('contoured hat seat')),export_parts!=='pumpkin');
+      assert.equal(result.warnings.some(w=>w.includes('flat outer hat base')),export_parts!=='pumpkin');
       assert.equal(result.warnings.some(w=>w.includes('cap uses a separate mounting pin')),topper==='baseball' && export_parts!=='pumpkin');
       assert.equal(result.solids.some(s => s.name.startsWith('Pumpkin')), export_parts !== 'hat');
       assert.equal(result.solids.some(s => s.name.startsWith('Hat')), export_parts !== 'pumpkin');
@@ -71,23 +71,24 @@ for (const style of ['witch', 'santa', 'baseball']) {
 }
 
 for (const [style, radius] of [['witch',17.4],['santa',14.5],['baseball',17.8]]) {
-  test(`${style}: inner and outer seat follow the pumpkin around its lobes`, async () => {
+  test(`${style}: flat outer base surrounds a recessed internal pumpkin mould`, async () => {
     const { buildTopper } = await import('../../customizer/generators/pumpkin/toppers/index.js');
     const wasm = await loadEngine(), crown = referencePumpkin(wasm), hat = buildTopper(wasm,style);
     try {
-      for (const r of [8,radius]) for (let i=0;i<16;i++) {
+      for (const r of [4,8,radius]) for (let i=0;i<16;i++) {
         const a=i*Math.PI/8, x=r*Math.cos(a), y=r*Math.sin(a);
         const bodyTop=crown.rayCast([x,y,60],[x,y,0])[0].position[2];
         const underside=hat.rayCast([x,y,bodyTop+.001],[x,y,60])[0];
         assert.ok(underside, `${style} covers seat at ${r} mm, angle ${i}`);
         const gap=underside.position[2]-bodyTop;
-        assert.ok(gap>=.18 && gap<.5, `${style} seat gap ${gap.toFixed(3)} mm at ${r} mm, angle ${i}`);
+        if (r === radius) assert.ok(Math.abs(underside.position[2]-28)<.001, `${style} rim must be flat at 28 mm, got ${underside.position[2]}`);
+        else assert.ok(gap>=.18 && gap<.5, `${style} internal seat gap ${gap.toFixed(3)} mm at ${r} mm, angle ${i}`);
       }
     } finally { crown.delete(); hat.delete(); }
   });
 }
 
-test('every cap size seats close around the pumpkin shoulders without collisions', async () => {
+test('every cap size preserves its flat outer rim without collisions', async () => {
   const { buildTopper } = await import('../../customizer/generators/pumpkin/toppers/index.js');
   const wasm=await loadEngine(), body=referencePumpkin(wasm);
   try {
@@ -97,14 +98,45 @@ test('every cap size seats close around the pumpkin shoulders without collisions
       try {
         assert.ok(collision.volume()<.001,`${diameter} mm cap clears pumpkin`);
         // Keep the sample on the upper shoulder for caps extending past it.
-        const r=Math.min(17.8,diameter/2-.3);
+        const r=Math.min(17.8,diameter/2-.6);
         for(let i=0;i<16;i++) {
           const a=i*Math.PI/8,x=r*Math.cos(a),y=r*Math.sin(a);
           const z=body.rayCast([x,y,60],[x,y,0])[0].position[2];
           const hit=hat.rayCast([x,y,z+.001],[x,y,60])[0];
-          assert.ok(hit && hit.position[2]-z<.5,`${diameter} mm cap edge follows shoulder at angle ${i}`);
+          assert.ok(hit && Math.abs(hit.position[2]-28)<.001,`${diameter} mm cap edge stays flat at angle ${i}: ${hit?.position[2]}`);
         }
       } finally {collision.delete();hat.delete();}
     }
   } finally {body.delete();}
 });
+
+for (const [style, crownDiameter] of [['witch',36],['santa',36],['baseball',30],['baseball',36],['baseball',40]]) {
+  test(`${style} ${crownDiameter}: mould cannot break through the load-bearing rim`, async () => {
+    const { buildTopper } = await import('../../customizer/generators/pumpkin/toppers/index.js');
+    const wasm=await loadEngine(), hat=buildTopper(wasm,style,{crownDiameter});
+    try {
+      // A continuous 1 mm thick annulus, at least 1.3 mm wide, survives intact.
+      const outer=wasm.Manifold.cylinder(1,14.3,14.3,96).translate([0,0,28]);
+      const inner=wasm.Manifold.cylinder(1,13,13,96).translate([0,0,28]);
+      const rim=outer.subtract(inner), missing=rim.subtract(hat);
+      try { assert.ok(missing.volume()<.001, `${style} has ${missing.volume()} mm³ missing from its rim`); }
+      finally { outer.delete(); inner.delete(); rim.delete(); missing.delete(); }
+      const below=wasm.Manifold.cube([60,60,27.999]).translate([-30,-30,0]);
+      const low=hat.intersect(below), peg=wasm.Manifold.cylinder(28,2,2,64);
+      const stray=low.subtract(peg);
+      try { assert.ok(stray.volume()<.001,'nothing except the mounting peg extends below the flat base'); }
+      finally { below.delete(); low.delete(); peg.delete(); stray.delete(); }
+    } finally {hat.delete();}
+  });
+}
+
+for (const style of ['witch','santa','baseball']) {
+  test(`${style}: retains the accepted upper height`, async () => {
+    const { buildTopper, TOPPER_BUILDERS } = await import('../../customizer/generators/pumpkin/toppers/index.js');
+    const wasm=await loadEngine(), temps=[], t=o=>{temps.push(o);return o;};
+    const raw=TOPPER_BUILDERS[style](wasm,t,{}), hat=buildTopper(wasm,style);
+    try {
+      assert.ok(Math.abs(hat.boundingBox().max[2]-(raw.boundingBox().max[2]-3))<.001);
+    } finally {hat.delete();temps.forEach(o=>o.delete());}
+  });
+}

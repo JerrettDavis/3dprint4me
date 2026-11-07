@@ -42,3 +42,24 @@ by the 0.16 mm slicing profile. A failing relief-section test reproduced that is
 Fitted-cap stitches now have 0.56 mm width and 0.36 mm raised relief; actual G-code
 shows the two stitch rows on layers Z=5.64 and 5.80 mm above the visor. The original
 30 mm mesh hash is unchanged. All 12 focused geometry/export/resource tests pass.
+
+## Version 8: level exterior bases
+
+The exterior base of each hat is planar at assembled Z=28 mm, with only an
+internal pumpkin-shaped recess (0.2 mm vertical clearance, about 2.16 mm
+maximum depth). The base has a continuous uncut 1 mm thick annulus between
+radii 13 and 14.3 mm, including the 30 and 40 mm cap sizes. The cap visor
+shares its crown base; witch/Santa mounting pegs remain attached. Upper heights
+retain version 7 values. No pumpkin geometry or socket dimension changes.
+
+Fresh Bambu Studio slices with the same X1 Carbon/0.16 mm PLA profile and
+automatic supports disabled all completed with nonempty G-code,
+`support_used=false` and `outside=false`: witch 9,582,898 bytes,
+Santa 9,086,217 bytes and baseball 6,276,788 bytes. These exports include
+the model-derived removable supports. Earlier slicing figures and the original
+30 mm mesh hash above are historical; version 8 intentionally changes all
+hat bases. Physical fit and clean support removal still await print tests.
+
+Actual-mesh reviews: `screenshots/pumpkin-cap-fitted-seat.png`,
+`screenshots/pumpkin-witch-flat-base.png`, `screenshots/pumpkin-santa-flat-base.png`.
+Regenerate with `python scripts/render_pumpkin_cap.py --style <baseball|witch|santa>`.
