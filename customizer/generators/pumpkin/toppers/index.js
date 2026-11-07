@@ -2,7 +2,7 @@ import { referenceCrown, referencePumpkin } from '../reference.js';
 import witch from './witch.js';
 import santa from './santa.js';
 import baseball from './baseball.js';
-import { flatSeat } from './seat.js';
+import { flatSeat, capBaseHeight } from './seat.js';
 import { trimMask } from './trim.js';
 
 export const TOPPER_BUILDERS = Object.freeze({ witch, santa, baseball });
@@ -23,8 +23,9 @@ export function buildTopper(wasm, style, { clearance = .3, crownDiameter = 36, t
     }
 
     const crown=t(t(referencePumpkin(wasm)).add(t(referenceCrown(wasm,0))));
+    const height=style==='baseball' ? capBaseHeight(wasm,crown,crownDiameter) : 28;
     const refined=t(raw.refineToLength(1));
-    const shaped=t(refined.warp(flatSeat(style)));
+    const shaped=t(refined.warp(flatSeat(style,height)));
     if(trim) return shaped.translate([0,0,0]);
     const mould=t(crown.add(t(crown.translate([0,0,.2]))));
     const seated=t(shaped.subtract(mould));

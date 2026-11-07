@@ -3,8 +3,8 @@
 // smooth, ridged, knitted or lattice; with a cute, classic or custom face (inlay, engraved or cut
 // through); and a stem printed attached or as a separate peg-in part. The geometry lives in
 // pumpkin-shape.js (shared) and customizer/generators/pumpkin/build.js (worker only).
-import { contrastRatio } from "../color.js?v=f08802bc754ad644";
-import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=f08802bc754ad644";
+import { contrastRatio } from "../color.js?v=f471c76571e3f794";
+import { baseCut, bottomHoleRadius, faceBox, geometry, HOLE_MOUTH_GAP_MM, maxBottomHolePct, maxHollowConcavity, minTealightDiameter, splitCut, TEALIGHT_HEIGHT_MM, TEALIGHT_OPENING_MM, tealightFit } from "../pumpkin-shape.js?v=f471c76571e3f794";
 
 const EPS = 1e-6;
 const MIN_WALL = 1.2;           // hollow shells
@@ -313,7 +313,7 @@ for (const d of DESIGNS) if (d.group !== "Festive hats") d.params = { body_sourc
 
 export default {
   id: "pumpkin",
-  version: 8,
+  version: 9,
   versionDefaults: { 1: { optimize_cutouts: false, body_source: "parametric", topper: "none" }, 2: { body_source: "parametric", topper: "none" }, 3: { body_source: "parametric", topper: "none" }, 4: { cap_crown_mm:30, hat_supports:false } },
   title: "Pumpkin",
   blurb: "Design a pumpkin: solid, hollow tealight cover, vase or bowl with a lid, with a face, knit or lattice surface, and a plug-in or attached stem.",

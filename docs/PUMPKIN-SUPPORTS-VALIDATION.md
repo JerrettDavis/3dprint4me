@@ -63,3 +63,26 @@ hat bases. Physical fit and clean support removal still await print tests.
 Actual-mesh reviews: `screenshots/pumpkin-cap-fitted-seat.png`,
 `screenshots/pumpkin-witch-flat-base.png`, `screenshots/pumpkin-santa-flat-base.png`.
 Regenerate with `python scripts/render_pumpkin_cap.py --style <baseball|witch|santa>`.
+
+## Version 9: snugger baseball cap
+
+The baseball cap now sits lower without changing its top height or bending its
+base. The default 36 mm crown has a flat base at Z=25.9212 mm instead of 28 mm,
+and a central mould depth of about 4.24 mm instead of 2.16 mm. The recess extends
+closer to the edge; a continuous 2 mm outer land remains uncut. For each cap
+diameter (30-40 mm), the builder measures the highest point of the exact filled
+pumpkin outside that land, then adds the 0.2 mm mould clearance and 0.05 mm
+safety. The boundary is measured with a 192-sided cylinder, not sparse ray probes.
+Witch/Santa geometry and all three top heights remain unchanged.
+
+Regression coverage checks all cap sizes for collision-free flat rims, a
+continuous 1 mm-thick outer annulus on the end sizes and default, 64 close-fit
+probes at radius 14.5 mm, connected solids, unchanged top heights, mounting-pin
+fit, clean multi-color exports and resource cleanup. The focused suites pass
+24 tests. Physical fit and support removal still await a printed sample.
+
+The default cap's actual exported flat underside triangles cover 397.68 mm2,
+down from 707.63 mm2 in version 8 (about 44% less blank underside). Its print
+part height is now 17.278797 mm because its base seats lower; the assembled
+top remains at the previous height. All three fresh integrated-support slices
+completed with `support_used=false`, `outside=false` and nonempty G-code.
