@@ -21,7 +21,7 @@ BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
 DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 6}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 7}
 
 
 @pytest.fixture(scope="module")
@@ -2015,8 +2015,7 @@ def test_festive_pumpkin_presets_offline_preview_download_and_handoff(page: Page
     expect(page.locator("[name=topper]")).to_have_value(style)
     expect(page.locator("[name=hat_color]")).to_have_value(color)
     expect(page.locator("[name=hat_supports]")).to_be_checked()
-    if style == "baseball":
-        expect(page.locator("[data-field=hat_supports]")).to_be_hidden()
+    expect(page.locator("[data-field=hat_supports]")).to_be_visible()
     expect(page.locator("[data-field=diameter_mm]")).to_be_hidden()
     page.get_by_role("button", name="Realistic preview", exact=True).click()
     expect(page.locator("#cz-stage")).to_have_attribute("data-presentation-state", "ready", timeout=BUILD_TIMEOUT)
@@ -2033,7 +2032,7 @@ def test_festive_pumpkin_presets_offline_preview_download_and_handoff(page: Page
         support_ids = [part.attrib["id"] for part in settings.findall(".//part")
                        if any(m.attrib.get("key") == "name" and m.attrib.get("value", "").startswith("Support")
                               for m in part.findall("metadata"))]
-        assert len(support_ids) == (0 if style == "baseball" else 1), support_ids
+        assert len(support_ids) == 1, support_ids
         part_names = [m.attrib.get("value", "") for m in settings.findall(".//part/metadata") if m.attrib.get("key") == "name"]
         assert not any(name.startswith("Support · pumpkin") for name in part_names)
         assert any(name.startswith("Mount pin") for name in part_names) == (style == "baseball")
