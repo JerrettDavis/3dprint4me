@@ -1,6 +1,6 @@
 # Algorithmic vase studio
 
-Release candidate on `feat/algorithmic-vase`; hosted CI, merge and production verification remain pending. See the algorithmic-vase design and implementation plan under `docs/superpowers/`.
+The implementation and release record are tracked in [PR #79](https://github.com/JerrettDavis/3dprint4me/pull/79), including hosted CI and production rollout evidence. See the algorithmic-vase design and implementation plan under `docs/superpowers/`.
 
 ## Controls and original forms
 
