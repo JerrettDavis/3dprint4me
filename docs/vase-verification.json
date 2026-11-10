@@ -548,7 +548,7 @@
   ],
   "notes": [
     "Cells hollow export timed out under concurrent load, then passed isolated in 18163 ms.",
-    "Five slicer attempts timed out using reused output paths; all passed in unique fresh directories. The verifier now always uses a new directory.",
+    "Six slicer attempts timed out using reused output paths; all passed in unique fresh directories. The verifier now always uses a new directory.",
     "Bambu Studio 02.08.02.61 with isolated configuration; no customer data."
   ]
 }
