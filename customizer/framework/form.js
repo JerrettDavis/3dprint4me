@@ -4,6 +4,7 @@ import { sensitiveKeys, validateParams } from "../../public/assets/js/customize/
 import { fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 import { GENERAL, fieldSection, hasSections, sectionLabel, sectionList } from "./sections.js";
 import { DUR, EASE, play, reducedMotion, setOpen } from "./motion.js";
+import { renderProfileInput, mountProfileInput } from "./profile-input.js";
 
 export { hasSections };
 
@@ -164,7 +165,7 @@ function colorField(key, def, value, error) {
 </div>`;
 }
 
-const RENDERERS = { number: numberField, int: numberField, text: textField, enum: enumField, bool: boolField, color: colorField };
+const RENDERERS = { number: numberField, int: numberField, text: textField, enum: enumField, bool: boolField, color: colorField, profile: renderProfileInput };
 
 /**
  * visibleWhen shows a field only while it holds (display only; validation ignores it):
@@ -223,7 +224,7 @@ export function renderFormHtml(generator, params = {}, { errors = [], fieldError
   const renderField = key => {
     const def = generator.schema[key];
     const value = Object.hasOwn(params, key) ? params[key] : def.default;
-    let field = RENDERERS[def.type](key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : "");
+    let field = RENDERERS[def.type](key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : "", current);
     if (!isFieldVisible(def, current, advanced)) field = field.replace(`data-field="${esc(key)}">`, `data-field="${esc(key)}" hidden>`);
     return field;
   };
@@ -238,6 +239,9 @@ ${fieldsets.join("\n")}`;
 
 /** Converts a control's current state to the schema value type. Empty numbers become NaN (validation reports them). */
 export function readControlValue(def, element) {
+  if (def.type === "profile") {
+    try { return JSON.parse(element.value); } catch { return element.value; }
+  }
   if (isNumeric(def)) return element.value === "" ? Number.NaN : Number(element.value);
   if (def.type === "bool") return Boolean(element.checked);
   return String(element.value ?? "");
@@ -284,6 +288,10 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   let advanced = !hasAdvanced(generator) || initialAdvanced !== false;
   let lastValues = params;
   container.innerHTML = renderFormHtml(generator, params, { advanced });
+  const profileInputs = new Map();
+  for (const [key, def] of Object.entries(generator.schema)) {
+    if (def.type === "profile") profileInputs.set(key, mountProfileInput(container.querySelector(`[data-field="${CSS.escape(key)}"]`), { getParameters: () => lastValues }));
+  }
   const secret = secretInputAttributes(cssMasking);
   for (const input of container.querySelectorAll("input.cz-secret")) {
     input.type = secret.type;
@@ -554,11 +562,13 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   }
 
   function setValues(values) {
+    lastValues = values;
     for (const [key, def] of Object.entries(generator.schema)) {
       if (!Object.hasOwn(values, key)) continue;
       const element = named(key);
       if (!element) continue;
       const value = values[key];
+      if (def.type === "profile") { profileInputs.get(key)?.setValue(value); continue; }
       if (def.picker) { setPicker(key, def, value); continue; }
       if (def.type === "bool") element.checked = Boolean(value);
       else if (isNumeric(def)) {
@@ -567,7 +577,6 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
         if (slider && Number.isFinite(value)) slider.value = String(value);
       } else if (element.value !== String(value ?? "")) element.value = String(value ?? "");
     }
-    lastValues = values;
     applyVisibility();
     applyLinked();
     if (generator.rules) setLimits(generator.rules(values).limits ?? {});
@@ -583,6 +592,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     const visibleErrors = Object.fromEntries(Object.entries(fieldErrors).filter(([k]) => !hiddenAdvanced.includes(k)));
     for (const key of Object.keys(generator.schema)) {
       const message = Object.hasOwn(fieldErrors, key) ? String(fieldErrors[key]) : "";
+      profileInputs.get(key)?.setError(message);
       const slot = container.querySelector(`#${CSS.escape(errorId(key))}`);
       if (slot && slot.textContent !== message) {
         const previous = slot.textContent;

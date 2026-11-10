@@ -1,5 +1,20 @@
 /* Customize section. Builds on the site tokens from site.css + shared.css (loaded first). */
 
+/* A profile is a drawing tool with equivalent numeric controls, using the studio tokens. */
+.cz-profile-chart{display:block;width:100%;max-width:360px;height:auto;margin:.5rem auto;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);touch-action:none}
+.cz-profile-axis{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:3 4}
+.cz-profile-shape{fill:var(--surface);stroke:var(--accent);stroke-width:2}
+.cz-profile-hit{fill:transparent;stroke:none;cursor:grab}
+.cz-profile-hit:active{cursor:grabbing}
+.cz-profile-dot{fill:var(--accent);stroke:var(--surface);stroke-width:2;pointer-events:none}
+.cz-profile-rows{display:grid;gap:.75rem;margin:.75rem 0}
+.cz-profile-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.5rem .75rem;padding:.75rem 0;border-top:1px solid var(--line)}
+.cz-profile-row label{display:grid;gap:.35rem;font-size:.85rem;color:var(--muted)}
+.cz-profile-row input{width:100%;min-width:0;min-height:44px;color:var(--ink)}
+.cz-profile-row input[readonly]{background:var(--surface-2)}
+.cz-profile-row button{grid-column:1/-1;justify-self:end;min-height:44px}
+.cz-field-profile>[data-profile-add]{min-height:44px}
+
 /* ---------- Catalog ---------- */
 .cz-catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:1rem;margin:0;padding:0;list-style:none}
 .cz-card{position:relative;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);transition:border-color 150ms ease}

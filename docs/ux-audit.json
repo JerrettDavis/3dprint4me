@@ -1,6 +1,6 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-11-07T07:28:42.604114+00:00",
+  "generatedAt": "2026-11-10T20:25:36.313427+00:00",
   "status": "pass",
   "summary": {
     "checks": 241,
@@ -65,14 +65,14 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "18 images loaded and each has an alt attribute."
+      "details": "20 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "62 visible interactive elements have accessible names."
+      "details": "64 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -107,7 +107,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "189 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "199 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -737,14 +737,14 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "10 images loaded and each has an alt attribute."
+      "details": "12 images loaded and each has an alt attribute."
     },
     {
       "route": "/customize/",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "34 visible interactive elements have accessible names."
+      "details": "36 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/",
@@ -779,7 +779,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "79 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "89 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -905,14 +905,14 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "18 images loaded and each has an alt attribute."
+      "details": "20 images loaded and each has an alt attribute."
     },
     {
       "route": "/",
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "56 visible interactive elements have accessible names."
+      "details": "58 visible interactive elements have accessible names."
     },
     {
       "route": "/",
@@ -947,7 +947,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "179 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "189 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/services.html",
@@ -1577,14 +1577,14 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "10 images loaded and each has an alt attribute."
+      "details": "12 images loaded and each has an alt attribute."
     },
     {
       "route": "/customize/",
       "profile": "mobile/dark 390\u00d7844",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "29 visible interactive elements have accessible names."
+      "details": "31 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/",
@@ -1619,7 +1619,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "73 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "83 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -1739,12 +1739,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 62,
-        "imageCount": 18,
-        "headingCount": 31
+        "interactiveCount": 64,
+        "imageCount": 20,
+        "headingCount": 33
       },
       "contrast": {
-        "checked": 189,
+        "checked": 199,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2019,12 +2019,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 34,
-        "imageCount": 10,
-        "headingCount": 13
+        "interactiveCount": 36,
+        "imageCount": 12,
+        "headingCount": 15
       },
       "contrast": {
-        "checked": 79,
+        "checked": 89,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2089,12 +2089,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 56,
-        "imageCount": 18,
-        "headingCount": 29
+        "interactiveCount": 58,
+        "imageCount": 20,
+        "headingCount": 31
       },
       "contrast": {
-        "checked": 179,
+        "checked": 189,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2369,12 +2369,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 390,
         "viewportWidth": 390,
-        "interactiveCount": 29,
-        "imageCount": 10,
-        "headingCount": 13
+        "interactiveCount": 31,
+        "imageCount": 12,
+        "headingCount": 15
       },
       "contrast": {
-        "checked": 73,
+        "checked": 83,
         "complexSkipped": 0,
         "failures": []
       }

@@ -27,6 +27,7 @@ const defaultCreateWorker = () => new Worker(new URL("./worker.js", import.meta.
 
 export function createWorkerClient({
   createWorker = defaultCreateWorker,
+  interruptOnSupersede = false,
   timeoutMs = BUILD_TIMEOUT_MS,
   setTimer = (fn, ms) => setTimeout(fn, ms),
   clearTimer = handle => clearTimeout(handle)
@@ -108,6 +109,12 @@ export function createWorkerClient({
     build(generatorId, params, { fontId, fontBytes, fontKey, locationFontIds, imageContours, imageLayers, purpose } = {}) {
       supersede(inFlight);
       supersede(queued);
+      if (interruptOnSupersede && inFlight) {
+        if (inFlight.timer !== undefined) clearTimer(inFlight.timer);
+        inFlight = null;
+        queued = null;
+        reset();
+      }
       const id = ++nextId;
       return new Promise((resolve, reject) => {
         const entry = { id, message: { generatorId, params, fontId, fontBytes, fontKey, locationFontIds, imageContours, imageLayers, ...(purpose ? { purpose } : {}) }, resolve, reject, settled: false, timer: undefined };

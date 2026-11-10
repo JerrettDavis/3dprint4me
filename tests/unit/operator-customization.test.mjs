@@ -23,6 +23,13 @@ test("a value that is the redaction marker is withheld even if the key list is m
   assert.deepEqual(rows.at(-1), ["Pw", WITHHELD]);
 });
 
+test("structured vase profiles remain readable as normalized percentages on the operator sheet", () => {
+  const rows = customizationRows({ generatorId: 'vase', generatorVersion: 1, params: { profile: [
+    { height: 0, radius: 0.62 }, { height: 0.5, radius: 1 }, { height: 1, radius: 0.55 },
+  ] } });
+  assert.deepEqual(rows.at(-1), ['Profile', '0% height / 62% radius; 50% height / 100% radius; 100% height / 55% radius']);
+});
+
 test("no customization renders nothing", () => {
   assert.equal(renderCustomization({}), null);
   assert.equal(renderCustomization(undefined), null);
