@@ -165,6 +165,8 @@ def capture_customize_states() -> list[tuple[str, Path]]:
     captured: list[tuple[str, Path]] = []
     with running_server() as base_url:
         for label, route, filename, viewport, scheme, ready, prepare in [
+            ("Infinity fidget · desktop · light", "/customize/g/infinity-fidget/", "customize-infinity-fidget-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Infinity fidget · mobile · dark", "/customize/g/infinity-fidget/", "customize-infinity-fidget-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
             ("Gridfinity base · desktop · light", "/customize/g/gridfinity-base/", "customize-gridfinity-base-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
             ("Gridfinity base · mobile · dark", "/customize/g/gridfinity-base/", "customize-gridfinity-base-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
             ("Magnetic light · desktop · light", "/customize/g/gridfinity-base/", "customize-gridfinity-magnetic-light-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, magnetic_light),

@@ -25,10 +25,10 @@ const bebas = parse(toBuffer(bebasBytes));
 const generators = Object.values(GENERATORS).filter(g => g.font);
 const withBuild = async g => ({ ...g, build: (await loadBuilder[g.id]()).default });
 // Parameters a generator needs besides the font (the Wi-Fi tag needs a password).
-const needed = g => (g.id === "wifi-tag" ? { password: "correct-horse" } : {});
+const needed = g => (g.id === "wifi-tag" ? { password: "correct-horse" } : g.id==='infinity-fidget'?{block_1_symbol:'ABC'}:{});
 
 test("every generator uses the one shared font control", () => {
-  assert.equal(generators.length, 5);
+  assert.equal(generators.length, 6);
   for (const g of generators) {
     assert.deepEqual(g.font, FONT_SPEC, `${g.id} font spec`);
     assert.deepEqual(g.schema.font.options.map(o => o.value), FONT_OPTIONS.map(o => o.value), `${g.id} options`);

@@ -1,5 +1,6 @@
 // Each generator adds one line; dynamic imports keep per-generator code split.
 export const loadBuilder = {
+  'infinity-fidget': () => import('./infinity-fidget/build.js'),
   'gridfinity-bin': () => import('./gridfinity-bin/build.js'),
   'gridfinity-base': () => import('./gridfinity-base/build.js'),
   "route-shield": () => import("./route-shield/build.js"),

@@ -1,6 +1,7 @@
 // Local browsing images only: no model engine, personal parameters or credentials.
 // Provenance and generation prompts: docs/PRODUCT-IMAGES.md.
 export const PRODUCT_MEDIA = {
+  'infinity-fidget': { src: '/assets/images/products/infinity-fidget.webp', alt: 'Render of eight blue beveled blocks joined by gold captured folding connectors', label: 'Illustrative render' },
   'gridfinity-base': { src: '/assets/images/products/gridfinity-base.webp', alt: 'Illustrative render of a three by two Gridfinity baseplate with open mating sockets', label: 'Illustrative render' },
   'gridfinity-bin': { src: '/assets/images/products/gridfinity-bin.webp', alt: 'Illustrative render of an open Gridfinity storage bin with a stacking rim', label: 'Illustrative render' },
   'name-plate': { src: '/assets/images/products/name-plate.webp', alt: 'Illustrative render of raised, outlined, shadowed and gold inlaid name plates', label: 'Illustrative render' },

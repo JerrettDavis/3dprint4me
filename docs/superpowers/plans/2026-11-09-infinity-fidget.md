@@ -23,7 +23,7 @@ Files: `public/assets/js/customize/fidget-mechanics.js`, `customizer/generators/
 
 - [x] Inspect current main, existing framework contracts and local reference archive.
 - [x] Record full scope and confirm infinity-triangle intent with user.
-- [ ] Record reference topology, exact dimensions and provenance without distributing unapproved source meshes.
+- [x] Record reference topology, exact dimensions and provenance without distributing unapproved source meshes.
 - [x] Write failing tests for bounded hinge parameters, real bearing clearance, retention and independent connected solids.
 - [x] Implement internal double-pivot connector and socket tools with explicit temporary-solid ownership.
 - [x] Run focused tests and inspect geometry; retain limitations until folding and slicing checks pass.
@@ -32,39 +32,39 @@ Files: `public/assets/js/customize/fidget-mechanics.js`, `customizer/generators/
 
 Files: `customizer/generators/infinity-fidget/{build,assemblies,shapes}.js`, pure topology module, mechanical motion tests.
 
-- [ ] Define measured cube topology and independent folding sequence.
-- [ ] Build eight bodies and captured connectors; validate loop closure, movement, gaps and part accounting.
-- [ ] Add rectangular and spherical bodies with preserved movement envelopes.
-- [ ] Implement actual infinity-triangle topology from accessible source/mechanical evidence.
-- [ ] Exercise parameter boundaries; slice samples and fit coupons, inspect layers and printable starts.
+- [x] Define measured cube topology and independent folding sequence.
+- [x] Build eight bodies and captured connectors; validate loop closure, movement, gaps and part accounting.
+- [x] Add rectangular and spherical bodies with preserved movement envelopes.
+- [x] Implement actual infinity-triangle topology from accessible source/mechanical evidence.
+- [x] Exercise parameter boundaries; slice samples and fit coupons, inspect layers and printable starts.
 
 ### Task 3: Surface, symbols, images and materials
 
 Files: generator definition, `customizer/generators/infinity-fidget/decoration.js`, geometry/export tests.
 
-- [ ] Test and implement smooth, chamfered, knurled, ridged, hexagonal and line surfaces.
-- [ ] Add per-block symbols/text and local simple-image decoration using existing tracing and fonts.
-- [ ] Add individual block colors with five-material validation and nonoverlapping material partitions.
-- [ ] Prove geometry survives actual STL and 3MF parsing, including small features and worst-case workload.
+- [x] Test and implement smooth, chamfered, knurled, ridged, hexagonal and line surfaces.
+- [x] Add per-block symbols/text and local simple-image decoration using existing tracing and fonts.
+- [x] Add individual block colors with five-material validation and nonoverlapping material partitions.
+- [x] Prove geometry survives actual STL and 3MF parsing, including small features and worst-case workload.
 
 ### Task 4: Studio integration and release
 
 Files: public definition/registry, builder registry, generator page, browser tests, generator docs, screenshots, generated assets.
 
-- [ ] Integrate presets, controls, fit coupon, local drafts, downloads and private order handoff.
-- [ ] Verify image edits, all shapes/details, theme, keyboard, reduced motion, 390 px and offline reload/edit/export.
+- [x] Integrate presets, controls, fit coupon, local drafts, downloads and private order handoff.
+- [x] Verify image edits, all shapes/details, theme, keyboard, reduced motion, 390 px and offline reload/edit/export.
 - [ ] Run customizer build, asset versioning, `npm test`, screenshots and inspect preview board.
 - [ ] Update docs and commit coherent implementation; obtain code review and green PR Actions.
 - [ ] Merge main, deploy authorized production targets, inspect live downloads/offline edits/handoff and require green main Actions.
 
 ## Execution ledger
 
-2026-11-09: isolated branch `feat/infinity-fidget-generator` starts at `4c1c05e`. Original workspace contains unrelated changes and was left untouched. Local reference `InfinityCubeFidget(5).3mf` has eight 20 mm block bodies plus eight independent connector solids; source mesh bounds approximately 82.4000 × 40.8068 × 20 mm. Actual triangle source remains uninspected. Full baseline unit/contract suite is running under session 66718; check its authoritative result before claiming baseline success.
+2026-11-09: implemented the complete generator in an isolated worktree. The production mechanism derives from the pinned MIT Jan Pieper source, with eight bodies and eight captured conical links. The permissioned triangle STL was inspected for topology and dimensions; no reference mesh is redistributed. Nine presets cover cube, rectangular, spherical and infinity-triangle bodies, finishes, artwork, writing and the fit sample.
 
-Baseline session 66718 finished successfully: 1,338 passed, one skipped, zero failed. Six new focused tests pass for bounds, closed solids, neutral gaps/capture, export analysis and individual socket quarter-turns. A neutral-only socket first failed at 47 degrees; the retained regression now passes after adding an analytic swept envelope. An attempted 3D sampled sweep was deliberately terminated because it generated excessive geometry; the final 2D sector/annular sweep replaced it and focused tests complete in roughly 1.3 seconds. This is an internal engineering coupon, not a completed mechanism.
+Independent actual-mesh tests exercise a 14-phase closed folding sequence, including partial reversals, and meaningful dimension extremes. Analytic corner-gap controls preserve mechanical envelopes. Spherical bearing lands connect all pins to their bodies; the spherical fit sample uses the same bearing-foot bevel and passes an independent 0-90 degree collision regression. These checks are sampled geometric evidence, not physical fit, release-force or durability certification. Print the fit sample first.
 
-Ruling: inspect the MIT Jan Pieper source before choosing final production connectors. Its conical captured bearings and sacrificial supports are stronger manufacturing evidence than the independent cylindrical coupon. Do not preserve the coupon as the final mechanism merely because its tests pass. Evidence and pinned source revision are in `docs/design-concepts/infinity-fidget-reference-evidence.md`.
+All nine exported presets have successful Bambu Studio 02.08.02.61 slicing evidence with zero reported warnings. Preserve the original classic timeout report and successful retry separately. Production uses 0.2 mm layers, Arachne walls and automatic supports off, with designed removable strips, posts and bearing-tip stalks.
 
-Fresh-context core review found no important/critical defect. Its one test-temporary leak was corrected by tracking the source cube as well as its translated copy. Full current unit/contract run is under session 21218. Build and asset versioning succeeded; validation exited zero before the final mechanical-only source changes. No public generator is registered yet, and no deployment has been attempted.
+Verification: 1,385 unit/contract tests passed before the final spherical fit regression; the final focused fit/folding run passed eight tests. Build, asset versioning and validation passed. The 190-screen screenshot run completed; the preview-board crop and desktop/mobile fidget screens were inspected. The final anonymous browser run was interrupted at the user's request after reporting a failure; it is not counted as a passing run. Browser verification now uses the user's existing Edge session. Prior full browser run passed 500 tests with five skips and six stale catalog-count failures; those expectations were updated. Independent review found no material issue with the integration or final spherical fit fix.
 
-Checkpoint verification: session 21218 finished with 1,345 tests passed and zero failures/skips. Fresh customizer build and asset versioning succeeded; session 63978 validation passed (17 HTML pages, 211 local references, 650 JS files; architecture boundaries passed for 236 JS files). `git diff --check` is clean. The updated coupon preview was rendered and visually inspected at `screenshots/fidget-hinge-fit.png`. No customer-facing UI changed, so the site-wide screenshots and full browser/audit run remain release-stage work. STL/3MF engineering samples, source thumbnail and test logs remain untracked in this worktree: automatic approval review rejected the cleanup/move command with “blocked by policy,” so it was not performed. The current full generator task remains active and incomplete.
+Release remains incomplete until reviewed commits have green Actions, main is merged, the native API registry and storefront are deployed, and live checks pass.
