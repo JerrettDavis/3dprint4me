@@ -1,5 +1,10 @@
 # Release Verification
 
+The `Verify` workflow allows up to 90 minutes for pinned native image rebuilds,
+geometry and browser tests, the UX audit, and screenshot generation. Slow upstream
+package mirrors can consume part of this budget. A timed-out run does not establish
+a passing release; inspect its logs and complete a fresh verification run.
+
 > Current production status: the owner-approved disabled rollout is deployed and
 > verified. See [production release evidence](PARTNER-PRODUCTION-RELEASE.md).
 > Production-pending statements below are historical checkpoints; actual
