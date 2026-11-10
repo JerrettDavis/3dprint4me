@@ -3,12 +3,13 @@
 // position it has on the plate. Use the 3MF when you need the separate colored parts.
 const HEADER = "3dprint4.me customizer";
 
-export function partsToStl(parts) {
+export function partsToStl(parts, { header = HEADER } = {}) {
   let count = 0;
   for (const part of parts) count += part.mesh.triangles.length;
   const buffer = new ArrayBuffer(84 + count * 50);
   const view = new DataView(buffer);
-  for (let i = 0; i < HEADER.length; i++) view.setUint8(i, HEADER.charCodeAt(i));
+  const label=String(header).replace(/[^\x20-\x7e]/g,'?').slice(0,80);
+  for (let i = 0; i < label.length; i++) view.setUint8(i, label.charCodeAt(i));
   view.setUint32(80, count, true);
   let offset = 84;
   for (const { mesh } of parts) {

@@ -1,0 +1,58 @@
+[
+  {
+    "name": "classic",
+    "exit": "timeout",
+    "return": null,
+    "warnings": [
+      "Slicer did not exit within 180 seconds."
+    ]
+  },
+  {
+    "name": "knurled",
+    "exit": 0,
+    "return": 0,
+    "warnings": [
+      ""
+    ]
+  },
+  {
+    "name": "honeycomb",
+    "exit": 0,
+    "return": 0,
+    "warnings": [
+      ""
+    ]
+  },
+  {
+    "name": "rectangular",
+    "exit": 0,
+    "return": 0,
+    "warnings": [
+      ""
+    ]
+  },
+  {
+    "name": "spheres",
+    "exit": 0,
+    "return": 0,
+    "warnings": [
+      ""
+    ]
+  },
+  {
+    "name": "pixel-face",
+    "exit": 0,
+    "return": 0,
+    "warnings": [
+      ""
+    ]
+  },
+  {
+    "name": "letters",
+    "exit": 0,
+    "return": 0,
+    "warnings": [
+      ""
+    ]
+  }
+]

@@ -1,7 +1,7 @@
-import '../js/site.js?v=f471c76571e3f794';
-import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=f471c76571e3f794';
-import { PROJECTS, INTENT_LABELS } from './projects.js?v=f471c76571e3f794';
-import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=f471c76571e3f794';
+import '../js/site.js?v=2c3502c229f43fa3';
+import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=2c3502c229f43fa3';
+import { PROJECTS, INTENT_LABELS } from './projects.js?v=2c3502c229f43fa3';
+import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=2c3502c229f43fa3';
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];

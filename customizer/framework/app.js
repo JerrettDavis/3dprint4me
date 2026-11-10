@@ -810,7 +810,7 @@ function boot() {
     els.downloadButton = button;
     const dialog = createDownloadDialog({
       onDownload: ({ result }) => downloadFile(new Blob([result.data], { type: "model/3mf" }), safeFilename(result.filename)),
-      onDownloadStl: ({ result }) => downloadFile(new Blob([partsToStl(result.parts)], { type: "model/stl" }), safeFilename(stlFilename(result.filename))),
+      onDownloadStl: ({ result }) => downloadFile(new Blob([partsToStl(result.parts, { header: generator.stlHeader })], { type: "model/stl" }), safeFilename(stlFilename(result.filename))),
       onPrint: ({ result }) => continueToRequest(result)
     });
     button.addEventListener("click", () => {

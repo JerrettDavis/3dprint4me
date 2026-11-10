@@ -7,7 +7,11 @@ preview, local planning facts, and **Continue to request**, which hands the buil
 ordinary print request on `/order.html`. The server never builds geometry; it re-validates the
 parameters as provenance. The uploaded 3MF is the object that is estimated and printed.
 
-Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`.
+Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`, `infinity-fidget`.
+
+Infinity fidget provides cube, rectangular, spherical and infinity-triangle bodies, actual engraved textures, per-block writing and colors, and locally traced artwork. Its captured conical bearings and eight-link layout adapt Jan Pieper's MIT source; the complete notice is shipped locally and included in 3MF provenance. The triangle uses alternating diagonal corner cuts and offset, narrower bearings measured from the user's permissioned source. Adjustable gaps reserve the maximum coupled corner sweep, not only the first fold. Five unique material colors are supported across blocks, links and marks. STL retains geometry and attribution but has no material colors.
+
+Choose **Bearing fit sample** before printing the complete mechanism. Only the selected model is downloaded or handed off. Samples use the selected production bearing dimensions and clearance. Use 0.2 mm layers, Arachne walls and automatic supports off. The complete assembly contains intentional breakaway side strips, top posts and four tiny bearing-tip stalks; remove/free them after cooling. Do not turn built-in supports off for production printing. All configured shapes have supported layer starts, analyzer-clean exports, a sampled closed folding sequence and successful Bambu slicing fixtures. Physical bearing fit, release force and durability remain unverified; print a sample with the actual printer/material settings. Small moving parts are unsuitable for young children. Reference measurements and limitations: [fidget evidence](design-concepts/infinity-fidget-reference-evidence.md).
 
 Gridfinity uses a 42 mm grid, 7 mm bin height units and the MIT Gridfinity/Rebuilt mating profile
 (notices in `customizer/static/licenses/gridfinity.txt`). Baseplates offer standard magnetless,
@@ -57,7 +61,7 @@ to an adapter or to a combined shell/adapter job. Verify the actual sliced toolp
 The future pixel occupancy editor is not part of this release. Research and numeric decisions:
 [`2026-11-05-gridfinity-design.md`](superpowers/specs/2026-11-05-gridfinity-design.md).
 
-All six have local representative images on the home shop and Customize catalog, without
+All public generators have local representative images on the home shop and Customize catalog, without
 building a model. See [Product browsing images](PRODUCT-IMAGES.md) for media assignments,
 illustration provenance, generation prompts and the catalog update checks.
 

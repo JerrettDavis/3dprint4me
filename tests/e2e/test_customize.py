@@ -24,6 +24,115 @@ DRAFT_KEY = "3dp-customize:route-shield:v3"
 GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 9}
 
 
+@pytest.mark.parametrize('shape', ['cube', 'rectangular', 'spherical', 'triangle'])
+def test_fidget_shapes_export_real_geometry_offline(page: Page, base_url: str, shape: str) -> None:
+    import zipfile
+    page.goto(f'{base_url}/customize/g/infinity-fidget/')
+    wait_ready(page)
+    page.get_by_label('Block shape', exact=True).select_option(shape)
+    wait_settled(page)
+    page.context.set_offline(True)
+    page.get_by_role('spinbutton', name=re.compile('Block size')).fill('22')
+    page.get_by_role('spinbutton', name=re.compile('Block size')).press('Tab')
+    wait_settled(page)
+    page.get_by_role('button', name='Download my model', exact=True).click()
+    with page.expect_download() as info:
+        page.get_by_role('button', name='No, just give me my file', exact=True).click()
+    with zipfile.ZipFile(info.value.path()) as archive:
+        provenance=json.loads(archive.read('Metadata/customizer.json'))
+        assert provenance['shape'] == shape
+        assert provenance['size_mm'] == 22
+        assert 'Permission is hereby granted' in provenance['source_notice']
+        assert archive.read('3D/3dmodel.model').count(b'<object ') == 17
+    page.context.set_offline(False)
+
+
+@pytest.mark.parametrize('scheme', ['light', 'dark'])
+def test_fidget_local_art_stl_and_fit_sample_on_mobile(browser: Browser, base_url: str, tmp_path: Path, scheme: str) -> None:
+    from PIL import Image, ImageDraw
+    import zipfile
+    import struct
+    image=Image.new('RGB',(64,64),'white')
+    ImageDraw.Draw(image).rectangle((12,12,52,52),fill='black')
+    source=tmp_path/'private-customer-image.png'
+    image.save(source)
+    context=browser.new_context(viewport={'width':390,'height':844},color_scheme=scheme,reduced_motion='reduce')
+    page=context.new_page()
+    try:
+        page.goto(f'{base_url}/customize/g/infinity-fidget/')
+        wait_ready(page)
+        page.get_by_role('button',name='Settings',exact=True).click()
+        page.get_by_label('Artwork',exact=True).select_option('image')
+        page.locator('#cz-image-file').set_input_files(str(source))
+        wait_settled(page)
+        page.get_by_label('Block 2 writing',exact=True).fill('A')
+        page.get_by_label('Block 2 writing',exact=True).press('Tab')
+        wait_settled(page)
+        context.set_offline(True)
+        page.get_by_label('Block 1 color',exact=True).fill('#cc5500')
+        wait_settled(page)
+        page.get_by_role('button',name='Download my model',exact=True).click()
+        with page.expect_download() as info:
+            page.get_by_role('button',name='No, just give me my file',exact=True).click()
+        data=Path(info.value.path()).read_bytes()
+        assert source.name.encode() not in data
+        with zipfile.ZipFile(info.value.path()) as archive:
+            params=json.loads(archive.read('Metadata/customizer.json'))
+            assert params['artwork']=='image' and params['block_2_symbol']=='A'
+            assert params['block_1_color']=='#cc5500'
+            assert archive.read('3D/3dmodel.model').count(b'<object ')==19
+        page.get_by_role('button',name='Download my model',exact=True).click()
+        with page.expect_download() as stl:
+            page.get_by_role('button',name='Download as STL instead',exact=True).click()
+        raw=Path(stl.value.path()).read_bytes()
+        assert b'Jan Pieper' in raw[:80]
+        assert len(raw)==84+50*struct.unpack('<I',raw[80:84])[0]
+        page.get_by_label('Model to print',exact=True).select_option('fit')
+        wait_settled(page)
+        page.get_by_role('button',name='Download my model',exact=True).click()
+        with page.expect_download() as fit:
+            page.get_by_role('button',name='No, just give me my file',exact=True).click()
+        assert 'fit-sample' in fit.value.suggested_filename
+        with zipfile.ZipFile(fit.value.path()) as archive:
+            assert archive.read('3D/3dmodel.model').count(b'<object ')==4
+        assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+    finally:
+        context.close()
+
+
+def test_fidget_fit_sample_does_not_require_an_unused_image(page: Page, base_url: str) -> None:
+    page.goto(f'{base_url}/customize/g/infinity-fidget/')
+    wait_ready(page)
+    page.get_by_label('Artwork',exact=True).select_option('image')
+    expect(page.get_by_role('button',name='Continue to request',exact=True)).to_be_disabled()
+    page.get_by_label('Model to print',exact=True).select_option('fit')
+    wait_settled(page)
+    expect(page.get_by_role('button',name='Continue to request',exact=True)).to_be_enabled()
+    expect(page.locator('#cz-image-area')).to_be_hidden()
+
+
+def test_fidget_mobile_sheet_does_not_paint_over_the_model(browser: Browser, base_url: str) -> None:
+    from PIL import Image, ImageChops, ImageStat
+    import io
+    context=browser.new_context(viewport={'width':390,'height':844},reduced_motion='reduce')
+    page=context.new_page()
+    try:
+        page.goto(f'{base_url}/customize/g/infinity-fidget/')
+        wait_ready(page)
+        stage=page.locator('#cz-stage').bounding_box()
+        panel=page.locator('.cz-panels').bounding_box()
+        top=stage['y']+70
+        clip={'x':10,'y':top,'width':370,'height':panel['y']-96-top}
+        assert clip['height']>30
+        visible=Image.open(io.BytesIO(page.screenshot(clip=clip))).convert('RGB')
+        page.locator('.cz-panels').evaluate("e => e.style.visibility='hidden'")
+        uncovered=Image.open(io.BytesIO(page.screenshot(clip=clip))).convert('RGB')
+        difference=ImageStat.Stat(ImageChops.difference(visible,uncovered))
+        assert max(difference.mean)<0.2, 'The sheet must not obscure the free model preview above it'
+    finally:
+        context.close()
+
+
 @pytest.fixture(scope="module")
 def base_url() -> Iterator[str]:
     if not BUILT_PAGE.is_file():
@@ -175,9 +284,9 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
     requests = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.on('request', lambda request: requests.append(request.url))
-    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin']
+    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin', 'infinity-fidget']
     try:
-        for path, selector, count in [('/', '.cat-tile', 12), ('/customize/', '.cz-card', 8)]:
+        for path, selector, count in [('/', '.cat-tile', 13), ('/customize/', '.cz-card', 9)]:
             requests.clear()
             page.goto(base_url + path)
             expect(page.locator(selector)).to_have_count(count)
@@ -190,7 +299,7 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
                 assert len(img.get_attribute('alt')) > 20
             for id in ids:
                 assert page.locator(f'{selector} a[href="/customize/g/{id}/"], a{selector}[href="/customize/g/{id}/"]').count() == 1
-            assert page.locator(selector).filter(has_text='Illustrative render').count() == 6
+            assert page.locator(selector).filter(has_text='Illustrative render').count() == 7
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert not page.workers
             assert not any('.wasm' in url or '/worker-' in url for url in requests)
@@ -1175,6 +1284,8 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         key, label, value = "name", "Name", f"Robin {token[:4].upper()}"
     elif generator_id == "display-sign":
         key, label, value = "t1_text", "Text 1", f"SIGN {token[:6].upper()}"
+    elif generator_id == 'infinity-fidget':
+        key, label, value = 'block_1_symbol', 'Block 1 writing', token[:3].upper()
     elif generator_id == "pumpkin":
         wait_ready(page)
         page.locator('[name="body_source"]').select_option('parametric')
@@ -1452,6 +1563,10 @@ def open_generator(page: Page, base_url: str, generator_id: str) -> None:
     expect(page.locator("body[data-build-state]")).to_be_attached(timeout=BUILD_TIMEOUT)
     if generator_id == "wifi-tag":
         page.get_by_label("Network password", exact=True).fill("pw-font-test")
+    if generator_id == 'infinity-fidget':
+        page.get_by_label('Block 1 writing', exact=True).fill('ABC')
+        page.get_by_label('Block 1 writing', exact=True).press('Tab')
+        wait_settled(page)
     wait_ready(page)
 
 

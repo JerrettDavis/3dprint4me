@@ -231,6 +231,8 @@ body[data-preview-style="realistic"] .cz-hint{color:#3c3327}
 
 /* ---------- Narrow screens: the windows become a bottom sheet with tabs ---------- */
 @media (max-width:899px){
+  /* Keep the scrolling sheet's paint inside its bounds, clear of the WebGL preview. */
+  .cz-panels{contain:paint}
   .cz-studio{min-height:600px}
   .cz-bar{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"id actions" "views views";gap:.15rem .6rem;padding:.3rem .75rem .45rem}
   .cz-bar-id{grid-area:id}
