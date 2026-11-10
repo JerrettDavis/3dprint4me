@@ -22,7 +22,7 @@ REQUIRED = {'deploy/platform/Dockerfile', 'deploy/platform/partner-release-host.
             'deploy/slicer-worker/Dockerfile.bambu', 'scripts/rehearse-partner.mjs',
             'neon/migrations/012_partner_outreach.sql', 'neon/migrations/013_partner_weekly_statements.sql',
             'neon/migrations/014_work_communications.sql', 'neon/migrations/015_operator_model_revisions.sql', 'neon/migrations/016_partner_statement_rls.sql',
-            'neon/migrations/017_notification_skipped.sql',
+            'neon/migrations/017_notification_skipped.sql', 'neon/migrations/018_supply_ledger.sql',
             'package.json', 'package-lock.json'}
 PREFIXES = ('api/', 'lib/', 'neon/', 'scripts/', 'deploy/', 'contracts/partner/', 'public/assets/js/')
 MARKER = '.partner-release-proof.json'

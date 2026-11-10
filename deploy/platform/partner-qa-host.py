@@ -56,7 +56,7 @@ def migration_inventory(source):
     match=re.search(r'export const MIGRATIONS = Object.freeze\(\[(.*?)\]\);',source,re.S)
     if not match:raise ValueError('Reviewed migration inventory missing.')
     names=json.loads('['+match.group(1)+']')
-    if len(names)!=17 or len(set(names))!=17 or any(not re.fullmatch(r'[0-9]{3}_[a-z0-9_]+\.sql',name) for name in names):raise ValueError('Reviewed migration inventory changed; inspect before applying.')
+    if len(names)!=18 or len(set(names))!=18 or any(not re.fullmatch(r'[0-9]{3}_[a-z0-9_]+\.sql',name) for name in names):raise ValueError('Reviewed migration inventory changed; inspect before applying.')
     return names
 
 
