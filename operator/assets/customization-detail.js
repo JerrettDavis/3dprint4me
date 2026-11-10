@@ -6,7 +6,15 @@ export const CUSTOMIZATION_NOTE = "The attached 3MF is the model to print; these
 const REDACTED = "[redacted]";
 
 const humanize = value => String(value ?? "").replaceAll("_", " ").replace(/^./, c => c.toUpperCase());
-const display = value => typeof value === "boolean" ? (value ? "On" : "Off") : value == null || value === "" ? "—" : String(value);
+const display = value => {
+  if (typeof value === "boolean") return value ? "On" : "Off";
+  if (value == null || value === "") return "—";
+  if (Array.isArray(value) && value.length && value.every(point => point && Number.isFinite(point.height) && Number.isFinite(point.radius))) {
+    const percent = number => Number((number * 100).toFixed(3));
+    return value.map(point => `${percent(point.height)}% height / ${percent(point.radius)}% radius`).join('; ');
+  }
+  return String(value);
+};
 
 function el(name, className, text) { const node = document.createElement(name); if (className) node.className = className; if (text != null) node.textContent = text; return node; }
 function facts(rows) {

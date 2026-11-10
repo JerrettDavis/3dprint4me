@@ -1,4 +1,5 @@
 // Parameter schema runtime shared by the browser (form + clamping) and the server (re-validation).
+import { validateVaseProfile } from './vase-shape.js?v=6c6c04bbfe128f84';
 const REDACTED = "[redacted]";
 const CONTROL_NONMULTILINE = new RegExp("[\u0000-\u001f\u007f\u0085  ]");
 const CONTROL_MULTILINE = new RegExp("[\u0000-\u0009\u000b-\u001f\u007f\u0085  ]");
@@ -20,6 +21,10 @@ const onStep = (v, def) => {
 function checkField(key, def, raw) {
   const label = def.label ?? key;
   switch (def.type) {
+    case "profile": {
+      try { return { value: validateVaseProfile(raw) }; }
+      catch { return { error: `${label} needs 3–12 ordered profile points, endpoint heights 0 and 1, heights at least 0.02 apart, and radii from 0.05 to 1.` }; }
+    }
     case "number": case "int": {
       if (typeof raw !== "number" || !Number.isFinite(raw)) return { error: `${label} must be a number.` };
       if (def.type === "int" && !Number.isInteger(raw)) return { error: `${label} must be a whole number.` };

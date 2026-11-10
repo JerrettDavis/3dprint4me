@@ -284,9 +284,9 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
     requests = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.on('request', lambda request: requests.append(request.url))
-    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin', 'infinity-fidget']
+    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin', 'infinity-fidget', 'vase']
     try:
-        for path, selector, count in [('/', '.cat-tile', 13), ('/customize/', '.cz-card', 9)]:
+        for path, selector, count in [('/', '.cat-tile', 14), ('/customize/', '.cz-card', 10)]:
             requests.clear()
             page.goto(base_url + path)
             expect(page.locator(selector)).to_have_count(count)
@@ -299,7 +299,7 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
                 assert len(img.get_attribute('alt')) > 20
             for id in ids:
                 assert page.locator(f'{selector} a[href="/customize/g/{id}/"], a{selector}[href="/customize/g/{id}/"]').count() == 1
-            assert page.locator(selector).filter(has_text='Illustrative render').count() == 7
+            assert page.locator(selector).filter(has_text='Illustrative render').count() == 8
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert not page.workers
             assert not any('.wasm' in url or '/worker-' in url for url in requests)
@@ -1294,6 +1294,8 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         key, label, value = "diameter_mm", None, str(60 + int(token[:4], 16) % 100)
     elif generator_id in {"gridfinity-base", "gridfinity-bin"}:
         key, label, value = "columns", None, str(1 + int(token[:4], 16) % 6)
+    elif generator_id == "vase":
+        key, label, value = "height_mm", None, str(100 + int(token[:4], 16) % 100)
     else:  # a new generator needs a flow here (see test_the_matrix_covers_every_registered_generator)
         pytest.fail(f"No matrix flow for generator {generator_id}")
     if label is None:

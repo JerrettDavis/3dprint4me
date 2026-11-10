@@ -7,7 +7,29 @@ preview, local planning facts, and **Continue to request**, which hands the buil
 ordinary print request on `/order.html`. The server never builds geometry; it re-validates the
 parameters as provenance. The uploaded 3MF is the object that is estimated and printed.
 
-Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`, `infinity-fidget`.
+Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`, `infinity-fidget`, `vase`.
+
+The **algorithmic vase** has an editable shape-preserving spline profile, ten original presets,
+polygon sides, twist, lobes, seeded organic displacement, and smooth/ripple/dune/scale/cell/zigzag/
+bounded multiscale surfaces. The profile supports 3–12 normalized points with pointer dragging and
+labeled numeric controls; drafts, 3MF metadata, and server validation retain the same structured
+data. Profile heights start at 0 and end at 1, remain ordered at least 0.02 apart, and radii range
+from 0.05 to 1. The complete deformed envelope is scaled to the chosen maximum diameter. Base and mouth outside-diameter controls use the shared envelope sampler to update profile endpoints and announce achievable ranges; these are centered outside envelopes, not hollow openings or polygon flat spans.
+
+Choose **Solid · slicer vase mode** for a closed positive volume: enable spiral/vase mode, no top
+layers/infill, and appropriate bottom layers in the slicer. Its planning volume and weight describe
+the solid input, not the final spiral print. **Hollow · modeled walls** has an open mouth, a closed
+base, and a geometric minimum wall thickness; print it normally. Conservative morphological erosion
+can make actual walls thicker than the selected minimum. Complex hollow builds can take several
+seconds; excessive detail and collapsed/narrow cavities are rejected with corrective instructions.
+Inspect actual sliced layers for overhangs and relief. Physical print quality and water retention
+are not certified. Deploy the API's shared vase-v1 registry before the storefront.
+
+Vase opts into interrupting superseded worker computations (`interruptBuilds: true`) and initially
+collapses the design gallery (`openDesigns: false`) to prioritize profile editing. Field definitions
+may use `randomizeWhen(params)` to preserve costly hollow surface settings while Randomize changes
+proportions, facets, and color; construction and profile points remain explicit customer choices.
+Implementation, measured budgets, and release evidence: [Vase studio](VASE.md).
 
 Infinity fidget provides cube, rectangular, spherical and infinity-triangle bodies, actual engraved textures, per-block writing and colors, and locally traced artwork. Its captured conical bearings and eight-link layout adapt Jan Pieper's MIT source; the complete notice is shipped locally and included in 3MF provenance. The triangle uses alternating diagonal corner cuts and offset, narrower bearings measured from the user's permissioned source. Adjustable gaps reserve the maximum coupled corner sweep, not only the first fold. Five unique material colors are supported across blocks, links and marks. STL retains geometry and attribution but has no material colors.
 

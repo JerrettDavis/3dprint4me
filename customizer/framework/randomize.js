@@ -61,7 +61,8 @@ export function randomizeParams(generator, current, { locked = new Set(), rng = 
     const next = { ...current };
     let colorIndex = 0;
     for (const [key, def] of Object.entries(generator.schema)) {
-      if (locked.has(key) || !isRandomizable(def) || !isFieldVisible(def, next)) continue;
+      if (locked.has(key) || !isRandomizable(def) || !isFieldVisible(def, next)
+        || (def.randomizeWhen && !def.randomizeWhen(next))) continue;
       if (def.type === "color") next[key] = randomColor(rng);
       else if (def.type === "bool") next[key] = rng() < 0.5;
       else if (def.type === "enum") next[key] = pick(enumChoices(def), rng);

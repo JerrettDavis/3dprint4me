@@ -165,6 +165,10 @@ def capture_customize_states() -> list[tuple[str, Path]]:
     captured: list[tuple[str, Path]] = []
     with running_server() as base_url:
         for label, route, filename, viewport, scheme, ready, prepare in [
+            ("Algorithmic vase · desktop · light", "/customize/g/vase/", "customize-vase-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Algorithmic vase · mobile · dark", "/customize/g/vase/", "customize-vase-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
+            ("Vase realistic · desktop · light", "/customize/g/vase/", "customize-vase-realistic-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, show_realistic_preview),
+            ("Vase realistic · mobile · dark", "/customize/g/vase/", "customize-vase-realistic-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, show_realistic_preview),
             ("Infinity fidget · desktop · light", "/customize/g/infinity-fidget/", "customize-infinity-fidget-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
             ("Infinity fidget · mobile · dark", "/customize/g/infinity-fidget/", "customize-infinity-fidget-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
             ("Gridfinity base · desktop · light", "/customize/g/gridfinity-base/", "customize-gridfinity-base-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),

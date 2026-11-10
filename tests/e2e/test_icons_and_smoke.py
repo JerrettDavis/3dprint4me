@@ -135,7 +135,7 @@ def test_index_category_tiles_are_visible_and_actionable() -> None:
     with SiteBrowser(viewport=(1366, 960)) as site:
         page = site.load("/")
         tiles = page.locator(".cat-tile")
-        assert tiles.count() == 13
+        assert tiles.count() == 14
         for index in range(tiles.count()):
             tile = tiles.nth(index)
             assert tile.is_visible()

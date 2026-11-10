@@ -1,0 +1,554 @@
+{
+  "date": "2026-11-10",
+  "assetRelease": "6c6c04bbfe128f84",
+  "physicalPrintVerified": false,
+  "geometry": [
+    {
+      "design": "dune",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 146,
+      "triangles": 16078,
+      "dimensionsMm": [
+        90.12,
+        93.613,
+        155
+      ],
+      "volumeMm3": 613126.65,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "dune",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 9663,
+      "triangles": 27770,
+      "dimensionsMm": [
+        90.12,
+        93.613,
+        155
+      ],
+      "volumeMm3": 64868.591,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "classic",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 78,
+      "triangles": 4604,
+      "dimensionsMm": [
+        100,
+        100,
+        180
+      ],
+      "volumeMm3": 983355.618,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "classic",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 3787,
+      "triangles": 7528,
+      "dimensionsMm": [
+        100,
+        100,
+        180
+      ],
+      "volumeMm3": 83706.732,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "blossom",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 75,
+      "triangles": 5542,
+      "dimensionsMm": [
+        92.757,
+        92.757,
+        155
+      ],
+      "volumeMm3": 621988.178,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "blossom",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 7546,
+      "triangles": 15968,
+      "dimensionsMm": [
+        92.757,
+        92.757,
+        155
+      ],
+      "volumeMm3": 79816.404,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "ripple",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 132,
+      "triangles": 7102,
+      "dimensionsMm": [
+        93.175,
+        93.175,
+        155
+      ],
+      "volumeMm3": 701915.087,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "ripple",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 10417,
+      "triangles": 24800,
+      "dimensionsMm": [
+        93.175,
+        93.175,
+        155
+      ],
+      "volumeMm3": 75333.349,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "faceted-planter",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 37,
+      "triangles": 60,
+      "dimensionsMm": [
+        95.263,
+        110,
+        90
+      ],
+      "volumeMm3": 545230.661,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "faceted-planter",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 115,
+      "triangles": 84,
+      "dimensionsMm": [
+        95.263,
+        110,
+        90
+      ],
+      "volumeMm3": 52400.843,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "rose",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 82,
+      "triangles": 6046,
+      "dimensionsMm": [
+        92.184,
+        93.049,
+        140
+      ],
+      "volumeMm3": 589580.712,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "rose",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 5467,
+      "triangles": 14026,
+      "dimensionsMm": [
+        92.184,
+        93.049,
+        140
+      ],
+      "volumeMm3": 61601.968,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "scales",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 122,
+      "triangles": 10294,
+      "dimensionsMm": [
+        95,
+        95,
+        155
+      ],
+      "volumeMm3": 573139.866,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "scales",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 15707,
+      "triangles": 37774,
+      "dimensionsMm": [
+        95,
+        95,
+        155
+      ],
+      "volumeMm3": 70550.533,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "cells",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 264,
+      "triangles": 27934,
+      "dimensionsMm": [
+        95,
+        92.031,
+        155
+      ],
+      "volumeMm3": 700367.115,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "cells",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 18163,
+      "triangles": 50738,
+      "dimensionsMm": [
+        95,
+        92.031,
+        155
+      ],
+      "volumeMm3": 70050.827,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "crystal",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 285,
+      "triangles": 9982,
+      "dimensionsMm": [
+        94.949,
+        94.949,
+        155
+      ],
+      "volumeMm3": 677486.275,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "crystal",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 13519,
+      "triangles": 24244,
+      "dimensionsMm": [
+        94.949,
+        94.949,
+        155
+      ],
+      "volumeMm3": 69713.174,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "fractal",
+      "construction": "solid",
+      "ok": true,
+      "milliseconds": 290,
+      "triangles": 20732,
+      "dimensionsMm": [
+        89.204,
+        88.822,
+        155
+      ],
+      "volumeMm3": 596930.27,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    },
+    {
+      "design": "fractal",
+      "construction": "hollow",
+      "ok": true,
+      "milliseconds": 21071,
+      "triangles": 40742,
+      "dimensionsMm": [
+        89.204,
+        88.822,
+        155
+      ],
+      "volumeMm3": 61879.277,
+      "warnings": [
+        "embedded_settings_ignored"
+      ]
+    }
+  ],
+  "slicing": [
+    {
+      "name": "blossom-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 21708118
+    },
+    {
+      "name": "blossom-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 125950,
+      "gcode_bytes": 5217000
+    },
+    {
+      "name": "cells-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 24498903
+    },
+    {
+      "name": "cells-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 167444,
+      "gcode_bytes": 6723939
+    },
+    {
+      "name": "classic-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 12192433
+    },
+    {
+      "name": "classic-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 58860,
+      "gcode_bytes": 2801900
+    },
+    {
+      "name": "crystal-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 17529667
+    },
+    {
+      "name": "crystal-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 106262,
+      "gcode_bytes": 4484588
+    },
+    {
+      "name": "dune-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 23513627
+    },
+    {
+      "name": "dune-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 129852,
+      "gcode_bytes": 5354535
+    },
+    {
+      "name": "faceted-planter-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 1350754
+    },
+    {
+      "name": "faceted-planter-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 3551,
+      "gcode_bytes": 540613
+    },
+    {
+      "name": "fractal-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 21953784
+    },
+    {
+      "name": "fractal-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 128010,
+      "gcode_bytes": 5274024
+    },
+    {
+      "name": "ripple-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 25400072
+    },
+    {
+      "name": "ripple-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 150009,
+      "gcode_bytes": 6100802
+    },
+    {
+      "name": "rose-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 18180099
+    },
+    {
+      "name": "rose-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 109501,
+      "gcode_bytes": 4572278
+    },
+    {
+      "name": "scales-hollow",
+      "construction": "hollow",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 0,
+      "gcode_bytes": 32428041
+    },
+    {
+      "name": "scales-solid",
+      "construction": "solid",
+      "exit": 0,
+      "result": 0,
+      "warnings": [
+        ""
+      ],
+      "spiral_extrusion_moves": 175531,
+      "gcode_bytes": 7185195
+    }
+  ],
+  "notes": [
+    "Cells hollow export timed out under concurrent load, then passed isolated in 18163 ms.",
+    "Six slicer attempts timed out using reused output paths; all passed in unique fresh directories. The verifier now always uses a new directory.",
+    "Bambu Studio 02.08.02.61 with isolated configuration; no customer data."
+  ]
+}

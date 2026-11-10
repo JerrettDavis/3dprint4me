@@ -139,7 +139,7 @@ function boot() {
   const trace = createTracer();
   const traceInks = createLayerTracer();
   const loadImage = createImageLoader();
-  const client = createWorkerClient();
+  const client = createWorkerClient({ interruptOnSupersede: generator.interruptBuilds === true });
   let viewer = null;
   let viewerLoading = null;
   // A definition may start in another view and rename the flat views (a round 3D object reads
@@ -677,7 +677,7 @@ function boot() {
     if (designs.length) {
       // Open for a first visit on a wide screen; a phone starts on the settings themselves.
       const fresh = loadDraft(generator) === null && !globalThis.matchMedia?.("(max-width: 760px)").matches;
-      panel = createDesignPanel(generator, { open: fresh, onPick: pick });
+      panel = createDesignPanel(generator, { open: fresh && generator.openDesigns !== false, onPick: pick });
       (tools ?? els.form).after(panel.element);
       designId = defaultDesign && same(state.params, applyDesign(generator, defaultDesign, state.params) ?? {}) ? defaultDesign.id : (designs.find(d => { const p = applyDesign(generator, d, state.params); return p && same(state.params, p); })?.id ?? null);
       paint();

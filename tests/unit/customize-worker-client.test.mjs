@@ -41,6 +41,25 @@ function fakeClock() {
 
 const settled = promise => promise.then(value => ({ value }), error => ({ error }));
 
+test('interrupting superseded builds stops obsolete computation and ignores its late reply', async () => {
+  const { create, workers } = fakeWorkerFactory();
+  const clock = fakeClock();
+  const client = createWorkerClient({ createWorker: create, interruptOnSupersede: true,
+    setTimer: clock.setTimer, clearTimer: clock.clearTimer });
+  const obsolete = settled(client.build('vase', { height_mm: 150 }));
+  const obsoleteId = workers[0].posted[0].id;
+  const latest = settled(client.build('vase', { height_mm: 160 }));
+  assert.equal(workers[0].terminated, true);
+  assert.equal(workers.length, 2);
+  assert.equal(clock.pending, 1);
+  workers[0].reply({ id: obsoleteId, ok: true, result: 'obsolete geometry' });
+  workers[1].reply({ id: workers[1].posted[0].id, ok: true, result: 'latest geometry' });
+  assert.ok((await obsolete).error instanceof SupersededError);
+  assert.equal((await latest).value, 'latest geometry');
+  assert.equal(clock.pending, 0);
+  client.terminate();
+});
+
 test("resolves with the worker result for the matching request id", async () => {
   const { create, workers } = fakeWorkerFactory();
   const client = createWorkerClient({ createWorker: create });

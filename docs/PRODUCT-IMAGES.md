@@ -1,6 +1,6 @@
 # Product browsing images
 
-The home shop (`public/index.html`) shows all nine public generators and four service starting points. `/customize/` uses `public/assets/js/customize/product-media.js` for the same generator images and descriptions. Browsing either page requires no geometry build, worker, WASM, credentials or external image host. The home markup stays static and works without JavaScript; unit contracts prevent drift against the public registry and Customize cards.
+The home shop (`public/index.html`) shows all ten public generators and four service starting points. `/customize/` uses `public/assets/js/customize/product-media.js` for the same generator images and descriptions. Browsing either page requires no geometry build, worker, WASM, credentials or external image host. The home markup stays static and works without JavaScript; unit contracts prevent drift against the public registry and Customize cards.
 
 Gridfinity baseplate and bin images are captured from the actual default Manifold geometry by
 `python scripts/capture_gridfinity_media.py` after `npm run customizer:build`. UI overlays are
@@ -56,3 +56,7 @@ Premium ecommerce catalog product render landscape 4:3, realistic stylized studi
 ## Updating the catalog
 
 For a new public generator, add representative local media to the manifest and a home card. Use truthful alt text and visible provenance. Generated illustrations must not reuse a different product's photo. Run the product-media contract tests, browser browsing checks, full `npm test`, and screenshots. Rebuild the customizer and version assets as described in `GENERATORS.md`. Inspect both catalogs at desktop and 390px widths in light and dark themes. Keep every image same-origin, preserve original sources, and avoid customer uploads or personal data in generation prompts.
+
+## Algorithmic vase
+
+The 640 × 480 vase.webp is captured from actual default local realistic-preview geometry by scripts/render-vase-product.py after the customizer build. UI overlays are hidden. It is an illustrative render, not a photographed or verified physical print. No AI imagery, remote images or customer data is used.
