@@ -92,7 +92,8 @@ export default function build(p, { wasm }) {
       result = shell.translate([0, 0, 0]);
     }
     return {
-      solids: [{ name: p.construction === 'solid' ? 'Vase solid · spiral print' : 'Vase hollow · normal print', color: p.color, solid: result }],
+      solids: [{ name: p.construction === 'solid' ? 'Vase solid · spiral print' : 'Vase hollow · normal print', color: p.color, solid: result,
+        smoothShading: (p.poly_density ?? 50) >= 75 && !p.facets }],
       filenameBase: `vase-${p.construction}-${p.pattern}`,
       ...(p.construction === 'solid' ? { slicerSettings: {
         spiral_mode: '1', top_shell_layers: '0', top_shell_thickness: '0',

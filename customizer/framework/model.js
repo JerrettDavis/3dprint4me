@@ -70,7 +70,7 @@ export async function buildPresentationModel(generator, params, ctx) {
     return { parts: built.solids.map(s => {
       const color = normalizeColor(s.color);
       if (!color) throw fail('invalid-color', 'A preview part has an invalid color.');
-      return { name: s.name, color, mesh: manifoldToMesh(s.solid) };
+      return { name: s.name, color, mesh: manifoldToMesh(s.solid), ...(s.smoothShading ? { smoothShading: true } : {}) };
     }) };
   } finally {
     for (const s of built.solids) free(s.solid);
@@ -102,7 +102,7 @@ export async function buildModel(generator, params, ctx) {
       // relative volume change <= 2e-7, bounds shift <= 1e-6 mm, genus unchanged).
       const clean = shifted.simplify(MESH_CLEAN_TOLERANCE_MM);
       shiftedCopies.push(clean);
-      return { name: s.name, color: colorOf[i], mesh: manifoldToMesh(clean) };
+      return { name: s.name, color: colorOf[i], mesh: manifoldToMesh(clean), ...(s.smoothShading ? { smoothShading: true } : {}) };
     });
     let meta = generator.schema ? redactSensitive(generator, params) : { ...params };
     if (generator.publicParams) meta = generator.publicParams(meta);

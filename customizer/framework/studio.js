@@ -34,6 +34,6 @@ export function createStudio(renderer) {
 export function finishMaterial(material, realistic) {
   material.roughness = realistic ? .42 : .5;
   material.envMapIntensity = realistic ? .35 : 1;
-  material.flatShading = !realistic;
+  material.flatShading = !realistic && !material.userData.smoothShading;
   material.needsUpdate = true;
 }

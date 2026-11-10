@@ -1,5 +1,5 @@
-import { compileVaseField } from './vase-field.js?v=6c6c04bbfe128f84';
-import { validateVaseProfile, VASE_PROFILE_LIMITS } from './vase-shape.js?v=6c6c04bbfe128f84';
+import { compileVaseField } from './vase-field.js?v=89c1ce1c55a77d71';
+import { validateVaseProfile, VASE_PROFILE_LIMITS } from './vase-shape.js?v=89c1ce1c55a77d71';
 
 const TAU = 2 * Math.PI;
 function dimension(settings, key, min, max) {
@@ -19,11 +19,19 @@ export function sampleVaseEnvelope(settings) {
   const angularCycles = Math.max(settings.lobes, settings.organic ? 7 : 0, texture ? harmonic * settings.frequency : 0);
   const verticalCycles = (texture ? harmonic * settings.vertical_frequency : 0)
     + Math.max(angularCycles, settings.facets) * Math.abs(settings.twist_deg) / 360;
-  let segments = Math.max(64, Math.ceil(angularCycles * 12));
+  // Missing density preserves version-one drafts and callers. Both directions
+  // change: reducing only circular segments leaves a densely sampled profile.
+  const density = settings.poly_density ?? 50;
+  if (!Number.isInteger(density) || density < 0 || density > 100) throw new RangeError('Poly density must be a whole number from 0 to 100.');
+  const blend = (low, standard, high) => density <= 50
+    ? low + (standard - low) * density / 50
+    : standard + (high - standard) * (density - 50) / 50;
+  const samplesPerCycle = blend(0, 12, 16);
+  let segments = Math.max(Math.ceil(blend(6, 64, 384)), Math.ceil(angularCycles * samplesPerCycle));
   if (settings.facets) segments = Math.ceil(segments / (settings.facets * 2)) * settings.facets * 2;
-  const rows = Math.max(32, Math.ceil(verticalCycles * 12));
+  const rows = Math.max(Math.ceil(blend(4, 32, 192)), Math.ceil(verticalCycles * samplesPerCycle));
   if (segments > 1024 || rows > 512 || segments * (rows + settings.profile.length + 3) > 80000) {
-    throw new RangeError('This vase needs too much geometry. Reduce pattern frequency, twist, or lobes.');
+    throw new RangeError('This vase needs too much geometry. Reduce poly density, pattern frequency, twist, or lobes.');
   }
   const heights = [...new Set([...Array.from({ length: rows + 1 }, (_, i) => i / rows), ...settings.profile.map(point => point.height)])].sort((a, b) => a - b);
   let maximum = 0;

@@ -126,7 +126,8 @@ function makeBadgeMesh(parts) {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     toCreasedNormals(geo, .55);
-    const mesh = new THREE.Mesh(geo, mat(p.color, { roughness: .5, flatShading: true, polygonOffset: true, polygonOffsetFactor: index ? -1 : 1, polygonOffsetUnits: index ? -2 : 1 }));
+    const mesh = new THREE.Mesh(geo, mat(p.color, { roughness: .5, flatShading: !p.smoothShading, polygonOffset: true, polygonOffsetFactor: index ? -1 : 1, polygonOffsetUnits: index ? -2 : 1 }));
+    mesh.material.userData.smoothShading = Boolean(p.smoothShading);
     mesh.userData.name = p.name;
     group.add(mesh);
   }

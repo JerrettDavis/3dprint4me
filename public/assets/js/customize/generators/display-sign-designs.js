@@ -2,7 +2,7 @@
 // presets. The commissioned ones reproduce displays made for customers (the logo itself is the
 // customer's own image, added on the page; these use lettering and shapes where it would go).
 // QR content is a bare web address: the build adds the scheme (see qrPayload in sign.js).
-import { decoKeys, holderTextKeys, textKeys } from "../sign.js?v=6c6c04bbfe128f84";
+import { decoKeys, holderTextKeys, textKeys } from "../sign.js?v=89c1ce1c55a77d71";
 
 const text = (i, o) => {
   const k = textKeys(i);

@@ -1,4 +1,4 @@
-import { VASE_PATTERNS } from '../vase-field.js?v=6c6c04bbfe128f84';
+import { VASE_PATTERNS } from '../vase-field.js?v=89c1ce1c55a77d71';
 
 const urn = [
   { height: 0, radius: 0.62 }, { height: 0.18, radius: 0.88 },
@@ -46,6 +46,7 @@ export default {
     height_mm: { type: 'number', label: 'Height', min: 30, max: 250, step: 1, default: 155, unit: 'mm', group: 'size' },
     diameter_mm: { type: 'number', label: 'Maximum diameter', min: 30, max: 220, step: 1, default: 95, unit: 'mm', group: 'size', help: 'The complete deformed envelope is scaled to this diameter. Check your printer bed.' },
     facets: { type: 'int', label: 'Polygon sides', min: 0, max: 32, step: 1, default: 0, group: 'form', help: '0 gives a circular section; choose at least 3 for planar polygon sides.' },
+    poly_density: { type: 'int', label: 'Poly density', min: 0, max: 100, step: 1, default: 50, randomize: false, group: 'form', help: '0 = very low poly, 50 = standard, 100 = smooth. Changes the actual mesh around and up the vase, including downloads. Higher density takes longer. Polygon sides still controls intentional corners.' },
     twist_deg: { randomizeWhen: randomizeSurface, type: 'number', label: 'Twist from base to mouth', min: -360, max: 360, step: 1, default: 45, unit: 'degrees', group: 'form' },
     lobes: { randomizeWhen: randomizeSurface, type: 'int', label: 'Lobes / petals', min: 0, max: 16, step: 1, default: 0, group: 'form' },
     lobe_depth: { randomizeWhen: randomizeSurface, type: 'number', label: 'Lobe depth', min: 0, max: 0.3, step: 0.01, default: 0.12, group: 'form', visibleWhen: p => p.lobes > 0, help: 'Fraction of the local radius. Deep lobes can produce steep overhangs.' },

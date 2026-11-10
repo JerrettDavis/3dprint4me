@@ -22,6 +22,43 @@ async function build(changes = {}) {
 }
 const dispose = result => result.solids.forEach(part => part.solid.delete());
 
+test('density changes the downloaded triangulated mesh and smooth preview intent', async () => {
+  const wasm = await loadEngine();
+  const counts = [];
+  for (const construction of ['solid', 'hollow']) {
+    for (const poly_density of [0, 100]) {
+      const exported = await buildModel({ id: 'vase', version: 1, build: module.default },
+        { ...settings, construction, poly_density }, { wasm });
+      const files = unzipSync(exported.data);
+      const xml = strFromU8(files['3D/3dmodel.model']);
+      const triangles = [...xml.matchAll(/<triangle /g)].length;
+      counts.push(triangles);
+      assert.equal(Boolean(exported.parts[0].smoothShading), poly_density === 100);
+      assert.equal(JSON.parse(strFromU8(files['Metadata/customizer.json'])).poly_density, poly_density);
+      const { metrics } = await analyzeModelOnServer({ name: exported.filename, bytes: exported.data });
+      assert.equal(metrics.degenerateTriangles, 0);
+      assert.ok(metrics.signedVolumeMm3 > 0);
+      assert.ok(Math.abs(metrics.dimensionsMm[2] - settings.height_mm) < 0.001);
+    }
+  }
+  assert.ok(counts[1] > counts[0] * 10);
+  assert.ok(counts[3] > counts[2] * 10);
+});
+
+test('every ready-made vase builds at both density extremes', async () => {
+  const { default: generator } = await import('../../public/assets/js/customize/generators/vase.js');
+  const { validateParams } = await import('../../public/assets/js/customize/schema.js');
+  for (const [name, preset] of Object.entries(generator.presets)) for (const poly_density of [0, 100]) {
+    const checked = validateParams(generator, { ...preset, poly_density });
+    assert.equal(checked.ok, true);
+    const result = await build(checked.value);
+    try {
+      assert.equal(result.solids[0].solid.status(), 'NoError', `${name}, density ${poly_density}`);
+      assert.ok(result.solids[0].solid.volume() > 0);
+    } finally { dispose(result); }
+  }
+});
+
 test('solid vase output is a closed full-volume envelope on a flat base', async () => {
   const result = await build();
   try {

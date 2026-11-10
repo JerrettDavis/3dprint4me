@@ -84,11 +84,15 @@ test('server provenance accepts canonical vase v1 and rejects malformed or futur
   assert.equal(normalized.generatorId, 'vase');
   assert.equal(normalized.generatorVersion, 1);
   assert.deepEqual(normalized.params.profile, module.default.presets.dune.profile);
+  assert.equal(normalized.params.poly_density, 50);
+  assert.equal(normalizeCustomization({ generatorId: 'vase', generatorVersion: 1,
+    params: { ...module.default.presets.dune, poly_density: 100 } }).params.poly_density, 100);
   for (const input of [
     { generatorId: 'vase', generatorVersion: 2, params: {} },
     { generatorId: 'vase', generatorVersion: 1, params: { profile: 'raw JSON text' } },
     { generatorId: 'vase', generatorVersion: 1, params: { profile: new Array(10000).fill(null) } },
     { generatorId: 'vase', generatorVersion: 1, params: { height_mm: 1000 } },
     { generatorId: 'vase', generatorVersion: 1, params: { construction: 'unexpected' } },
+    { generatorId: 'vase', generatorVersion: 1, params: { poly_density: 101 } },
   ]) assert.throws(() => normalizeCustomization(input), error => error.status === 400);
 });

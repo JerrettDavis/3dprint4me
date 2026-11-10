@@ -1,4 +1,4 @@
-import { createMeshAccumulator, ModelAnalysisError } from "./mesh.js?v=6c6c04bbfe128f84";
+import { createMeshAccumulator, ModelAnalysisError } from "./mesh.js?v=89c1ce1c55a77d71";
 
 const stlLatin1 = new TextDecoder("latin1");
 const STL_VERTEX = /\bvertex\s+(\S+)\s+(\S+)\s+(\S+)/g;

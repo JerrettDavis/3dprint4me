@@ -22,6 +22,41 @@ def download_metadata(page):
         return json.loads(archive.read('Metadata/customizer.json'))
 
 
+@pytest.mark.parametrize('width,scheme', [(1280, 'light'), (390, 'dark')])
+def test_vase_poly_density_offline_draft_export_and_visuals(browser, base_url, width, scheme):
+    context = browser.new_context(viewport={'width': width, 'height': 900},
+                                  color_scheme=scheme, reduced_motion='reduce')
+    page = context.new_page()
+    try:
+        page.goto(base_url + '/customize/g/vase/')
+        wait_ready(page)
+        if width == 390:
+            page.get_by_role('button', name='Settings', exact=True).click()
+        pick_design(page, 'Classic urn')
+        density = page.get_by_role('spinbutton', name='Poly density', exact=True)
+        context.set_offline(True)
+        for value in [0, 100]:
+            density.fill(str(value))
+            density.press('Tab')
+            wait_settled(page)
+            assert download_metadata(page)['poly_density'] == value
+            page.get_by_text('Poly density', exact=True).scroll_into_view_if_needed()
+            output = Path(__file__).resolve().parents[2] / 'screenshots'
+            output.mkdir(exist_ok=True)
+            page.screenshot(path=str(output / f'vase-density-{value}-{width}-{scheme}.png'))
+        context.set_offline(False)
+        page.reload()
+        wait_ready(page)
+        if width == 390:
+            page.get_by_role('button', name='Settings', exact=True).click()
+        expect(page.get_by_role('spinbutton', name='Poly density', exact=True)).to_have_value('100')
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        page.get_by_role('button', name='Continue to request', exact=True).click()
+        expect(page.locator('#customize-notice')).to_have_text('Loaded from the customizer — review and continue.')
+    finally:
+        context.close()
+
+
 @pytest.mark.parametrize('design,pattern,construction', [
     ('Wind-shaped dunes', 'dune', 'solid'), ('Classic urn', 'smooth', 'solid'),
     ('Blossom', 'smooth', 'solid'), ('Twisted ripple', 'ripple', 'solid'),

@@ -1,5 +1,29 @@
 # Algorithmic vase studio
 
+## Poly density
+
+**Poly density** (0–100, default 50) changes the mesh around and up the vase
+for previews, 3MF/STL downloads, local drafts and private request handoff.
+At 0, the circular form starts with six angular samples and four vertical
+intervals plus profile control points, producing deliberate low-poly facets.
+At 100, it uses at least 384 angular samples and 192 vertical intervals;
+circular chord error is below 0.005 mm even at the maximum 220 mm diameter.
+Smooth preview normals are enabled from 75 when Polygon sides is 0, while
+sharp edges remain creased. Downloads contain the dense triangular mesh;
+preview shading does not substitute for export geometry. A mesh is always a
+finite approximation, and deliberate textures and polygon corners remain.
+
+**Polygon sides** remains a separate shape control. More density refines that
+shape without rounding away its intentional corners. Complex patterns can
+require extra samples; the existing 80,000-sample budget still applies and
+asks for lower density or simpler modifiers if exceeded. Missing density in
+older version-one parameters uses 50, preserving the previous sampling.
+
+Deploy the API with the density-aware shared registry before publishing this
+storefront update: an older API rejects the new `poly_density` parameter even
+though the generator remains version one. Confirm a private request with both
+density endpoints before considering a production rollout verified.
+
 The implementation and release record are tracked in [PR #79](https://github.com/JerrettDavis/3dprint4me/pull/79), including hosted CI and production rollout evidence. See the algorithmic-vase design and implementation plan under `docs/superpowers/`.
 
 ## Controls and original forms
