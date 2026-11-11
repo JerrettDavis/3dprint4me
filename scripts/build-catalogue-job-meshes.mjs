@@ -20,7 +20,7 @@ const g = getGenerator(input.configuration.generatorId);
 const base = `/assets/images/products/catalogue/${input.productId}-${input.configurationSha256.slice(0, 16)}`;
 const recipes = catalogueRenderRecipes([{ id: input.productId, revision: 1, ...input.configuration,
   title: g.title, category: 'Preview', summary: 'Preview of public settings.', status: 'published',
-  images: [{ src: `${base}-hero.webp`, alt: `${g.title}, studio render`, kind: 'render' }, { src: `${base}-detail.webp`, alt: `${g.title}, alternate studio view`, kind: 'render' }] }]);
+  images: [{ src: `${base}-hero.webp`, alt: `${g.title}, studio render`, kind: 'render' }, { src: `${base}-detail.webp`, alt: `${g.title}, alternate studio view`, kind: 'render' }] }], { camera: input.renderCamera ?? 'standard' });
 if (recipes.some(recipe => recipe.configurationSha256 !== input.configurationSha256)) throw new Error('Invalid configuration fingerprint.');
 const checked = validateParams(g, input.configuration.params);
 if (!checked.ok) throw new Error('Public demonstration settings are not buildable.');

@@ -10,6 +10,7 @@ from playwright.sync_api import expect, sync_playwright
 from tests.support.server import running_server
 from tests.support.browser_harness import SYSTEM_CHROMIUM_PATH
 from tests.support.operator_harness import running_operator_workspace
+from tests.support.catalogue_preview import owner_catalogue_fixture, install_owner_catalogue_fixture
 
 
 @pytest.fixture(scope='module')
@@ -40,6 +41,7 @@ def test_shop_filters_and_deep_links_preserve_a_saved_draft(catalogue_browser, c
         expect(page.locator('.catalogue-card:visible')).to_have_count(1)
         page.locator('.catalogue-card:visible a').click()
         expect(page.locator('h1')).to_contain_text(re.compile('keychain', re.I))
+        product_title = page.locator('h1').inner_text()
         expect(page.locator('.catalogue-product img')).to_have_count(2)
         request_box = page.get_by_role('link', name='Request this design', exact=True).bounding_box()
         assert request_box['y'] + request_box['height'] < 844, 'the primary request action should be visible in the first mobile screen'
@@ -63,6 +65,7 @@ def test_shop_filters_and_deep_links_preserve_a_saved_draft(catalogue_browser, c
         page.get_by_role('button', name='Request this design', exact=True).click()
         page.wait_for_url('**/order.html?service=print&from=customize')
         expect(page.locator('#customize-notice')).to_contain_text('Loaded from the customizer', timeout=15000)
+        expect(page.locator('#project-title')).to_have_value(f'Custom {product_title}')
         page.locator('#next-button').click()
         expect(page.locator('#file-list')).to_contain_text('name-plate')
         assert page.url.startswith(catalogue_url)
@@ -114,6 +117,22 @@ def test_owner_publication_controls_show_pending_then_verified_withdrawal(catalo
             dialog.get_by_role('button', name='Withdraw public product', exact=True).click()
             expect(dialog.get_by_text('Waiting for the public release to be verified.', exact=True)).to_be_visible()
             assert actions == ['publish', 'withdraw']
+
+def test_missing_private_preview_keeps_owner_rebuild_controls(catalogue_browser):
+    with running_operator_workspace() as (_, operator, _):
+        with catalogue_browser.new_context(viewport={'width': 390, 'height': 844}, service_workers='block') as context:
+            page = context.new_page()
+            fixture = owner_catalogue_fixture()
+            install_owner_catalogue_fixture(page, operator, fixture)
+            page.route('**/*preview=*', lambda route: route.fulfill(status=409, headers={'access-control-allow-origin': operator, 'access-control-allow-credentials': 'true'}, json={'error': 'This private preview needs to be built again.'}))
+            page.goto(operator)
+            page.get_by_role('button', name='Product catalogue', exact=True).click()
+            dialog = page.get_by_role('dialog', name='Product catalogue')
+            dialog.get_by_role('button', name=fixture['product']['title'], exact=True).click()
+            expect(dialog.get_by_text('Private previews are unavailable. Build fresh previews to review this product.', exact=True)).to_be_visible()
+            expect(dialog.get_by_role('button', name='Publish reviewed product', exact=True)).to_be_disabled()
+            dialog.get_by_role('button', name='Build previews', exact=True).click()
+            expect(dialog.get_by_role('status')).to_contain_text('Preview job queued')
 
 
 def test_invalid_product_does_not_build_a_different_default(catalogue_browser, catalogue_url):
@@ -176,8 +195,8 @@ console.log(result.workItem.id);'''
             expect(dialog.get_by_role('button', name='Build previews', exact=True)).to_be_disabled()
             dialog.get_by_role('button', name='Close catalogue', exact=True).click()
             page.get_by_role('button', name='Product catalogue', exact=True).click()
-            dialog.get_by_role('button', name='Office name sign', exact=True).click()
+            dialog.locator('[data-product-id="office-name-sign"]').get_by_role('button', name='Office name sign', exact=True).click()
             expect(dialog.get_by_label('Product title', exact=True)).to_have_value('Office name sign')
         catalogue_state = json.loads(Path(str(store_path) + '.invoices.json.catalogue.json').read_text())
         assert 'CUSTOMER PRIVATE' not in json.dumps(catalogue_state)
-        assert catalogue_state['records'][0]['sourceWorkId'] == work_id
+        assert next(r for r in catalogue_state['records'] if r['draft']['id'] == 'office-name-sign')['sourceWorkId'] == work_id

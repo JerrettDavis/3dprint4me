@@ -38,7 +38,7 @@ async function fixture(t, existing = [PRODUCTS.find(p => p.id === 'name-plate-cl
     await mkdir(join(directory, 'public/shop'), { recursive: true });
     await writeFile(join(directory, 'public/shop/index.html'), '<!doctype html><title>Shop</title>');
   };
-  const options = { remote, branch: 'main', privateRoot: join(root, 'releases'), previewRoot, publicSiteUrl: 'https://shop.example.test', allowLocalRemote: true, build };
+const options = { remote, branch: 'main', privateRoot: join(root, 'releases'), previewRoot, publicSiteUrl: 'https://shop.example.test', allowLocalRemote: true, build, authorName: 'Authorized Owner', authorEmail: 'owner@example.test' };
   const verifiedFetch = async (url, options) => {
     assert.equal(String(url), 'https://shop.example.test/catalogue-releases/release-test.json');
     assert.equal(options.method, 'GET'); assert.equal(options.redirect, 'error');
@@ -58,6 +58,7 @@ test('publisher writes only reviewed snapshots/images and verifies the actual pu
   assert.match(projection, /name-plate-classic/); assert.match(projection, /pumpkin-witch/);
   assert.doesNotMatch(projection, /sourceWorkId|permissionNote|render-sample/);
   assert.equal(git(f.remote, 'rev-list', '--count', 'main'), '2');
+  assert.equal(git(f.remote, 'log', '-1', '--format=%an <%ae>'), 'Authorized Owner <owner@example.test>');
   const files = git(f.remote, 'ls-tree', '-r', '--name-only', 'main');
   assert.doesNotMatch(files, /\.private|input\.json|preview-0/);
 });
@@ -105,7 +106,8 @@ test('publication cannot replace bytes behind an existing immutable image URL', 
 });
 
 test('publisher rejects credential-bearing URLs, unsafe branches and public staging directories', () => {
-  const options = { remote: 'https://github.com/example/catalogue.git', publicSiteUrl: 'https://shop.example.test', privateRoot: join(tmpdir(), 'catalogue-release-test'), branch: 'main' };
+const options = { remote: 'https://github.com/example/catalogue.git', publicSiteUrl: 'https://shop.example.test', privateRoot: join(tmpdir(), 'catalogue-release-test'), branch: 'main' };
+  assert.throws(() => createCataloguePublisher(options), /author/i);
   assert.throws(() => createCataloguePublisher({ ...options, remote: 'https://token:PRIVATE@github.com/example/repo.git' }));
   assert.throws(() => createCataloguePublisher({ ...options, branch: '../main' }));
   assert.throws(() => createCataloguePublisher({ ...options, privateRoot: new URL('../../public/releases/', import.meta.url) }));

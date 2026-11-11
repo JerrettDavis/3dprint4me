@@ -21,6 +21,12 @@ def install_owner_catalogue_fixture(page, operator, fixture):
         if 'resource=catalogue' not in route.request.url:
             return route.fallback()
         product = fixture['product']
+        if route.request.method == 'POST':
+            action = route.request.post_data_json['action']
+            product.update(status='rendering' if action == 'render' else 'publishing', revision=product['revision'] + 1)
+            if action == 'render':
+                product['render'] = None
+            return route.fulfill(headers=headers, json={'product': product})
         if '&preview=' in route.request.url:
             index = int(route.request.url.split('&preview=')[1])
             path = ROOT / 'public' / product['render']['images'][index]['src'].split('?')[0].lstrip('/')

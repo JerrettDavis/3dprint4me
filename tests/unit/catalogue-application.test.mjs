@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createLocalCatalogueRepository } from '../../lib/product-catalogue/local-repository.js';
 import { createCatalogueApplication } from '../../lib/product-catalogue/application.js';
+import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
 
 const actor = { id: 'owner-1', role: 'owner' };
 const workId = 'work_gallery123';
@@ -22,6 +23,21 @@ async function fixture(t, options = {}) {
     renderConfigured: true, now: () => '2026-11-11T18:00:00.000Z', ...options });
   return { path, repository, app };
 }
+test('bundled public products are owner-manageable and their immutable IDs cannot be promoted again', async t => {
+  const p = PRODUCTS.find(p => p.id === 'pumpkin-witch');
+  const { app, repository } = await fixture(t, { publicProducts: [p], publishConfigured: true });
+  await assert.rejects(app.list({ role: 'partner', id: 'partner' }), e => e.status === 403);
+  assert.equal((await repository.list()).length, 0);
+  const results = await Promise.all([app.list(actor), app.list(actor)]);
+  assert.equal(results[0].products.length, 1);
+  assert.equal((await repository.list()).length, 1);
+  const imported = (await app.get(p.id, actor)).product;
+  assert.equal(imported.published.revision, p.revision);
+  assert.deepEqual(imported.published.snapshot, p);
+  await assert.rejects(app.execute({ ...promote, id: p.id }, actor), e => e.status === 409);
+  const withdrawn = await app.execute({ action: 'withdraw', id: p.id, revision: imported.revision, commandId: 'withdraw-launch' }, actor);
+  assert.equal(withdrawn.publication.revision, p.revision + 1);
+});
 
 test('real private repository persists safe promotions and idempotent command replay across restarts', async t => {
   const { path, app } = await fixture(t);

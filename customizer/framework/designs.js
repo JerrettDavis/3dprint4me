@@ -6,9 +6,10 @@ import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
 import { resolveProductLink } from '../../public/assets/js/catalogue/contract.js';
 
 export const designsOf = generator => [
-  ...PRODUCTS.filter(p => p.generatorId === generator.id && p.status === 'published' && p.generatorVersion === generator.version)
+  ...PRODUCTS.filter(p => p.generatorId === generator.id && p.status === 'published' && p.discoverable !== false && p.generatorVersion === generator.version)
     .filter(p => !PRODUCTS.some(other => other.id === p.id && other.revision > p.revision))
     .filter(p => resolveProductLink(generator, `?product=${p.id}&revision=${p.revision}`, PRODUCTS).status === 'ready')
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .map(p => ({ id: `product-${p.id}-r${p.revision}`, label: p.title, blurb: p.summary, group: 'From the shop', params: p.params, image: p.images[0], product: { id: p.id, revision: p.revision } })),
   ...(generator.designs ?? [])
 ];

@@ -1,4 +1,4 @@
-import { productHref, isCurrentProduct } from './contract.js?v=5260e3a32fbe6d07';
+import { productHref, isCurrentProduct } from './contract.js?v=bd77a68212febac1';
 
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const esc = escapeHtml;
@@ -9,8 +9,8 @@ export function latestProducts(products) {
 }
 export function filterProducts(products, { category = '', query = '' } = {}) {
   const needle = query.trim().toLocaleLowerCase();
-  return latestProducts(products).filter(p => p.status === 'published' && isCurrentProduct(p) && (!category || p.category === category)
-    && (!needle || `${p.title} ${p.summary} ${p.category}`.toLocaleLowerCase().includes(needle)));
+  return latestProducts(products).filter(p => p.status === 'published' && p.discoverable !== false && isCurrentProduct(p) && (!category || p.category === category)
+    && (!needle || `${p.title} ${p.summary} ${p.category}`.toLocaleLowerCase().includes(needle))).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
 export function renderCard(p) {
@@ -38,7 +38,9 @@ export function renderProduct(product, media = {}) {
   <header class="catalogue-product-heading"><p class="catalogue-category">${esc(p.category)}</p><h1>${esc(p.title)}</h1></header>
   <div class="catalogue-product-images">${figure(p.images[0])}</div>
   <div class="catalogue-product-copy">
-    <p class="catalogue-description">${esc(p.summary)}</p>
+<p class="catalogue-description">${esc(p.summary)}</p>
+${p.description ? `<p>${esc(p.description)}</p>` : ''}
+${p.limitations ? `<p><strong>Use and limitations:</strong> ${esc(p.limitations)}</p>` : ''}
     <div class="catalogue-actions"><a class="button primary" href="${esc(productHref(p, { request: true }))}">Request this design</a><a class="button secondary" href="${esc(productHref(p))}">Customize this design</a></div>
     <p class="catalogue-quote-note">Made to order. We confirm materials, scope and price before production. Online estimates are non-binding.</p>
     ${size ? `<dl class="catalogue-product-facts"><div><dt>Model size</dt><dd>${esc(size)}</dd></div></dl>` : ''}

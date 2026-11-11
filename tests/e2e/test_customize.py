@@ -298,7 +298,8 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
                 assert img.evaluate('(img) => img.naturalWidth') >= 600
                 assert len(img.get_attribute('alt')) > 20
             for id in ids:
-                assert page.locator(f'{selector} a[href="/customize/g/{id}/"], a{selector}[href="/customize/g/{id}/"]').count() == 1
+                href = f'/shop/?generator={id}' if path == '/' else f'/customize/g/{id}/'
+                assert page.locator(f'{selector} a[href="{href}"], a{selector}[href="{href}"]').count() == 1
             assert page.locator(selector).filter(has_text='Illustrative render').count() == 8
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert not page.workers

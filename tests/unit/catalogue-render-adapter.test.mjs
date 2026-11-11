@@ -18,6 +18,7 @@ test('render adapter rejects secrets, unsafe IDs and public output roots before 
   await assert.rejects(render({ ...job, id: '../../public' }));
   await assert.rejects(render({ ...job, configuration: { ...configuration, params: { ...configuration.params, password: 'private' } } }));
   await assert.rejects(render({ ...job, configurationSha256: 'a'.repeat(64) }));
+  await assert.rejects(render({ ...job, renderCamera: 'https://untrusted.test' }));
   assert.deepEqual(await readdir(directory), []);
   assert.throws(() => createCatalogueRenderAdapter({ privateRoot: new URL('../../public/catalogue-private/', import.meta.url) }));
 });

@@ -1,10 +1,10 @@
 // Public snapshot contract shared by static shop, offline customizers and server validation.
-import { getGenerator } from '../customize/registry.js?v=5260e3a32fbe6d07';
-import { sensitiveKeys, validateParams } from '../customize/schema.js?v=5260e3a32fbe6d07';
+import { getGenerator } from '../customize/registry.js?v=bd77a68212febac1';
+import { sensitiveKeys, validateParams } from '../customize/schema.js?v=bd77a68212febac1';
 
 const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const IMAGE = /^\/assets\/images\/products\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)*[a-z0-9]+(?:-[a-z0-9]+)*\.(?:webp|png|jpg)(?:\?v=[a-f0-9]{16})?$/;
-const fields = new Set(['id', 'revision', 'generatorId', 'generatorVersion', 'params', 'title', 'category', 'summary', 'status', 'images']);
+const fields = new Set(['id', 'revision', 'generatorId', 'generatorVersion', 'params', 'title', 'category', 'summary', 'description', 'limitations', 'order', 'discoverable', 'status', 'images']);
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value) && [Object.prototype, null].includes(Object.getPrototypeOf(value));
 const invalid = () => { throw new Error('This catalogue configuration is not available.'); };
 const text = (value, max) => {
@@ -19,6 +19,13 @@ export function validateProduct(record, { getGenerator: lookup = getGenerator, a
   if (!g?.rights?.publishable || !Number.isSafeInteger(record.generatorVersion) || record.generatorVersion < 1
     || (record.generatorVersion !== g.version && !(allowHistorical && record.generatorVersion < g.version))) invalid();
   const historical = record.generatorVersion !== g.version;
+  const merchandising = {};
+  for (const [key, max] of [['description', 2000], ['limitations', 1000]]) if (Object.hasOwn(record, key)) {
+    if (typeof record[key] !== 'string' || record[key].length > max || /[\u0000-\u001f\u007f]/.test(record[key])) invalid();
+    merchandising[key] = record[key].trim();
+  }
+  if (Object.hasOwn(record, 'order')) { if (!Number.isInteger(record.order) || Math.abs(record.order) > 10000) invalid(); merchandising.order = record.order; }
+  if (Object.hasOwn(record, 'discoverable')) { if (typeof record.discoverable !== 'boolean') invalid(); merchandising.discoverable = record.discoverable; }
   if (!['published', 'withdrawn'].includes(record.status) || !plain(record.params)) invalid();
   const sensitive = new Set(sensitiveKeys(g));
   if (Object.keys(record.params).some(key => sensitive.has(key))) invalid();
@@ -34,7 +41,7 @@ export function validateProduct(record, { getGenerator: lookup = getGenerator, a
     return { src: image.src, alt: text(image.alt, 300), kind: 'render' };
   });
   return { id: record.id, revision: record.revision, generatorId: g.id, generatorVersion: record.generatorVersion,
-    title: text(record.title, 100), category: text(record.category, 60), summary: text(record.summary, 400),
+    title: text(record.title, 100), category: text(record.category, 60), summary: text(record.summary, 400), ...merchandising,
     status: record.status, params: historical ? structuredClone(record.params) : Object.fromEntries(Object.entries(checked.value).filter(([key]) => !sensitive.has(key))), images };
 }
 export const isCurrentProduct = product => getGenerator(product.generatorId)?.version === product.generatorVersion;

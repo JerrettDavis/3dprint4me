@@ -3,6 +3,7 @@ const el = (tag, text, className) => { const node = document.createElement(tag);
 function button(text, action) { const node = el('button', text); node.type = 'button'; node.addEventListener('click', action); return node; }
 function field(label, control) {
   const wrapper = el('label', null, 'catalogue-owner-field');
+  control.setAttribute('aria-label', label);
   wrapper.append(el('span', label), control); return wrapper;
 }
 
@@ -35,28 +36,49 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
     content.replaceChildren();
     content.append(button('All catalogue products', () => run(showList)), el('p', `${p.status.replaceAll('_', ' ')} · revision ${p.revision}`));
     if (p.status === 'publishing') content.append(el('p', 'Waiting for the public release to be verified.'));
-    if (p.published) content.append(el('p', `Verified public revision ${p.published.revision}.`));
+    if (p.published) content.append(el('p', `${p.published.source === 'bundled_projection' ? 'Current' : 'Verified'} public revision ${p.published.revision}.`));
     if (data.previewUrl) {
       const inspect = el('a', 'Inspect these settings in the design tool'); inspect.href = data.previewUrl; inspect.target = '_blank'; inspect.rel = 'noopener noreferrer';
       content.append(inspect);
     }
+    let previewsAvailable = true;
     if (p.render?.outcome === 'ready') {
       const gallery = el('section', null, 'catalogue-owner-previews'); gallery.setAttribute('aria-label', 'Private studio previews');
+      try {
       for (let index = 0; index < p.render.images.length; index++) {
         const preview = await api.cataloguePreview(p.id, index);
         const figure = el('figure'); const image = el('img');
         image.src = `data:image/webp;base64,${preview.base64}`; image.alt = p.render.images[index].alt; image.width = 480; image.height = 360;
         figure.append(image, el('figcaption', 'Private studio preview — review before publishing')); gallery.append(figure);
       }
+      } catch (error) {
+        if ([401, 403].includes(error?.status)) throw error;
+        previewsAvailable = false;
+        gallery.replaceChildren(el('p', 'Private previews are unavailable. Build fresh previews to review this product.'));
+      }
       content.append(gallery);
     }
     const form = el('form', null, 'catalogue-owner-form');
     const inputs = {};
-    for (const [key, label, max] of [['title', 'Product title', 100], ['category', 'Collection', 60], ['summary', 'Short description', 400], ['permissionNote', 'Permission and rights evidence', 1000]]) {
-      const input = el(['summary', 'permissionNote'].includes(key) ? 'textarea' : 'input');
+    for (const [key, label, max] of [['title', 'Product title', 100], ['category', 'Collection', 60], ['summary', 'Short description', 400], ['description', 'Product description', 2000], ['limitations', 'Use and limitations', 1000], ['permissionNote', 'Permission and rights evidence', 1000]]) {
+      const input = el(['summary', 'description', 'limitations', 'permissionNote'].includes(key) ? 'textarea' : 'input');
       input.name = key; input.value = p[key] ?? ''; input.maxLength = max; inputs[key] = input;
       form.append(field(label, input));
     }
+    const imageAlts = [0, 1].map(index => {
+      const input = el('input'); input.maxLength = 300;
+      input.value = p.imageAlts?.[index] || p.render?.images?.[index]?.alt || p.published?.snapshot?.images?.[index]?.alt || `${p.title}, ${index ? 'alternate' : 'primary'} studio view`;
+      form.append(field(index ? 'Alternate image description' : 'Primary image description', input)); return input;
+    });
+    const camera = el('select');
+    for (const [value, label] of [['standard', 'Standard studio views'], ['front', 'Lower front views'], ['overhead', 'Overhead views']]) {
+      const option = el('option', label); option.value = value; camera.append(option);
+    }
+    camera.value = p.renderCamera ?? 'standard'; form.append(field('Studio camera', camera));
+    const order = el('input'); order.type = 'number'; order.min = -10000; order.max = 10000; order.step = 1; order.value = p.order ?? 0;
+    form.append(field('Display order (lower first)', order));
+    const discoverable = el('input'); discoverable.type = 'checkbox'; discoverable.checked = p.discoverable !== false;
+    form.append(field('Show in shop and generator galleries', discoverable));
     form.append(el('p', 'Use generic demonstration text or record permission to publish it. Customer names, contact details, private artwork and secrets must not appear in a public product.'));
     const settings = el('details'); settings.open = true; settings.append(el('summary', 'Model settings'));
     const params = new Map();
@@ -83,7 +105,8 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
     form.append(save);
     form.addEventListener('submit', event => { event.preventDefault(); run(async () => {
       const values = Object.fromEntries([...params].map(([key, { def, input }]) => [key, def.type === 'bool' ? input.checked : ['int', 'number'].includes(def.type) ? Number(input.value) : def.type === 'profile' ? JSON.parse(input.value) : input.value]));
-      await api.catalogueAction({ action: 'save', id: p.id, revision: p.revision, commandId: crypto.randomUUID(), edit: { ...Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value])), params: values } });
+      await api.catalogueAction({ action: 'save', id: p.id, revision: p.revision, commandId: crypto.randomUUID(), edit: { ...Object.fromEntries(Object.entries(inputs).map(([key, input]) => [key, input.value])),
+        imageAlts: imageAlts.map(input => input.value), renderCamera: camera.value, order: Number(order.value), discoverable: discoverable.checked, params: values } });
       await showProduct(p.id); status.textContent = 'Private draft saved. Build fresh previews before approval.';
     }); });
     content.append(form);
@@ -98,7 +121,7 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
       await api.catalogueAction({ action: 'approve', id: p.id, revision: p.revision, commandId: crypto.randomUUID() });
       await showProduct(p.id); status.textContent = 'Review recorded. The product has not been published.';
     }));
-    approve.disabled = p.status !== 'review_ready';
+    approve.disabled = p.status !== 'review_ready' || !previewsAvailable;
     const releaseAction = (label, action, allowed) => {
       const control = button(label, () => run(async () => {
         await api.catalogueAction({ action, id: p.id, revision: p.revision, commandId: crypto.randomUUID() });
@@ -108,7 +131,7 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
       return control;
     };
     actions.append(render, approve,
-      releaseAction('Publish reviewed product', 'publish', p.status === 'approved'),
+      releaseAction('Publish reviewed product', 'publish', p.status === 'approved' && previewsAvailable),
       releaseAction('Withdraw public product', 'withdraw', p.status !== 'publishing' && p.published?.snapshot?.status === 'published'),
       button('Refresh product', () => run(() => showProduct(p.id))));
     content.append(actions);
@@ -132,7 +155,10 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
     }
     const list = el('ul', null, 'catalogue-owner-list');
     for (const p of data.products) {
-      const row = el('li'); row.append(button(p.title || p.id, () => run(() => showProduct(p.id))), el('span', p.status.replaceAll('_', ' '))); list.append(row);
+      const row = el('li'); row.dataset.productId = p.id;
+      const open = button(p.title || p.id, () => run(() => showProduct(p.id)));
+      const meta = el('span', `${p.id} · ${p.status.replaceAll('_', ' ')}`); meta.id = `catalogue-item-${p.id}`;
+      open.setAttribute('aria-describedby', meta.id); row.append(open, meta); list.append(row);
     }
     content.append(list); status.textContent = `${data.products.length} private catalogue products.`;
   }

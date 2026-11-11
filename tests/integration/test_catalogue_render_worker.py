@@ -48,6 +48,11 @@ console.log(result.workItem.id);'''
                 dialog.get_by_label('Collection', exact=True).fill('Names & signs')
                 dialog.get_by_label('Short description', exact=True).fill('A personal desk sign.')
                 dialog.get_by_label('Permission and rights evidence', exact=True).fill('House design with generic example text.')
+                dialog.get_by_label('Primary image description', exact=True).fill('Desk name sign with raised lettering and rectangular backing')
+                dialog.get_by_label('Alternate image description', exact=True).fill('Angled view showing the desk name sign backing and raised letters')
+                dialog.get_by_label('Studio camera', exact=True).select_option('front')
+                dialog.get_by_label('Product description', exact=True).fill('An editable sign for a desk.')
+                dialog.get_by_label('Use and limitations', exact=True).fill('Indoor use. Fit confirmed before printing.')
                 dialog.get_by_role('button', name='Save private draft', exact=True).click()
                 expect(dialog.get_by_role('status')).to_contain_text('Private draft saved')
                 dialog.get_by_role('button', name='Build previews', exact=True).click()
@@ -71,8 +76,10 @@ console.log(result.workItem.id);'''
                 Path('screenshots').mkdir(exist_ok=True)
                 page.screenshot(path='screenshots/catalogue-admin-reviewed.png')
             state = json.loads(Path(str(store_path) + '.invoices.json.catalogue.json').read_text())
-            product = state['records'][0]['draft']
+            product = next(r['draft'] for r in state['records'] if r['draft']['id'] == 'private-render-proof')
             assert product['status'] == 'approved'
+            assert product['renderCamera'] == 'front'
+            assert product['render']['images'][0]['alt'] == 'Desk name sign with raised lettering and rectangular backing'
             assert 'CUSTOMER PRIVATE' not in json.dumps(state)
             assert request(storefront + product['render']['images'][0]['src'])[0] == 404
             assert request(storefront + '/api/operator-work?resource=catalogue&id=private-render-proof&preview=0', headers={'Origin': 'https://untrusted.example'})[0] == 403

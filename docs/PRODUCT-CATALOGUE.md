@@ -4,8 +4,8 @@ Implementation status: the static shop, launch galleries, exact configuration
 links, private owner draft editor, and durable draft/render-job storage are
 implemented on the feature branch. Durable render execution and authenticated
 preview review have also passed a real Blender integration test.
-Deployment-confirmed publication and withdrawal are still being connected to
-the release worker. This document does not claim that operator publication is
+Deployment-confirmed publication and withdrawal are wired through the trusted
+worker and tested against temporary local Git destinations. This document does not claim that operator publication is
 live in production.
 
 ## Customer experience
@@ -206,3 +206,30 @@ builder. Unknown or newly sensitive fields fail the build for deliberate
 privacy review rather than silently publishing their values. A breaking schema
 change therefore requires reviewing/quarantining affected historical records
 before release; do not normalize or rewrite an old public revision in place.
+
+
+## Owner merchandising and launch management
+
+Owner access idempotently imports missing bundled public products into private
+management, retaining each latest immutable snapshot and its public revision
+counter. Existing private records stay authoritative. All bundled IDs, including
+withdrawn history, are reserved against promotion; open the existing product
+instead. Imported records have no private render/review, so republishing requires
+fresh previews and approval. Withdrawal can use their existing public snapshot.
+The immutable product ID is also its URL slug; changing the title never changes
+that URL.
+
+The editor supports public description, use limitations, two image descriptions,
+display order and discovery visibility. Unlisted products remain reachable by
+exact links but disappear from shop and generator discovery. Three fixed studio
+camera presets are supported: standard, lower front and overhead. Camera changes
+participate in the render fingerprint; arbitrary coordinates/URLs are rejected.
+Editing merchandising fields invalidates render/review so public text and images
+are approved together. Preview delivery failure must leave edit/rebuild/withdraw
+controls available, with a bounded unavailable-preview notice.
+
+Publication also requires `CATALOGUE_PUBLISH_AUTHOR_NAME` and
+`CATALOGUE_PUBLISH_AUTHOR_EMAIL`. Configure the real identity authorized by the
+repository and deployment provider. The worker does not invent an author or
+bypass provider membership/commit-author restrictions. Missing/invalid author
+configuration disables publication before a job can be queued.
