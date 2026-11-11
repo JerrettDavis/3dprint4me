@@ -30,6 +30,9 @@ test('shipped non-photographic media has provenance tied to the current recipe a
     const src = PRODUCT_MEDIA[recipe.id]?.src ?? `/assets/images/products/${recipe.id}.webp`;
     const bytes = readFileSync(new URL(`../../public${src}`, import.meta.url));
     assert.equal(entry.sha256, createHash('sha256').update(bytes).digest('hex'));
+    if (PRODUCT_MEDIA[recipe.id]) {
+      assert.equal(new URL(src, 'https://3dprint4.me').searchParams.get('v'), entry.sha256.slice(0, 16), 'image changes must bypass returning visitors\' cached renders');
+    }
     assert.equal(entry.renderer, 'Blender Cycles');
     assert.equal(entry.studioSha256, createHash('sha256').update(readFileSync(new URL('../../scripts/render-products.py', import.meta.url))).digest('hex'));
     assert.match(entry.meshSha256, /^[0-9a-f]{64}$/);

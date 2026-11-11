@@ -1,6 +1,6 @@
-import {cubeMechanics,minimumCornerGap} from '../fidget-topology.js?v=a5dc3bb415e0c2bc';
-import {FIDGET_LICENSE} from '../fidget-license.js?v=a5dc3bb415e0c2bc';
-import {fontSchema,fontRule,FONT_SPEC} from '../fonts.js?v=a5dc3bb415e0c2bc';
+import {cubeMechanics,minimumCornerGap} from '../fidget-topology.js?v=ded6c1af0d0225c5';
+import {FIDGET_LICENSE} from '../fidget-license.js?v=ded6c1af0d0225c5';
+import {fontSchema,fontRule,FONT_SPEC} from '../fonts.js?v=ded6c1af0d0225c5';
 
 const isAssembly=p=>p.model_kind!=='fit';
 const hasWriting=p=>isAssembly(p)&&Array.from({length:8},(_,i)=>String(p[`block_${i+1}_symbol`]??'').trim()).some(Boolean);

@@ -1,5 +1,5 @@
-import { entryLabel, inspectArchive, uniqueEntryLabels } from "./archive.js?v=a5dc3bb415e0c2bc";
-import { estimateProductionFromGeometry } from "./geometry.js?v=a5dc3bb415e0c2bc";
+import { entryLabel, inspectArchive, uniqueEntryLabels } from "./archive.js?v=ded6c1af0d0225c5";
+import { estimateProductionFromGeometry } from "./geometry.js?v=ded6c1af0d0225c5";
 
 // The label rules (entryLabel, uniqueEntryLabels) live in archive.js, which the server imports too.
 

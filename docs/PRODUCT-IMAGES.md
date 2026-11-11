@@ -12,6 +12,8 @@ Install the repository's Node dependencies (`npm ci`), Python Pillow (`python -m
 
 Mesh JSON and full-size PNGs stay in ignored `.private/product-renders/`. `scripts/finish-product-renders.py` produces the shipped 960 × 720 WebPs, `screenshots/product-render-board.png`, and `scripts/product-render-manifest.json` with image, mesh and studio source hashes. Inspect the board before accepting regeneration. Both catalogs retain the honest “Illustrative render” label: these are models, not photographed prints or fit/finish guarantees.
 
+The finish step also updates both catalogs' image URLs with `?v=<first 16 image hash characters>`. Changed renders get new cache keys automatically, so returning visitors receive the new image without waiting for the ordinary asset cache to expire. Provenance verifies these URL versions along with the input-source fingerprint, including export and finishing scripts.
+
 To add a category, add its default recipe, media entry and home card. The coverage contract fails when a public generator without a photograph lacks a recipe. To add an alternate variant, add a unique URL-safe `id` and a `generator` pointing to an existing generator, plus partial `params`, `elevation` and `azimuth`; the same command writes a separate WebP. Add that image to the relevant gallery explicitly. Recipes must not contain sensitive keys. Run `node --test tests/unit/product-render-recipes.test.mjs tests/unit/product-media.test.mjs`, `npm test`, and `npm run screenshots`; inspect the render board and `screenshots/preview-board.png` at desktop and 390px.
 
 ## Historical media notes (superseded)

@@ -18,7 +18,7 @@ test('every public generator has the same representative local image on both bro
     assert.ok(image[2].length > 20);
     assert.ok(catalogCard.includes(`src="${image[1]}"`), `${g.id} media agrees`);
     assert.ok(catalogCard.includes(`alt="${image[2]}"`), `${g.id} alt agrees`);
-    if (image[1].endsWith('.webp')) {
+    if (new URL(image[1], 'https://3dprint4.me').pathname.endsWith('.webp')) {
       assert.match(homeCard, /Illustrative render/);
       assert.match(catalogCard, /Illustrative render/);
     }
@@ -32,7 +32,7 @@ test('all home products have shipped raster images and name plate does not reuse
     assert.ok(src?.startsWith('/assets/images/'), card);
     const file = new URL(`../../public${src}`, import.meta.url);
     assert.ok(statSync(file).size > 1000);
-    if (src.endsWith('.webp')) assert.ok(statSync(file).size < 250000, `${src} optimized`);
+    if (new URL(src, 'https://3dprint4.me').pathname.endsWith('.webp')) assert.ok(statSync(file).size < 250000, `${src} optimized`);
     assert.doesNotMatch(card, /class="cat-art"/);
   }
   const name = cards.find(c => c.includes('/g/name-plate/'));

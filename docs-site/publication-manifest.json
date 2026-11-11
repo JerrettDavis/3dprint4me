@@ -30,7 +30,7 @@
     {
       "file": "docs/PRODUCT-IMAGES.md",
       "output": "reference/PRODUCT-IMAGES.md",
-      "sha256": "26f50ced18ad5c99899436ab232c5586623d3ce3851fa2238693abadb7b24b5c"
+      "sha256": "9cf55b4a49cd0fc0b8311cbeacbc03048a6d846b71e1a3246c4c54793e671021"
     },
     {
       "file": "docs/GITHUB-OPERATOR-AUTH.md",

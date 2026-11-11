@@ -1,6 +1,7 @@
 """Optimize Blender outputs and record provenance; also make a visual review board."""
 import hashlib
 import json
+import re
 from pathlib import Path
 from PIL import Image, ImageDraw
 
@@ -23,4 +24,11 @@ for index, recipe in enumerate(recipes['renders']):
     draw.text((x + 12, y + 320), recipe['id'], fill='#252525')
 (ROOT / 'scripts/product-render-manifest.json').write_text(json.dumps({'version': 1,
     'inputSha256': (ROOT / '.private/product-renders/input-hash.txt').read_text(), 'renders': entries}, indent=2) + '\n')
+for filename in ['public/index.html', 'public/assets/js/customize/product-media.js']:
+    path = ROOT / filename
+    text = path.read_text(encoding='utf-8')
+    for entry in entries:
+        pattern = r'(/assets/images/products/' + re.escape(entry['id']) + r'\.webp)(?:\?v=[a-f0-9]+)?'
+        text = re.sub(pattern, lambda match: match.group(1) + '?v=' + entry['sha256'][:16], text)
+    path.write_text(text, encoding='utf-8')
 board.save(ROOT / 'screenshots/product-render-board.png')

@@ -5,7 +5,7 @@ const root = new URL('../', import.meta.url);
 // Include defaults, geometry helpers, builders, local fonts and dependency pins.
 // Ignore release-query churn: version-assets changes no geometry behavior.
 export async function productRenderInputHash() {
-  const files = ['package-lock.json', 'scripts/export-product-render-meshes.mjs', 'scripts/product-render-inputs.mjs'];
+  const files = ['package-lock.json', 'scripts/export-product-render-meshes.mjs', 'scripts/product-render-inputs.mjs', 'scripts/finish-product-renders.py', 'scripts/generate-product-renders.py'];
   async function walk(path) {
     for (const entry of await readdir(new URL(path, root), { withFileTypes: true })) {
       const name = `${path}${entry.name}`;
