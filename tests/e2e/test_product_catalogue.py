@@ -40,7 +40,9 @@ def test_shop_filters_and_deep_links_preserve_a_saved_draft(catalogue_browser, c
         expect(page.locator('.catalogue-card:visible')).to_have_count(1)
         page.locator('.catalogue-card:visible a').click()
         expect(page.locator('h1')).to_contain_text(re.compile('keychain', re.I))
-        expect(page.locator('.catalogue-product-images img')).to_have_count(2)
+        expect(page.locator('.catalogue-product img')).to_have_count(2)
+        request_box = page.get_by_role('link', name='Request this design', exact=True).bounding_box()
+        assert request_box['y'] + request_box['height'] < 844, 'the primary request action should be visible in the first mobile screen'
         draft_key = '3dp-customize:name-plate:v2'
         saved = json.dumps({'name': 'PRIVATE DRAFT'})
         page.evaluate('([key, value]) => sessionStorage.setItem(key, value)', [draft_key, saved])

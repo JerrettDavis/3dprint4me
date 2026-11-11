@@ -1,4 +1,4 @@
-import { productHref } from './contract.js?v=7447d28f9171251a';
+import { productHref } from './contract.js?v=c5f2923807d19a64';
 
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const esc = escapeHtml;
@@ -31,6 +31,20 @@ export function renderProduct(product, media = {}) {
   if (p.status === 'withdrawn') return `<section class="catalogue-opening"><div><h1>This design is unavailable.</h1><p>It has been withdrawn from the catalogue. You can choose another starting point or ask us about a custom design.</p><a class="button primary" href="/shop/">Return to the shop</a></div></section>`;
   const size = Array.isArray(media.dimensionsMm) && media.dimensionsMm.length === 3 && media.dimensionsMm.every(Number.isFinite)
     ? `${media.dimensionsMm.map(n => Math.round(n * 10) / 10).join(' × ')} mm` : '';
+  const figure = (image, index = 0) => `<figure><img src="${esc(image.src)}" alt="${esc(image.alt)}" width="960" height="720" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}><figcaption>Studio render of this design</figcaption></figure>`;
   return `<nav class="catalogue-breadcrumb" aria-label="Breadcrumb"><a href="/shop/">Shop</a><span aria-hidden="true">/</span><a href="/shop/?category=${encodeURIComponent(p.category)}">${esc(p.category)}</a></nav>
-<article class="catalogue-product"><div class="catalogue-product-images">${p.images.map((image, i) => `<figure><img src="${esc(image.src)}" alt="${esc(image.alt)}" width="960" height="720" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}><figcaption>Studio render of this design</figcaption></figure>`).join('')}</div><div class="catalogue-product-copy"><p class="catalogue-category">${esc(p.category)}</p><h1>${esc(p.title)}</h1><p class="catalogue-description">${esc(p.summary)}</p>${size ? `<dl class="catalogue-product-facts"><div><dt>Model size</dt><dd>${esc(size)}</dd></div></dl>` : ''}<p>Like it as shown? Review the model and request a quote. Want a different size, color or detail? Make it your own first.</p><div class="catalogue-actions"><a class="button primary" href="${esc(productHref(p, { request: true }))}">Request this design</a><a class="button secondary" href="${esc(productHref(p))}">Customize this design</a></div><p class="catalogue-quote-note">Made to order. We confirm materials, scope and price before production. Online estimates are non-binding.</p><details class="catalogue-details"><summary>About this preview</summary><p>These images are digital renders of the selected model settings. Printed color and surface finish vary with material and process. Hardware, accessories and physical fit are confirmed separately. Model dimensions describe the design, not a tested fit.</p></details><a class="catalogue-more" href="/shop/?generator=${esc(p.generatorId)}">See more designs from this tool</a></div></article>`;
+<article class="catalogue-product">
+  <header class="catalogue-product-heading"><p class="catalogue-category">${esc(p.category)}</p><h1>${esc(p.title)}</h1></header>
+  <div class="catalogue-product-images">${figure(p.images[0])}</div>
+  <div class="catalogue-product-copy">
+    <p class="catalogue-description">${esc(p.summary)}</p>
+    <div class="catalogue-actions"><a class="button primary" href="${esc(productHref(p, { request: true }))}">Request this design</a><a class="button secondary" href="${esc(productHref(p))}">Customize this design</a></div>
+    <p class="catalogue-quote-note">Made to order. We confirm materials, scope and price before production. Online estimates are non-binding.</p>
+    ${size ? `<dl class="catalogue-product-facts"><div><dt>Model size</dt><dd>${esc(size)}</dd></div></dl>` : ''}
+    <p>Like it as shown? Review the model and request a quote. Want a different size, color or detail? Make it your own first.</p>
+    <details class="catalogue-details"><summary>About this preview</summary><p>These images are digital renders of the selected model settings. Printed color and surface finish vary with material and process. Hardware, accessories and physical fit are confirmed separately. Model dimensions describe the design, not a tested fit.</p></details>
+    <a class="catalogue-more" href="/shop/?generator=${esc(p.generatorId)}">See more designs from this tool</a>
+  </div>
+  ${p.images.length > 1 ? `<section class="catalogue-product-extra" aria-label="Additional product views">${p.images.slice(1).map((image, index) => figure(image, index + 1)).join('')}</section>` : ''}
+</article>`;
 }
