@@ -11,11 +11,11 @@
 - [x] Render and visually inspect every category; correct framing and surface shading.
 - [x] Add repeatable image optimization and evidence manifest; update truthful alt text and provenance.
 - [x] Add contracts for complete non-photographic coverage, safe recipes and generated output provenance.
-- [ ] Run npm test, screenshots, inspect preview board, and review changes.
+- [x] Run npm test, screenshots, inspect preview board, and review changes.
 - [ ] Merge with passing hosted checks, deploy production, verify both catalogs and offline customizers live.
 
 **Review focus:** flat thin products remain legible; curved products retain facets only where geometry specifies; camera crops no vertices; examples never serialize sensitive parameters; photographs stay intact; adding a generator without a render recipe fails the coverage contract.
 
-Independent review caught and corrected a closed vase blank (now hollow) and missing input-source provenance (now checked against builders, defaults, local fonts and dependency pins). The one-command pipeline completed successfully. All 1,444 unit/contract checks, focused media/provenance checks, both historical upgrade regressions and 115-page handbook build/link validation pass. Full browser checks, refreshed final screenshots and hosted release gates remain pending.
+Independent review caught and corrected a closed vase blank (now hollow) and missing input-source provenance (now checked against builders, defaults, local fonts and dependency pins). The one-command pipeline completed successfully. All 1,444 unit/contract checks, 525 browser checks (7 skips), 241 accessibility/UX checks, focused media/provenance checks, both historical upgrade regressions and 115-page handbook build/link validation pass. Final screenshots cover 194 captures; browsing and product boards were inspected. Review follow-up found no remaining blockers. All eight Vercel preview image hashes match. Hosted release gates are tracked in PR #82; main merge, deployment and post-merge green verification remain required.
 
 The user explicitly requires fully green main even for unrelated failures. Main's missing historical QA archive pin was replaced by its reachable equivalent after confirming byte-identical service workers. Five stale handbook hashes were reconciled after reviewing the current documentation; publication still uses exact-file hashes and no allowlist bypass.
