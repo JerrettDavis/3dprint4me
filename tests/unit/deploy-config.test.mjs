@@ -29,7 +29,7 @@ test("the marker is per deployment, in the temp directory, and only on Vercel", 
 });
 
 test("the build steps are the same ones npm test and the docs describe", async () => {
-  assert.deepEqual(STEPS, ["customizer:build", "assets:version", "validate"]);
+  assert.deepEqual(STEPS, ["catalogue:build", "customizer:build", "assets:version", "validate"]);
   const pkg = JSON.parse(await readFile(new URL("../../package.json", import.meta.url), "utf8"));
   assert.equal(pkg.scripts["vercel-build"], "node scripts/vercel-build.mjs");
   for (const step of STEPS) assert.ok(pkg.scripts[step], step);

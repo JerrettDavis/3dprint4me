@@ -1,5 +1,12 @@
 # Architecture
 
+The [Product Catalogue](PRODUCT-CATALOGUE.md) context owns private merchandising
+drafts, revision-bound commands, render readiness and public snapshot validation.
+Its public projection supplies static shop pages and bundled offline generator
+starting points. Owner operations reuse the authenticated work API; source work
+references remain private and geometry continues to run outside request-serving
+server modules.
+
 The separate homepage inquiry API and its private-upload, ownership, and notification contract are documented in [QUICK-INQUIRY.md](QUICK-INQUIRY.md).
 
 ## Goals

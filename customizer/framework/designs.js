@@ -2,8 +2,16 @@
 // (partial parameter sets over the schema defaults). Choosing one replaces the look and the
 // sample text; it never carries or removes a secret (a Wi-Fi password stays as typed).
 import { clampParams, sensitiveKeys, validateParams } from "../../public/assets/js/customize/schema.js";
+import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
+import { resolveProductLink } from '../../public/assets/js/catalogue/contract.js';
 
-export const designsOf = generator => generator.designs ?? [];
+export const designsOf = generator => [
+  ...PRODUCTS.filter(p => p.generatorId === generator.id && p.status === 'published' && p.generatorVersion === generator.version)
+    .filter(p => !PRODUCTS.some(other => other.id === p.id && other.revision > p.revision))
+    .filter(p => resolveProductLink(generator, `?product=${p.id}&revision=${p.revision}`, PRODUCTS).status === 'ready')
+    .map(p => ({ id: `product-${p.id}-r${p.revision}`, label: p.title, blurb: p.summary, group: 'From the shop', params: p.params, image: p.images[0], product: { id: p.id, revision: p.revision } })),
+  ...(generator.designs ?? [])
+];
 
 /** The groups in first-seen order, each { label, designs }; an ungrouped design goes under "Designs". */
 export function designGroups(generator) {
@@ -23,7 +31,7 @@ export function designGroups(generator) {
 export function applyDesign(generator, design, current = {}) {
   const defaults = validateParams(generator, {}).value;
   const merged = { ...defaults, ...design.params };
-  for (const key of sensitiveKeys(generator)) if (Object.hasOwn(current, key)) merged[key] = current[key];
+  for (const key of sensitiveKeys(generator)) if (!design.product && Object.hasOwn(current, key)) merged[key] = current[key];
   const clamped = clampParams(generator, merged);
   // Judged as the server would with the secret withheld: a design never needs one.
   return validateParams(generator, clamped, { skipSensitive: true }).ok ? clamped : null;

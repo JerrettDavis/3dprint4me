@@ -160,6 +160,25 @@ def magnetic_light(page) -> None:
     page.locator('#cz-light_base_mm').scroll_into_view_if_needed()
 
 
+def capture_product_catalogue_states() -> list[tuple[str, Path]]:
+    captured = []
+    with running_server() as base_url:
+        for width, height, scheme in [(1440, 1000, 'light'), (1440, 1000, 'dark'), (390, 844, 'light'), (390, 844, 'dark')]:
+            for name, route, ready in [
+                ('shop', '/shop/', '#catalogue-grid'),
+                ('product', '/shop/pumpkin-witch/', '.catalogue-product'),
+                ('product-request', '/customize/g/name-plate/?product=name-plate-office&revision=1&intent=request', "body[data-build-state='ready']"),
+            ]:
+                path = OUTPUT / f'catalogue-{name}-{width}-{scheme}.png'
+                with SiteBrowser(viewport=(width, height), color_scheme=scheme, device_scale_factor=1) as site:
+                    page = site.goto(base_url + route, ready_selector=ready, timeout=60000)
+                    page.locator('img').evaluate_all("async images => { for (const image of images) image.loading='eager'; await Promise.all(images.map(image => image.decode().catch(() => {}))); }")
+                    site.screenshot(path, full_page=name == 'product')
+                    site.assert_no_page_errors(allow_console_warnings=('GL Driver Message', 'GPU stall'))
+                captured.append((f'Catalogue {name} · {width} · {scheme}', path))
+    return captured
+
+
 def capture_customize_states() -> list[tuple[str, Path]]:
     """Vite-built /customize pages need real HTTP (WASM, module worker, CSP), so they use the dev server."""
     captured: list[tuple[str, Path]] = []
@@ -831,6 +850,7 @@ def main() -> int:
         ("Referral permission · narrow · light", capture('/order.html?service=consult', 'order-referral-contact-light.png', viewport=(320,844), scheme='light', full_page=True, prepare=prepare_referral_contact)),
         ("Privacy · referral notice · light", capture('/privacy.html', 'privacy-referral-light.png', viewport=(1280,1000), scheme='light', full_page=True)),
     ])
+    cases.extend(capture_product_catalogue_states())
     cases.extend(capture_customize_states())
     cases.extend(capture_operator_states())
     cases.extend(capture_work_conversations())

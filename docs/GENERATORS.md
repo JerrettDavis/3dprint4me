@@ -1,5 +1,11 @@
 # Parametric generators (Customize)
 
+Product galleries and pinned starting configurations are described in
+[PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md). The generator bundles public
+revision snapshots, loads an explicit product before any ordinary saved draft,
+and preserves that draft under its original storage key. Operator promotion
+rebuilds safe public settings; it never renders a submitted private model.
+
 A **generator** is a small plugin that turns a handful of validated parameters into a printable,
 multi-color 3MF, entirely in the customer's browser. The Customize section (`/customize/`) lists
 the public generators; each has a page (`/customize/g/<id>/`) with a schema-driven form, a 2D/3D

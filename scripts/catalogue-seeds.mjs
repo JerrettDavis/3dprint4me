@@ -10,26 +10,40 @@ const selections = [
   ['route-shield', 'Signs & badges', ['route-66', 'i-95', 'us-101']],
   ['wifi-tag', 'Wi-Fi signs', ['placard', 'keychain', 'card']],
   ['rating-card', 'Gifts & fun', ['toilet', 'mug', 'five-star']],
-  ['name-plate', 'Names & signs', ['classic', 'keychain', 'desk']],
+  ['name-plate', 'Names & signs', ['classic', 'keychain', 'office']],
   ['pumpkin', 'Seasonal', ['cute', 'witch', 'lattice']],
   ['display-sign', 'Business displays', ['starter', 'no-cards', 'sign-only']],
   ['gridfinity-base', 'Organization', ['standard', 'light', 'magnetic']],
   ['gridfinity-bin', 'Organization', ['standard', 'divided', 'labeled']],
 ];
+const names = {
+  'vase': ['Dune vase', 'Blossom vase', 'Faceted planter'],
+  'infinity-fidget': ['Classic folding fidget', 'Knurled folding fidget', 'Round-block folding fidget'],
+  'route-shield': ['Route 66 sign', 'Interstate 95 sign', 'US 101 sign'],
+  'wifi-tag': ['Guest Wi-Fi placard', 'Guest Wi-Fi keychain', 'Guest Wi-Fi card'],
+  'rating-card': ['Throne review card', 'Coffee review card', 'Five-star review card'],
+  'name-plate': ['Classic name sign', 'Name keychain', 'Office name sign'],
+  'pumpkin': ['Cute pumpkin', 'Little witch pumpkin', 'Lattice pumpkin lantern'],
+  'display-sign': ['Business counter sign', 'Welcome table sign', 'Business sign panel'],
+  'gridfinity-base': ['Gridfinity baseplate', 'Light Gridfinity baseplate', 'Magnetic Gridfinity baseplate'],
+  'gridfinity-bin': ['Gridfinity storage bin', 'Divided Gridfinity bin', 'Label-ready Gridfinity bin'],
+};
 
 export function launchProducts() {
   return selections.flatMap(([generatorId, category, designs]) => {
     const g = getGenerator(generatorId);
-    return designs.map(designId => {
+    return designs.map((designId, index) => {
       const d = g.designs.find(design => design.id === designId);
       if (!d) throw new Error('A catalogue seed design was removed.');
       const id = `${generatorId}-${designId}`;
       const params = { ...d.params };
       if (generatorId === 'wifi-tag') Object.assign(params, { security: 'nopass', ssid: 'Guest Wi-Fi' });
-      const title = `${d.label} · ${g.title}`;
+      if (generatorId === 'vase') params.construction = 'hollow';
+      const title = names[generatorId][index];
       return validateProduct({ id, revision: 1, generatorId, generatorVersion: g.version, params,
         title, category, summary: d.blurb || g.blurb, status: 'published',
-        images: [{ src: `/assets/images/products/catalogue/${id}-r1.webp`, alt: `${title}, studio render`, kind: 'render' }] });
+        images: [{ src: `/assets/images/products/catalogue/${id}-r1.webp`, alt: `${title}, studio render`, kind: 'render' },
+          { src: `/assets/images/products/catalogue/${id}-r1-detail.webp`, alt: `${title}, alternate studio view`, kind: 'render' }] });
     });
   });
 }

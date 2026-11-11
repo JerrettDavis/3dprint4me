@@ -5,12 +5,18 @@ Inputs: npm run products:meshes; outputs: .private/product-renders/*.png.
 """
 import json
 import math
+import os
+import re
 from pathlib import Path
 import bpy
 from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[1]
-RECIPES = json.loads((ROOT / 'scripts/product-render-recipes.json').read_text())
+WORK = Path(os.environ.get('PRODUCT_RENDER_WORK_DIR', ROOT / '.private/product-renders')).resolve()
+PRIVATE = Path(os.environ.get('PRODUCT_RENDER_PRIVATE_ROOT', ROOT / '.private')).resolve()
+if not WORK.is_relative_to(PRIVATE) or WORK.is_relative_to(ROOT / 'public'):
+    raise ValueError('Product renders require a private working directory')
+RECIPES = json.loads((WORK / 'recipes.json').read_text())
 
 
 def linear(value):
@@ -41,6 +47,8 @@ def aim(obj, target):
 
 
 for recipe in RECIPES['renders']:
+    if not re.fullmatch(r'[a-z0-9-]{1,160}', recipe['id']) or not 0 < recipe['elevation'] < 90 or not -360 <= recipe['azimuth'] <= 360:
+        raise ValueError('Invalid product render recipe')
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     scene.render.engine = 'CYCLES'
@@ -56,7 +64,7 @@ for recipe in RECIPES['renders']:
     scene.world.use_nodes = True
     scene.world.node_tree.nodes['Background'].inputs[0].default_value = (.78, .81, .86, 1)
     scene.world.node_tree.nodes['Background'].inputs[1].default_value = .35
-    data = json.loads((ROOT / f'.private/product-renders/{recipe["id"]}.json').read_text())
+    data = json.loads((WORK / f'{recipe["id"]}.json').read_text())
     points = []
     for part in data['parts']:
         vertices = [tuple(v / 1000 for v in p) for p in part['mesh']['vertices']]
@@ -106,5 +114,5 @@ for recipe in RECIPES['renders']:
     height = max(p.y for p in projected) - min(p.y for p in projected)
     camera.data.ortho_scale = max(width, height * 4 / 3) * 1.28
     scene.render.image_settings.file_format = 'PNG'
-    scene.render.filepath = str(ROOT / f'.private/product-renders/{recipe["id"]}.png')
+    scene.render.filepath = str(WORK / f'{recipe["id"]}.png')
     bpy.ops.render.render(write_still=True)

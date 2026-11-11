@@ -24,6 +24,7 @@ test('sensitive values and redaction markers are rejected before publication', (
   }
   const result = validateProduct({ ...example(), generatorId: g.id, generatorVersion: g.version, params: { security: 'nopass' } });
   assert.equal(Object.hasOwn(result.params, 'password'), false);
+  assert.throws(() => validateProduct({ ...example(), generatorId: g.id, generatorVersion: g.version, params: { security: 'WPA' } }), 'public Wi-Fi previews use open demonstration networks');
 });
 
 test('public image paths cannot fetch remote resources or traverse to private files', () => {
@@ -60,6 +61,16 @@ test('bad, withdrawn, mismatched and stale links explain failure instead of subs
   assert.equal(resolveProductLink({ ...g, version: 10 }, '?product=little-witch&revision=1', [p]).status, 'stale');
 });
 
+test('withdrawal also blocks older pinned links, including after a later republish', () => {
+  const g = getGenerator('pumpkin');
+  const original = validateProduct(example());
+  const withdrawal = { ...original, revision: 2, status: 'withdrawn' };
+  const republished = { ...original, revision: 3 };
+  assert.equal(resolveProductLink(g, '?product=little-witch&revision=1', [original, withdrawal]).status, 'unavailable');
+  assert.equal(resolveProductLink(g, '?product=little-witch&revision=1', [original, withdrawal, republished]).status, 'unavailable');
+  assert.equal(resolveProductLink(g, '?product=little-witch&revision=3', [original, withdrawal, republished]).status, 'ready');
+});
+
 test('thirty launch candidates cover all generators with valid distinct safe settings', () => {
   const products = launchProducts();
   assert.equal(products.length, 30);
@@ -70,6 +81,8 @@ test('thirty launch candidates cover all generators with valid distinct safe set
     assert.equal(new Set(entries.map(p => JSON.stringify(p.params))).size, 3, g.id);
     for (const p of entries) {
       assert.doesNotThrow(() => validateProduct(p));
+      assert.equal(p.images.length, 2, 'each product has a gallery of two views');
+      if (g.id === 'vase') assert.equal(p.params.construction, 'hollow', 'merchandised vases have a usable cavity');
       for (const key of sensitiveKeys(g)) assert.equal(Object.hasOwn(p.params, key), false);
     }
   }

@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const OUTPUT_MARKER = resolve(ROOT, "public/customize/index.html");
-export const STEPS = ["customizer:build", "assets:version", "validate"];
+export const STEPS = ["catalogue:build", "customizer:build", "assets:version", "validate"];
 
 /** The marker file for this deployment, or null when the deployment can't be identified. */
 export function markerPath(env, dir = tmpdir()) {

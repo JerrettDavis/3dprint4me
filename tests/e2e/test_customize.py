@@ -1920,7 +1920,8 @@ def test_design_gallery_applies_a_design_and_undo_restores(page: Page, base_url:
     # A fresh visit opens the gallery, with 66 the default.
     expect(page.locator("#cz-designs-toggle")).to_have_attribute("aria-expanded", "true")
     expect(page.locator("#cz-designs-current")).to_have_text("Based on Route 66.")
-    expect(page.locator("button.cz-design")).to_have_count(13)
+    expect(page.locator("button.cz-design:not([data-design^='product-'])")).to_have_count(13)
+    expect(page.locator("button.cz-design[data-design^='product-']")).to_have_count(3)
     expect(page.locator("button.cz-design[data-design='route-66']")).to_have_attribute("aria-pressed", "true")
     page.locator("button.cz-design[data-design='i-95']").click()
     expect(page.locator("#cz-lower_text")).to_have_value("95")

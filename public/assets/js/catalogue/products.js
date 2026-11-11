@@ -5,7 +5,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "vase",
     "generatorVersion": 1,
-    "title": "Wind-shaped dunes · Algorithmic vase",
+    "title": "Dune vase",
     "category": "Vases & planters",
     "summary": "Editable original procedural form. Solid output is intended for slicer vase mode.",
     "status": "published",
@@ -32,7 +32,7 @@ export const PRODUCTS = [
           "radius": 0.55
         }
       ],
-      "construction": "solid",
+      "construction": "hollow",
       "height_mm": 155,
       "diameter_mm": 95,
       "facets": 0,
@@ -51,8 +51,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/vase-dune-r1.webp",
-        "alt": "Wind-shaped dunes · Algorithmic vase, studio render",
+        "src": "/assets/images/products/catalogue/vase-dune-r1.webp?v=57bbd2f81f855585",
+        "alt": "Dune vase, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/vase-dune-r1-detail.webp?v=ee96f0fa4ac76a9b",
+        "alt": "Dune vase, alternate studio view",
         "kind": "render"
       }
     ]
@@ -62,7 +67,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "vase",
     "generatorVersion": 1,
-    "title": "Blossom · Algorithmic vase",
+    "title": "Blossom vase",
     "category": "Vases & planters",
     "summary": "Editable original procedural form. Solid output is intended for slicer vase mode.",
     "status": "published",
@@ -81,7 +86,7 @@ export const PRODUCTS = [
           "radius": 1
         }
       ],
-      "construction": "solid",
+      "construction": "hollow",
       "height_mm": 155,
       "diameter_mm": 95,
       "facets": 0,
@@ -100,8 +105,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/vase-blossom-r1.webp",
-        "alt": "Blossom · Algorithmic vase, studio render",
+        "src": "/assets/images/products/catalogue/vase-blossom-r1.webp?v=e3ba43e36b6fcaff",
+        "alt": "Blossom vase, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/vase-blossom-r1-detail.webp?v=3bfc325f91966a0f",
+        "alt": "Blossom vase, alternate studio view",
         "kind": "render"
       }
     ]
@@ -111,7 +121,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "vase",
     "generatorVersion": 1,
-    "title": "Hollow faceted planter · Algorithmic vase",
+    "title": "Faceted planter",
     "category": "Vases & planters",
     "summary": "Open modeled walls and a closed floor. Print normally with vase mode off.",
     "status": "published",
@@ -149,8 +159,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/vase-faceted-planter-r1.webp",
-        "alt": "Hollow faceted planter · Algorithmic vase, studio render",
+        "src": "/assets/images/products/catalogue/vase-faceted-planter-r1.webp?v=94fcd5c8652d7c6c",
+        "alt": "Faceted planter, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/vase-faceted-planter-r1-detail.webp?v=5edb693255f6d2b2",
+        "alt": "Faceted planter, alternate studio view",
         "kind": "render"
       }
     ]
@@ -160,7 +175,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "infinity-fidget",
     "generatorVersion": 1,
-    "title": "Classic cube · Infinity fidget",
+    "title": "Classic folding fidget",
     "category": "Fidgets",
     "summary": "A starting point; change the blocks, finish and colors.",
     "status": "published",
@@ -205,8 +220,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-classic-r1.webp",
-        "alt": "Classic cube · Infinity fidget, studio render",
+        "src": "/assets/images/products/catalogue/infinity-fidget-classic-r1.webp?v=03c158b5af127915",
+        "alt": "Classic folding fidget, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/infinity-fidget-classic-r1-detail.webp?v=26e16ec7c79d6b70",
+        "alt": "Classic folding fidget, alternate studio view",
         "kind": "render"
       }
     ]
@@ -216,7 +236,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "infinity-fidget",
     "generatorVersion": 1,
-    "title": "Knurled · Infinity fidget",
+    "title": "Knurled folding fidget",
     "category": "Fidgets",
     "summary": "A starting point; change the blocks, finish and colors.",
     "status": "published",
@@ -261,8 +281,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-knurled-r1.webp",
-        "alt": "Knurled · Infinity fidget, studio render",
+        "src": "/assets/images/products/catalogue/infinity-fidget-knurled-r1.webp?v=a24fa09e1d445a56",
+        "alt": "Knurled folding fidget, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/infinity-fidget-knurled-r1-detail.webp?v=c742553e8de8c0f6",
+        "alt": "Knurled folding fidget, alternate studio view",
         "kind": "render"
       }
     ]
@@ -272,7 +297,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "infinity-fidget",
     "generatorVersion": 1,
-    "title": "Round blocks · Infinity fidget",
+    "title": "Round-block folding fidget",
     "category": "Fidgets",
     "summary": "A starting point; change the blocks, finish and colors.",
     "status": "published",
@@ -317,8 +342,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-spheres-r1.webp",
-        "alt": "Round blocks · Infinity fidget, studio render",
+        "src": "/assets/images/products/catalogue/infinity-fidget-spheres-r1.webp?v=b549835286c36319",
+        "alt": "Round-block folding fidget, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/infinity-fidget-spheres-r1-detail.webp?v=eb2307529db11cc0",
+        "alt": "Round-block folding fidget, alternate studio view",
         "kind": "render"
       }
     ]
@@ -328,7 +358,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "route-shield",
     "generatorVersion": 3,
-    "title": "Route 66 · Route shield",
+    "title": "Route 66 sign",
     "category": "Signs & badges",
     "summary": "The Mother Road centennial badge. The default.",
     "status": "published",
@@ -364,8 +394,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-route-66-r1.webp",
-        "alt": "Route 66 · Route shield, studio render",
+        "src": "/assets/images/products/catalogue/route-shield-route-66-r1.webp?v=4a7c7c5792820982",
+        "alt": "Route 66 sign, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/route-shield-route-66-r1-detail.webp?v=507e1211615438c7",
+        "alt": "Route 66 sign, alternate studio view",
         "kind": "render"
       }
     ]
@@ -375,7 +410,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "route-shield",
     "generatorVersion": 3,
-    "title": "Interstate 95 · Route shield",
+    "title": "Interstate 95 sign",
     "category": "Signs & badges",
     "summary": "Maine to Florida along the east coast.",
     "status": "published",
@@ -411,8 +446,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-i-95-r1.webp",
-        "alt": "Interstate 95 · Route shield, studio render",
+        "src": "/assets/images/products/catalogue/route-shield-i-95-r1.webp?v=57092e0436f89056",
+        "alt": "Interstate 95 sign, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/route-shield-i-95-r1-detail.webp?v=65fe656fdf888454",
+        "alt": "Interstate 95 sign, alternate studio view",
         "kind": "render"
       }
     ]
@@ -422,7 +462,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "route-shield",
     "generatorVersion": 3,
-    "title": "US Route 101 · Route shield",
+    "title": "US 101 sign",
     "category": "Signs & badges",
     "summary": "Black and white US highway shield along the Pacific coast.",
     "status": "published",
@@ -458,8 +498,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-us-101-r1.webp",
-        "alt": "US Route 101 · Route shield, studio render",
+        "src": "/assets/images/products/catalogue/route-shield-us-101-r1.webp?v=d835b1136a7e5ecc",
+        "alt": "US 101 sign, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/route-shield-us-101-r1-detail.webp?v=c1fea9e051c75f4a",
+        "alt": "US 101 sign, alternate studio view",
         "kind": "render"
       }
     ]
@@ -469,7 +514,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "wifi-tag",
     "generatorVersion": 2,
-    "title": "Placard · Wi-Fi tag",
+    "title": "Guest Wi-Fi placard",
     "category": "Wi-Fi signs",
     "summary": "A 90 × 120 mm tag for a shelf or a wall. The default.",
     "status": "published",
@@ -507,8 +552,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-placard-r1.webp",
-        "alt": "Placard · Wi-Fi tag, studio render",
+        "src": "/assets/images/products/catalogue/wifi-tag-placard-r1.webp?v=71d6d22e5c70b2c0",
+        "alt": "Guest Wi-Fi placard, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/wifi-tag-placard-r1-detail.webp?v=43d2494f691b7c4a",
+        "alt": "Guest Wi-Fi placard, alternate studio view",
         "kind": "render"
       }
     ]
@@ -518,7 +568,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "wifi-tag",
     "generatorVersion": 2,
-    "title": "Keychain · Wi-Fi tag",
+    "title": "Guest Wi-Fi keychain",
     "category": "Wi-Fi signs",
     "summary": "A 45 × 60 mm code with a key-ring loop.",
     "status": "published",
@@ -556,8 +606,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-keychain-r1.webp",
-        "alt": "Keychain · Wi-Fi tag, studio render",
+        "src": "/assets/images/products/catalogue/wifi-tag-keychain-r1.webp?v=8025b9712847717d",
+        "alt": "Guest Wi-Fi keychain, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/wifi-tag-keychain-r1-detail.webp?v=713b97fff2fc54f0",
+        "alt": "Guest Wi-Fi keychain, alternate studio view",
         "kind": "render"
       }
     ]
@@ -567,7 +622,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "wifi-tag",
     "generatorVersion": 2,
-    "title": "Business card · Wi-Fi tag",
+    "title": "Guest Wi-Fi card",
     "category": "Wi-Fi signs",
     "summary": "An 85.6 × 54 mm card for the guest drawer.",
     "status": "published",
@@ -605,8 +660,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-card-r1.webp",
-        "alt": "Business card · Wi-Fi tag, studio render",
+        "src": "/assets/images/products/catalogue/wifi-tag-card-r1.webp?v=6a57dc1b6fa662bd",
+        "alt": "Guest Wi-Fi card, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/wifi-tag-card-r1-detail.webp?v=f2977b890e2073b0",
+        "alt": "Guest Wi-Fi card, alternate studio view",
         "kind": "render"
       }
     ]
@@ -616,7 +676,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "rating-card",
     "generatorVersion": 2,
-    "title": "Throne review · Rating card",
+    "title": "Throne review card",
     "category": "Gifts & fun",
     "summary": "The classic toilet review card. The default.",
     "status": "published",
@@ -652,8 +712,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/rating-card-toilet-r1.webp",
-        "alt": "Throne review · Rating card, studio render",
+        "src": "/assets/images/products/catalogue/rating-card-toilet-r1.webp?v=b75a96ea63586241",
+        "alt": "Throne review card, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/rating-card-toilet-r1-detail.webp?v=dd481ce4a3427888",
+        "alt": "Throne review card, alternate studio view",
         "kind": "render"
       }
     ]
@@ -663,7 +728,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "rating-card",
     "generatorVersion": 2,
-    "title": "Coffee review · Rating card",
+    "title": "Coffee review card",
     "category": "Gifts & fun",
     "summary": "A mug card for the cafe or the break room.",
     "status": "published",
@@ -699,8 +764,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/rating-card-mug-r1.webp",
-        "alt": "Coffee review · Rating card, studio render",
+        "src": "/assets/images/products/catalogue/rating-card-mug-r1.webp?v=5a428ddbda4bbc8a",
+        "alt": "Coffee review card, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/rating-card-mug-r1-detail.webp?v=07595ae7ff1cc28b",
+        "alt": "Coffee review card, alternate studio view",
         "kind": "render"
       }
     ]
@@ -710,7 +780,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "rating-card",
     "generatorVersion": 2,
-    "title": "Five stars · Rating card",
+    "title": "Five-star review card",
     "category": "Gifts & fun",
     "summary": "Full gold stars and a confident caption.",
     "status": "published",
@@ -746,8 +816,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/rating-card-five-star-r1.webp",
-        "alt": "Five stars · Rating card, studio render",
+        "src": "/assets/images/products/catalogue/rating-card-five-star-r1.webp?v=a784824c4e7f457c",
+        "alt": "Five-star review card, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/rating-card-five-star-r1-detail.webp?v=0ce7df890fb648ff",
+        "alt": "Five-star review card, alternate studio view",
         "kind": "render"
       }
     ]
@@ -757,7 +832,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "name-plate",
     "generatorVersion": 2,
-    "title": "Classic · Name plate",
+    "title": "Classic name sign",
     "category": "Names & signs",
     "summary": "Raised white letters on a contour plate. The default.",
     "status": "published",
@@ -784,8 +859,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/name-plate-classic-r1.webp",
-        "alt": "Classic · Name plate, studio render",
+        "src": "/assets/images/products/catalogue/name-plate-classic-r1.webp?v=71a9fc7b2e050e7c",
+        "alt": "Classic name sign, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/name-plate-classic-r1-detail.webp?v=6df8a36faf6371d1",
+        "alt": "Classic name sign, alternate studio view",
         "kind": "render"
       }
     ]
@@ -795,7 +875,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "name-plate",
     "generatorVersion": 2,
-    "title": "Keychain · Name plate",
+    "title": "Name keychain",
     "category": "Names & signs",
     "summary": "Small cut-out letters with a key-ring loop.",
     "status": "published",
@@ -822,35 +902,40 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/name-plate-keychain-r1.webp",
-        "alt": "Keychain · Name plate, studio render",
+        "src": "/assets/images/products/catalogue/name-plate-keychain-r1.webp?v=cbe5c1bb7caa5f7b",
+        "alt": "Name keychain, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/name-plate-keychain-r1-detail.webp?v=0f268c14125dd18f",
+        "alt": "Name keychain, alternate studio view",
         "kind": "render"
       }
     ]
   },
   {
-    "id": "name-plate-desk",
+    "id": "name-plate-office",
     "revision": 1,
     "generatorId": "name-plate",
     "generatorVersion": 2,
-    "title": "Desk plate · Name plate",
+    "title": "Office name sign",
     "category": "Names & signs",
-    "summary": "A rectangular plate with taller letters.",
+    "summary": "The standard 8 × 2 in desk sign.",
     "status": "published",
     "params": {
       "name": "Alex",
       "font": "block",
       "font_license_ack": false,
       "style": "raised",
-      "size": "fit",
+      "size": "office",
       "plate_image": "none",
       "image_threshold": 128,
       "image_invert": false,
       "image_scale_pct": 100,
-      "plate": "rect",
+      "plate": "hug",
       "plate_margin_mm": 3,
       "keychain_loop": false,
-      "height_mm": 30,
+      "height_mm": 32,
       "thickness_mm": 4,
       "relief_mm": 1.2,
       "text_color": "#ffffff",
@@ -860,8 +945,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/name-plate-desk-r1.webp",
-        "alt": "Desk plate · Name plate, studio render",
+        "src": "/assets/images/products/catalogue/name-plate-office-r1.webp?v=562847d45bb2b39c",
+        "alt": "Office name sign, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/name-plate-office-r1-detail.webp?v=d39fc0e99f27b764",
+        "alt": "Office name sign, alternate studio view",
         "kind": "render"
       }
     ]
@@ -871,7 +961,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "pumpkin",
     "generatorVersion": 9,
-    "title": "Cute pumpkin · Pumpkin",
+    "title": "Cute pumpkin",
     "category": "Seasonal",
     "summary": "A solid pumpkin with an inlaid cute face and a green stem. The default.",
     "status": "published",
@@ -939,8 +1029,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/pumpkin-cute-r1.webp",
-        "alt": "Cute pumpkin · Pumpkin, studio render",
+        "src": "/assets/images/products/catalogue/pumpkin-cute-r1.webp?v=65d4d5bd4113330d",
+        "alt": "Cute pumpkin, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/pumpkin-cute-r1-detail.webp?v=8b85f7cf1255461c",
+        "alt": "Cute pumpkin, alternate studio view",
         "kind": "render"
       }
     ]
@@ -950,7 +1045,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "pumpkin",
     "generatorVersion": 9,
-    "title": "Little witch · Pumpkin",
+    "title": "Little witch pumpkin",
     "category": "Seasonal",
     "summary": "The original happy pumpkin with a curled witch hat, buckle and sculpted star.",
     "status": "published",
@@ -1018,8 +1113,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/pumpkin-witch-r1.webp",
-        "alt": "Little witch · Pumpkin, studio render",
+        "src": "/assets/images/products/catalogue/pumpkin-witch-r1.webp?v=5cfd87f3ba012cf0",
+        "alt": "Little witch pumpkin, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/pumpkin-witch-r1-detail.webp?v=6cfb5ad26d550b82",
+        "alt": "Little witch pumpkin, alternate studio view",
         "kind": "render"
       }
     ]
@@ -1029,7 +1129,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "pumpkin",
     "generatorVersion": 9,
-    "title": "Lattice lantern · Pumpkin",
+    "title": "Lattice pumpkin lantern",
     "category": "Seasonal",
     "summary": "A hollow pumpkin with diamond cut-outs.",
     "status": "published",
@@ -1097,8 +1197,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/pumpkin-lattice-r1.webp",
-        "alt": "Lattice lantern · Pumpkin, studio render",
+        "src": "/assets/images/products/catalogue/pumpkin-lattice-r1.webp?v=4fea36dacb186200",
+        "alt": "Lattice pumpkin lantern, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/pumpkin-lattice-r1-detail.webp?v=3004f47db53ff77e",
+        "alt": "Lattice pumpkin lantern, alternate studio view",
         "kind": "render"
       }
     ]
@@ -1108,7 +1213,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "display-sign",
     "generatorVersion": 1,
-    "title": "Starter sign · Display sign and holder",
+    "title": "Business counter sign",
     "category": "Business displays",
     "summary": "Name, tagline, contact lines with icons and a QR code, in a holder with a card pocket. The default.",
     "status": "published",
@@ -1369,8 +1474,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/display-sign-starter-r1.webp",
-        "alt": "Starter sign · Display sign and holder, studio render",
+        "src": "/assets/images/products/catalogue/display-sign-starter-r1.webp?v=f7d2e278ab28a231",
+        "alt": "Business counter sign, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/display-sign-starter-r1-detail.webp?v=845a56f772eed1e1",
+        "alt": "Business counter sign, alternate studio view",
         "kind": "render"
       }
     ]
@@ -1380,7 +1490,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "display-sign",
     "generatorVersion": 1,
-    "title": "Table sign, no card pocket · Display sign and holder",
+    "title": "Welcome table sign",
     "category": "Business displays",
     "summary": "A big welcome message in a plain holder.",
     "status": "published",
@@ -1641,8 +1751,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/display-sign-no-cards-r1.webp",
-        "alt": "Table sign, no card pocket · Display sign and holder, studio render",
+        "src": "/assets/images/products/catalogue/display-sign-no-cards-r1.webp?v=c6fc686dd697c34d",
+        "alt": "Welcome table sign, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/display-sign-no-cards-r1-detail.webp?v=5bfc511ece5f8108",
+        "alt": "Welcome table sign, alternate studio view",
         "kind": "render"
       }
     ]
@@ -1652,7 +1767,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "display-sign",
     "generatorVersion": 1,
-    "title": "Sign only · Display sign and holder",
+    "title": "Business sign panel",
     "category": "Business displays",
     "summary": "The starter sign without a tongue or holder.",
     "status": "published",
@@ -1913,8 +2028,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/display-sign-sign-only-r1.webp",
-        "alt": "Sign only · Display sign and holder, studio render",
+        "src": "/assets/images/products/catalogue/display-sign-sign-only-r1.webp?v=eae5993d8be9ee14",
+        "alt": "Business sign panel, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/display-sign-sign-only-r1-detail.webp?v=b782b68ba01df888",
+        "alt": "Business sign panel, alternate studio view",
         "kind": "render"
       }
     ]
@@ -1924,7 +2044,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "gridfinity-base",
     "generatorVersion": 1,
-    "title": "Standard grid · Gridfinity baseplate",
+    "title": "Gridfinity baseplate",
     "category": "Organization",
     "summary": "Open sockets with full-height mating rails; no magnets needed.",
     "status": "published",
@@ -1945,8 +2065,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-standard-r1.webp",
-        "alt": "Standard grid · Gridfinity baseplate, studio render",
+        "src": "/assets/images/products/catalogue/gridfinity-base-standard-r1.webp?v=b5f4c9756ad656af",
+        "alt": "Gridfinity baseplate, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/gridfinity-base-standard-r1-detail.webp?v=c4951d530f73b7f8",
+        "alt": "Gridfinity baseplate, alternate studio view",
         "kind": "render"
       }
     ]
@@ -1956,7 +2081,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "gridfinity-base",
     "generatorVersion": 1,
-    "title": "Less material · Gridfinity baseplate",
+    "title": "Light Gridfinity baseplate",
     "category": "Organization",
     "summary": "An open lattice with thinner lower rails and full mating height.",
     "status": "published",
@@ -1977,8 +2102,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-light-r1.webp",
-        "alt": "Less material · Gridfinity baseplate, studio render",
+        "src": "/assets/images/products/catalogue/gridfinity-base-light-r1.webp?v=e988c20921c4e73b",
+        "alt": "Light Gridfinity baseplate, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/gridfinity-base-light-r1-detail.webp?v=dec7cd90b083071a",
+        "alt": "Light Gridfinity baseplate, alternate studio view",
         "kind": "render"
       }
     ]
@@ -1988,7 +2118,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "gridfinity-base",
     "generatorVersion": 1,
-    "title": "Magnetic base · Gridfinity baseplate",
+    "title": "Magnetic Gridfinity baseplate",
     "category": "Organization",
     "summary": "Solid subfloor with glue-in magnet pockets.",
     "status": "published",
@@ -2009,8 +2139,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-magnetic-r1.webp",
-        "alt": "Magnetic base · Gridfinity baseplate, studio render",
+        "src": "/assets/images/products/catalogue/gridfinity-base-magnetic-r1.webp?v=fcc6c315fe5128d6",
+        "alt": "Magnetic Gridfinity baseplate, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/gridfinity-base-magnetic-r1-detail.webp?v=dd8747f644fe948d",
+        "alt": "Magnetic Gridfinity baseplate, alternate studio view",
         "kind": "render"
       }
     ]
@@ -2020,7 +2155,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "gridfinity-bin",
     "generatorVersion": 1,
-    "title": "Standard bin · Gridfinity bin",
+    "title": "Gridfinity storage bin",
     "category": "Organization",
     "summary": "An editable starting point for your storage.",
     "status": "published",
@@ -2042,8 +2177,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-standard-r1.webp",
-        "alt": "Standard bin · Gridfinity bin, studio render",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-standard-r1.webp?v=567307bbe1fabcdc",
+        "alt": "Gridfinity storage bin, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/gridfinity-bin-standard-r1-detail.webp?v=71e48f8fdbbabb7e",
+        "alt": "Gridfinity storage bin, alternate studio view",
         "kind": "render"
       }
     ]
@@ -2053,7 +2193,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "gridfinity-bin",
     "generatorVersion": 1,
-    "title": "Four compartments · Gridfinity bin",
+    "title": "Divided Gridfinity bin",
     "category": "Organization",
     "summary": "An editable starting point for your storage.",
     "status": "published",
@@ -2075,8 +2215,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-divided-r1.webp",
-        "alt": "Four compartments · Gridfinity bin, studio render",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-divided-r1.webp?v=27bbded05bc9d940",
+        "alt": "Divided Gridfinity bin, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/gridfinity-bin-divided-r1-detail.webp?v=f05513e0768c76d6",
+        "alt": "Divided Gridfinity bin, alternate studio view",
         "kind": "render"
       }
     ]
@@ -2086,7 +2231,7 @@ export const PRODUCTS = [
     "revision": 1,
     "generatorId": "gridfinity-bin",
     "generatorVersion": 1,
-    "title": "Paper-label shelf · Gridfinity bin",
+    "title": "Label-ready Gridfinity bin",
     "category": "Organization",
     "summary": "An editable starting point for your storage.",
     "status": "published",
@@ -2108,8 +2253,13 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-labeled-r1.webp",
-        "alt": "Paper-label shelf · Gridfinity bin, studio render",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-labeled-r1.webp?v=87fa0f411308f88f",
+        "alt": "Label-ready Gridfinity bin, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/gridfinity-bin-labeled-r1-detail.webp?v=c4961480f132b173",
+        "alt": "Label-ready Gridfinity bin, alternate studio view",
         "kind": "render"
       }
     ]

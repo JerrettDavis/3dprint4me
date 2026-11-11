@@ -11,6 +11,7 @@ import { createOperatorInquiryWorkflowHandler } from '../lib/inquiry-workflow/op
 import { createInquiryWorkflowRuntime } from '../lib/inquiry-workflow/runtime.js';
 import { createFilamentMatchingUseCases } from '../lib/filament-matching/application.js';
 import { createCommunicationHandler } from '../lib/work-communications/operator-api.js';
+import { createCatalogueOperatorHandler } from '../lib/product-catalogue/operator-api.js';
 
 function defaultPrintEstimates() {
   const print = createPrintEstimationRuntime();
@@ -43,6 +44,8 @@ export function createWorkHandler({ store, runtime, identityProvider, authorize,
   const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createConfiguredIdentityProvider()));
   const billingHandler = createOperatorInvoiceHandler({ runtime: work, authorize: authorizeRequest, allowedOrigins, invoicing, localPath: invoiceLocalPath });
   const communicationHandler=createCommunicationHandler({work,authorize:authorizeRequest,allowedOrigins});
+  const catalogueHandler = createCatalogueOperatorHandler({ workRepository: work.repository, authorize: authorizeRequest, allowedOrigins,
+    localPath: invoiceLocalPath ? `${invoiceLocalPath}.catalogue.json` : undefined });
   const inquiryHandler=createOperatorInquiryWorkflowHandler({authorize:authorizeRequest,allowedOrigins,
     getRuntime:()=>inquiryWorkflow??createInquiryWorkflowRuntime({workRepository:work.repository})});
   const workHandler = createOperatorApiHandler({ methods: ["GET"], allowedOrigins, authorize: authorizeRequest, handle: async ({ req, operator }) => {
@@ -58,7 +61,7 @@ export function createWorkHandler({ store, runtime, identityProvider, authorize,
   } });
   return (req,res)=>{
     const resource=new URL(req.url??'/api/operator-work','https://operator-api.invalid').searchParams.get('resource');
-    return (resource==='communications'?communicationHandler:resource==='invoices'?billingHandler:resource==='inquiries'?inquiryHandler:workHandler)(req,res);
+    return (resource==='catalogue'?catalogueHandler:resource==='communications'?communicationHandler:resource==='invoices'?billingHandler:resource==='inquiries'?inquiryHandler:workHandler)(req,res);
   };
 }
 

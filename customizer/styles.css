@@ -337,3 +337,10 @@ body[data-preview-style="realistic"] .cz-hint{color:#3c3327}
 /* Product illustrations stay readable in both themes. */
 .cz-card-media{position:relative;margin:0}
 .cz-card-media-label{position:absolute;right:0;top:0;padding:4px 8px;background:var(--surface);color:var(--ink);font-size:11px;line-height:1.4;border-bottom:1px solid var(--line);border-left:1px solid var(--line)}
+/* Pictured shop starting points share the studio's local/offline data. */
+.cz-design-image { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: contain; border-radius: .35rem; background: #f5f1e9; }
+.cz-design-render-label { display: block; font-size: .7rem; color: var(--muted); }
+.cz-product-context { display: grid; gap: .5rem; padding: .85rem; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.cz-product-context strong { font-size: 1rem; }
+.cz-product-recovery { display: flex; flex-wrap: wrap; gap: .75rem; padding: 1rem; }
+.cz-request-review > :not(.cz-product-context) { display: none !important; }

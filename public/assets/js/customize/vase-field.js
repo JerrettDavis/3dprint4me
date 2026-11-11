@@ -1,4 +1,4 @@
-import { compileVaseProfile } from './vase-shape.js?v=ded6c1af0d0225c5';
+import { compileVaseProfile } from './vase-shape.js?v=7447d28f9171251a';
 
 export const VASE_PATTERNS = Object.freeze(['smooth', 'ripple', 'dune', 'scales', 'cells', 'zigzag', 'fractal']);
 const TAU = 2 * Math.PI;
