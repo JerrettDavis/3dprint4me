@@ -71,7 +71,7 @@ docs/GENERATORS.md                             NEW
 
 Modified: `package.json`, `.gitignore`, `vercel.json`, `scripts/{dev-server,version-assets,validate}.mjs`, `lib/validation.js`, `lib/notifications.js`, `lib/print-estimation/adapters/bambu-cli-slicer.js`, `public/assets/js/{site,order}.js`, `public/{index,order}.html`, `public/sitemap.xml`, `operator/assets/operator.js`, `docs/{DEPLOYMENT,PRINT-ESTIMATION}.md`, `AGENTS.md`.
 
-Prototype sources to port (read-only reference): `<repo-root>/odel-customizer-pages\src\{generator,limits,template,text,three-mf,bambu-template,viewer3d}.js`.
+Prototype sources to port (read-only reference): `<repo-root>/model-customizer-pages\src\{generator,limits,template,text,three-mf,bambu-template,viewer3d}.js`.
 
 ---
 
@@ -88,7 +88,7 @@ Prototype sources to port (read-only reference): `<repo-root>/odel-customizer-pa
 - [ ] **Step 1: Generate a three-color Bambu fixture from the prototype exporter**
 
 ```bash
-cd <repo-root>/dprint4me-generators
+cd <repo-root>/3dprint4me-generators
 mkdir -p tests/fixtures/customize docs/superpowers/notes
 cat > scripts/make-fixture-3mf.mjs <<'EOF'
 // One-off: three touching cubes in three colors, written with the prototype's Bambu exporter.
@@ -107,7 +107,7 @@ Expected: a ~14 KB `three-color-bambu.3mf`.
 - [ ] **Step 2: Build the worker image and slice the fixture**
 
 ```bash
-cd <repo-root>/dprint4me-generators
+cd <repo-root>/3dprint4me-generators
 docker build -f deploy/slicer-worker/Dockerfile.bambu -t 3dp-slicer-test deploy/slicer-worker 2>&1 | tail -5
 docker run --rm -v "$PWD/tests/fixtures/customize:/in:ro" --entrypoint node 3dp-slicer-test \
   scripts/slicer-smoke.mjs /in/three-color-bambu.3mf
@@ -1483,7 +1483,7 @@ git add -A && git commit -m "feat: rating card generator with icon library, half
 - [ ] **Step 1: Download and verify fonts**
 
 ```bash
-cd <repo-root>/dprint4me-generators/customizer/static/fonts
+cd <repo-root>/3dprint4me-generators/customizer/static/fonts
 base=https://github.com/google/fonts/raw/main/ofl
 curl -fsSL -o Pacifico-Regular.ttf        $base/pacifico/Pacifico-Regular.ttf
 curl -fsSL -o Lobster-Regular.ttf         $base/lobster/Lobster-Regular.ttf

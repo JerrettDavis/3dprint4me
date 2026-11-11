@@ -1,6 +1,6 @@
 # Partner materials implementation plan
 
-> **For agentic workers:** Use superpowers:executing-plans to implement this plan task by task. Existing worktree: `<repo-root>/dprint4me-partner-portal`. Do not start runtime edits while the legal verification sequence is live.
+> **For agentic workers:** Use superpowers:executing-plans to implement this plan task by task. Existing worktree: `<repo-root>/3dprint4me-partner-portal`. Do not start runtime edits while the legal verification sequence is live.
 
 **Goal:** Fulfill packet O-08 by letting the owner record/review supplied and returned materials and letting a partner inspect their own gig's material records.
 

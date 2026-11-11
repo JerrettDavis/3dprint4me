@@ -126,7 +126,7 @@ class ReleaseChecks(unittest.TestCase):
 
     def test_transport_rejects_host_options_and_sanitizes_child_errors(self):
         with patch.object(self.release.subprocess, 'run') as run:
-            for host in ['-oProxyCommand=bad', 'jd@host;echo bad', 'host\nother', 'jd@host/path']:
+            for host in ['-oProxyCommand=bad', 'deploy@host;echo bad', 'host\nother', 'deploy@host/path']:
                 with self.subTest(host=host), self.assertRaises(ValueError):
                     self.release.send_payload(host, {}, 'print(1)')
             run.assert_not_called()
@@ -181,7 +181,7 @@ class ReleaseChecks(unittest.TestCase):
             self.release.collect_checkpoint(sha, config, self.repo, 'deploy@docker-host')
         self.assertTrue(config.with_suffix('.reported').is_file(), 'failed checkpoint attempt must report failure')
         self.assertEqual(json.loads(config.with_suffix('.reported').read_text()), False)
-        sha, config = self.checkpoint_fixture(ssh_host='jd@other-host')
+        sha, config = self.checkpoint_fixture(ssh_host='deploy@other-host')
         config.with_suffix('.reported').unlink(missing_ok=True)
         with self.assertRaises(RuntimeError):
             self.release.collect_checkpoint(sha, config, self.repo, 'deploy@docker-host')

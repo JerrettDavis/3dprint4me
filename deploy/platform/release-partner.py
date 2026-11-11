@@ -10,6 +10,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path, PurePosixPath
 import re
 import shlex
@@ -167,9 +168,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--release', required=True)
     parser.add_argument('--phase', choices=('rehearse', 'deploy'), default='rehearse')
-    parser.add_argument('--host', default='deploy@docker-host')
+    parser.add_argument('--host', default=os.environ.get('PLATFORM_SSH_HOST'), help='user@host of the platform Docker host (or set PLATFORM_SSH_HOST)')
     parser.add_argument('--backup-config', type=Path)
     args = parser.parse_args()
+    if not args.host:
+        parser.error('--host or PLATFORM_SSH_HOST is required.')
     if args.phase == 'deploy' and not args.backup_config:
         parser.error('Explicit deploy requires --backup-config for a fresh complete checkpoint.')
     if args.phase != 'deploy' and args.backup_config:

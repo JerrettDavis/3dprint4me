@@ -22,7 +22,7 @@ The concepts intentionally share content and tokens so votes assess information 
 
 ## Grounding
 
-Inspected current authoritative worktree `<repo-root>/dprint4me-pumpkin-printability`: `partner/public/index.html`, `partner/public/assets/partner.js`, `operator/partners.html`, `operator/assets/partner-owner.js`, plus published handbook asset locations. The partner role concerns permitted business visits, samples, proof, referral consent and payment records; these prototypes reflect those workflows rather than inventing a manufacturing job dashboard.
+Inspected current authoritative worktree `<repo-root>/3dprint4me-pumpkin-printability`: `partner/public/index.html`, `partner/public/assets/partner.js`, `operator/partners.html`, `operator/assets/partner-owner.js`, plus published handbook asset locations. The partner role concerns permitted business visits, samples, proof, referral consent and payment records; these prototypes reflect those workflows rather than inventing a manufacturing job dashboard.
 
 Read frontend-design and UI/UX Pro Max skills. The design-system query returned a marketing hero pattern that did not fit operational work; that pattern was rejected. Applied functional hierarchy, readable type, accessible controls and familiar workspace structure instead.
 
