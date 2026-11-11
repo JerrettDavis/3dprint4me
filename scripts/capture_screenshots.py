@@ -173,8 +173,10 @@ def capture_catalogue_owner_states() -> list[tuple[str, Path]]:
                 dialog = page.get_by_role('dialog', name='Product catalogue')
                 dialog.get_by_role('button', name=fixture['product']['title'], exact=True).click()
                 dialog.get_by_role('button', name='Publish reviewed product', exact=True).wait_for()
-                for state in ['reviewed', 'reviewed-actions', 'pending', 'published', 'withdrawn']:
-                    if state == 'reviewed-actions':
+                for state in ['reviewed', 'reviewed-fields', 'reviewed-actions', 'pending', 'published', 'withdrawn']:
+                    if state == 'reviewed-fields':
+                        dialog.get_by_label('Product description', exact=True).evaluate('(node) => node.parentElement.scrollIntoView({block: "start"})')
+                    elif state == 'reviewed-actions':
                         dialog.evaluate('(node) => node.scrollTop = node.scrollHeight')
                     elif state != 'reviewed':
                         product = fixture['product']

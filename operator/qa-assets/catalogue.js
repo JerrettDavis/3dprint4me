@@ -67,7 +67,7 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
     }
     const imageAlts = [0, 1].map(index => {
       const input = el('input'); input.maxLength = 300;
-      input.value = p.imageAlts?.[index] || p.render?.images?.[index]?.alt || p.published?.snapshot?.images?.[index]?.alt || `${p.title}, ${index ? 'alternate' : 'primary'} studio view`;
+      input.value = p.imageAlts?.[index] || p.render?.images?.[index]?.alt || p.published?.snapshot?.images?.[index]?.alt || (p.title ? `${p.title}, ${index ? 'alternate' : 'primary'} studio view` : '');
       form.append(field(index ? 'Alternate image description' : 'Primary image description', input)); return input;
     });
     const camera = el('select');

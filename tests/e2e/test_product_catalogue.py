@@ -185,6 +185,7 @@ console.log(result.workItem.id);'''
             dialog.get_by_label('Product ID', exact=True).fill('office-name-sign')
             dialog.get_by_role('button', name='Create private draft', exact=True).click()
             expect(dialog.get_by_label('Product title', exact=True)).to_be_visible()
+            expect(dialog.get_by_label('Primary image description', exact=True)).to_have_value('')
             expect(dialog.get_by_label('Name', exact=True)).to_have_value('Alex')
             dialog.get_by_label('Product title', exact=True).fill('Office name sign')
             dialog.get_by_label('Collection', exact=True).fill('Names & signs')

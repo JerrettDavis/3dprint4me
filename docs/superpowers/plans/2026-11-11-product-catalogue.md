@@ -32,11 +32,11 @@ Files: create `public/assets/js/catalogue/{contract,products}.js`, `scripts/cata
 
 Interfaces: `validateProduct(record, { getGenerator }) -> normalized public product`; `productHref(product, { request }) -> same-origin generator path`; `resolveProductLink(generator, search, products) -> { status, product?, params? }`. Product records use `id`, `revision`, `generatorId`, `generatorVersion`, `params`, `title`, `category`, `summary`, `images`, and `status`.
 
-- [ ] Write failing tests for schema validation, immutable-link resolution, malformed/withdrawn/mismatched/version-stale references, sensitive field rejection, and forbidden image URLs.
-- [ ] Run `node --test tests/unit/product-catalogue.test.mjs` and observe missing implementation.
-- [ ] Implement contract and derive 30 safe launch candidates from the approved existing design IDs. Normalize full non-sensitive parameters, independent of mutable defaults.
-- [ ] Run focused tests; verify every seed's generator version and params against the real registry.
-- [ ] Commit the contract, seed source, generated public records, and tests.
+- [x] Write failing tests for schema validation, immutable-link resolution, malformed/withdrawn/mismatched/version-stale references, sensitive field rejection, and forbidden image URLs.
+- [x] Run `node --test tests/unit/product-catalogue.test.mjs` and observe missing implementation.
+- [x] Implement contract and derive 30 safe launch candidates from the approved existing design IDs. Normalize full non-sensitive parameters, independent of mutable defaults.
+- [x] Run focused tests; verify every seed's generator version and params against the real registry.
+- [x] Commit the contract, seed source, generated public records, and tests.
 
 ## Task 2: Exact preset initialization and gallery rendering
 
@@ -44,10 +44,10 @@ Files: create `customizer/framework/product-start.js`; modify `app.js`, `designs
 
 Interfaces: `initialProductState(generator, search, draft, products) -> { params, product, error, preserveDraft }`; extend existing designs with published product revisions and render their images. Explicit links validate before form/build and take precedence over drafts. Never save over a preserved draft until the user explicitly chooses to do so.
 
-- [ ] Test conflicting draft, empty sensitive defaults, invalid-link recovery, and ordinary-navigation draft behavior before implementation.
-- [ ] Implement initialization, visible product context/error recovery, and gallery selection through existing undo/build controls.
-- [ ] Test choosing a card builds its exact params; confirm offline same-origin startup and preserved draft behavior.
-- [ ] Build/version assets and commit.
+- [x] Test conflicting draft, empty sensitive defaults, invalid-link recovery, and ordinary-navigation draft behavior before implementation.
+- [x] Implement initialization, visible product context/error recovery, and gallery selection through existing undo/build controls.
+- [x] Test choosing a card builds its exact params; confirm offline same-origin startup and preserved draft behavior.
+- [x] Build/version assets and commit.
 
 ## Task 3: Rendered shop and request flow
 
@@ -55,11 +55,11 @@ Files: extend `scripts/{export-product-render-meshes.mjs,render-products.py,fini
 
 Interfaces: deterministic recipes from public revision snapshots; each output image corresponds to the configuration hash. Build static `/shop/<id>/` detail pages and local assets. Request links use `productHref(..., { request: true })` and generator review/continue, never upload defaults behind the image.
 
-- [ ] Test recipe validation rejects secrets and mismatched images; test static output URLs and escaped public copy.
-- [ ] Extend the existing Blender studio without changing its physical geometry. Render all 30 seeds and extra angles needed for shape clarity; inspect review boards.
-- [ ] Implement filterable shop/category browsing, product details, clear render/quote disclosures, and request/customize links.
-- [ ] Add short product review/continue affordance once local model is built, preserving the ordinary handoff and downloadable fallback.
-- [ ] Run E2E for browse → exact preset → build → private request; screenshots at 390px/desktop, both themes; commit.
+- [x] Test recipe validation rejects secrets and mismatched images; test static output URLs and escaped public copy.
+- [x] Extend the existing Blender studio without changing its physical geometry. Render all 30 seeds and extra angles needed for shape clarity; inspect review boards.
+- [x] Implement filterable shop/category browsing, product details, clear render/quote disclosures, and request/customize links.
+- [x] Add short product review/continue affordance once local model is built, preserving the ordinary handoff and downloadable fallback.
+- [x] Run E2E for browse → exact preset → build → private request; screenshots at 390px/desktop, both themes; commit.
 
 ## Task 4: Private catalogue drafts and operator promotion
 
@@ -67,10 +67,10 @@ Files: new `lib/product-catalogue/{domain,application,repository,composition}.js
 
 Interfaces: revision-bound create/edit/approve/withdraw commands; safe promotion reads server-side work provenance and allowlists geometry/color values while requiring explicit public text/rights review. Operator list/detail API returns only to authorized merchandising identities.
 
-- [ ] Add tests for forbidden/unknown sensitive values, private text defaults, custom fonts/artwork, stale generator versions, authorization, concurrent edits, idempotency and provider failure redaction.
-- [ ] Implement draft persistence and private work-reference separation, command validation and explicit unconfigured behavior.
-- [ ] Implement admin list, create-from-work, public-field editing and rights evidence UI; verify partner/customer roles cannot publish.
-- [ ] Run repository/application/API tests, operator E2E and screenshots; commit.
+- [x] Add tests for forbidden/unknown sensitive values, private text defaults, custom fonts/artwork, stale generator versions, authorization, concurrent edits, idempotency and provider failure redaction.
+- [x] Implement draft persistence and private work-reference separation, command validation and explicit unconfigured behavior.
+- [x] Implement admin list, create-from-work, public-field editing and rights evidence UI; verify partner/customer roles cannot publish.
+- [x] Run repository/application/API tests, operator E2E and screenshots; commit.
 
 ## Task 5: Durable render/release runner
 
@@ -78,20 +78,20 @@ Files: catalogue job repository/application, trusted `scripts/catalogue-worker.m
 
 Interfaces: lease/heartbeat/finish job commands bind draft revision plus config/build/scene hash. Render jobs rebuild safe configuration, never use submitted attachments. Release outbox serializes reviewed snapshots and final images through the existing repository/deployment route; deployment settings stay private.
 
-- [ ] Test stale results, expired leases, duplicate job completion, bounded retry/cancel, worker restart, unconfigured Blender/deploy, malicious paths/camera values, and redacted failure behavior.
-- [ ] Implement durable queue, private image review, publish readiness and release status; keep prior published snapshot live until verified deployment.
-- [ ] Implement runner with allowlisted commands and atomic public projection; test actual render and release adapters with controlled local destinations before external publication.
-- [ ] Add admin build/retry/review/publish/withdraw controls and E2E through durable publication; commit.
+- [x] Test stale results, expired leases, duplicate job completion, bounded retry/cancel, worker restart, unconfigured Blender/deploy, malicious paths/camera values, and redacted failure behavior.
+- [x] Implement durable queue, private image review, publish readiness and release status; keep prior published snapshot live until verified deployment.
+- [x] Implement runner with allowlisted commands and atomic public projection; test actual render and release adapters with controlled local destinations before external publication.
+- [x] Add admin build/retry/review/publish/withdraw controls and E2E through durable publication; commit.
 
 ## Task 6: Documentation, full regression and completion audit
 
 Files: update `docs/{GENERATORS,ARCHITECTURE,DOMAIN-LANGUAGE,DEPLOYMENT,OPERATIONS}.md`, privacy wording and runner configuration examples; maintain this plan/ledger.
 
-- [ ] Document seed maintenance, permission requirements, render/release setup, recovery, and truthful unavailable states.
-- [ ] Run `npm run customizer:build && npm run assets:version`, `npm test`, and `npm run screenshots`; inspect `screenshots/preview-board.png` and product/admin boards.
-- [ ] Verify all spec completion evidence, including secrets, non-sensitive PII, offline requests, actual image/configuration match, short request flow and admin promotion/render/publish/withdraw.
-- [ ] Request whole-branch fresh review; fix material findings with regression coverage.
-- [ ] Report remaining integration prerequisites explicitly; mark the goal complete only when its full end state is proven.
+- [x] Document seed maintenance, permission requirements, render/release setup, recovery, and truthful unavailable states.
+- [x] Run `npm run customizer:build && npm run assets:version`, `npm test`, and `npm run screenshots`; inspect `screenshots/preview-board.png` and product/admin boards.
+- [x] Verify all spec completion evidence, including secrets, non-sensitive PII, offline requests, actual image/configuration match, short request flow and admin promotion/render/publish/withdraw.
+- [x] Request whole-branch fresh review; fix material findings with regression coverage.
+- [x] Report remaining integration prerequisites explicitly; mark the goal complete only when its full end state is proven.
 
 ## Execution ledger
 
@@ -131,3 +131,15 @@ Files: update `docs/{GENERATORS,ARCHITECTURE,DOMAIN-LANGUAGE,DEPLOYMENT,OPERATIO
 - First final all-suite run ended with 1,519 unit/contract passed; E2E 529 passed, 7 skipped, six legacy assertions failed (home tile routing and first-record assumptions after launch reconciliation). Updated all six expectations and disambiguated same-title owner products with visible IDs.
 - Final: Ruling: remote deployment/migration and production identity authorization remain operator setup, not actions performed by this feature implementation — no external push/deploy is needed to verify the mechanism locally — cost: a deployment rehearsal with authorized infrastructure is still required before enabling it.
 - Final: Ruling: physical fit, printability and legal rights cannot be certified by renders/tests; retain reviewed rights evidence and honest use limitations — cost: operator rights clearance and physical validation remain necessary for production work.
+
+
+## Final completion evidence
+
+- Final whole-project `npm test` completed with exit 0: 1,522 unit/contract tests passed, 536 E2E passed, 7 expected skips, and 289/289 accessibility checks passed. Log: `.private/catalogue-full-final2.log`.
+- After that full regression, visual review identified the empty-title alt-text default. Its exact browser regression failed with `, primary studio view`, then passed after a one-line private-editor guard. All eight catalogue browser tests passed afterward, followed by static validation and the complete screenshot workflow. Backend/public behavior was unchanged by this final guard.
+- Final `npm run screenshots` completed with exit 0: 230 captures, including 24 owner catalogue states covering fields/actions, pending, published and withdrawn at desktop/390px in light/dark. Log: `.private/catalogue-screenshots-final2.log`.
+- Inspected four crops from the actual final `screenshots/preview-board.png`: desktop product/request, mobile dark shop/product, mobile owner fields/actions, and pending/published. Also inspected the current 390px first-screen product crop, complete mobile owner action image, fields image, and real Blender preview. Actions fit, text is readable, and release states are truthful. All four sections of the separate 68-view rendered-product board were inspected earlier.
+- Real Blender integration passed two tests, including a non-default camera, owner image descriptions, private image receipt delivery, approval, safe inspection and public-preview 404 behavior. Actual local Git adapter tests prove durable publish and withdrawal plus receipt verification, restart reconciliation, immutable images/revisions and configured author identity.
+- Fresh whole-branch review found four Important issues; all were fixed in one pass with RED→GREEN coverage. No Critical finding, deferred minor, or unresolved Important finding remains.
+- Requirement audit complete: 30 products cover ten generators with 60 matching studio images; shop/detail/filter/pinned-link/request/offline paths work; provenance stays bounded and private; launch products and customer-derived drafts are owner-manageable; rendering and publication are durable and revision-bound; publication and withdrawal require public receipts; documentation and configuration describe failure recovery and prerequisites.
+- Operational prerequisites remain explicit: apply migration 019 and configure the trusted private render/release host, authorized Git/deployment author, repository branch integration and public site before enabling publication. No remote migration, external push, merge or deployment was performed. Physical fit/rights verification remains an operator responsibility.
