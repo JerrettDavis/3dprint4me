@@ -41,7 +41,7 @@ Files: operator/assets styles and view modules, operator index/partner shell, pa
 
 ## Execution rulings
 
-Reuse clean existing linked worktree <repo-root>/dprint4me-partner-portal on a new redesign branch because it contains the deployed partner release absent from origin/main. Existing main checkout and unrelated invoicing edits are preserved. User build-and-deploy request supplies execution and production publication authorization; no repeated plan approval is needed.
+Reuse clean existing linked worktree <repo-root>/3dprint4me-partner-portal on a new redesign branch because it contains the deployed partner release absent from origin/main. Existing main checkout and unrelated invoicing edits are preserved. User build-and-deploy request supplies execution and production publication authorization; no repeated plan approval is needed.
 
 ## Completed implementation evidence
 

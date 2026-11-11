@@ -2,6 +2,7 @@
 Review this concrete script before execution. Private values travel in SSH stdin.
 """
 import argparse
+import os
 import subprocess
 remote=r'''import pathlib,json,os,subprocess,uuid,hashlib,sys,time,re
 from urllib.parse import urlsplit,unquote,urlencode,urlunsplit,parse_qsl
@@ -105,5 +106,5 @@ if __name__=='__main__':
  if not args.apply:
   print('Preview only: fence Neon, restore private PostgreSQL, verify all counts, durably select target. Review PLATFORM-RECOVERY.md preflight before --apply. Existing target selection forbids execution.')
   raise SystemExit(0)
- result=subprocess.run(['ssh','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','deploy@docker-host','python3 -'],input=remote.encode(),stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=240)
+ result=subprocess.run(['ssh','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes',os.environ['PLATFORM_SSH_HOST'],'python3 -'],input=remote.encode(),stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=240)
  print(result.stdout.decode());raise SystemExit(result.returncode)

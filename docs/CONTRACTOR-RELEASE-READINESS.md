@@ -13,9 +13,9 @@ voluntary gigs, budget ceilings, consent and referrals, offline retries, materia
 statements/payments, legal review, and corresponding owner administration. Existing
 storefront and work-inbox regressions remain part of acceptance.
 
-The starting workspace `<repo-root>/dprint4me` is on older commit `551df3e` and lacks the
+The starting workspace `<repo-root>/3dprint4me` is on older commit `551df3e` and lacks the
 portal. Verification runs against the newer existing worktree
-`<repo-root>/dprint4me-pumpkin-printability`, commit `b579c11`. Uncommitted screenshots
+`<repo-root>/3dprint4me-pumpkin-printability`, commit `b579c11`. Uncommitted screenshots
 and UX reports already present there are not treated as fresh acceptance evidence.
 Read-only production fingerprints below now connect the tested source to deployed
 application files; this does not establish actual contractor activation.

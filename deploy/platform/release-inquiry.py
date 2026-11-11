@@ -6,6 +6,7 @@ No Neon connection is made. --phase deploy is an explicitly mutating operation.
 import argparse
 import base64
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -148,8 +149,9 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--release',required=True)
     parser.add_argument('--phase',choices=['rehearse','deploy'],default='rehearse')
-    parser.add_argument('--host',default='deploy@docker-host')
+    parser.add_argument('--host',default=os.environ.get('PLATFORM_SSH_HOST'),help='user@host of the platform Docker host (or set PLATFORM_SSH_HOST)')
     args=parser.parse_args()
+    if not args.host:parser.error('--host or PLATFORM_SSH_HOST is required.')
     if not re.fullmatch('[a-f0-9]{40}',args.release):parser.error('A complete reviewed commit SHA is required.')
     root=Path(__file__).resolve().parents[2]
     archive=subprocess.run(['git','archive',args.release,'api','lib','neon','scripts','deploy','public/assets/js','package.json','package-lock.json'],cwd=root,check=True,stdout=subprocess.PIPE).stdout

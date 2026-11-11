@@ -1646,7 +1646,7 @@ Expected: validate and architecture checks pass; unit failures limited to the 9 
 
 - [ ] **Step 5: Manual check with the real pack**
 
-Start `npm run dev:workspace`, attach `<local>/c5f00a6e7-turn-tracker-print-pack-v2.zip` on the print order page, and confirm: 10 parts listed (base, chassis, keycap_E, keycap_R, keycap_S, latch_bar, lid, panel, plunger, yoke), 8 PNGs plus `ASSEMBLY.md` plus `turn_tracker.scad` under "Not printed", the planning range changes with selection, and submit shows the pack in the operator inbox at `http://127.0.0.1:4180`.
+Start `npm run dev:workspace`, attach `<local>/5c5f00a6e7-turn-tracker-print-pack-v2.zip` on the print order page, and confirm: 10 parts listed (base, chassis, keycap_E, keycap_R, keycap_S, latch_bar, lid, panel, plunger, yoke), 8 PNGs plus `ASSEMBLY.md` plus `turn_tracker.scad` under "Not printed", the planning range changes with selection, and submit shows the pack in the operator inbox at `http://127.0.0.1:4180`.
 
 - [ ] **Step 6: Commit**
 

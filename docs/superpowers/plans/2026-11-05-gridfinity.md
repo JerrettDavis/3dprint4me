@@ -57,7 +57,7 @@ Files: new Gridfinity browser tests, existing generator contract tests where car
 
 ## Pre-merge verification record — 2026-11-05
 
-Implementation is committed on `feat/gridfinity-generators`; PR #69 (ready for review): https://github.com/JerrettDavis/3dprint4me/pull/69 . Worktree `<repo-root>/dprint4me-gridfinity`, based on origin/main `0ec3bbe`. The original checkout's unrelated edits remain untouched.
+Implementation is committed on `feat/gridfinity-generators`; PR #69 (ready for review): https://github.com/JerrettDavis/3dprint4me/pull/69 . Worktree `<repo-root>/3dprint4me-gridfinity`, based on origin/main `0ec3bbe`. The original checkout's unrelated edits remain untouched.
 
 Completed evidence:
 

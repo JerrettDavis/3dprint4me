@@ -76,12 +76,12 @@ Private controller JSON has this shape (paths are examples, never credentials):
 
 ```json
 {
-  "restic": "G:/private/tools/restic.exe",
-  "password_file": "G:/private/keys/restic-password.txt",
+  "restic": "<private-root>/tools/restic.exe",
+  "password_file": "<private-root>/keys/restic-password.txt",
   "ssh_host": "operator@docker-host",
   "status_backup_secret": "<from private secret store>",
   "stores": [
-    {"repository": "G:/private/restic", "cache": "G:/private/cache"},
+    {"repository": "<private-root>/restic", "cache": "<private-root>/cache"},
     {"repository": "D:/private/restic", "cache": "D:/private/cache"}
   ]
 }
@@ -94,8 +94,8 @@ does not delete snapshots, prune storage, rotate credentials, or touch productio
 ## Run and restore
 
 ```powershell
-python deploy/platform/backup-controller.py --config G:/private/keys/platform.json
-python deploy/platform/restore-drill.py --config G:/private/keys/platform.json --snapshot <exact-64-hex-snapshot> --filename 3dprint4me/platform-YYYYMMDDTHHMMSSZ.tar --sha256 <exact-archive-sha256>
+python deploy/platform/backup-controller.py --config <private-root>/keys/platform.json
+python deploy/platform/restore-drill.py --config <private-root>/keys/platform.json --snapshot <exact-64-hex-snapshot> --filename 3dprint4me/platform-YYYYMMDDTHHMMSSZ.tar --sha256 <exact-archive-sha256>
 ```
 
 The export includes the independent control database and the active business
@@ -117,8 +117,8 @@ automatically to stale Neon data or reopen the old source after target writes.
 ## Install schedules
 
 ```powershell
-./deploy/platform/install-backup-task.ps1 -Python <absolute-python.exe> -PrivateRoot G:/private -Config G:/private/keys/platform.json
-./deploy/platform/install-backup-task.ps1 -Python <absolute-python.exe> -PrivateRoot G:/private -Config G:/private/keys/platform.json -Apply
+./deploy/platform/install-backup-task.ps1 -Python <absolute-python.exe> -PrivateRoot <private-root> -Config <private-root>/keys/platform.json
+./deploy/platform/install-backup-task.ps1 -Python <absolute-python.exe> -PrivateRoot <private-root> -Config <private-root>/keys/platform.json -Apply
 ```
 
 The first command previews. The applied command copies the three reviewed recovery
