@@ -238,3 +238,14 @@ Automate deletion only after testing it against backups, active jobs, disputes, 
 ## Spoolman inventory integration
 
 See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
+
+## Catalogue operations
+
+Promote a customizer request with **Create gallery product**, replace any public
+text with generic examples or record permission, build private previews, inspect
+settings/images, approve, then publish. Refresh the product to check public
+verification. Withdrawal also requires a verified release. Pending releases
+remain locked and block later releases; repair the trusted worker/Git/deployment
+connection and let the same durable job reconcile. Do not delete an uncertain
+job or reuse its public revision. See [PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md)
+for configuration, private staging retention and historical-generator handling.

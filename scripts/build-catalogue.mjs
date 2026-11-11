@@ -9,7 +9,7 @@ const assetVersion = home.match(/(?:href|src)="\/assets\/[^"\n]+\.(?:js|css)\?v=
 let media = {};
 try { media = JSON.parse(await readFile(new URL('scripts/catalogue-media.json', root), 'utf8')); }
 catch (error) { if (error.code !== 'ENOENT') throw error; }
-const products = PRODUCTS.map(p => validateProduct(p));
+const products = PRODUCTS.map(p => validateProduct(p, { allowHistorical: true }));
 const shell = (title, description, path, content, shop = false) => `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="${esc(description)}"><meta name="theme-color" content="#ffffff"><title>${esc(title)} | 3dprint4.me</title><link rel="canonical" href="https://3dprint4.me${path}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/css/site.css"><link rel="stylesheet" href="/assets/css/shared.css"><link rel="stylesheet" href="/assets/css/catalogue.css"></head>
 <body><div id="site-header"></div><main id="main" class="catalogue-page">${content}</main><div id="site-footer"></div><script type="module" src="/assets/js/site.js"></script>${shop ? '<script type="module" src="/assets/js/catalogue/shop.js"></script>' : ''}</body></html>\n`.replace(/((?:href|src)="\/assets\/[^"\n]+\.(?:js|css))"/g, (_, prefix) => `${prefix}${assetVersion ? `?v=${assetVersion}` : ''}"`);

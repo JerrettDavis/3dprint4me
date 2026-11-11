@@ -34,6 +34,8 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
     const p = data.product;
     content.replaceChildren();
     content.append(button('All catalogue products', () => run(showList)), el('p', `${p.status.replaceAll('_', ' ')} · revision ${p.revision}`));
+    if (p.status === 'publishing') content.append(el('p', 'Waiting for the public release to be verified.'));
+    if (p.published) content.append(el('p', `Verified public revision ${p.published.revision}.`));
     if (data.previewUrl) {
       const inspect = el('a', 'Inspect these settings in the design tool'); inspect.href = data.previewUrl; inspect.target = '_blank'; inspect.rel = 'noopener noreferrer';
       content.append(inspect);
@@ -85,6 +87,7 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
       await showProduct(p.id); status.textContent = 'Private draft saved. Build fresh previews before approval.';
     }); });
     content.append(form);
+    if (p.status === 'publishing') form.querySelectorAll('input,textarea,select,button').forEach(control => { control.disabled = true; });
     const actions = el('div', null, 'catalogue-owner-actions');
     const render = button('Build previews', () => run(async () => {
       await api.catalogueAction({ action: 'render', id: p.id, revision: p.revision, commandId: crypto.randomUUID() });
@@ -96,7 +99,18 @@ export async function openCatalogueDialog({ api, sourceWorkId = null, onAuthErro
       await showProduct(p.id); status.textContent = 'Review recorded. The product has not been published.';
     }));
     approve.disabled = p.status !== 'review_ready';
-    actions.append(render, approve, button('Refresh product', () => run(() => showProduct(p.id))));
+    const releaseAction = (label, action, allowed) => {
+      const control = button(label, () => run(async () => {
+        await api.catalogueAction({ action, id: p.id, revision: p.revision, commandId: crypto.randomUUID() });
+        await showProduct(p.id); status.textContent = 'Release queued. Refresh to check public verification.';
+      }));
+      control.disabled = !data.publishConfigured || !allowed;
+      return control;
+    };
+    actions.append(render, approve,
+      releaseAction('Publish reviewed product', 'publish', p.status === 'approved'),
+      releaseAction('Withdraw public product', 'withdraw', p.status !== 'publishing' && p.published?.snapshot?.status === 'published'),
+      button('Refresh product', () => run(() => showProduct(p.id))));
     content.append(actions);
     if (!data.renderConfigured) content.append(el('p', 'The preview runner is not configured. Draft saving is available; previews have not been built.'));
     if (!data.publishConfigured) content.append(el('p', 'Publication is unavailable until the trusted release runner is configured. This draft is private.'));

@@ -171,7 +171,7 @@ function boot() {
       if (label) label.textContent = 'Request this design';
     }
   }
-  const state = { generator, params: initial.params, result: null, status: "idle" };
+  const state = { generator, params: initial.params, product: initial.product, result: null, status: "idle" };
   // Font choice: every generator carries the shared font spec { key, custom, system, ack }.
   // Curated ids are fetched same-origin by the worker; the customer's own font (a file, or one
   // installed on their computer) lives only in the font area below, in this page's memory.
@@ -672,9 +672,10 @@ function boot() {
     let randomButton = null;
     const same = (a, b) => JSON.stringify(storableParams(generator, a)) === JSON.stringify(storableParams(generator, b));
     const paint = () => panel?.setCurrent(designId, { modified });
-    function jump(next, { id, message }) {
-      previous = { params: state.params, designId, modified };
+    function jump(next, { id, message, product = null }) {
+      previous = { params: state.params, product: state.product, designId, modified };
       state.params = next;
+      state.product = product;
       designId = id;
       modified = false;
       saveDraft(generator, state.params);
@@ -690,6 +691,7 @@ function boot() {
       const back = previous;
       previous = null;
       state.params = back.params;
+      state.product = back.product;
       designId = back.designId;
       modified = back.modified;
       saveDraft(generator, state.params);
@@ -703,7 +705,7 @@ function boot() {
     function pick(design) {
       const next = applyDesign(generator, design, state.params);
       if (!next) { announce(`${design.label} couldn't be applied.`); return; }
-      jump(next, { id: design.id, message: `${design.label} applied. Use Undo to go back.` });
+      jump(next, { id: design.id, product: design.product ? { ...design.product, title: design.label } : null, message: `${design.label} applied. Use Undo to go back.` });
       panel?.collapse();
     }
     async function randomize() {
@@ -831,7 +833,7 @@ function boot() {
     if (continuing) return;
     continuing = true;
     try {
-      await continueHandler(continuePayload(generator, state.params, result));
+      await continueHandler(continuePayload(generator, state.params, result, { product: state.product }));
     } catch (error) {
       setNote(String(error?.message ?? "Couldn't continue. Try again."));
     } finally {

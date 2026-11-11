@@ -1,5 +1,6 @@
 // "Continue to request" logic, kept pure so it can be tested in Node.
 import { redactSensitive } from "../../public/assets/js/customize/schema.js";
+import { normalizeProductReference } from '../../public/assets/js/catalogue/reference.js';
 
 export const ORDER_URL = "/order.html?service=print&from=customize";
 /** Used when the browser refuses IndexedDB: the 3MF is downloaded and the order page explains. */
@@ -15,7 +16,8 @@ export function continueState({ status, hasResult }) {
  * the redaction marker. Only the generator's own schema parameters are copied, so page-local
  * data (such as a traced customer image) can never ride along.
  */
-export function continuePayload(generator, params, result) {
+export function continuePayload(generator, params, result, { product = null } = {}) {
+  const reference = product && !product.privatePreview ? normalizeProductReference({ id: product.id, revision: product.revision }) : undefined;
   const known = generator.schema
     ? Object.fromEntries(Object.keys(generator.schema).filter(k => Object.hasOwn(params, k)).map(k => [k, params[k]]))
     : { ...params };
@@ -24,7 +26,8 @@ export function continuePayload(generator, params, result) {
     filename: result.filename,
     generatorId: generator.id,
     generatorVersion: generator.version ?? 1,
-    generatorTitle: generator.title ?? generator.id,
+    generatorTitle: reference ? String(product.title || generator.title || generator.id).slice(0, 100) : generator.title ?? generator.id,
+    ...(reference ? { product: reference } : {}),
     params: redactSensitive(generator, known),
     warnings: [...(result.warnings ?? [])]
   };

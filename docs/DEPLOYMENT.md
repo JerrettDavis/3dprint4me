@@ -355,3 +355,14 @@ For the September 15 release, CLI file uploads were blocked by commit-author mat
 ## Spoolman inventory integration
 
 See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
+
+## Catalogue release worker
+
+The private worker requires migration `019_product_catalogue.sql`, shared private
+preview storage, Blender/Pillow and Git/Node/npm. Publication stays disabled
+until explicitly configured with a credential-free HTTPS remote, target branch
+and public HTTPS `SITE_URL`; that branch must already deploy the storefront.
+A push alone never marks a product live. Configure and rehearse the receipt
+verification and withdrawal flow described in [PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md)
+before enabling `CATALOGUE_PUBLISH_ENABLED=1`. No migration or external release
+was performed by the catalogue implementation workflow.

@@ -13,6 +13,20 @@ from tests.e2e.test_product_catalogue import catalogue_browser
 from tests.support.operator_harness import running_operator_workspace
 from tests.support.server import request
 
+def test_finished_preview_uses_immutable_byte_hash_in_public_filename(tmp_path):
+    from PIL import Image
+    import hashlib
+    work = tmp_path / 'render-fixture'
+    work.mkdir()
+    (work / 'recipes.json').write_text(json.dumps({'renders': [{'id': 'sample', 'output': 'catalogue/sample-hero.webp'}]}))
+    (work / 'mesh-receipt.json').write_text(json.dumps({'jobId': 'render-fixture'}))
+    Image.new('RGB', (20, 20), 'blue').save(work / 'sample.png')
+    subprocess.run([sys.executable, 'scripts/finish-catalogue-job.py'], cwd=Path(__file__).resolve().parents[2],
+                   env={**os.environ, 'PRODUCT_RENDER_WORK_DIR': str(work), 'PRODUCT_RENDER_PRIVATE_ROOT': str(tmp_path)}, check=True)
+    receipt = json.loads((work / 'result.json').read_text())
+    digest = hashlib.sha256((work / 'preview-0.webp').read_bytes()).hexdigest()
+    assert receipt['images'][0]['src'] == f'/assets/images/products/catalogue/sample-hero-{digest[:16]}.webp?v={digest[:16]}'
+
 
 @pytest.mark.skipif(os.environ.get('CATALOGUE_RENDER_INTEGRATION') != '1', reason='Requires local Blender 5.2 and Pillow')
 def test_owner_builds_and_reviews_private_studio_previews(catalogue_browser):

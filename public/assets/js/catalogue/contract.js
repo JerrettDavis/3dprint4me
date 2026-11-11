@@ -1,6 +1,6 @@
 // Public snapshot contract shared by static shop, offline customizers and server validation.
-import { getGenerator } from '../customize/registry.js?v=c5f2923807d19a64';
-import { sensitiveKeys, validateParams } from '../customize/schema.js?v=c5f2923807d19a64';
+import { getGenerator } from '../customize/registry.js?v=5260e3a32fbe6d07';
+import { sensitiveKeys, validateParams } from '../customize/schema.js?v=5260e3a32fbe6d07';
 
 const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const IMAGE = /^\/assets\/images\/products\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)*[a-z0-9]+(?:-[a-z0-9]+)*\.(?:webp|png|jpg)(?:\?v=[a-f0-9]{16})?$/;
@@ -12,11 +12,13 @@ const text = (value, max) => {
   return value.trim();
 };
 
-export function validateProduct(record, { getGenerator: lookup = getGenerator } = {}) {
+export function validateProduct(record, { getGenerator: lookup = getGenerator, allowHistorical = false } = {}) {
   if (!plain(record) || Object.keys(record).some(key => !fields.has(key))) invalid();
   if (typeof record.id !== 'string' || !ID.test(record.id) || record.id.length > 100 || !Number.isSafeInteger(record.revision) || record.revision < 1) invalid();
   const g = typeof record.generatorId === 'string' && lookup(record.generatorId);
-  if (!g?.rights?.publishable || record.generatorVersion !== g.version) invalid();
+  if (!g?.rights?.publishable || !Number.isSafeInteger(record.generatorVersion) || record.generatorVersion < 1
+    || (record.generatorVersion !== g.version && !(allowHistorical && record.generatorVersion < g.version))) invalid();
+  const historical = record.generatorVersion !== g.version;
   if (!['published', 'withdrawn'].includes(record.status) || !plain(record.params)) invalid();
   const sensitive = new Set(sensitiveKeys(g));
   if (Object.keys(record.params).some(key => sensitive.has(key))) invalid();
@@ -31,10 +33,11 @@ export function validateProduct(record, { getGenerator: lookup = getGenerator } 
     if (!plain(image) || Object.keys(image).some(key => !['src', 'alt', 'kind'].includes(key)) || !IMAGE.test(image.src) || image.kind !== 'render') invalid();
     return { src: image.src, alt: text(image.alt, 300), kind: 'render' };
   });
-  return { id: record.id, revision: record.revision, generatorId: g.id, generatorVersion: g.version,
+  return { id: record.id, revision: record.revision, generatorId: g.id, generatorVersion: record.generatorVersion,
     title: text(record.title, 100), category: text(record.category, 60), summary: text(record.summary, 400),
-    status: record.status, params: Object.fromEntries(Object.entries(checked.value).filter(([key]) => !sensitive.has(key))), images };
+    status: record.status, params: historical ? structuredClone(record.params) : Object.fromEntries(Object.entries(checked.value).filter(([key]) => !sensitive.has(key))), images };
 }
+export const isCurrentProduct = product => getGenerator(product.generatorId)?.version === product.generatorVersion;
 
 export function productHref(product, { request = false } = {}) {
   if (typeof product?.id !== 'string' || typeof product?.generatorId !== 'string' || !ID.test(product.id) || !ID.test(product.generatorId) || !Number.isSafeInteger(product.revision) || product.revision < 1) invalid();

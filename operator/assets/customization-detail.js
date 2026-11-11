@@ -30,6 +30,7 @@ export function customizationRows(customization) {
   return [
     ["Generator", display(customization.generatorId)],
     ["Version", display(customization.generatorVersion)],
+    ...(customization.product ? [["Starting product", `${display(customization.product.id)} (revision ${display(customization.product.revision)})`]] : []),
     ...Object.entries(params).map(([key, value]) => [humanize(key), redacted.has(key) || value === REDACTED ? WITHHELD : display(value)])
   ];
 }

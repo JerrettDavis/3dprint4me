@@ -13,6 +13,7 @@ from tests.support.operator_harness import running_operator_workspace
 from tests.support.server import json_request, running_server
 from tests.e2e.test_api import project_request
 from tests.support.print_seed import FIXTURES, fake_slicer_env, seed_print_request
+from tests.support.catalogue_preview import owner_catalogue_fixture, install_owner_catalogue_fixture
 
 OUTPUT = ROOT / "screenshots"
 
@@ -159,6 +160,35 @@ def magnetic_light(page) -> None:
     page.locator('#cz-level').get_by_role('button', name='Advanced', exact=True).click()
     page.locator('#cz-light_base_mm').scroll_into_view_if_needed()
 
+
+def capture_catalogue_owner_states() -> list[tuple[str, Path]]:
+    captured = []
+    with running_operator_workspace() as (_, operator, _):
+        for width, scheme in [(1440, 'light'), (1440, 'dark'), (390, 'light'), (390, 'dark')]:
+            fixture = owner_catalogue_fixture()
+            with SiteBrowser(viewport=(width, 1000 if width == 1440 else 844), color_scheme=scheme, service_workers='block') as site:
+                page = site.goto(operator, ready_selector='#work-list')
+                install_owner_catalogue_fixture(page, operator, fixture)
+                page.get_by_role('button', name='Product catalogue', exact=True).click()
+                dialog = page.get_by_role('dialog', name='Product catalogue')
+                dialog.get_by_role('button', name=fixture['product']['title'], exact=True).click()
+                dialog.get_by_role('button', name='Publish reviewed product', exact=True).wait_for()
+                for state in ['reviewed', 'reviewed-actions', 'pending', 'published', 'withdrawn']:
+                    if state == 'reviewed-actions':
+                        dialog.evaluate('(node) => node.scrollTop = node.scrollHeight')
+                    elif state != 'reviewed':
+                        product = fixture['product']
+                        product['status'] = {'pending': 'publishing', 'published': 'published', 'withdrawn': 'withdrawn'}[state]
+                        product['published'] = None if state == 'pending' else {'revision': 1 if state == 'published' else 2, 'snapshot': {'status': product['status']}}
+                        product['publication'] = {'phase': 'awaiting_release' if state == 'pending' else 'live'}
+                        dialog.get_by_role('button', name='Refresh product', exact=True).click()
+                        page.wait_for_function("() => !document.querySelector('#catalogue-dialog').hasAttribute('aria-busy')")
+                        dialog.evaluate('(node) => node.scrollTop = 0')
+                    path = OUTPUT / f'catalogue-admin-{state}-{width}-{scheme}.png'
+                    site.screenshot(path)
+                    captured.append((f'Owner catalogue {state} · {width} · {scheme}', path))
+                site.assert_no_page_errors(allow_console_warnings=('Service Worker registration blocked by Playwright',))
+    return captured
 
 def capture_product_catalogue_states() -> list[tuple[str, Path]]:
     captured = []
@@ -851,6 +881,7 @@ def main() -> int:
         ("Privacy · referral notice · light", capture('/privacy.html', 'privacy-referral-light.png', viewport=(1280,1000), scheme='light', full_page=True)),
     ])
     cases.extend(capture_product_catalogue_states())
+    cases.extend(capture_catalogue_owner_states())
     cases.extend(capture_customize_states())
     cases.extend(capture_operator_states())
     cases.extend(capture_work_conversations())

@@ -16,6 +16,17 @@ test('public records normalize complete settings and never retain internal field
   assert.throws(() => validateProduct({ ...example(), sourceWorkId: 'private-request' }));
   assert.throws(() => validateProduct({ ...example(), params: { unknown: 1 } }));
 });
+test('historical snapshots remain immutable data while generator updates disable their use', () => {
+  const product = validateProduct(example());
+  const generator = { ...getGenerator(product.generatorId), version: product.generatorVersion + 1 };
+  const options = { getGenerator: () => generator, allowHistorical: true };
+  const safe = validateProduct(product, options);
+  assert.deepEqual(safe, product);
+  assert.equal(resolveProductLink(generator, '?product=little-witch&revision=1', [safe]).status, 'stale');
+  assert.throws(() => validateProduct(product, { getGenerator: () => generator }));
+  const sensitiveGenerator = { ...generator, schema: { ...generator.schema, diameter_mm: { ...generator.schema.diameter_mm, sensitive: true } } };
+  assert.throws(() => validateProduct(product, { ...options, getGenerator: () => sensitiveGenerator }));
+});
 
 test('sensitive values and redaction markers are rejected before publication', () => {
   const g = getGenerator('wifi-tag');

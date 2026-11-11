@@ -22,6 +22,7 @@ for index, recipe in enumerate(recipes):
     image.resize((960, 720), Image.Resampling.LANCZOS).save(output, quality=88, method=6)
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     image_hashes.append(digest)
-    images.append({'src': f'/assets/images/products/{recipe["output"]}?v={digest[:16]}',
+    public_name = recipe['output'].removesuffix('.webp') + f'-{digest[:16]}.webp'
+    images.append({'src': f'/assets/images/products/{public_name}?v={digest[:16]}',
                    'alt': 'Product studio render' if index == 0 else 'Alternate product studio view', 'kind': 'render'})
 (work / 'result.json').write_text(json.dumps({**receipt, 'renderer': 'Blender Cycles', 'images': images, 'imageSha256s': image_hashes}) + '\n')

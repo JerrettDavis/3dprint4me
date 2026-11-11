@@ -97,7 +97,7 @@ With no compatible storage, the API reports `configured: false` and refuses
 writes. With storage but no runner, private draft saving still works and
 **Build previews** is disabled. `CATALOGUE_WORKER_ENABLED=1` enables job
 enqueueing; do not set it operationally until the trusted worker is installed.
-Publication capability currently reports false. No failed/unconfigured action
+Publication capability requires explicit trusted runner configuration. No failed/unconfigured action
 is presented as a live product. Existing intake is independent of these flags.
 
 Provider exceptions are converted to bounded operator errors without raw
@@ -147,4 +147,62 @@ shop rendering/filtering, promotion privacy, owner permissions, durable replay,
 revision conflicts, native Postgres storage/RLS, offline model downloads, the
 real request handoff and the owner create/edit/reopen flow. The full project
 suite and screenshot workflow remain required before release. Full-goal
-completion also requires the unfinished publication/withdrawal flow.
+completion also requires verified publication/withdrawal evidence and the full regression checks.
+
+## Trusted publication and withdrawal
+
+Set `CATALOGUE_WORKER_ENABLED=1`, `CATALOGUE_PUBLISH_ENABLED=1`,
+`CATALOGUE_PUBLISH_REMOTE` (a credential-free HTTPS Git remote),
+`CATALOGUE_PUBLISH_BRANCH` (default `main`), and `SITE_URL` (the public HTTPS
+origin). Git authentication belongs in the worker host's credential helper.
+Never put a token in the remote URL. `CATALOGUE_RELEASE_PATH` optionally selects
+a dedicated private staging directory; the default is `releases/` beneath
+`CATALOGUE_PRIVATE_PATH`. The host needs Git, Node/npm and network access to the
+remote, package registry and public site. The configured remote branch must
+already have a deployment integration serving its `public/` directory.
+
+The owner reviews private previews, records rights, approves, then selects
+**Publish reviewed product**. Durable jobs serialize release delivery across
+products. A release fetches the branch into private staging, merges immutable
+snapshots, copies hash-verified preview bytes, installs locked dependencies
+without install scripts, builds the catalogue/customizers, versions assets,
+validates and makes an ordinary fast-forward push. Concurrent branch changes
+cannot be overwritten. Images include their byte hash in their filename;
+existing public image bytes cannot be replaced.
+
+Push success is not publication proof. The worker fetches the immutable
+`/catalogue-releases/<release-id>.json` receipt from `SITE_URL`, without
+authorization or redirects, and checks release, product, revision, operation
+and snapshot hash. Only matching public delivery marks the product live.
+A missing/mismatched receipt or interrupted operation remains locked and
+reconciles the same release automatically every minute. Restart recovery
+recognizes an already pushed receipt without creating another commit.
+**Refresh product** shows progress; editing stays disabled until verified.
+The previous public revision remains live during replacement. Withdrawal
+uses the last published settings, publishes a new withdrawn revision, and
+requires the same public verification. Previously withdrawn revisions cannot
+be revived by a later republication.
+
+An unconfirmed release deliberately blocks subsequent releases. Diagnose Git,
+build and deployment availability on the trusted host, then let the same job
+reconcile. Do not delete its job/receipt or unlock it by editing database JSON:
+delivery may already have happened. Private release checkouts contain no
+provider environment credentials; retain them only as long as needed for
+operator diagnosis and remove completed staging directories during maintenance.
+The adapter tests push only to temporary local Git repositories. This branch
+has not been pushed or deployed by this implementation workflow.
+
+## Product provenance and generator updates
+
+Private print intake carries the optional starting product ID/revision and a
+friendly title through the handoff. The server validates only the bounded
+reference. It is customer-claimed provenance, never geometry, price, rights or
+payment proof. Private preview links carry no published-product identity.
+
+Old generator versions remain immutable snapshots when their settings still
+pass the current safety schema. They disappear from discovery and detail links
+explain that review is needed; their settings are never interpreted by a newer
+builder. Unknown or newly sensitive fields fail the build for deliberate
+privacy review rather than silently publishing their values. A breaking schema
+change therefore requires reviewing/quarantining affected historical records
+before release; do not normalize or rewrite an old public revision in place.

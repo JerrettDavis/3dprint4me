@@ -7,11 +7,11 @@ import { createLocalCatalogueRepository } from '../../lib/product-catalogue/loca
 import { createCatalogueApplication } from '../../lib/product-catalogue/application.js';
 import { createCatalogueWorker } from '../../lib/product-catalogue/worker.js';
 
-async function queue(t) {
+async function queue(t, publishConfigured = false) {
   const directory = await mkdtemp(join(tmpdir(), 'catalogue-worker-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const repository = createLocalCatalogueRepository({ path: join(directory, 'private.json') });
-  const application = createCatalogueApplication({ repository, renderConfigured: true,
+  const application = createCatalogueApplication({ repository, renderConfigured: true, publishConfigured,
     workRepository: { getWork: async () => ({ request: { customization: { generatorId: 'name-plate', generatorVersion: 2, params: {} } } }) } });
   const actor = { id: 'owner', role: 'owner' };
   await application.execute({ action: 'promote', id: 'desk-sign', workId: 'work_sample123', commandId: 'create' }, actor);
@@ -29,6 +29,37 @@ test('worker consumes a durable queue and exposes review-ready output without cl
   assert.equal((await repository.get('desk-sign')).draft.status, 'review_ready');
   assert.equal((await repository.get('desk-sign')).draft.published, null);
   assert.equal(await worker.tick(), 'idle');
+});
+test('admin publication and withdrawal use the durable publisher and stay locked until verified', async t => {
+  const repository = await queue(t, true);
+  const actor = { id: 'owner', role: 'owner' };
+  const application = createCatalogueApplication({ repository, publishConfigured: true });
+  const renderer = createCatalogueWorker({ repository, workerId: 'renderer', render: async job => result(job) });
+  await renderer.tick();
+  let draft = (await repository.get('desk-sign')).draft;
+  draft = await application.execute({ action: 'save', id: draft.id, revision: draft.revision, commandId: 'rights', edit: { permissionNote: 'Generic house design.' } }, actor);
+  // Editing invalidates old renders, so rebuild before review.
+  const renderingApp = createCatalogueApplication({ repository, renderConfigured: true });
+  await renderingApp.execute({ action: 'render', id: draft.id, revision: draft.revision, commandId: 'rerender' }, actor);
+  await renderer.tick();
+  draft = (await repository.get(draft.id)).draft;
+  draft = await application.execute({ action: 'approve', id: draft.id, revision: draft.revision, commandId: 'approve' }, actor);
+  draft = await application.execute({ action: 'publish', id: draft.id, revision: draft.revision, commandId: 'publish' }, actor);
+  assert.equal(draft.status, 'publishing');
+  assert.equal(await renderer.tick(), 'idle');
+  let at = new Date().toISOString(); let verified = false;
+  const publisher = createCatalogueWorker({ repository, workerId: 'publisher', now: () => at, publish: async job => ({
+    ...(verified ? { verified: true } : { pending: true }), releaseId: job.releaseId, snapshotSha256: job.snapshotSha256, commit: 'a'.repeat(40),
+  }) });
+  assert.equal(await publisher.tick(), 'queued');
+  assert.equal((await repository.get(draft.id)).draft.status, 'publishing');
+  at = new Date(Date.parse(at) + 61000).toISOString(); verified = true;
+  assert.equal(await publisher.tick(), 'ready');
+  draft = (await repository.get(draft.id)).draft;
+  assert.equal(draft.status, 'published');
+  await application.execute({ action: 'withdraw', id: draft.id, revision: draft.revision, commandId: 'withdraw' }, actor);
+  assert.equal(await publisher.tick(), 'ready');
+  assert.equal((await repository.get(draft.id)).draft.status, 'withdrawn');
 });
 
 test('renderer errors stay private and leave a durable retry instead of losing the draft', async t => {

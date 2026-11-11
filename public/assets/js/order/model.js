@@ -1,4 +1,5 @@
-import {REFERRAL_CONSENT_VERSION} from './referral.js?v=c5f2923807d19a64';
+import {REFERRAL_CONSENT_VERSION} from './referral.js?v=5260e3a32fbe6d07';
+import { normalizeProductReference } from '../catalogue/reference.js?v=5260e3a32fbe6d07';
 const COMMON_FIELDS = new Set([
   "service", "projectTitle", "description", "modelUrl", "deadline", "delivery",
   "contactNotes", "name", "email", "phone", "preferredContact", "address",
@@ -29,13 +30,16 @@ export function projectRequestFromData({ data, estimate, files, buildSummary, cu
   // A ZIP pack's part selection is print-only plain text (see packRequestSpecifications).
   if (active.service === "print" && packSelection && Object.keys(packSelection).length) summary = { ...summary, specifications: { ...summary.specifications, ...packSelection } };
   if (active.service !== "print" || !customization) return summary;
-  return { ...summary, customization: { generatorId: customization.generatorId, generatorVersion: customization.generatorVersion, params: { ...customization.params } } };
+  const product = normalizeProductReference(customization.product);
+  return { ...summary, customization: { generatorId: customization.generatorId, generatorVersion: customization.generatorVersion, params: { ...customization.params }, ...(product ? { product } : {}) } };
 }
 
 /** Provenance from a customizer hand-off record (params are already redacted by the customizer). */
 export function customizationFromHandoff(record) {
   if (!record) return null;
-  return { generatorId: record.generatorId, generatorVersion: record.generatorVersion, params: isPlainObject(record.params) ? { ...record.params } : {} };
+  let product;
+  try { product = normalizeProductReference(record.product); } catch { /* Preserve the model even if optional starting-point metadata is malformed. */ }
+  return { generatorId: record.generatorId, generatorVersion: record.generatorVersion, params: isPlainObject(record.params) ? { ...record.params } : {}, ...(product ? { product } : {}) };
 }
 
 /** Generated project text for empty fields when a customizer model arrives. */

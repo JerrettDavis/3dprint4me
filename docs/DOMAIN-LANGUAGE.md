@@ -57,3 +57,15 @@ This vocabulary is normative for code, tests, APIs, and operations. Provider ter
 - Operational acceptance and optional notification delivery are separate outcomes.
 - Work transitions follow the documented graph and scheduling requires a target date.
 - Private notes and customer details never appear in Push payloads or browser storage.
+
+## Catalogue terms
+
+- **Product snapshot:** immutable public ID/revision, safe generator settings,
+  descriptive copy and matching studio images.
+- **Merchandising draft:** private editable product candidate, separate from the
+  source customer work and its personal information.
+- **Reviewed preview:** private, hash-verified images bound to current settings.
+- **Verified release:** an immutable publication/withdrawal receipt observed on
+  the public site; Git push success alone is insufficient.
+- **Starting product reference:** bounded customer-claimed ID/revision carried
+  with a private print request, without certifying geometry, price or rights.

@@ -76,6 +76,45 @@ def test_home_product_category_opens_a_pictured_collection(catalogue_browser, ca
         expect(page.locator('.catalogue-card:visible')).to_have_count(3)
         expect(page.locator('.catalogue-card:visible')).to_contain_text(['pumpkin', 'pumpkin', 'pumpkin'])
 
+@pytest.mark.parametrize('width,scheme', [(1440, 'light'), (390, 'dark')])
+def test_owner_publication_controls_show_pending_then_verified_withdrawal(catalogue_browser, width, scheme):
+    with running_operator_workspace() as (_, operator, _):
+        with catalogue_browser.new_context(viewport={'width': width, 'height': 844}, color_scheme=scheme, service_workers='block') as context:
+            page = context.new_page()
+            product = {'id': 'office-sign', 'revision': 5, 'generatorId': 'name-plate', 'generatorVersion': 2,
+                       'title': 'Office sign', 'category': 'Signs', 'summary': 'A house design.', 'permissionNote': 'House design.',
+                       'params': {}, 'status': 'approved', 'render': None, 'published': None}
+            actions = []
+            headers = {'access-control-allow-origin': operator, 'access-control-allow-credentials': 'true',
+                       'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'GET, POST, OPTIONS'}
+            def catalogue_route(route):
+                if 'resource=catalogue' not in route.request.url:
+                    return route.fallback()
+                if route.request.method == 'POST':
+                    command = route.request.post_data_json
+                    actions.append(command['action'])
+                    product.update(status='publishing', revision=product['revision'] + 1,
+                                   publication={'phase': 'queued', 'operation': command['action']})
+                    return route.fulfill(headers=headers, json={'configured': True, 'product': product})
+                if 'id=office-sign' in route.request.url:
+                    return route.fulfill(headers=headers, json={'configured': True, 'renderConfigured': True, 'publishConfigured': True, 'product': product, 'fields': []})
+                route.fulfill(headers=headers, json={'configured': True, 'renderConfigured': True, 'publishConfigured': True, 'products': [product]})
+            page.route('**/api/operator-work?**', catalogue_route)
+            page.goto(operator)
+            page.get_by_role('button', name='Product catalogue', exact=True).click()
+            dialog = page.get_by_role('dialog', name='Product catalogue')
+            expect(dialog.get_by_role('status')).to_contain_text('1 private catalogue products', timeout=5000)
+            dialog.get_by_role('button', name='Office sign', exact=True).click()
+            dialog.get_by_role('button', name='Publish reviewed product', exact=True).click()
+            expect(dialog.get_by_text('Waiting for the public release to be verified.', exact=True)).to_be_visible()
+            expect(dialog.get_by_role('button', name='Save private draft', exact=True)).to_be_disabled()
+            product.update(status='published', revision=7, published={'revision': 1, 'snapshot': {'status': 'published'}}, publication={'phase': 'live'})
+            dialog.get_by_role('button', name='Refresh product', exact=True).click()
+            expect(dialog.get_by_text('Verified public revision 1.', exact=True)).to_be_visible()
+            dialog.get_by_role('button', name='Withdraw public product', exact=True).click()
+            expect(dialog.get_by_text('Waiting for the public release to be verified.', exact=True)).to_be_visible()
+            assert actions == ['publish', 'withdraw']
+
 
 def test_invalid_product_does_not_build_a_different_default(catalogue_browser, catalogue_url):
     with catalogue_browser.new_context() as context:

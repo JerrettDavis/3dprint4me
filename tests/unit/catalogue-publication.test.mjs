@@ -54,6 +54,15 @@ test('withdrawal uses the last published snapshot rather than unreviewed edited 
   const complete = finishCataloguePublication(withdrawal.draft, withdrawal.job, verified(withdrawal.job), { now });
   assert.equal(complete.status, 'withdrawn');
 });
+test('a historical public snapshot can be withdrawn without rebuilding its old settings', () => {
+  const first = queueCataloguePublication(approved(), { jobId: 'publish-first', actor, now });
+  const published = finishCataloguePublication(first.draft, first.job, verified(first.job), { now });
+  published.published.snapshot.generatorVersion = 1;
+  const withdrawal = queueCataloguePublication(published, { operation: 'withdraw', jobId: 'publish-old', actor, now });
+  assert.equal(withdrawal.job.snapshot.generatorVersion, 1);
+  assert.equal(withdrawal.job.snapshot.status, 'withdrawn');
+  assert.equal(mergeCatalogueSnapshot([published.published.snapshot], withdrawal.job.snapshot).length, 2);
+});
 
 test('failed publication preserves the previous live product and never reuses an allocated revision', () => {
   const first = queueCataloguePublication(approved(), { jobId: 'publish-first', actor, now });

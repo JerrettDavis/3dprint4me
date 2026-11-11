@@ -1,4 +1,4 @@
-import { productHref } from './contract.js?v=c5f2923807d19a64';
+import { productHref, isCurrentProduct } from './contract.js?v=5260e3a32fbe6d07';
 
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const esc = escapeHtml;
@@ -9,7 +9,7 @@ export function latestProducts(products) {
 }
 export function filterProducts(products, { category = '', query = '' } = {}) {
   const needle = query.trim().toLocaleLowerCase();
-  return latestProducts(products).filter(p => p.status === 'published' && (!category || p.category === category)
+  return latestProducts(products).filter(p => p.status === 'published' && isCurrentProduct(p) && (!category || p.category === category)
     && (!needle || `${p.title} ${p.summary} ${p.category}`.toLocaleLowerCase().includes(needle)));
 }
 
@@ -28,6 +28,7 @@ export function renderShop(products) {
 
 export function renderProduct(product, media = {}) {
   const p = product;
+  if (!isCurrentProduct(p)) return `<section class="catalogue-opening"><h1>This design needs review after a generator update.</h1><p>Choose a current design or start a new one.</p><a class="button primary" href="/shop/">Return to the shop</a></section>`;
   if (p.status === 'withdrawn') return `<section class="catalogue-opening"><div><h1>This design is unavailable.</h1><p>It has been withdrawn from the catalogue. You can choose another starting point or ask us about a custom design.</p><a class="button primary" href="/shop/">Return to the shop</a></div></section>`;
   const size = Array.isArray(media.dimensionsMm) && media.dimensionsMm.length === 3 && media.dimensionsMm.every(Number.isFinite)
     ? `${media.dimensionsMm.map(n => Math.round(n * 10) / 10).join(' × ')} mm` : '';

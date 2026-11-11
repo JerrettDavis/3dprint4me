@@ -11,6 +11,12 @@ test('shop exposes product detail links and genuine generator categories', () =>
   assert.match(html, /name="category"/);
   assert.doesNotMatch(html, /customer@example|checkout|\$0/);
 });
+test('stale snapshots disappear from discovery and explain recovery on their detail page', () => {
+  const stale = { ...PRODUCTS[0], generatorVersion: 0 };
+  assert.equal(filterProducts([stale]).length, 0);
+  assert.match(renderProduct(stale), /needs review after a generator update/);
+  assert.doesNotMatch(renderProduct(stale), /Request this design/);
+});
 
 test('product detail links request and editing to its exact revision, with honest quote and render labels', () => {
   const p = PRODUCTS.find(p => p.id === 'pumpkin-witch');
