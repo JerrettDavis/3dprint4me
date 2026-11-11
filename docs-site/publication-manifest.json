@@ -10,12 +10,12 @@
     {
       "file": "docs/CONTRACTOR-RELEASE-READINESS.md",
       "output": "reference/CONTRACTOR-RELEASE-READINESS.md",
-      "sha256": "39c8f5d107f5bfa98f071035e3b3c051de84f8282038ca3661cb7006b1abb0f7"
+      "sha256": "5a1d0588ac8c30e821e5a7b0828df9afa14d3fbcfc35aebff1f4d0eafd868ca8"
     },
     {
       "file": "docs/DEPLOYMENT.md",
       "output": "reference/DEPLOYMENT.md",
-      "sha256": "2472afc7a175ca53a95c7d57312baac79800dbfdf762bdb1ade6432ddebb888d"
+      "sha256": "9a79ea40371f1279a1a27fc3d2b5aea105d0b1253bd406fdfbafb8d484883816"
     },
     {
       "file": "docs/DOMAIN-LANGUAGE.md",
@@ -30,7 +30,7 @@
     {
       "file": "docs/PRODUCT-IMAGES.md",
       "output": "reference/PRODUCT-IMAGES.md",
-      "sha256": "f00966261309fe93e89985756692103bab78f3ee1958a490eb5047581dd7f336"
+      "sha256": "9cf55b4a49cd0fc0b8311cbeacbc03048a6d846b71e1a3246c4c54793e671021"
     },
     {
       "file": "docs/GITHUB-OPERATOR-AUTH.md",
@@ -1165,7 +1165,7 @@
     {
       "file": "docs/PLATFORM-RECOVERY.md",
       "output": "reference/PLATFORM-RECOVERY.md",
-      "sha256": "9632782ff6babd7b9e59baa8b373448a55d6f0de63c0101e54e5a7dd31ca0135"
+      "sha256": "ee7c34fa4046fbaa0db36d63b6af5ce94e6436938380c1ee26d2c7e0f32a6a80"
     },
     {
       "file": "docs/PRICING-CALIBRATION.md",
@@ -1200,7 +1200,7 @@
     {
       "file": "docs/VERIFICATION.md",
       "output": "reference/VERIFICATION.md",
-      "sha256": "b6170311ad341de0b1d6644e732d7f2788b6b48df0cd99607fba64776cd76aa2"
+      "sha256": "d36038e0b7b5d5fa211afe18ad0b96bfcdef2fd0e43b640803c1d2118f9e2426"
     },
     {
       "file": "docs/WORK-COMMUNICATIONS.md",

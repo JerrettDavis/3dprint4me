@@ -1,5 +1,23 @@
 # Product browsing images
 
+## Current reproducible studio renders (November 10, 2026)
+
+All eight public customizer categories without a printed photograph now use Blender Cycles renders of the actual generator's finished-preview geometry. Route shield and Display sign retain their printed photographs. The historical AI prompts and capture instructions below describe superseded assets, not the current shipped images.
+
+Install the repository's Node dependencies (`npm ci`), Python Pillow (`python -m pip install Pillow`) and Blender 5.2 (the reviewed run used 5.2.3 LTS). Run `npm run products:render`. The command resolves Blender from `BLENDER_BIN`, PATH, or its standard Windows 5.2 installation. It fails if a build or render fails. No renderer runs in the production site.
+
+`scripts/product-render-recipes.json` pins public example parameters and camera angles. Defaults come from the generator definitions; commit those alongside any regenerated images. `scripts/export-product-render-meshes.mjs` validates the examples and builds their real colored triangles through `buildPresentationModel`, including assembled presentation and support removal. It uses local curated fonts. No screenshots, invented QR geometry, customer uploads or external image service are involved. The Wi-Fi example is an open guest network, with no password. Sensitive keys are forbidden in recipes and parameters never enter the mesh JSON.
+
+`scripts/render-products.py` is the shared studio: Cycles path tracing supplies indirect illumination, occlusion and contact shadows; three area softboxes provide soft key/fill/rim lighting; a procedural polymer shader supplies restrained surface grain; AgX handles highlights. The sampling seed is fixed at 41, with 96 samples and denoising. Orthographic framing fits the actual projected vertices with a 28% margin. Geometry is not beveled or reshaped by the renderer. Hardware and Blender versions can affect pixels; reproducibility means rebuilding the same model, camera, material and lighting recipe, not promising byte equality between render engines.
+
+Mesh JSON and full-size PNGs stay in ignored `.private/product-renders/`. `scripts/finish-product-renders.py` produces the shipped 960 × 720 WebPs, `screenshots/product-render-board.png`, and `scripts/product-render-manifest.json` with image, mesh and studio source hashes. Inspect the board before accepting regeneration. Both catalogs retain the honest “Illustrative render” label: these are models, not photographed prints or fit/finish guarantees.
+
+The finish step also updates both catalogs' image URLs with `?v=<first 16 image hash characters>`. Changed renders get new cache keys automatically, so returning visitors receive the new image without waiting for the ordinary asset cache to expire. Provenance verifies these URL versions along with the input-source fingerprint, including export and finishing scripts.
+
+To add a category, add its default recipe, media entry and home card. The coverage contract fails when a public generator without a photograph lacks a recipe. To add an alternate variant, add a unique URL-safe `id` and a `generator` pointing to an existing generator, plus partial `params`, `elevation` and `azimuth`; the same command writes a separate WebP. Add that image to the relevant gallery explicitly. Recipes must not contain sensitive keys. Run `node --test tests/unit/product-render-recipes.test.mjs tests/unit/product-media.test.mjs`, `npm test`, and `npm run screenshots`; inspect the render board and `screenshots/preview-board.png` at desktop and 390px.
+
+## Historical media notes (superseded)
+
 The home shop (`public/index.html`) shows all ten public generators and four service starting points. `/customize/` uses `public/assets/js/customize/product-media.js` for the same generator images and descriptions. Browsing either page requires no geometry build, worker, WASM, credentials or external image host. The home markup stays static and works without JavaScript; unit contracts prevent drift against the public registry and Customize cards.
 
 Gridfinity baseplate and bin images are captured from the actual default Manifold geometry by

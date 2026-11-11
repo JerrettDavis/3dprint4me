@@ -73,7 +73,7 @@ def _bundle(order: bool, *, home: bool = False) -> str:
 
 
 def _asset_data_uri(root_relative_path: str) -> str:
-    path = SITE_ROOT / root_relative_path.lstrip("/")
+    path = SITE_ROOT / urlsplit(root_relative_path).path.lstrip("/")
     payload = base64.b64encode(path.read_bytes()).decode("ascii")
     suffix = path.suffix.lower()
     mime = {

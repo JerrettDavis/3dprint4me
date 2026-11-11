@@ -16,7 +16,9 @@ from tests.support.browser_harness import ROOT, SiteBrowser
 
 @lru_cache(maxsize=1)
 def old_assets():
-    data=subprocess.run(['git','archive','43e60ab6d69a8c4a2e408c73d4423bf6d16d21b5','operator','partner'],cwd=ROOT,check=True,capture_output=True).stdout
+    # Reachable equivalent after repository privacy-history cleanup. Its old
+    # operator/partner service workers are byte-identical to the original pin.
+    data=subprocess.run(['git','archive','de8a20ac28f09a8b791429e5233d00c8ba24e6a3','operator','partner'],cwd=ROOT,check=True,capture_output=True).stdout
     with tarfile.open(fileobj=BytesIO(data)) as archive:return {m.name:archive.extractfile(m).read() for m in archive if m.isfile()}
 
 

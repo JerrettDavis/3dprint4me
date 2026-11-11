@@ -9,6 +9,8 @@
     "node": "22.x"
   },
   "scripts": {
+    "products:render": "python scripts/generate-product-renders.py",
+    "products:meshes": "node scripts/export-product-render-meshes.mjs",
     "dev": "node scripts/dev-server.mjs",
     "dev:workspace": "node scripts/dev-workspace.mjs",
     "operator:build": "node scripts/build-operator-auth.mjs",
