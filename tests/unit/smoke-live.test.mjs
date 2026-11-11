@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { smokeLive } from "../../scripts/smoke-live.mjs";
 
-function siteResponse(url, { missingEmail = false, publicSource = false } = {}) {
+function siteResponse(url, { missingEmail = false, publicSource = false, databaseProvider = 'neon', missingDatabase = false } = {}) {
   const path = new URL(url).pathname;
   const headers = {
     "x-content-type-options": "nosniff",
@@ -15,7 +15,10 @@ function siteResponse(url, { missingEmail = false, publicSource = false } = {}) 
   const privatePath = ["/.env", "/lib/notifications.js", "/data/dev-requests.ndjson"].includes(path);
   const status = privatePath && !publicSource ? 404 : 200;
   const body = path === "/api/health"
-    ? JSON.stringify({ ok: true, service: "3dprint4.me", integrations: { neon: true, privateFiles: true, email: !missingEmail } })
+    ? JSON.stringify({ ok: true, service: "3dprint4.me", databaseProvider, integrations: {
+      database: !missingDatabase, neon: !missingDatabase && databaseProvider === 'neon',
+      postgres: !missingDatabase && databaseProvider === 'postgres', privateFiles: true, email: !missingEmail
+    } })
     : "<main>3dprint4.me</main>";
   const response = new Response(body, { status, headers });
   Object.defineProperty(response, "url", { value: String(url) });
@@ -34,4 +37,14 @@ test("live smoke fails on missing email intake and publicly exposed source", asy
   });
   assert.ok(result.failures.some(failure => failure.includes("email is not configured")));
   assert.ok(result.failures.some(failure => failure.includes("private source path returned HTTP 200")));
+});
+
+test('default live smoke accepts configured PostgreSQL without requiring retired Neon', async () => {
+  const result = await smokeLive('https://3dprint4.me', { fetchImpl: url => siteResponse(url, { databaseProvider: 'postgres' }) });
+  assert.deepEqual(result.failures, []);
+});
+
+test('default live smoke still rejects a disconnected database', async () => {
+  const result = await smokeLive('https://3dprint4.me', { fetchImpl: url => siteResponse(url, { missingDatabase: true }) });
+  assert.ok(result.failures.some(failure => failure.includes('database is not configured')));
 });

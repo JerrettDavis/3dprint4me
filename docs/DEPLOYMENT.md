@@ -10,6 +10,8 @@ Vercel storefront/operator/status shells and independent Cloudflare monitoring.
 The storefront functions use `SELF_HOSTED_API_ORIGIN` and `PLATFORM_PROXY_SECRET`.
 Do not re-enable retired Neon bindings, authentication or cleanup schedules.
 
+Run `npm run smoke:live -- https://3dprint4.me` after storefront deployment. Its defaults require the provider-independent `database` health capability, private files and email; PostgreSQL production does not require the retired Neon integration. An optional third argument can pin a provider-specific integration list when checking a legacy deployment.
+
 The older Neon-specific installation sections below are retained for legacy
 deployments and historical recovery only; they do not describe current production.
 
