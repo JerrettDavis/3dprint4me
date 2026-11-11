@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "renders": [
+    { "id": "name-plate", "params": {}, "elevation": 48, "azimuth": -65 },
+    { "id": "wifi-tag", "params": { "security": "nopass" }, "elevation": 55, "azimuth": -65 },
+    { "id": "rating-card", "params": { "icon": "mug", "caption": "Best coffee", "rating": 5 }, "elevation": 55, "azimuth": -65 },
+    { "id": "pumpkin", "params": {}, "elevation": 22, "azimuth": -65 },
+    { "id": "infinity-fidget", "params": {}, "elevation": 35, "azimuth": -65 },
+    { "id": "gridfinity-base", "params": {}, "elevation": 48, "azimuth": -65 },
+    { "id": "gridfinity-bin", "params": {}, "elevation": 40, "azimuth": -65 },
+    { "id": "vase", "params": { "construction": "hollow" }, "elevation": 22, "azimuth": -65 }
+  ]
+}

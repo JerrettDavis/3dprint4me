@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "inputSha256": "6a715a610da5ffcfa3fdf17020c6c0e0ab9f08499b8a6c8d8a47b64c74c2f924",
+  "renders": [
+    {
+      "id": "name-plate",
+      "recipe": {
+        "id": "name-plate",
+        "params": {},
+        "elevation": 48,
+        "azimuth": -65
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "22a37c0111265c9b5315a4d0903f93286fa6f48fe0cece6d8f45b4d9d8ca2c25",
+      "studioSha256": "2dd7cbc30ba78b9223a5745f43098ce0f17878b97bd9219c1315f9116f74d778",
+      "sha256": "71a9fc7b2e050e7c2ef06b57667fb97dd1bb8a2b1882c71f3f7db9ba964dd3fd"
+    },
+    {
+      "id": "wifi-tag",
+      "recipe": {
+        "id": "wifi-tag",
+        "params": {
+          "security": "nopass"
+        },
+        "elevation": 55,
+        "azimuth": -65
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "980bd01a1bd3fd263aaf511c2c938d6c81d1dd48e56287a7ed9d7abb0dd2bc26",
+      "studioSha256": "2dd7cbc30ba78b9223a5745f43098ce0f17878b97bd9219c1315f9116f74d778",
+      "sha256": "bd3bc821d476c5a8dbc4077078a0e063ce483f489d3ec0561ba556ee49f53068"
+    },
+    {
+      "id": "rating-card",
+      "recipe": {
+        "id": "rating-card",
+        "params": {
+          "icon": "mug",
+          "caption": "Best coffee",
+          "rating": 5
+        },
+        "elevation": 55,
+        "azimuth": -65
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "eb1a103928711ab7c1d103ad760030856c774d0aee67f90aad5952b9a82db41f",
+      "studioSha256": "2dd7cbc30ba78b9223a5745f43098ce0f17878b97bd9219c1315f9116f74d778",
+      "sha256": "1d6d181e974a13a4e8cebc75e65cd86b30c2ecd084274cf1bb96e7b2dcf16876"
+    },
+    {
+      "id": "pumpkin",
+      "recipe": {
+        "id": "pumpkin",
+        "params": {},
+        "elevation": 22,
+        "azimuth": -65
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "d0a08f688c7489698397cd0141057e23ecf90966be52c035dd5257e19a700bd1",
+      "studioSha256": "2dd7cbc30ba78b9223a5745f43098ce0f17878b97bd9219c1315f9116f74d778",
+      "sha256": "5cfd87f3ba012cf08402cecaed0a791cdc3b107d45c0d53b43dc65fe8f49f3f5"
+    },
+    {
+      "id": "infinity-fidget",
+      "recipe": {
+        "id": "infinity-fidget",
+        "params": {},
+        "elevation": 35,
+        "azimuth": -65
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "04add00565a2212ccc0dbe6cc7373c39c1b4193b6ed5871ea1ac1fddb4c42897",
+      "studioSha256": "2dd7cbc30ba78b9223a5745f43098ce0f17878b97bd9219c1315f9116f74d778",
+      "sha256": "03c158b5af1279157fe737865965e30b3eb8fa5b0df706ae225e2ee46d238770"
+    },
+    {
+      "id": "gridfinity-base",
+      "recipe": {
+        "id": "gridfinity-base",
+        "params": {},
+        "elevation": 48,
+        "azimuth": -65
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "5c5545bf866d01baccc730ee80d1c877b81771bd7fe411d7071f9a4e6c9d6592",
+      "studioSha256": "2dd7cbc30ba78b9223a5745f43098ce0f17878b97bd9219c1315f9116f74d778",
+      "sha256": "b5f4c9756ad656af0536143590fa6c034ded0dbcecde47efb6e3ad0c2945b602"
+    },
+    {
+      "id": "gridfinity-bin",
+      "recipe": {
+        "id": "gridfinity-bin",
+        "params": {},
+        "elevation": 40,
+        "azimuth": -65
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "9e09114e4068bd4a880902342f7f7aa405f250ced590904e8e4134584e01e6ea",
+      "studioSha256": "2dd7cbc30ba78b9223a5745f43098ce0f17878b97bd9219c1315f9116f74d778",
+      "sha256": "567307bbe1fabcdc33b7680fd16cc0c299a601dae26ca98cf284adf718f601dc"
+    },
+    {
+      "id": "vase",
+      "recipe": {
+        "id": "vase",
+        "params": {
+          "construction": "hollow"
+        },
+        "elevation": 22,
+        "azimuth": -65
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "ed4efddadce3865a07fdceff39bbdcce9a4c388512251a9fdcaf883586f98c66",
+      "studioSha256": "2dd7cbc30ba78b9223a5745f43098ce0f17878b97bd9219c1315f9116f74d778",
+      "sha256": "57bbd2f81f855585384830dfce1042389f61b973279b72d3829f63a0a0315380"
+    }
+  ]
+}
