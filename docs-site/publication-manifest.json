@@ -5,7 +5,7 @@
     {
       "file": "docs/ARCHITECTURE.md",
       "output": "reference/ARCHITECTURE.md",
-      "sha256": "c9f46d4a00fbc9f721c767fcbbf3982a9061c70a33bcf4d12ad29bb30669fe06"
+      "sha256": "91a0f4efe3733669ee5527d49567ab2c3fbf26dd7e7ae606c2bde2a3c84e96a2"
     },
     {
       "file": "docs/CONTRACTOR-RELEASE-READINESS.md",
@@ -15,17 +15,17 @@
     {
       "file": "docs/DEPLOYMENT.md",
       "output": "reference/DEPLOYMENT.md",
-      "sha256": "9a79ea40371f1279a1a27fc3d2b5aea105d0b1253bd406fdfbafb8d484883816"
+      "sha256": "7d72e43dafbb32d0bb13b8d8097043229ddaf56732a5b500dd66b516c51d1b0d"
     },
     {
       "file": "docs/DOMAIN-LANGUAGE.md",
       "output": "reference/DOMAIN-LANGUAGE.md",
-      "sha256": "75d7c29ee324539dba0362bb647b4762230aaddc4b8ebc65a130d5c719ab7aa1"
+      "sha256": "a3d2cc55004a02c42816194ae5d1597778008cb22bc27ec16aa6d079f0622df1"
     },
     {
       "file": "docs/GENERATORS.md",
       "output": "reference/GENERATORS.md",
-      "sha256": "f59e0598bf471412498a01cc2c359b8b148b9371ce7468b58e442e007b827bde"
+      "sha256": "faf36243dafe4d2a80751bfe56ead287b75d0029a927ddfaa9d97b26164ca576"
     },
     {
       "file": "docs/PRODUCT-IMAGES.md",
@@ -45,7 +45,7 @@
     {
       "file": "docs/OPERATIONS.md",
       "output": "reference/OPERATIONS.md",
-      "sha256": "9c25a4da5c91ba8528c111c3d9c869fcb3aea47e35cac968b2d6dd75cfebb031"
+      "sha256": "525535d0229dfc4ac8c27a3b6ded4fba1858fe7450dab5ac3b6da62f2c07c8e1"
     },
     {
       "file": "docs/OPERATOR-INBOX.md",
