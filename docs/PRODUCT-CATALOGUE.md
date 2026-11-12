@@ -233,3 +233,11 @@ Publication also requires `CATALOGUE_PUBLISH_AUTHOR_NAME` and
 repository and deployment provider. The worker does not invent an author or
 bypass provider membership/commit-author restrictions. Missing/invalid author
 configuration disables publication before a job can be queued.
+
+The native backup uses the restricted schema-owner role. Catalogue tables follow
+that established boundary: RLS stays enabled and public privileges stay revoked;
+only the backend runtime policy grants application access. The schema owner can
+export complete backups, matching the other platform tables. The native recovery
+rehearsal seeds and restores drafts, commands and jobs in both databases.
+Migration 019 is included in guarded native rollout archives and is applied before
+switching the API/jobs release.

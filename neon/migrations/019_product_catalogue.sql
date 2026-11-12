@@ -31,12 +31,14 @@ CREATE INDEX IF NOT EXISTS product_catalogue_jobs_expired ON product_catalogue_j
 CREATE INDEX IF NOT EXISTS product_catalogue_jobs_product ON product_catalogue_jobs (product_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS product_catalogue_drafts_source ON product_catalogue_drafts (source_work_item_id) WHERE source_work_item_id IS NOT NULL;
 
+-- Match the platform backup boundary: the non-runtime schema owner can dump
+-- complete tables; runtime roles still require the backend policy below.
 ALTER TABLE product_catalogue_drafts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_catalogue_drafts FORCE ROW LEVEL SECURITY;
+ALTER TABLE product_catalogue_drafts NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE product_catalogue_commands ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_catalogue_commands FORCE ROW LEVEL SECURITY;
+ALTER TABLE product_catalogue_commands NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE product_catalogue_jobs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_catalogue_jobs FORCE ROW LEVEL SECURITY;
+ALTER TABLE product_catalogue_jobs NO FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON product_catalogue_drafts, product_catalogue_commands, product_catalogue_jobs FROM PUBLIC;
 
 DO $$ BEGIN

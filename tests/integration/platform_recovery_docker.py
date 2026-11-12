@@ -20,6 +20,7 @@ import tempfile
 import time
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import urlsplit
 
 ROOT=Path(__file__).resolve().parents[2]
 IMAGE='postgres:18-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c'
@@ -90,6 +91,11 @@ def main():
             with patch.object(bootstrap.rebuild,'run',fixture_runner(first)),patch.object(bootstrap.rebuild,'empty_docker',lambda:None),patch.object(os,'getuid',lambda:root.stat().st_uid,create=True),patch.object(bootstrap.sys,'platform','linux'):
                 result=bootstrap.bootstrap(root,release,'2610199',True)
             assert result['setup']=='passed'
+            databases=['platform',urlsplit(json.loads((root/'database-target.private.json').read_text())['databaseUrl']).path.lstrip('/')]
+            catalogue_seed = b"INSERT INTO product_catalogue_drafts(id,revision,draft) VALUES ('recovery-catalogue',1,'{\"id\":\"recovery-catalogue\",\"revision\":1}'); INSERT INTO product_catalogue_commands(product_id,command_id,fingerprint,result) VALUES ('recovery-catalogue','recovery-command',repeat('a',64),'{}'); INSERT INTO product_catalogue_jobs(id,product_id,status,payload) VALUES ('render-recovery-catalogue','recovery-catalogue','queued','{}');"
+            for database in databases:
+                command(['docker','exec','-i',first,'psql','-U','platform_admin','-d',database,'-v','ON_ERROR_STOP=1'],data=catalogue_seed)
+
             # QA authorization policies refer to a cluster role absent from a
             # database-only dump. Recovery must recreate it without login rights.
             command(['docker','exec','-i',first,'psql','-U','platform_admin','-d','platform','-v','ON_ERROR_STOP=1'],data=b'CREATE ROLE partner_qa_auth NOLOGIN NOSUPERUSER NOBYPASSRLS; CREATE POLICY recovery_qa_role ON operators FOR SELECT TO partner_qa_auth USING (true);')
@@ -103,6 +109,10 @@ def main():
             with patch.object(rebuilder,'run',fixture_runner(second)),patch.object(rebuilder,'empty_docker',lambda:None),patch.object(os,'getuid',lambda:0 if os.name=='nt' else destination.stat().st_uid,create=True),patch.object(rebuilder.sys,'platform','linux'):
                 restored=rebuilder.rebuild(destination,ROOT,release,archive,hashlib.sha256(archive).hexdigest(),True)
             assert restored['database_restore']=='passed'
+            for database in databases:
+                counts=command(['docker','exec',second,'psql','-U','platform_owner','-d',database,'-At','-v','ON_ERROR_STOP=1','-c','SELECT count(*) FROM product_catalogue_drafts; SELECT count(*) FROM product_catalogue_commands; SELECT count(*) FROM product_catalogue_jobs;']).decode().splitlines()
+                assert counts==['1','1','1'], 'Catalogue drafts, commands and jobs must survive complete backup and restore'
+
             role=command(['docker','exec',second,'psql','-U','platform_admin','-d','platform','-At','-c',"SELECT rolcanlogin OR rolsuper OR rolbypassrls FROM pg_roles WHERE rolname='partner_qa_auth'"]).decode().strip()
             assert role=='f', 'Recovery QA role must be inert until separately provisioned'
             print(json.dumps({'native_postgres_setup_backup_rebuild':'passed','databases':2,'runtime_privilege_denials':'passed','network':'none','persistent_database_volumes':False,'host_and_provider_rebuild':'not-established'}))

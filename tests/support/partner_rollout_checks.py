@@ -36,7 +36,8 @@ class RolloutChecks(unittest.TestCase):
                            ('015_operator_model_revisions.sql', 'CREATE TABLE work_fixture_015(id uuid);'),
                            ('016_partner_statement_rls.sql', 'CREATE TABLE partner_fixture_016(id uuid);'),
                            ('017_notification_skipped.sql', 'CREATE TABLE partner_fixture_017(id uuid);'),
-('018_supply_ledger.sql', 'CREATE TABLE bookkeeping_fixture_018(id uuid);')]:
+('018_supply_ledger.sql', 'CREATE TABLE bookkeeping_fixture_018(id uuid);'),
+            ('019_product_catalogue.sql', 'CREATE TABLE catalogue_fixture_019(id uuid);')]:
             (self.source / 'neon/migrations' / name).write_text(text, encoding='utf-8')
         old = self.root / 'candidate-source'
         old.mkdir(mode=0o700)
@@ -150,6 +151,7 @@ class RolloutChecks(unittest.TestCase):
         migrations = [(args,data.decode()) for args,data in self.calls if data and b'CREATE TABLE partner_fixture' in data]
         self.assertEqual(len(migrations), 1)
         args, sql = migrations[0]
+        assert 'CREATE TABLE catalogue_fixture_019' in sql, 'Catalogue migration must precede API replacement'
         self.assertEqual(args[args.index('-d')+1], 'platform_live_synthetic')
         self.assertIn("BEGIN;SET LOCAL lock_timeout='5s';", sql)
         self.assertIn('partner_fixture_012', sql)
