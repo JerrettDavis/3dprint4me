@@ -1,5 +1,5 @@
-import { PRODUCTS } from './products.js?v=3e1362c8d48f9150';
-import { filterProducts } from './views.js?v=3e1362c8d48f9150';
+import { PRODUCTS } from './products.js?v=5d93ee7157a9c9d2';
+import { filterProducts } from './views.js?v=5d93ee7157a9c9d2';
 
 const form = document.querySelector('.catalogue-filters');
 if (form) {
