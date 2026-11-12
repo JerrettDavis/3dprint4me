@@ -62,6 +62,7 @@ function textEntries(data) {
 async function buildAndCheck(g, params, label, { font = null, fonts = {}, imageContours = null } = {}) {
   const { default: build } = await loadBuilder[g.id]();
   const started = performance.now();
+  font ??= FONTS.some(f => f.id === params.font) ? await curatedFont(params.font) : null;
   const out = await buildModel({ ...g, build }, params, { wasm, font, fonts, imageContours });
   const ms = performance.now() - started;
   assert.ok(ms < BUILD_BUDGET_MS, `${label}: built in ${Math.round(ms)} ms (budget ${BUILD_BUDGET_MS} ms)`);

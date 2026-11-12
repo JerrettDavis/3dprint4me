@@ -1,6 +1,7 @@
 /* Same-origin @font-face rules for the font picker (each option is drawn in its own font).
    Fonts load only when text in that face is shown. Licenses: LICENSES.md. Generated from
    public/assets/js/customize/fonts.js; tests/unit/customize-name-plate.test.mjs checks it. */
+@font-face { font-family: "cz-overpass-black"; src: url("Overpass-Black.ttf") format("truetype"); font-display: swap; }
 @font-face { font-family: "cz-pacifico"; src: url("Pacifico-Regular.ttf") format("truetype"); font-display: swap; }
 @font-face { font-family: "cz-lobster"; src: url("Lobster-Regular.ttf") format("truetype"); font-display: swap; }
 @font-face { font-family: "cz-bebas-neue"; src: url("BebasNeue-Regular.ttf") format("truetype"); font-display: swap; }
@@ -75,3 +76,5 @@
 .cz-ff-rye { font-family: "cz-rye", system-ui, sans-serif; }
 .cz-ff-sancreek { font-family: "cz-sancreek", system-ui, sans-serif; }
 .cz-ff-block { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.cz-ff-overpass-black { font-family: "cz-overpass-black", system-ui, sans-serif; }

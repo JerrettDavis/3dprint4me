@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "inputSha256": "0f5f61b7f33edfbc69c06b7bbdd460a25a5eb9af20240349df87b77d15e7719a",
+  "inputSha256": "324e408b9c914310af32843b266045e440f56da76e28c60eeb2ca98d2acee9eb",
   "renders": [
     {
       "id": "name-plate",
@@ -743,6 +743,7 @@
         "generator": "route-shield",
         "params": {
           "top_text": "ROUTE",
+          "lower_heading": "",
           "lower_text": "66",
           "font": "block",
           "font_license_ack": false,
@@ -774,10 +775,10 @@
         "elevation": 55,
         "azimuth": -65,
         "output": "catalogue/route-shield-route-66-r1.webp",
-        "configurationSha256": "7f4fbbf6c1fae59e8d442fa478511a17da27a0d4edaeb17de6bfc9e6b75735ff"
+        "configurationSha256": "27d7aa872e6eb97618d185027691451e144c1e1029e932ede6ef055962e94bb3"
       },
       "renderer": "Blender Cycles",
-      "meshSha256": "0644a135c48d20320a19f1c923c618dfb447b8f518d1d52a1678ef3fb5ac5106",
+      "meshSha256": "27a040ea2e2acfcf45efb9382a4aa31256dbc1b68864542d2999a72906a62372",
       "studioSha256": "995ffb5fc534a3392795ba0ec12c5078e822508e11089d74ac901dcca10d8875",
       "sha256": "4a7c7c5792820982dcf9714c83cb3bdeaa6b46caa4929683301264f6dad744a5"
     },
@@ -788,6 +789,7 @@
         "generator": "route-shield",
         "params": {
           "top_text": "ROUTE",
+          "lower_heading": "",
           "lower_text": "66",
           "font": "block",
           "font_license_ack": false,
@@ -819,10 +821,10 @@
         "elevation": 80,
         "azimuth": -90,
         "output": "catalogue/route-shield-route-66-r1-detail.webp",
-        "configurationSha256": "7f4fbbf6c1fae59e8d442fa478511a17da27a0d4edaeb17de6bfc9e6b75735ff"
+        "configurationSha256": "27d7aa872e6eb97618d185027691451e144c1e1029e932ede6ef055962e94bb3"
       },
       "renderer": "Blender Cycles",
-      "meshSha256": "6989d58830124412c6cbd6f5262b00075d3c8c64904d225534dc043c08393f33",
+      "meshSha256": "3852c9f86c0957897f7d03eeb3158dbe89b1b82f3e916f2d486e8d9955a695df",
       "studioSha256": "995ffb5fc534a3392795ba0ec12c5078e822508e11089d74ac901dcca10d8875",
       "sha256": "507e1211615438c729a3b8a114e2c3bdcc63cbe0f7e8ab0e2e10b548e722e90c"
     },
@@ -833,6 +835,7 @@
         "generator": "route-shield",
         "params": {
           "top_text": "INTERSTATE",
+          "lower_heading": "",
           "lower_text": "95",
           "font": "block",
           "font_license_ack": false,
@@ -864,10 +867,10 @@
         "elevation": 55,
         "azimuth": -65,
         "output": "catalogue/route-shield-i-95-r1.webp",
-        "configurationSha256": "cf1cc2410c628ea2342eca8489e2d051b23606d4706f2a870cf906c2032e6204"
+        "configurationSha256": "1c6d7ffba74aa5031528f2860537f6442d6531aa1e0d1e56ef4207556c9cbe62"
       },
       "renderer": "Blender Cycles",
-      "meshSha256": "4994e2afbea82db73c77a44519bda60725955e0edb5d834bdc2dcfe1fb84d08c",
+      "meshSha256": "34490527d45a390489c167087664accf66103c55aec088d912cdd6e7adf97c04",
       "studioSha256": "995ffb5fc534a3392795ba0ec12c5078e822508e11089d74ac901dcca10d8875",
       "sha256": "57092e0436f8905634fab53554be826e9cbc46f70f73099281aa06caf4a5b737"
     },
@@ -878,6 +881,7 @@
         "generator": "route-shield",
         "params": {
           "top_text": "INTERSTATE",
+          "lower_heading": "",
           "lower_text": "95",
           "font": "block",
           "font_license_ack": false,
@@ -909,10 +913,10 @@
         "elevation": 80,
         "azimuth": -90,
         "output": "catalogue/route-shield-i-95-r1-detail.webp",
-        "configurationSha256": "cf1cc2410c628ea2342eca8489e2d051b23606d4706f2a870cf906c2032e6204"
+        "configurationSha256": "1c6d7ffba74aa5031528f2860537f6442d6531aa1e0d1e56ef4207556c9cbe62"
       },
       "renderer": "Blender Cycles",
-      "meshSha256": "910137b285cb4f0e52d69e96e40ffdaa43fe9ccc3192c946b32427f8268379d1",
+      "meshSha256": "c83df846303df951a2162cff5a6bd622c20e780310908b04133e73d48c7d5ca2",
       "studioSha256": "995ffb5fc534a3392795ba0ec12c5078e822508e11089d74ac901dcca10d8875",
       "sha256": "65fe656fdf8884543c506466dd5dc621748d5156625fea0637774669f758da20"
     },
@@ -923,6 +927,7 @@
         "generator": "route-shield",
         "params": {
           "top_text": "US",
+          "lower_heading": "",
           "lower_text": "101",
           "font": "block",
           "font_license_ack": false,
@@ -954,12 +959,12 @@
         "elevation": 55,
         "azimuth": -65,
         "output": "catalogue/route-shield-us-101-r1.webp",
-        "configurationSha256": "de7b4804d31d3759f344e3e1b385a87520c966921204128574e2b6cb3308fd5c"
+        "configurationSha256": "03b19436f419fff4008f51bdaf2a25122f186db97a9134c4aee51f40736ce1c6"
       },
       "renderer": "Blender Cycles",
-      "meshSha256": "e49a3c1cdfab031ffc64011035863d8908df1b0db773cb1c14b8e7fa199b0c44",
+      "meshSha256": "cc1047200af5f1868a77563b8a4c405991f60942d37c7cd1a9e1eef3ed0f4526",
       "studioSha256": "995ffb5fc534a3392795ba0ec12c5078e822508e11089d74ac901dcca10d8875",
-      "sha256": "d835b1136a7e5ecc24d3dc944ac512c029e262e7789033a65a05294abb985c47"
+      "sha256": "0d206c4977d7b77ee9853ae168c2df25ca22a3020bca57c74a6d39e3d5368bb8"
     },
     {
       "id": "catalogue-route-shield-us-101-r1-detail",
@@ -968,6 +973,7 @@
         "generator": "route-shield",
         "params": {
           "top_text": "US",
+          "lower_heading": "",
           "lower_text": "101",
           "font": "block",
           "font_license_ack": false,
@@ -999,12 +1005,12 @@
         "elevation": 80,
         "azimuth": -90,
         "output": "catalogue/route-shield-us-101-r1-detail.webp",
-        "configurationSha256": "de7b4804d31d3759f344e3e1b385a87520c966921204128574e2b6cb3308fd5c"
+        "configurationSha256": "03b19436f419fff4008f51bdaf2a25122f186db97a9134c4aee51f40736ce1c6"
       },
       "renderer": "Blender Cycles",
-      "meshSha256": "a678fb5d713cc0ad3099811221e55ff820b8160e19c4c7da2e46137c4a62f51a",
+      "meshSha256": "1faf94459f575be1790ae3df8a615ab248245c5c7cf3ad808f7edee87d440009",
       "studioSha256": "995ffb5fc534a3392795ba0ec12c5078e822508e11089d74ac901dcca10d8875",
-      "sha256": "c1fea9e051c75f4a2a1477ce637b11683186bb5f665ac20910598bb13b67db14"
+      "sha256": "22c4bb8638c1d8f675c96c99236653ee617450a04bcd74293f8f519afdd6ab8d"
     },
     {
       "id": "catalogue-wifi-tag-placard-r1",

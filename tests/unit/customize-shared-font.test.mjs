@@ -33,7 +33,7 @@ test("every generator uses the one shared font control", () => {
     assert.deepEqual(g.font, FONT_SPEC, `${g.id} font spec`);
     assert.deepEqual(g.schema.font.options.map(o => o.value), FONT_OPTIONS.map(o => o.value), `${g.id} options`);
     assert.equal(g.schema.font.picker, "font");
-    assert.equal(g.schema.font.default, "block");
+    assert.equal(g.schema.font.default, g.id === "route-shield" ? "overpass-black" : "block");
     assert.equal(g.schema[FONT_ACK_KEY].type, "bool");
     assert.equal(g.schema[FONT_ACK_KEY].default, false);
     assert.equal(g.schema[FONT_ACK_KEY].transient, true, "the confirmation is never kept in a draft");

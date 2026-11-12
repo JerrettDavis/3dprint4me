@@ -6,6 +6,7 @@ const font = (id, label, file, licenseFile, category = "display") => Object.free
 
 // Listed in picker order (FONT_CATEGORIES), so FONT_OPTIONS follows this array.
 export const FONTS = Object.freeze([
+  font("overpass-black", "Overpass Black", "Overpass-Black.ttf", "OFL-overpass.txt", "sans"),
   font("inter-bold", "Inter Bold", "Inter-Bold.ttf", "OFL-inter.txt", "sans"),
   font("montserrat-extrabold", "Montserrat ExtraBold", "Montserrat-ExtraBold.ttf", "OFL-montserrat.txt", "sans"),
   font("open-sans-bold", "Open Sans Bold", "OpenSans-Bold.ttf", "OFL-opensans.txt", "sans"),

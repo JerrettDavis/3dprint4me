@@ -1,5 +1,21 @@
 # Parametric generators (Customize)
 
+Route shield defaults to the self-hosted OFL Overpass Black highway face. `top_text`
+accepts explicit newlines (72 characters total); rows share one size and fit the upper field.
+`lower_heading` is optional (32 characters) and uses the lower text font, size and offset
+controls. It reserves a smaller band above the route number only when present; a blank
+heading leaves the number centered at its full automatic size. A heading without a number
+centers in the lower field. Overlapping or out-of-field text fails with a readable field error.
+Existing links with an explicit font retain their chosen face.
+
+Route text printability warnings inspect final fitted outlines: a morphological opening with
+a 0.4 mm diameter warns when more than 5% of a text region's area cannot be retained.
+This catches small strokes and islands after model/text scaling, including multiline text,
+the optional heading and back text. It is an advisory heuristic for a typical 0.4 mm nozzle,
+not a slicing guarantee or a measurement of every minimum gap; customers should check the
+slicer and can increase size, shorten text or choose a heavier font. QR cell checks remain
+independent and enforce their existing minimum.
+
 Product galleries and pinned starting configurations are described in
 [PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md). The generator bundles public
 revision snapshots, loads an explicit product before any ordinary saved draft,
