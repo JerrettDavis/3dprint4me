@@ -10,13 +10,17 @@ import build from "../../customizer/generators/route-shield/build.js";
 import { trackLiveObjects } from "../support/manifold-live.mjs";
 
 const wasm = await loadEngine();
+const { readFile } = await import("node:fs/promises");
+const opentype = await import("opentype.js");
+const fontBytes = await readFile(new URL("../../customizer/static/fonts/Overpass-Black.ttf", import.meta.url));
+const defaultFont = (opentype.parse ?? opentype.default.parse)(fontBytes.buffer.slice(fontBytes.byteOffset, fontBytes.byteOffset + fontBytes.byteLength));
 const gen = { ...getGenerator("route-shield"), build };
 const inflateRaw = async (b, max) => new Uint8Array(inflateRawSync(b, { maxOutputLength: max }));
 
 test("default parameters validate and build a valid multi-part 3MF", async () => {
   const { ok, errors, value } = validateParams(gen, {});
   assert.ok(ok, errors.join("; "));
-  const out = await buildModel(gen, value, { wasm, font: null });
+  const out = await buildModel(gen, value, { wasm, font: defaultFont });
   // body, 2 color fields, 2 front texts, back text, QR code and the fixed mark
   assert.deepEqual(out.parts.map(p => p.name).sort(), ["3dprint4.me mark", "Back text", "Lower color field", "Lower text", "QR code", "Shield body", "Upper color field", "Upper text"]);
   const a = await analyzeModelBytes({ name: out.filename, bytes: out.data, inflateRaw });
@@ -26,8 +30,8 @@ test("default parameters validate and build a valid multi-part 3MF", async () =>
 
 test("volume matches the prototype's reference sample within 2 percent", async () => {
   // samples/route-shield-core-fixed.3mf from the prototype measures 26,990 mm3 at default parameters.
-  const { value } = validateParams(gen, { top_text: "ROUTE", lower_text: "66" });
-  const out = await buildModel(gen, value, { wasm, font: null });
+  const { value } = validateParams(gen, { font: "block", top_text: "ROUTE", lower_text: "66" });
+  const out = await buildModel(gen, value, { wasm, font: defaultFont });
   const a = await analyzeModelBytes({ name: out.filename, bytes: out.data, inflateRaw });
   assert.ok(Math.abs(a.volumeMm3 - 26990) / 26990 < 0.02, `volume ${a.volumeMm3}`);
 });
@@ -35,7 +39,7 @@ test("volume matches the prototype's reference sample within 2 percent", async (
 test("QR too dense for the badge fails with a readable error, never a thin code", async () => {
   // A 400-byte payload is 81 modules (48.6 mm at the 0.6 mm floor); a 50 mm wide badge fits ~30 mm.
   const { value } = validateParams(gen, { width_mm: 50, qr_enabled: true, qr_data: "https://example.com/" + "a".repeat(380) });
-  await assert.rejects(() => buildModel(gen, value, { wasm, font: null }), /too dense/);
+  await assert.rejects(() => buildModel(gen, value, { wasm, font: defaultFont }), /too dense/);
 });
 
 test("rules reject geometry the prototype rejected", () => {
@@ -45,7 +49,7 @@ test("rules reject geometry the prototype rejected", () => {
 
 test("long text shrinks to fit or raises a readable error, never clips", async () => {
   const { value } = validateParams(gen, { top_text: "WWWWWWWWWWWWWWWWWW", top_scale_pct: 150 });
-  await assert.rejects(() => buildModel(gen, value, { wasm, font: null }), /doesn't fit/);
+  await assert.rejects(() => buildModel(gen, value, { wasm, font: defaultFont }), /doesn't fit/);
 });
 
 test("font mode without a font fails readably", async () => {
@@ -68,9 +72,9 @@ test("listPublicGenerators filters on rights.publishable", () => {
   assert.ok(listPublicGenerators().every(g => g.rights.publishable));
 });
 
-test("text longer than 18 characters is rejected by the schema", () => {
-  assert.equal(validateParams(gen, { top_text: "W".repeat(18) }).ok, true);
-  assert.equal(validateParams(gen, { top_text: "W".repeat(19) }).ok, false);
+test("upper multiline text is capped at 72 characters and route numbers at 18", () => {
+  assert.equal(validateParams(gen, { top_text: "W".repeat(72) }).ok, true);
+  assert.equal(validateParams(gen, { top_text: "W".repeat(73) }).ok, false);
   assert.equal(validateParams(gen, { lower_text: "6".repeat(19) }).ok, false);
 });
 
@@ -88,7 +92,7 @@ test("build() frees every temporary: only the returned solids stay alive", async
     const tracker = trackLiveObjects(wasm);
     try {
       for (let i = 0; i < 3; i++) {
-        const built = await build(value, { wasm: tracker.ctxWasm, font: null });
+        const built = await build(value, { wasm: tracker.ctxWasm, font: defaultFont });
         assert.equal(tracker.live.size, built.solids.length, `live ${tracker.live.size} vs solids ${built.solids.length} (${JSON.stringify(extra)})`);
         for (const s of built.solids) assert.ok(tracker.live.has(s.solid));
         built.solids.forEach(s => s.solid.delete());
@@ -100,7 +104,7 @@ test("build() frees every temporary: only the returned solids stay alive", async
 
 test("empty front text and no back content build without error", async () => {
   const { value } = validateParams(gen, { top_text: "", lower_text: "", qr_enabled: false, back_text: "" });
-  const out = await buildModel(gen, value, { wasm, font: null });
+  const out = await buildModel(gen, value, { wasm, font: defaultFont });
   assert.ok(out.parts.length >= 3);
 });
 
@@ -108,7 +112,7 @@ test("failed builds do not leak either", async () => {
   const { value } = validateParams(gen, { top_text: "WWWWWWWWWWWWWWWWWW", top_scale_pct: 150 });
   const tracker = trackLiveObjects(wasm);
   try {
-    await assert.rejects(() => build(value, { wasm: tracker.ctxWasm, font: null }), /doesn't fit/);
+    await assert.rejects(() => build(value, { wasm: tracker.ctxWasm, font: defaultFont }), /doesn't fit/);
     assert.equal(tracker.live.size, 0);
   } finally { tracker.restore(); }
 });

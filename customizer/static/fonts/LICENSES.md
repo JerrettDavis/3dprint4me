@@ -25,6 +25,15 @@ repository under `apache/` (Apache License 2.0), not `ofl/`, so they were replac
 OFL display fonts: **Caveat Brush** (a brush-marker hand, for Permanent Marker) and **Titan One**
 (a heavy rounded display face, for Chewy).
 
+## Overpass Black
+
+- Copyright 2021 The Overpass Project Authors (https://github.com/RedHatOfficial/Overpass)
+- File: `Overpass-Black.ttf`
+- License: SIL Open Font License, Version 1.1 — `OFL-overpass.txt`
+- Source: https://github.com/google/fonts/tree/main/ofl/overpass (downloaded 2026-11-11)
+- Modification: instanced the variable upright font at weight 900 with fontTools; outlines otherwise unchanged.
+- Highway Gothic inspired family, used for the route shield's classic rounded highway lettering.
+
 ## Pacifico
 
 - File: `Pacifico-Regular.ttf` (329,380 bytes)

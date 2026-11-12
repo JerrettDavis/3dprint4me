@@ -72,13 +72,27 @@ function buildLayout(wasm, options, ctx, t, notes) {
   // The text is centered on its color field's own center (the field's bounding box); the fit step
   // centers the actual glyph ink there, so any font, size or string sits centered at offset 0.
   const frontSpec = (key, field, text, box, centerY) => ({ key, text: t(text), box, baseY: centerY, region: t(field.offset(-WALL)) });
+  const upperLines = String(options.top_text || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const upperRows = upperLines.map(line => t(makeTextCS(CrossSection, line, options, faceOf("top"), notes)));
+  // A shared line pitch and uniform final fit preserve relative letter sizes across rows.
+  const rowHeight = Math.max(1, ...upperRows.filter(cs => !cs.isEmpty()).map(cs => { const b = cs.bounds(); return b.max[1] - b.min[1]; }));
+  const upperText = t(CrossSection.union(upperRows.map((cs, i) => t(cs.translate([0, -i * rowHeight * 1.3])))));
+  const headingRaw = t(makeTextCS(CrossSection, options.lower_heading, options, faceOf("lower"), notes));
+  const hasHeading = !headingRaw.isEmpty();
+  const numberRaw = t(makeTextCS(CrossSection, options.lower_text, options, faceOf("lower"), notes));
+  const hasNumber = !numberRaw.isEmpty();
+  const lowerHeight = lowerB.maxY - lowerB.minY;
+  const lowerCenter = (lowerB.minY + lowerB.maxY) / 2;
   const front = {
-    top: frontSpec("top", upper, makeTextCS(CrossSection, options.top_text, options, faceOf("top"), notes),
+    top: frontSpec("top", upper, upperText,
       { w: (upperB.maxX - upperB.minX) * 0.80, h: (upperB.maxY - upperB.minY) * 0.50 },
       (upperB.minY + upperB.maxY) / 2),
-    lower: frontSpec("lower", lower, makeTextCS(CrossSection, options.lower_text, options, faceOf("lower"), notes),
-      { w: (lowerB.maxX - lowerB.minX) * 0.72, h: (lowerB.maxY - lowerB.minY) * 0.58 },
-      (lowerB.minY + lowerB.maxY) / 2)
+    lower: frontSpec("lower", lower, numberRaw,
+      { w: (lowerB.maxX - lowerB.minX) * 0.72, h: lowerHeight * (hasHeading ? 0.40 : 0.58) },
+      lowerCenter - (hasHeading ? lowerHeight * 0.13 : 0)),
+    heading: frontSpec("lower", lower, headingRaw,
+      { w: (lowerB.maxX - lowerB.minX) * 0.70, h: lowerHeight * (hasNumber ? 0.16 : 0.58) },
+      lowerCenter + (hasNumber ? lowerHeight * 0.25 : 0))
   };
 
   const allLines = String(options.back_text || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
@@ -158,7 +172,7 @@ export default async function build(options, { wasm, font = null, fonts = {} } =
     if (qr) { const status = qrModuleStatus(qr.module); if (status.level !== "ok") warnings.push(status.message); }
     if (layout.back.truncated) warnings.push("Back text was limited to the first four non-empty lines.");
     const blockAt = key => locationFont(options, { font, fonts }, `${key}_font`).mode === "block";
-    if ([["top", options.top_text], ["lower", options.lower_text], ["back", options.back_text]].some(([key, text]) => blockAt(key) && unsupportedBlockChars(text).length)) warnings.push(BLOCK_SUBSTITUTION_WARNING);
+    if ([["top", options.top_text], ["lower", options.lower_text], ["lower", options.lower_heading], ["back", options.back_text]].some(([key, text]) => blockAt(key) && unsupportedBlockChars(text).length)) warnings.push(BLOCK_SUBSTITUTION_WARNING);
     if (notes.skipped) warnings.push(FONT_CHARS_SKIPPED);
 
     // Reaching here with text that doesn't fit is an error, never a silent crop.
@@ -170,6 +184,24 @@ export default async function build(options, { wasm, font = null, fonts = {} } =
       : fitOrThrow(`${spec.key === "top" ? "Upper" : "Lower"} text`, fitFront(spec, options, t), spec.region);
     const topText = frontText(layout.front.top);
     const lowerText = frontText(layout.front.lower);
+    const headingText = layout.front.heading.text.isEmpty() ? layout.front.heading.text
+      : fitOrThrow("Lower heading", fitFront(layout.front.heading, options, t), layout.front.heading.region);
+    if (!headingText.isEmpty() && !lowerText.isEmpty() && t(headingText.intersect(t(lowerText.offset(WALL)))).area() > FIT_EPS) {
+      throw new Error("Lower heading doesn't fit at this size/position; reduce lower text size to keep the heading and number apart.");
+    }
+
+    // Morphological opening with a 0.4 mm diameter approximates a typical nozzle's
+    // ability to retain fine strokes. Ignore tiny curved tips; warn on material loss.
+    // This is advisory: slicing, material and printer settings still decide printability.
+    const warnFineText = (label, cs) => {
+      if (!cs || cs.isEmpty()) return;
+      const core = t(cs.offset(-0.2));
+      const retained = core.isEmpty() ? 0 : t(t(core.offset(0.2)).intersect(cs)).area();
+      if (retained < cs.area() * 0.95) warnings.push(`${label} has fine features that may not print reliably with a 0.4 mm nozzle at this model size. Increase the model or text size, shorten the text, or choose a heavier font. Confirm in your slicer.`);
+    };
+    warnFineText("Upper text", topText);
+    warnFineText("Lower text", lowerText);
+    warnFineText("Lower heading", headingText);
 
     // Back text and optional QR are built in 2D, then mirrored left-to-right (the badge
     // is flipped like a page) so they read normally from the back.
@@ -181,6 +213,7 @@ export default async function build(options, { wasm, font = null, fonts = {} } =
       if (!textFits(t(backTextRaw.mirror([1, 0])), layout.back.region, t)) throw new Error("Back text doesn't fit at this size/position; reduce its size or move it back toward center.");
     }
     const backTextCS = mirrored(backTextRaw);
+    warnFineText("Back text", backTextCS);
     const qrCS = mirrored(qr?.cs);
     const backParts = [backTextCS, qrCS].filter(Boolean);
     const backCS = backParts.length ? t(CrossSection.union(backParts)) : t(CrossSection.union([]));
@@ -242,7 +275,17 @@ export default async function build(options, { wasm, font = null, fonts = {} } =
       }
       solids.splice(1, 0, { name: `${label} color field`, solid: colorSolid, color: fieldColor });
     };
-    frontLayer("Lower", lower, lowerText, options.lower_color);
+    const lowerCombined = t(CrossSection.union([lowerText, headingText]));
+    frontLayer("Lower", lower, lowerCombined, options.lower_color);
+    // Keep the heading separately named and focusable without duplicating geometry.
+    const combinedIndex = solids.findIndex(s => s.name === "Lower text");
+    if (!headingText.isEmpty() && combinedIndex >= 0) {
+      const combined = solids.splice(combinedIndex, 1)[0];
+      free(combined.solid);
+      const z = textH < 0 ? frontZ + textH : frontZ;
+      if (!lowerText.isEmpty()) solids.push({ name: "Lower text", solid: t(lowerText.extrude(Math.abs(textH))).translate([0, 0, z]), color: options.text_color });
+      solids.push({ name: "Lower heading", solid: t(headingText.extrude(Math.abs(textH))).translate([0, 0, z]), color: options.text_color });
+    }
     frontLayer("Upper", upper, topText, options.upper_color);
     // Named parts of the back inlay (one color, so they print as one filament).
     if (backTextCS) solids.push({ name: "Back text", solid: backTextCS.extrude(options.inlay_depth_mm), color: options.back_color });

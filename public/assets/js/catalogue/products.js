@@ -498,12 +498,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-us-101-r1.webp?v=d835b1136a7e5ecc",
+        "src": "/assets/images/products/catalogue/route-shield-us-101-r1.webp?v=0d206c4977d7b77e",
         "alt": "US 101 sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/route-shield-us-101-r1-detail.webp?v=c1fea9e051c75f4a",
+        "src": "/assets/images/products/catalogue/route-shield-us-101-r1-detail.webp?v=22c4bb8638c1d8f6",
         "alt": "US 101 sign, alternate studio view",
         "kind": "render"
       }

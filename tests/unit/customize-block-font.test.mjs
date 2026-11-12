@@ -25,9 +25,9 @@ test("unsupported characters are reported", () => {
 });
 
 test("the default model has no substitution warning; unsupported text adds one", async () => {
-  const defaults = await buildModel(gen, validateParams(gen, {}).value, { wasm, font: null });
+  const defaults = await buildModel(gen, validateParams(gen, { font: "block" }).value, { wasm, font: null });
   assert.ok(!defaults.warnings.includes(BLOCK_SUBSTITUTION_WARNING), defaults.warnings.join("; "));
-  const { value } = validateParams(gen, { top_text: "CAFÉ" });
+  const { value } = validateParams(gen, { font: "block", top_text: "CAFÉ" });
   const out = await buildModel(gen, value, { wasm, font: null });
   assert.ok(out.warnings.includes("Some characters aren't available in the built-in font and were replaced with '?'."));
 });

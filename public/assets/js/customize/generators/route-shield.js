@@ -8,8 +8,8 @@
 //                    < 0  text is cut |t| into the color's top surface
 // Back/bottom inlays (inlay_depth_mm) are always inset and never protrude.
 
-import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=bd77a68212febac1";
-import { qrScaleField } from "../qr.js?v=bd77a68212febac1";
+import { fontSchema, fontRule, locationFontField, FONT_SPEC, FONT_ACK_KEY } from "../fonts.js?v=3e1362c8d48f9150";
+import { qrScaleField } from "../qr.js?v=3e1362c8d48f9150";
 
 const STEP = 0.2;
 const MIN_WEB = 0.8;       // solid base left between the front pocket and the back inlay
@@ -87,6 +87,7 @@ function errorField(message) {
   const text = String(message ?? "");
   if (/^Upper text doesn't fit/i.test(text)) return "top_text";
   if (/^Lower text doesn't fit/i.test(text)) return "lower_text";
+  if (/^Lower heading doesn't fit/i.test(text)) return "lower_heading";
   if (/^Back text doesn't fit/i.test(text)) return "back_text";
   if (/QR code is scaled too small/i.test(text)) return "qr_scale_pct";
   if (/QR payload is too dense/i.test(text)) return "qr_data";
@@ -105,6 +106,7 @@ const FOCUS = [
   { part: "Lower color field", section: "lower" },
   { part: "Upper text", section: "top" },
   { part: "Lower text", section: "lower" },
+  { part: "Lower heading", section: "lower" },
   { part: "Back text", section: "back" },
   { part: "QR code", section: "qr" },
   { part: "3dprint4.me mark", section: "shape" },
@@ -135,6 +137,7 @@ export default {
   // 2: the font control became the shared one (key font, was font_mode) with a license confirmation.
   // 3: *_offset_mm is measured from the automatically centered position (0 = centered); per-location
   //    fonts (top_font, lower_font, back_font) and an independent QR size (qr_scale_pct) were added.
+  // Additive fields preserve the meaning of existing v3 settings and pinned products.
   version: 3,
   title: "Route shield",
   blurb: "Highway-style badge with two color fields, front text and an optional back QR code.",
@@ -144,9 +147,11 @@ export default {
   sections: SECTIONS,
   focus: FOCUS,
   schema: {
-    top_text: { type: "text", label: "Upper text", max: 18, optional: true, default: "ROUTE", group: "text", section: "top" },
+    top_text: { type: "text", label: "Upper text", max: 72, multiline: true, optional: true, default: "ROUTE", group: "text", section: "top", help: "Use Enter for another line. Lines resize together to fit." },
+    lower_heading: { type: "text", label: "Text above route number (optional)", max: 32, optional: true, default: "", group: "text", section: "lower", help: "For example, a state or place. Leave blank for a full-size, centered number. Uses the lower text font." },
     lower_text: { type: "text", label: "Lower text", max: 18, optional: true, default: "66", group: "text", section: "lower" },
     ...inSection(fontSchema("text"), "general"),
+    font: { ...fontSchema("text").font, default: "overpass-black", section: "general" },
     ...locationFontField("top_font", "Upper text font", { group: "text", section: "top" }),
     ...locationFontField("lower_font", "Lower text font", { group: "text", section: "lower" }),
     width_mm: { randomize: false, type: "number", label: "Width", min: WIDTH_RANGE[0], max: WIDTH_RANGE[1], step: 1, default: 80, unit: "mm", group: "size", section: "shape" },

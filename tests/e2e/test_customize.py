@@ -172,6 +172,46 @@ def wait_settled(page: Page) -> None:
     wait_ready(page)
 
 
+@pytest.mark.parametrize("scheme", ["light", "dark"])
+def test_route_heading_multiline_and_fine_detail_work_offline_on_mobile(browser: Browser, base_url: str, scheme: str) -> None:
+    import zipfile
+    context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme=scheme, reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/customize/g/route-shield/")
+        wait_ready(page)
+        page.get_by_role("button", name="Settings", exact=True).click()
+        expect(page.locator("#cz-font-toggle")).to_have_text("Overpass Black")
+        expect(page.locator("textarea#cz-top_text")).to_be_attached()
+        page.get_by_label("Upper text", exact=True).fill("US\nROUTE")
+        heading = page.get_by_label("Text above route number (optional)", exact=True)
+        heading.fill("ILLINOIS")
+        heading.press("Tab")
+        wait_settled(page)
+        context.set_offline(True)
+        heading.fill("ARIZONA")
+        heading.press("Tab")
+        wait_settled(page)
+        page.get_by_role("button", name="Download my model", exact=True).click()
+        with page.expect_download() as info:
+            page.get_by_role("button", name="No, just give me my file", exact=True).click()
+        with zipfile.ZipFile(info.value.path()) as archive:
+            params = json.loads(archive.read("Metadata/customizer.json"))
+            assert params["top_text"] == "US\nROUTE"
+            assert params["lower_heading"] == "ARIZONA"
+            assert params["font"] == "overpass-black"
+            assert any(b"Lower heading" in archive.read(name) for name in archive.namelist() if name.endswith(".config"))
+        page.get_by_label("Upper text", exact=True).fill("INTERSTATE")
+        size = page.locator("input[type=number][name=top_scale_pct]")
+        size.fill("20")
+        size.press("Tab")
+        wait_settled(page)
+        expect(page.locator("#cz-warnings")).to_contain_text("0.4 mm nozzle")
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    finally:
+        context.close()
+
+
 @pytest.mark.parametrize('generator_id', ['route-shield', 'wifi-tag', 'rating-card', 'name-plate', 'pumpkin', 'display-sign', 'gridfinity-base', 'gridfinity-bin'])
 def test_realistic_preview_is_local_and_preserves_print_download(page: Page, base_url: str, generator_id: str) -> None:
     errors, requests = [], []
@@ -1583,7 +1623,7 @@ def test_every_generator_offers_the_same_font_picker(page: Page, base_url: str, 
     open_generator(page, base_url, generator_id)
     toggle = page.locator("#cz-font-toggle")
     expect(toggle).to_be_visible()
-    expect(toggle).to_have_text("Block (built-in)")
+    expect(toggle).to_have_text("Overpass Black" if generator_id == "route-shield" else "Block (built-in)")
     toggle.click()
     assert page.locator("#cz-font-list label").all_text_contents() == FONT_CHOICES
     page.locator("label[for='cz-font-lobster']").click()
@@ -1638,7 +1678,8 @@ def test_an_installed_font_needs_the_confirmation_and_is_never_uploaded(page: Pa
     page.get_by_label(ACK_LABEL).check()
     wait_ready(page)
     draft = page.evaluate(f"sessionStorage.getItem({f'3dp-customize:{generator_id}:v{GENERATOR_VERSIONS.get(generator_id, 1)}'!r}) || ''")
-    assert '"font":"block"' in draft and "font_license_ack" not in draft and "Bebas" not in draft, draft
+    assert json.loads(draft)["font"] == ("overpass-black" if generator_id == "route-shield" else "block"), draft
+    assert "font_license_ack" not in draft and "Bebas" not in draft, draft
 
 
 def test_a_refused_font_permission_is_explained(page: Page, base_url: str) -> None:

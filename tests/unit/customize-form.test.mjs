@@ -67,7 +67,7 @@ test("number fields pair a named number box with a labelled range slider that ca
 });
 
 test("enum, bool, color and multiline text render the right element types", () => {
-  assert.match(html, /<input[^>]*type="radio"[^>]*name="font"[^>]*value="block"[^>]*checked/);
+  assert.match(html, /<input[^>]*type="radio"[^>]*name="font"[^>]*value="overpass-black"[^>]*checked/);
   assert.match(html, /<input[^>]*type="radio"[^>]*name="font"[^>]*value="system"/);
   assert.match(html, /<input[^>]*type="checkbox"[^>]*name="font_license_ack"/);
   assert.match(html, /<input[^>]*type="checkbox"[^>]*name="qr_enabled"[^>]*checked/);

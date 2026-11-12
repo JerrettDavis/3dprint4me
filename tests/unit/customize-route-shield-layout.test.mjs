@@ -34,6 +34,86 @@ const buildSolids = async p => {
   return { out, by: name => out.solids.find(s => s.name === name)?.solid, free: () => out.solids.forEach(s => s.solid.delete()) };
 };
 
+test("new shields default to a self-hosted heavy highway face", () => {
+  assert.equal(params().font, "overpass-black");
+  assert.ok(FONTS.some(f => f.id === params().font));
+});
+
+test("upper text accepts explicit lines and builds both rows", async () => {
+  const p = params({ font: "block", top_text: "UNITED STATES\nROUTE", back_text: "", qr_enabled: false });
+  const b = await buildSolids(p);
+  try {
+    const box = b.by("Upper text").boundingBox();
+    assert.ok(box.max[1] - box.min[1] > 6);
+    assert.ok(Math.abs(centerY(b.by("Upper text")) - centerY(b.by("Upper color field"))) < 0.02);
+    assert.ok(!b.out.warnings.some(w => /replaced/.test(w)));
+  } finally { b.free(); }
+});
+
+test("optional number heading shares the lower section and reserves space only when present", async () => {
+  assert.equal(gen.schema.lower_heading?.section, "lower");
+  assert.equal(gen.schema.lower_heading?.optional, true);
+  const plain = await buildSolids(params({ font: "block" }));
+  const headed = await buildSolids(params({ font: "block", lower_heading: "ILLINOIS" }));
+  try {
+    assert.ok(headed.by("Lower heading"));
+    assert.ok(headed.by("Lower heading").boundingBox().min[1] > headed.by("Lower text").boundingBox().max[1]);
+    assert.ok(centerY(headed.by("Lower text")) < centerY(plain.by("Lower text")));
+    const height = b => b.by("Lower text").boundingBox().max[1] - b.by("Lower text").boundingBox().min[1];
+    assert.ok(height(plain) > height(headed));
+    assert.ok(Math.abs(centerY(plain.by("Lower text")) - centerY(plain.by("Lower color field"))) < 0.02);
+  } finally { plain.free(); headed.free(); }
+});
+
+test("fine scaled text warns about printability and increasing size clears that warning", async () => {
+  const small = await buildSolids(params({ font: "block", top_text: "INTERSTATE", top_scale_pct: 20, width_mm: 50, height_mm: 50, qr_enabled: false, back_text: "" }));
+  const large = await buildSolids(params({ font: "block", top_text: "INTERSTATE", width_mm: 200, height_mm: 200, qr_enabled: false, back_text: "" }));
+  try {
+    assert.ok(small.out.warnings.some(w => /Upper text.*0\.4 mm.*nozzle/.test(w)), small.out.warnings.join("|"));
+    assert.ok(!large.out.warnings.some(w => /Upper text/.test(w)), large.out.warnings.join("|"));
+  } finally { small.free(); large.free(); }
+});
+
+test("a heading alone centers in the lower field, and heading parts remain clean for recessed text", async () => {
+  for (const extra of [{ lower_text: "" }, { field_height_mm: -1, text_height_mm: -0.6 }]) {
+    const p = params({ lower_heading: "ARIZONA", ...extra });
+    const b = await buildSolids(p);
+    try {
+      assert.ok(b.by("Lower heading").volume() > 0);
+      if (!p.lower_text) assert.ok(Math.abs(centerY(b.by("Lower heading")) - centerY(b.by("Lower color field"))) < 0.02);
+      const expectedTop = p.base_thickness_mm + p.field_height_mm + Math.max(0, p.text_height_mm);
+      assert.ok(Math.abs(b.by("Lower heading").boundingBox().max[2] - expectedTop) < 1e-6);
+    } finally { b.free(); }
+  }
+});
+
+test("a heading centers when the selected font cannot draw the route number", async () => {
+  const b = await buildSolids(params({ lower_heading: "ARIZONA", lower_text: "😀" }));
+  try {
+    assert.equal(b.by("Lower text"), undefined);
+    assert.ok(Math.abs(centerY(b.by("Lower heading")) - centerY(b.by("Lower color field"))) < 0.02);
+    assert.ok(b.out.warnings.some(w => /skipped/.test(w)));
+  } finally { b.free(); }
+});
+
+test("multiline text and heading builds free all temporaries on success and fit failure", async () => {
+  const tracker = trackLiveObjects(wasm);
+  try {
+    const p = params({ font: "block", top_text: "US\nROUTE", lower_heading: "ILLINOIS" });
+    const out = await build(p, { ...ctxFor(p), wasm: tracker.ctxWasm });
+    assert.equal(tracker.live.size, out.solids.length);
+    out.solids.forEach(s => s.solid.delete());
+    assert.equal(tracker.live.size, 0);
+    const bad = params({ ...p, lower_text: "1", lower_scale_pct: 150 });
+    await assert.rejects(() => build(bad, { ...ctxFor(bad), wasm: tracker.ctxWasm }), error => {
+      assert.ok(["lower_text", "lower_heading"].includes(gen.errorField(error.message)));
+      return true;
+    });
+    assert.equal(tracker.live.size, 0);
+    assert.equal(gen.errorField("Lower heading doesn't fit at this size/position."), "lower_heading");
+  } finally { tracker.restore(); }
+});
+
 test("front text is centered on its color field for any font, string and size (offset 0)", async () => {
   const fontIds = ["block", ...FONTS.map(f => f.id)];
   const strings = [["ROUTE", "66"], ["Gypsy", "Gypsy 66"], ["Hy", "Jpgy 9"], ["Sign", "11"]];
@@ -103,14 +183,14 @@ test("QR size scales independently and stays centered in its slot", async () => 
 });
 
 test("QR printability: marginal cells warn, cells below the 0.6 mm floor fail on qr_scale_pct", async () => {
-  const marginal = await build(params({ qr_scale_pct: 40 }), { wasm });
+  const marginal = await build(params({ qr_scale_pct: 40 }), ctxFor(params({ qr_scale_pct: 40 })));
   try {
     assert.ok(marginal.warnings.some(w => /QR cell is 0\.\d+ mm/.test(w)), marginal.warnings.join("|"));
   } finally { marginal.solids.forEach(s => s.solid.delete()); }
-  const ok = await build(params({}), { wasm });
+  const ok = await build(params({}), ctxFor(params({})));
   try { assert.ok(!ok.warnings.some(w => /QR cell/.test(w))); } finally { ok.solids.forEach(s => s.solid.delete()); }
   const tiny = params({ qr_scale_pct: 25 });
-  await assert.rejects(() => buildModel(gen, tiny, { wasm }), error => {
+  await assert.rejects(() => buildModel(gen, tiny, ctxFor(tiny)), error => {
     assert.match(error.message, /scaled too small/);
     assert.equal(gen.errorField(error.message), "qr_scale_pct");
     return true;
@@ -170,7 +250,7 @@ test("scaled QR and per-location fonts build without leaking", async () => {
     built.solids.forEach(s => s.solid.delete());
     assert.equal(tracker.live.size, 0);
     const bad = params({ qr_scale_pct: 25 });
-    await assert.rejects(() => build(bad, { wasm: tracker.ctxWasm, font: null, fonts }), /scaled too small/);
+    await assert.rejects(() => build(bad, { wasm: tracker.ctxWasm, font: fonts[bad.font], fonts }), /scaled too small/);
     assert.equal(tracker.live.size, 0);
   } finally { tracker.restore(); }
 });

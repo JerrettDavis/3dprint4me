@@ -51,7 +51,7 @@ test("route-shield maps build errors to the closest control", () => {
 test("an invalid field renders its message under the control with aria-invalid and merged aria-describedby", () => {
   const params = validateParams(shield, {}).value;
   const html = renderFormHtml(shield, params, { errors: ["Upper <b>bad</b>"], fieldErrors: { top_text: "Upper <b>bad</b>", width_mm: "Width must be 50–250 mm." } });
-  const text = html.match(/<input[^>]*name="top_text"[^>]*>/)[0];
+  const text = html.match(/<textarea[^>]*name="top_text"[^>]*>/)[0];
   assert.match(text, /aria-invalid="true"/);
   assert.match(text, /aria-describedby="cz-top_text-help cz-top_text-error"/);
   assert.match(html, /<p class="cz-field-error" id="cz-top_text-error">Upper &lt;b&gt;bad&lt;\/b&gt;<\/p>/);

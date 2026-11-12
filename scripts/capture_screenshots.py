@@ -211,6 +211,19 @@ def capture_product_catalogue_states() -> list[tuple[str, Path]]:
     return captured
 
 
+def route_heading(page) -> None:
+    from tests.e2e.test_customize import wait_settled
+    if not page.locator("#cz-win-settings-body").is_visible():
+        page.get_by_role("button", name="Settings", exact=True).click()
+    page.get_by_label("Upper text", exact=True).fill("US\nROUTE")
+    heading = page.get_by_label("Text above route number (optional)", exact=True)
+    heading.fill("ARIZONA")
+    heading.press("Tab")
+    wait_settled(page)
+    scroll_in_panel(page, "[data-field='lower_heading']")
+    page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
+
+
 def capture_customize_states() -> list[tuple[str, Path]]:
     """Vite-built /customize pages need real HTTP (WASM, module worker, CSP), so they use the dev server."""
     captured: list[tuple[str, Path]] = []
@@ -235,6 +248,8 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Customize catalog · desktop · light", "/customize/", "customize-catalog-desktop-light.png", (1440, 1000), "light", None, None),
             ("Customize catalog · mobile · dark", "/customize/", "customize-catalog-mobile-dark.png", (390, 844), "dark", None, None),
             ("Route shield · desktop · light", "/customize/g/route-shield/", "customize-route-shield-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Route multiline and heading · desktop · light", "/customize/g/route-shield/", "customize-route-heading-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, route_heading),
+            ("Route multiline and heading · mobile · dark", "/customize/g/route-shield/", "customize-route-heading-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, route_heading),
             ("Route shield · desktop · dark", "/customize/g/route-shield/", "customize-route-shield-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, None),
             ("Route shield 3D · desktop · dark", "/customize/g/route-shield/", "customize-route-shield-3d-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, show_3d_preview),
             ("Route shield · mobile · light", "/customize/g/route-shield/", "customize-route-shield-mobile-light.png", (390, 844), "light", GENERATOR_READY, None),
