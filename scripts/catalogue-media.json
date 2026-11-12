@@ -186,7 +186,7 @@
       5.8
     ],
     "configurationSha256": "27d7aa872e6eb97618d185027691451e144c1e1029e932ede6ef055962e94bb3",
-    "imageSha256": "4a7c7c5792820982dcf9714c83cb3bdeaa6b46caa4929683301264f6dad744a5"
+    "imageSha256": "874651315a8aba81282b7bbf830f3811218396dcfb129d250fc45e8eb2cb4aee"
   },
   "catalogue-route-shield-route-66-r1-detail": {
     "dimensionsMm": [
@@ -195,7 +195,7 @@
       5.8
     ],
     "configurationSha256": "27d7aa872e6eb97618d185027691451e144c1e1029e932ede6ef055962e94bb3",
-    "imageSha256": "507e1211615438c729a3b8a114e2c3bdcc63cbe0f7e8ab0e2e10b548e722e90c"
+    "imageSha256": "28779c0f9ff807bf94261b4be4a01be312a136afef2c8a9875ecb23b063061a5"
   },
   "catalogue-route-shield-i-95-r1": {
     "dimensionsMm": [
@@ -204,7 +204,7 @@
       5.8
     ],
     "configurationSha256": "1c6d7ffba74aa5031528f2860537f6442d6531aa1e0d1e56ef4207556c9cbe62",
-    "imageSha256": "57092e0436f8905634fab53554be826e9cbc46f70f73099281aa06caf4a5b737"
+    "imageSha256": "bf73199b6d9eab841d82a95281b9c3cb52bb66507ee8e0236b7ff33ba88130ce"
   },
   "catalogue-route-shield-i-95-r1-detail": {
     "dimensionsMm": [
@@ -213,7 +213,7 @@
       5.8
     ],
     "configurationSha256": "1c6d7ffba74aa5031528f2860537f6442d6531aa1e0d1e56ef4207556c9cbe62",
-    "imageSha256": "65fe656fdf8884543c506466dd5dc621748d5156625fea0637774669f758da20"
+    "imageSha256": "13ef45aa62a17310335b902558c8316cff80474300812b3aedc21b889e9130a0"
   },
   "catalogue-route-shield-us-101-r1": {
     "dimensionsMm": [
@@ -222,7 +222,7 @@
       5.8
     ],
     "configurationSha256": "03b19436f419fff4008f51bdaf2a25122f186db97a9134c4aee51f40736ce1c6",
-    "imageSha256": "0d206c4977d7b77ee9853ae168c2df25ca22a3020bca57c74a6d39e3d5368bb8"
+    "imageSha256": "016c5d6afd808b7f9ea96f069594dbc89959c51dce12e8f56be1b0edbde6c35d"
   },
   "catalogue-route-shield-us-101-r1-detail": {
     "dimensionsMm": [
@@ -231,7 +231,7 @@
       5.8
     ],
     "configurationSha256": "03b19436f419fff4008f51bdaf2a25122f186db97a9134c4aee51f40736ce1c6",
-    "imageSha256": "22c4bb8638c1d8f675c96c99236653ee617450a04bcd74293f8f519afdd6ab8d"
+    "imageSha256": "3808ca3aa385730c6a890fecd14b3b49197ee5faa1ba52f8ceda6bf697d1151d"
   },
   "catalogue-wifi-tag-placard-r1": {
     "dimensionsMm": [

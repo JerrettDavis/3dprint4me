@@ -1,5 +1,5 @@
 // Parameter schema runtime shared by the browser (form + clamping) and the server (re-validation).
-import { validateVaseProfile } from './vase-shape.js?v=3e1362c8d48f9150';
+import { validateVaseProfile } from './vase-shape.js?v=5d93ee7157a9c9d2';
 const REDACTED = "[redacted]";
 const CONTROL_NONMULTILINE = new RegExp("[\u0000-\u001f\u007f\u0085  ]");
 const CONTROL_MULTILINE = new RegExp("[\u0000-\u0009\u000b-\u001f\u007f\u0085  ]");

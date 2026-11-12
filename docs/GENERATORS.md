@@ -1,5 +1,10 @@
 # Parametric generators (Customize)
 
+Route shield outlines and color fields use chord-weighted cubic Hermite
+curves sampled at 0.25 template units. Explicit shoulder corners, center points,
+straight dividers and the bottom tab are preserved. The same contours feed
+the preview and printable solids, including 3MF and STL downloads.
+
 Route shield defaults to the self-hosted OFL Overpass Black highway face. `top_text`
 accepts explicit newlines (72 characters total); rows share one size and fit the upper field.
 `lower_heading` is optional (32 characters) and uses the lower text font, size and offset
@@ -877,3 +882,4 @@ this is provenance, never model or pricing proof. Sensitive fields remain local.
 Generator-version updates hide old snapshots from discovery and never reinterpret
 them with a newer builder. Review breaking safety-schema changes before release.
 See [PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md) for the complete contract.
+

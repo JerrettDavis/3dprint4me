@@ -20,3 +20,33 @@ export function signedArea2(points) {
 export function positiveContour(points) {
   return signedArea2(points) < 0 ? [...points].reverse() : [...points];
 }
+
+// Interpolate the authored curves, retaining explicit corners and straight
+// runs. Chord-weighted Hermite tangents stay continuous across unequal spans.
+function smoothContour(points, corners) {
+  const sharp = new Set(corners);
+  const sub = (a, b) => a.map((v, j) => v - b[j]);
+  const length = v => Math.hypot(...v);
+  const result = [];
+  for (let i = 0; i < points.length; i++) {
+    const next = (i + 1) % points.length;
+    const a = points[i], b = points[next];
+    const before = sub(a, points[(i + points.length - 1) % points.length]);
+    const span = sub(b, a), after = sub(points[(i + 2) % points.length], b);
+    const d = length(span);
+    const tangent = (u, v) => u.map((x, j) => (x / length(u) + v[j] / length(v)) * d / 2);
+    const m0 = sharp.has(i) ? span : tangent(before, span);
+    const m1 = sharp.has(next) ? span : tangent(span, after);
+    const steps = sharp.has(i) && sharp.has(next) ? 1 : Math.max(4, Math.ceil(d / 0.25));
+    for (let k = 0; k < steps; k++) {
+      if (k === 0) { result.push([...a]); continue; }
+      const t = k / steps, t2 = t * t, t3 = t2 * t;
+      result.push(a.map((x, j) => (2*t3-3*t2+1)*x + (t3-2*t2+t)*m0[j] + (-2*t3+3*t2)*b[j] + (t3-t2)*m1[j]));
+    }
+  }
+  points.splice(0, points.length, ...result);
+}
+
+smoothContour(OUTER, [0, 1, 14, 15, 20, 24, 25, 37, 38, 39, 40]);
+smoothContour(UPPER, [2, 3, 9, 15, 16, 18, 19]);
+smoothContour(LOWER, [9, 10, 25]);

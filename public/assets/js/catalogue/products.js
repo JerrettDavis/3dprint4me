@@ -394,12 +394,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-route-66-r1.webp?v=4a7c7c5792820982",
+        "src": "/assets/images/products/catalogue/route-shield-route-66-r1.webp?v=874651315a8aba81",
         "alt": "Route 66 sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/route-shield-route-66-r1-detail.webp?v=507e1211615438c7",
+        "src": "/assets/images/products/catalogue/route-shield-route-66-r1-detail.webp?v=28779c0f9ff807bf",
         "alt": "Route 66 sign, alternate studio view",
         "kind": "render"
       }
@@ -446,12 +446,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-i-95-r1.webp?v=57092e0436f89056",
+        "src": "/assets/images/products/catalogue/route-shield-i-95-r1.webp?v=bf73199b6d9eab84",
         "alt": "Interstate 95 sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/route-shield-i-95-r1-detail.webp?v=65fe656fdf888454",
+        "src": "/assets/images/products/catalogue/route-shield-i-95-r1-detail.webp?v=13ef45aa62a17310",
         "alt": "Interstate 95 sign, alternate studio view",
         "kind": "render"
       }
@@ -498,12 +498,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-us-101-r1.webp?v=0d206c4977d7b77e",
+        "src": "/assets/images/products/catalogue/route-shield-us-101-r1.webp?v=016c5d6afd808b7f",
         "alt": "US 101 sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/route-shield-us-101-r1-detail.webp?v=22c4bb8638c1d8f6",
+        "src": "/assets/images/products/catalogue/route-shield-us-101-r1-detail.webp?v=3808ca3aa385730c",
         "alt": "US 101 sign, alternate studio view",
         "kind": "render"
       }
