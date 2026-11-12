@@ -220,8 +220,8 @@ def route_heading(page) -> None:
     heading.fill("ARIZONA")
     heading.press("Tab")
     wait_settled(page)
-    scroll_in_panel(page, "#cz-lower_heading")
-    page.evaluate("window.scrollTo(0, 0)")
+    scroll_in_panel(page, "[data-field='lower_heading']")
+    page.evaluate("document.activeElement?.blur(); window.scrollTo(0, 0)")
 
 
 def capture_customize_states() -> list[tuple[str, Path]]:

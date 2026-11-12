@@ -1623,7 +1623,7 @@ def test_every_generator_offers_the_same_font_picker(page: Page, base_url: str, 
     open_generator(page, base_url, generator_id)
     toggle = page.locator("#cz-font-toggle")
     expect(toggle).to_be_visible()
-    expect(toggle).to_have_text("Block (built-in)")
+    expect(toggle).to_have_text("Overpass Black" if generator_id == "route-shield" else "Block (built-in)")
     toggle.click()
     assert page.locator("#cz-font-list label").all_text_contents() == FONT_CHOICES
     page.locator("label[for='cz-font-lobster']").click()
@@ -1678,7 +1678,8 @@ def test_an_installed_font_needs_the_confirmation_and_is_never_uploaded(page: Pa
     page.get_by_label(ACK_LABEL).check()
     wait_ready(page)
     draft = page.evaluate(f"sessionStorage.getItem({f'3dp-customize:{generator_id}:v{GENERATOR_VERSIONS.get(generator_id, 1)}'!r}) || ''")
-    assert '"font":"block"' in draft and "font_license_ack" not in draft and "Bebas" not in draft, draft
+    assert json.loads(draft)["font"] == ("overpass-black" if generator_id == "route-shield" else "block"), draft
+    assert "font_license_ack" not in draft and "Bebas" not in draft, draft
 
 
 def test_a_refused_font_permission_is_explained(page: Page, base_url: str) -> None:
