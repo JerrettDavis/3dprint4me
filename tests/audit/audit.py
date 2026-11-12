@@ -25,6 +25,8 @@ ROUTES = [
 ]
 # Vite-built pages run over real HTTP against the dev server (WASM, module worker, real CSP).
 SERVED_ROUTES = [
+    ("/shop/", "Product shop", "#catalogue-grid"),
+    ("/shop/pumpkin-witch/", "Product detail", ".catalogue-product"),
     ("/customize/", "Customize catalog", None),
     ("/customize/g/route-shield/", "Route shield generator", "body[data-build-state='ready']"),
 ]
@@ -194,10 +196,8 @@ def audit_profile(profile_name: str, viewport: tuple[int, int], color_scheme: st
     with SiteBrowser(viewport=viewport, color_scheme=color_scheme) as site:
         visits = [(route, label, None) for route, label in ROUTES] + SERVED_ROUTES
         for route, label, ready in visits:
-            page = site.goto(base_url + route, ready_selector=ready) if route.startswith("/customize/") else site.load(route)
-            for image in page.locator("img[loading='lazy']").all():
-                image.scroll_into_view_if_needed()
-                image.evaluate("img => img.decode()")
+            page = site.goto(base_url + route, ready_selector=ready) if route.startswith(("/customize/", "/shop/")) else site.load(route)
+            page.locator("img[loading='lazy']").evaluate_all("async images => { for (const img of images) img.loading = 'eager'; await Promise.all(images.map(img => img.decode())); }")
             page.evaluate("window.scrollTo(0, 0)")
             dom = page.evaluate(DOM_AUDIT)
             contrast = page.evaluate(CONTRAST_AUDIT)

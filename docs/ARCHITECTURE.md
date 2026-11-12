@@ -1,5 +1,12 @@
 # Architecture
 
+The [Product Catalogue](PRODUCT-CATALOGUE.md) context owns private merchandising
+drafts, revision-bound commands, render readiness and public snapshot validation.
+Its public projection supplies static shop pages and bundled offline generator
+starting points. Owner operations reuse the authenticated work API; source work
+references remain private and geometry continues to run outside request-serving
+server modules.
+
 The separate homepage inquiry API and its private-upload, ownership, and notification contract are documented in [QUICK-INQUIRY.md](QUICK-INQUIRY.md).
 
 ## Goals
@@ -314,3 +321,13 @@ Received quick inquiries are typed inbox work alongside detailed requests. Conve
 ## Spoolman inventory integration
 
 See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
+
+## Product catalogue
+
+Public immutable product snapshots, generated shop pages and studio images live
+under `public/`. Owner merchandising drafts, source-work references, reviewed
+preview receipts and durable render/release jobs live behind the owner API and
+native PostgreSQL repository. The trusted worker rebuilds geometry privately;
+release delivery merges reviewed snapshots through ordinary Git push and waits
+for a matching public deployment receipt. See [PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md)
+for boundaries, generator-version disposition and failure recovery.

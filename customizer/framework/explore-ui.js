@@ -68,8 +68,9 @@ export function createDesignPanel(generator, { open = false, onPick = () => {} }
     <div class="cz-design-group" role="group" aria-label="${esc(label)}">
       <h3 class="cz-design-group-title">${esc(label)}</h3>
       <div class="cz-design-grid">${list.map(d => `
-        <button class="cz-design" type="button" data-design="${esc(d.id)}" aria-pressed="false">
-          <span class="cz-swatches" aria-hidden="true">${designSwatches(generator, d).map(c => `<span style="background:${esc(c)}"></span>`).join("")}</span>
+<button class="cz-design" type="button" data-design="${esc(d.id)}" aria-pressed="false">
+${d.image ? `<img class="cz-design-image" src="${esc(d.image.src)}" alt="${esc(d.image.alt)}" loading="lazy" width="480" height="360"><span class="cz-design-render-label">Studio render</span>` : ''}
+<span class="cz-swatches" aria-hidden="true">${designSwatches(generator, d).map(c => `<span style="background:${esc(c)}"></span>`).join("")}</span>
           <span class="cz-design-name">${esc(d.label)}${d.id === generator.defaultDesign ? ` <span class="cz-design-default">default</span>` : ""}</span>
           <span class="cz-design-blurb">${esc(d.blurb)}</span>
         </button>`).join("")}

@@ -3,6 +3,8 @@
 // Geometry builds in a worker (latest wins); facts are computed locally from the built 3MF;
 // nothing here touches the network.
 import { getGenerator } from "../../public/assets/js/customize/registry.js";
+import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
+import { initialProductState, productDraftKey } from './product-start.js';
 import { clampParams, validateParams } from "../../public/assets/js/customize/schema.js";
 import { analyzeModelBytes } from "../../public/assets/js/print-estimation/geometry.js";
 import { browserInflateRaw } from "../../public/assets/js/print-estimation/controller.js";
@@ -75,7 +77,8 @@ const $ = selector => document.querySelector(selector);
 let noteEl = null;
 function setNote(text) { if (noteEl) { noteEl.textContent = text; noteEl.hidden = !text; } }
 
-const storageKey = g => `3dp-customize:${g.id}:v${g.version ?? 1}`;
+let draftProduct = null;
+const storageKey = g => productDraftKey(g, draftProduct);
 function loadDraft(g) {
   try { return sessionStorage.getItem(storageKey(g)); } catch { return null; }
 }
@@ -124,7 +127,51 @@ function boot() {
   noteEl = $("#cz-continue-note");
   if (els.factsNote) els.factsNote.textContent = FACTS_NOTE;
 
-  const state = { generator, params: restoreParams(generator, loadDraft(generator)), result: null, status: "idle" };
+  const navigation = globalThis.performance?.getEntriesByType?.('navigation')?.[0]?.type;
+  const initial = initialProductState(generator, location.search, loadDraft(generator), PRODUCTS, location.hash, {
+    resume: ['reload', 'back_forward'].includes(navigation),
+    readProductDraft: key => { try { return sessionStorage.getItem(key); } catch { return null; } }
+  });
+  if (initial.error) {
+    els.status.textContent = initial.error;
+    els.status.setAttribute('role', 'alert');
+    const recovery = document.createElement('p');
+    recovery.className = 'cz-product-recovery';
+    recovery.innerHTML = `<a class="button primary" href="/shop/">Return to the shop</a> <a class="button ghost" href="/customize/g/${encodeURIComponent(generator.id)}/">Open my draft or start fresh</a>`;
+    els.form?.append(recovery);
+    return;
+  }
+  draftProduct = initial.product;
+  if (initial.product) {
+    const context = document.createElement('aside');
+    context.className = 'cz-product-context';
+    context.setAttribute('aria-label', initial.preview ? 'Private catalogue preview' : 'Selected shop design');
+    context.innerHTML = `<strong>${esc(initial.product.title)}</strong><span>${initial.preview ? 'Inspect these private draft settings. Publication requires review in the admin panel. Your other draft is safe.' : 'Review the preview, then continue to request a quote. You can change any setting. Your other draft is safe.'}</span><a href="/customize/g/${encodeURIComponent(generator.id)}/">Return to my other draft</a>`;
+    if (initial.resumed) context.querySelector('span').textContent = 'Your saved changes to this design were restored. Review the model, then continue. Your other draft is safe.';
+    if (!initial.preview) {
+      const back = document.querySelector('.cz-back');
+      if (back) { back.href = `/shop/${encodeURIComponent(initial.product.id)}/`; const label = back.querySelector('span:last-child'); if (label) label.textContent = 'Back to design'; }
+    }
+    els.form?.before(context);
+    if (new URLSearchParams(location.search).get('intent') === 'request') {
+      document.body.classList.add('cz-product-request');
+      const body = els.form?.parentElement;
+      body?.classList.add('cz-request-review');
+      const change = document.createElement('button');
+      change.type = 'button'; change.className = 'button secondary'; change.textContent = 'Change settings';
+      change.setAttribute('aria-expanded', 'false'); change.setAttribute('aria-controls', 'cz-form');
+      change.addEventListener('click', () => {
+        const reviewing = body?.classList.toggle('cz-request-review');
+        change.textContent = reviewing ? 'Change settings' : 'Review design';
+        change.setAttribute('aria-expanded', String(!reviewing));
+      });
+      context.append(change);
+      els.continueButton?.setAttribute('aria-label', 'Request this design');
+      const label = els.continueButton?.querySelector('.cz-long');
+      if (label) label.textContent = 'Request this design';
+    }
+  }
+  const state = { generator, params: initial.params, product: initial.product, result: null, status: "idle" };
   // Font choice: every generator carries the shared font spec { key, custom, system, ack }.
   // Curated ids are fetched same-origin by the worker; the customer's own font (a file, or one
   // installed on their computer) lives only in the font area below, in this page's memory.
@@ -625,9 +672,10 @@ function boot() {
     let randomButton = null;
     const same = (a, b) => JSON.stringify(storableParams(generator, a)) === JSON.stringify(storableParams(generator, b));
     const paint = () => panel?.setCurrent(designId, { modified });
-    function jump(next, { id, message }) {
-      previous = { params: state.params, designId, modified };
+    function jump(next, { id, message, product = null }) {
+      previous = { params: state.params, product: state.product, designId, modified };
       state.params = next;
+      state.product = product;
       designId = id;
       modified = false;
       saveDraft(generator, state.params);
@@ -643,6 +691,7 @@ function boot() {
       const back = previous;
       previous = null;
       state.params = back.params;
+      state.product = back.product;
       designId = back.designId;
       modified = back.modified;
       saveDraft(generator, state.params);
@@ -656,7 +705,7 @@ function boot() {
     function pick(design) {
       const next = applyDesign(generator, design, state.params);
       if (!next) { announce(`${design.label} couldn't be applied.`); return; }
-      jump(next, { id: design.id, message: `${design.label} applied. Use Undo to go back.` });
+      jump(next, { id: design.id, product: design.product ? { ...design.product, title: design.label } : null, message: `${design.label} applied. Use Undo to go back.` });
       panel?.collapse();
     }
     async function randomize() {
@@ -784,7 +833,7 @@ function boot() {
     if (continuing) return;
     continuing = true;
     try {
-      await continueHandler(continuePayload(generator, state.params, result));
+      await continueHandler(continuePayload(generator, state.params, result, { product: state.product }));
     } catch (error) {
       setNote(String(error?.message ?? "Couldn't continue. Try again."));
     } finally {

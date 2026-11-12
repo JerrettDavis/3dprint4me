@@ -4,6 +4,7 @@ import { createPushClient } from "./push-client.js";
 import { createAuthClient, createCookieAuthClient } from "./auth-client.js";
 import { renderPrintEstimation } from "./print-detail.js";
 import { renderCustomization } from "./customization-detail.js";
+import { openCatalogueDialog } from './catalogue.js';
 import { renderInvoiceDetail } from "./invoice-detail.js";
 import { renderFilamentInventory } from './filament-inventory.js';
 import { renderFilamentMatching } from './filament-detail.js';
@@ -153,6 +154,8 @@ function createDomView(api) {
       q("#operator-name").textContent = signedIn ? model.operator?.displayName ?? "Operator" : "";
       q('#filament-inventory').hidden = !signedIn;
       q('#partners-owner').hidden = !signedIn || model.operator?.role !== 'owner';
+      q('#catalogue-products').hidden = !signedIn || model.operator?.role !== 'owner';
+      if (!signedIn) document.querySelector('#catalogue-dialog')?.remove();
       if (["signed-out", "forbidden"].includes(name)) { detail.replaceChildren(); const button = q("#sign-in"); button.disabled = false; button.textContent = "Continue with GitHub"; }
       if (name === "forbidden") q("#auth-title").textContent = "This account is not approved.";
       if (["offline", "unavailable", "error"].includes(name)) view.announce(name === "offline" ? "The inbox is offline. Check the connection and retry." : "The inbox could not load. Try again.");
@@ -199,6 +202,11 @@ function createDomView(api) {
       const models=!isInquiry?renderOperatorModels({item,request,printEstimation:payload.printEstimation,api,onAuthError,onRefresh:()=>controller.selectedId()===item.id?controller.select(item.id):null}):null;
       const print = !isInquiry ? renderPrintEstimation(payload.printEstimation, { onDownload: assetId => controller.download(assetId), onRecordRun: run => controller.recordRun(run),planningOnly:Boolean(item.projectDraft) }) : null;
       const customization = request?.customization ? renderCustomization(request) : null;
+      if (customization && controller.snapshot().operator?.role === 'owner') {
+        const promote = el('button', 'action', 'Create gallery product'); promote.type = 'button';
+        promote.onclick = () => openCatalogueDialog({ api, sourceWorkId: item.id, onAuthError });
+        customization.append(promote);
+      }
       const filament = renderFilamentMatching(payload.filamentMatching, {
         onCommand: input => controller.filamentAction('filamentCommand', input, item.id),
         onPreviewEmail: input => controller.filamentAction('previewSubstitutionEmail', input, item.id),
@@ -228,6 +236,7 @@ async function bootstrap() {
   const returningFromSignIn = () => Boolean(store?.getItem(SIGN_IN_PENDING_KEY)) || new URLSearchParams(location.search).has("neon_auth_session_verifier");
   const api = createApiClient({ apiBase: config.apiBase ?? "", getSessionHeaders: auth?.sessionHeaders ?? (async () => ({})) }); const view = createDomView(api); const controller = createOperatorController({ api, view, expectSession: returningFromSignIn }); view.attach(controller);
   document.querySelector('#filament-inventory').onclick = () => controller.showInventory();
+  document.querySelector('#catalogue-products').onclick = () => openCatalogueDialog({ api, onAuthError: () => { controller.clearPrivate(); controller.start(); } });
   document.querySelector("#sign-in").onclick = async event => {
     if (!auth) return controller.start();
     const button = event.currentTarget; button.disabled = true; button.textContent = "Opening sign-in…"; try { store?.setItem(SIGN_IN_PENDING_KEY, "1"); } catch {}

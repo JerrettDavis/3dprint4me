@@ -9,6 +9,8 @@
     "node": "22.x"
   },
   "scripts": {
+    "catalogue:build": "node scripts/build-catalogue.mjs",
+    "catalogue:worker": "node scripts/catalogue-worker.mjs",
     "products:render": "python scripts/generate-product-renders.py",
     "products:meshes": "node scripts/export-product-render-meshes.mjs",
     "dev": "node scripts/dev-server.mjs",
@@ -22,7 +24,7 @@
     "smoke:live": "node scripts/smoke-live.mjs",
     "estimate:cleanup": "node scripts/print-estimate-maintenance.mjs",
     "estimate:worker": "node scripts/print-estimate-worker.mjs",
-    "test": "npm run customizer:build && npm run validate && npm run test:unit && npm run test:e2e && npm run audit",
+    "test": "npm run catalogue:build && npm run customizer:build && npm run validate && npm run test:unit && npm run test:e2e && npm run audit",
     "vercel-build": "node scripts/vercel-build.mjs",
     "test:unit": "node --test tests/unit/*.test.mjs tests/contract/*.test.mjs",
     "customizer:build": "vite build --config customizer/vite.config.js",

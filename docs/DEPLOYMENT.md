@@ -115,7 +115,7 @@ The workflow runs every six hours (`0 */6 * * *`) and fails soft (a `::warning::
 
 The Customize section (`/customize/`, [GENERATORS.md](GENERATORS.md)) adds **no environment variable, no serverless function, no table and no migration**: generator pages are static Vite output, and the model and its provenance travel with the existing print request (`customization` lives in the request payload JSON). What it changes in deployment:
 
-- `vercel-build` (`scripts/vercel-build.mjs`) runs `npm run customizer:build` (Vite) first, then `assets:version`, then `validate`. Vercel invokes the build command 13 times per deployment (the static output plus one per API function); only the first run builds and later ones skip via a marker in `node_modules/.cache`, because a repeat run emptied `public/customize` while Vercel was still reading the previous run's files and failed some deployments with `ENOENT ... public/customize/fonts/...`. Off Vercel it always builds. The build needs Node 22 (`engines: 22.x`; Vite 8.3.2 requires `^20.19.0 || >=22.12.0`) and the dev dependencies Vercel installs by default.
+- `vercel-build` (`scripts/vercel-build.mjs`) runs `npm run catalogue:build` for the static shop, then `customizer:build` (Vite), `assets:version`, and `validate`. Vercel invokes the build command 13 times per deployment (the static output plus one per API function); only the first run builds and later ones skip via a marker in `node_modules/.cache`, because a repeat run emptied `public/customize` while Vercel was still reading the previous run's files and failed some deployments with `ENOENT ... public/customize/fonts/...`. Off Vercel it always builds. The build needs Node 22 (`engines: 22.x`; Vite 8.3.2 requires `^20.19.0 || >=22.12.0`) and the dev dependencies Vercel installs by default.
 - `vercel.json` splits the CSP: the global header rule excludes `/customize/` (`/((?!customize/).*)`) and `/customize/(.*)` has its own complete policy with `'wasm-unsafe-eval'` and `worker-src 'self' blob:` and `connect-src 'self'`. `/customize/assets/*` is cached immutably and `/customize/fonts/*` for a day. `api/*.js` functions include `public/assets/js/**`, so the server can import the generator schemas.
 
 The steps below are **not executed by the repository or its agents**. Each outward-facing step waits for the owner's explicit go-ahead, and the owner enters every credential. Record each executed step, with its date and result, in [VERIFICATION.md](VERIFICATION.md).
@@ -355,3 +355,14 @@ For the September 15 release, CLI file uploads were blocked by commit-author mat
 ## Spoolman inventory integration
 
 See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
+
+## Catalogue release worker
+
+The private worker requires migration `019_product_catalogue.sql`, shared private
+preview storage, Blender/Pillow and Git/Node/npm. Publication stays disabled
+until explicitly configured with a credential-free HTTPS remote, target branch
+and public HTTPS `SITE_URL`; that branch must already deploy the storefront.
+A push alone never marks a product live. Configure and rehearse the receipt
+verification and withdrawal flow described in [PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md)
+before enabling `CATALOGUE_PUBLISH_ENABLED=1`. No migration or external release
+was performed by the catalogue implementation workflow.

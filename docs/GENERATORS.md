@@ -1,5 +1,11 @@
 # Parametric generators (Customize)
 
+Product galleries and pinned starting configurations are described in
+[PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md). The generator bundles public
+revision snapshots, loads an explicit product before any ordinary saved draft,
+and preserves that draft under its original storage key. Operator promotion
+rebuilds safe public settings; it never renders a submitted private model.
+
 A **generator** is a small plugin that turns a handful of validated parameters into a printable,
 multi-color 3MF, entirely in the customer's browser. The Customize section (`/customize/`) lists
 the public generators; each has a page (`/customize/g/<id>/`) with a schema-driven form, a 2D/3D
@@ -844,3 +850,14 @@ base plane; its raised stitches move with the visor. The pumpkin is unchanged.
 Witch and Santa retain attached pegs; the cap retains its separate mounting pin.
 Included supports serve the recess, attached pegs and hanging details; inspect
 the slicer's layer preview. Physical fit and support removal await print tests.
+
+## Pictured catalogue starting points
+
+Gallery links pin a product ID and immutable revision. Explicit product links
+start from those settings while preserving the ordinary saved draft; reload/back
+resumes edits for that product. Stale/withdrawn links stop with recovery actions.
+Private print handoff may carry the bounded starting reference and friendly title;
+this is provenance, never model or pricing proof. Sensitive fields remain local.
+Generator-version updates hide old snapshots from discovery and never reinterpret
+them with a newer builder. Review breaking safety-schema changes before release.
+See [PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md) for the complete contract.

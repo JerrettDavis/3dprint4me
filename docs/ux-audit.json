@@ -1,12 +1,12 @@
 {
   "name": "3dprint4.me automated UX and accessibility audit",
-  "generatedAt": "2026-11-11T06:12:28.859150+00:00",
+  "generatedAt": "2026-11-11T21:37:11.638342+00:00",
   "status": "pass",
   "summary": {
-    "checks": 241,
-    "passed": 241,
+    "checks": 289,
+    "passed": 289,
     "failed": 0,
-    "routes": 10,
+    "routes": 12,
     "renderProfiles": 2
   },
   "method": {
@@ -527,7 +527,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "69 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "71 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/terms.html",
@@ -698,6 +698,174 @@
       "details": "37 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "32 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "59 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/shop/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "192 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Images",
+      "status": "pass",
+      "details": "4 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "29 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 1440 CSS px."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "desktop/light 1440\u00d71000",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "48 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+    },
+    {
       "route": "/customize/",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Browser execution",
@@ -821,14 +989,14 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Images",
       "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
+      "details": "5 images loaded and each has an alt attribute."
     },
     {
       "route": "/customize/g/route-shield/",
       "profile": "desktop/light 1440\u00d71000",
       "check": "Accessible control names",
       "status": "pass",
-      "details": "110 visible interactive elements have accessible names."
+      "details": "113 visible interactive elements have accessible names."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -863,7 +1031,7 @@
       "profile": "desktop/light 1440\u00d71000",
       "check": "Text contrast",
       "status": "pass",
-      "details": "159 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "169 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/",
@@ -1367,7 +1535,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Text contrast",
       "status": "pass",
-      "details": "63 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+      "details": "65 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
       "route": "/terms.html",
@@ -1538,6 +1706,174 @@
       "details": "31 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
     },
     {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "32 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "54 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/shop/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "186 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Browser execution",
+      "status": "pass",
+      "details": "No page or console errors."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Language and metadata",
+      "status": "pass",
+      "details": "Language, title, description, and responsive viewport are present."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Landmarks and page heading",
+      "status": "pass",
+      "details": "Exactly one main landmark and H1, with site header and footer."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Unique IDs",
+      "status": "pass",
+      "details": "All element IDs are unique."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Heading structure",
+      "status": "pass",
+      "details": "Visible headings do not skip levels."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Images",
+      "status": "pass",
+      "details": "4 images loaded and each has an alt attribute."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Accessible control names",
+      "status": "pass",
+      "details": "24 visible interactive elements have accessible names."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "New-window safety",
+      "status": "pass",
+      "details": "All new-window links include noopener."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Touch target floor",
+      "status": "pass",
+      "details": "Controls and action links meet the 24\u00d724 CSS-pixel floor."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Hidden focus management",
+      "status": "pass",
+      "details": "No visible focusable control is nested in aria-hidden content."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Responsive overflow",
+      "status": "pass",
+      "details": "No horizontal overflow at 390 CSS px."
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "profile": "mobile/dark 390\u00d7844",
+      "check": "Text contrast",
+      "status": "pass",
+      "details": "42 solid-background text samples meet WCAG AA contrast; 0 gradient/image samples were excluded from automation."
+    },
+    {
       "route": "/customize/",
       "profile": "mobile/dark 390\u00d7844",
       "check": "Browser execution",
@@ -1661,7 +1997,7 @@
       "profile": "mobile/dark 390\u00d7844",
       "check": "Images",
       "status": "pass",
-      "details": "2 images loaded and each has an alt attribute."
+      "details": "5 images loaded and each has an alt attribute."
     },
     {
       "route": "/customize/g/route-shield/",
@@ -1916,10 +2252,10 @@
         "viewportWidth": 1440,
         "interactiveCount": 26,
         "imageCount": 2,
-        "headingCount": 19
+        "headingCount": 20
       },
       "contrast": {
-        "checked": 69,
+        "checked": 71,
         "complexSkipped": 0,
         "failures": []
       }
@@ -1995,6 +2331,76 @@
       }
     },
     {
+      "route": "/shop/",
+      "label": "Product shop",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "Shop designs made for you | 3dprint4.me",
+        "description": "Browse customizable signs, organizers, gifts and seasonal designs. Pick a design and request a quote.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 59,
+        "imageCount": 32,
+        "headingCount": 35
+      },
+      "contrast": {
+        "checked": 192,
+        "complexSkipped": 0,
+        "failures": []
+      }
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "label": "Product detail",
+      "profile": "desktop/light 1440\u00d71000",
+      "dom": {
+        "lang": "en",
+        "title": "Little witch pumpkin | 3dprint4.me",
+        "description": "The original happy pumpkin with a curled witch hat, buckle and sculpted star.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 1440,
+        "viewportWidth": 1440,
+        "interactiveCount": 29,
+        "imageCount": 4,
+        "headingCount": 4
+      },
+      "contrast": {
+        "checked": 48,
+        "complexSkipped": 0,
+        "failures": []
+      }
+    },
+    {
       "route": "/customize/",
       "label": "Customize catalog",
       "profile": "desktop/light 1440\u00d71000",
@@ -2054,12 +2460,12 @@
         "horizontalOverflow": 0,
         "contentWidth": 1440,
         "viewportWidth": 1440,
-        "interactiveCount": 110,
-        "imageCount": 2,
-        "headingCount": 18
+        "interactiveCount": 113,
+        "imageCount": 5,
+        "headingCount": 19
       },
       "contrast": {
-        "checked": 159,
+        "checked": 169,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2266,10 +2672,10 @@
         "viewportWidth": 390,
         "interactiveCount": 21,
         "imageCount": 2,
-        "headingCount": 19
+        "headingCount": 20
       },
       "contrast": {
-        "checked": 63,
+        "checked": 65,
         "complexSkipped": 0,
         "failures": []
       }
@@ -2345,6 +2751,76 @@
       }
     },
     {
+      "route": "/shop/",
+      "label": "Product shop",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "Shop designs made for you | 3dprint4.me",
+        "description": "Browse customizable signs, organizers, gifts and seasonal designs. Pick a design and request a quote.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 54,
+        "imageCount": 32,
+        "headingCount": 35
+      },
+      "contrast": {
+        "checked": 186,
+        "complexSkipped": 0,
+        "failures": []
+      }
+    },
+    {
+      "route": "/shop/pumpkin-witch/",
+      "label": "Product detail",
+      "profile": "mobile/dark 390\u00d7844",
+      "dom": {
+        "lang": "en",
+        "title": "Little witch pumpkin | 3dprint4.me",
+        "description": "The original happy pumpkin with a curled witch hat, buckle and sculpted star.",
+        "viewportMeta": "width=device-width, initial-scale=1",
+        "mainCount": 1,
+        "h1Count": 1,
+        "headerCount": 1,
+        "footerCount": 1,
+        "duplicateIds": [],
+        "headingJumps": [],
+        "missingAlt": [],
+        "brokenImages": [],
+        "unnamedControls": [],
+        "emptyLinks": [],
+        "badTargets": [],
+        "smallTargets": [],
+        "focusableHidden": [],
+        "horizontalOverflow": 0,
+        "contentWidth": 390,
+        "viewportWidth": 390,
+        "interactiveCount": 24,
+        "imageCount": 4,
+        "headingCount": 4
+      },
+      "contrast": {
+        "checked": 42,
+        "complexSkipped": 0,
+        "failures": []
+      }
+    },
+    {
       "route": "/customize/",
       "label": "Customize catalog",
       "profile": "mobile/dark 390\u00d7844",
@@ -2405,7 +2881,7 @@
         "contentWidth": 390,
         "viewportWidth": 390,
         "interactiveCount": 92,
-        "imageCount": 2,
+        "imageCount": 5,
         "headingCount": 12
       },
       "contrast": {

@@ -10,7 +10,7 @@ const cards = [...home.matchAll(/<a class="cat-tile"[\s\S]*?<\/a>/g)].map(m => m
 test('every public generator has the same representative local image on both browsing catalogs', () => {
   const catalog = renderCatalogHtml(listPublicGenerators());
   for (const g of listPublicGenerators()) {
-    const homeCard = cards.find(c => c.includes(`href="/customize/g/${g.id}/"`));
+    const homeCard = cards.find(c => c.includes(`href="/shop/?generator=${g.id}"`));
     assert.ok(homeCard, `${g.id} discoverable on home`);
     const catalogCard = catalog.split('<li class="cz-card">').find(c => c.includes(`href="/customize/g/${g.id}/"`));
     const image = homeCard.match(/<img[^>]+src="([^"]+)"[^>]+alt="([^"]+)"/);
@@ -35,8 +35,8 @@ test('all home products have shipped raster images and name plate does not reuse
     if (new URL(src, 'https://3dprint4.me').pathname.endsWith('.webp')) assert.ok(statSync(file).size < 250000, `${src} optimized`);
     assert.doesNotMatch(card, /class="cat-art"/);
   }
-  const name = cards.find(c => c.includes('/g/name-plate/'));
-  const display = cards.find(c => c.includes('/g/display-sign/'));
+  const name = cards.find(c => c.includes('/shop/?generator=name-plate'));
+  const display = cards.find(c => c.includes('/shop/?generator=display-sign'));
   assert.match(name, /name-plate\.webp/);
   assert.doesNotMatch(name, /QR code|plate-plug-signs/);
   assert.match(display, /plate-plug-signs\.jpg/);

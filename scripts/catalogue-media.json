@@ -1,0 +1,614 @@
+{
+  "name-plate": {
+    "dimensionsMm": [
+      83.631,
+      30,
+      3
+    ],
+    "configurationSha256": null,
+    "imageSha256": "71a9fc7b2e050e7c2ef06b57667fb97dd1bb8a2b1882c71f3f7db9ba964dd3fd"
+  },
+  "wifi-tag": {
+    "dimensionsMm": [
+      90,
+      120,
+      3
+    ],
+    "configurationSha256": null,
+    "imageSha256": "bd3bc821d476c5a8dbc4077078a0e063ce483f489d3ec0561ba556ee49f53068"
+  },
+  "rating-card": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      1.6
+    ],
+    "configurationSha256": null,
+    "imageSha256": "1d6d181e974a13a4e8cebc75e65cd86b30c2ecd084274cf1bb96e7b2dcf16876"
+  },
+  "pumpkin": {
+    "dimensionsMm": [
+      45.947,
+      45.988,
+      57.353
+    ],
+    "configurationSha256": null,
+    "imageSha256": "5cfd87f3ba012cf08402cecaed0a791cdc3b107d45c0d53b43dc65fe8f49f3f5"
+  },
+  "infinity-fidget": {
+    "dimensionsMm": [
+      83,
+      41,
+      20
+    ],
+    "configurationSha256": null,
+    "imageSha256": "03c158b5af1279157fe737865965e30b3eb8fa5b0df706ae225e2ee46d238770"
+  },
+  "gridfinity-base": {
+    "dimensionsMm": [
+      126,
+      84,
+      4.75
+    ],
+    "configurationSha256": null,
+    "imageSha256": "b5f4c9756ad656af0536143590fa6c034ded0dbcecde47efb6e3ad0c2945b602"
+  },
+  "gridfinity-bin": {
+    "dimensionsMm": [
+      83.5,
+      83.5,
+      46
+    ],
+    "configurationSha256": null,
+    "imageSha256": "567307bbe1fabcdc33b7680fd16cc0c299a601dae26ca98cf284adf718f601dc"
+  },
+  "vase": {
+    "dimensionsMm": [
+      90.12,
+      93.613,
+      155
+    ],
+    "configurationSha256": null,
+    "imageSha256": "57bbd2f81f855585384830dfce1042389f61b973279b72d3829f63a0a0315380"
+  },
+  "catalogue-vase-dune-r1": {
+    "dimensionsMm": [
+      90.12,
+      93.613,
+      155
+    ],
+    "configurationSha256": "50d6912a27b6877ed6670eb4b877d17e5bdd39e9c733576d7b0563be931f6489",
+    "imageSha256": "57bbd2f81f855585384830dfce1042389f61b973279b72d3829f63a0a0315380"
+  },
+  "catalogue-vase-dune-r1-detail": {
+    "dimensionsMm": [
+      90.12,
+      93.613,
+      155
+    ],
+    "configurationSha256": "50d6912a27b6877ed6670eb4b877d17e5bdd39e9c733576d7b0563be931f6489",
+    "imageSha256": "ee96f0fa4ac76a9bdbd3dd6450d8542840ca136ca4646b155ae2e7278e9e0bfe"
+  },
+  "catalogue-vase-blossom-r1": {
+    "dimensionsMm": [
+      92.757,
+      92.757,
+      155
+    ],
+    "configurationSha256": "09b23f6f5a804b581eaa38639ebdca4e7d47fffcc15a9c3fbb9867b0f86d0ba0",
+    "imageSha256": "e3ba43e36b6fcaffeb84c6e92563d801cee242f5acd56e5e1a0b90689a9fa03e"
+  },
+  "catalogue-vase-blossom-r1-detail": {
+    "dimensionsMm": [
+      92.757,
+      92.757,
+      155
+    ],
+    "configurationSha256": "09b23f6f5a804b581eaa38639ebdca4e7d47fffcc15a9c3fbb9867b0f86d0ba0",
+    "imageSha256": "3bfc325f91966a0f048ce534f4ff971535edfb4354641b5ef1e52f7a6b65c710"
+  },
+  "catalogue-vase-faceted-planter-r1": {
+    "dimensionsMm": [
+      95.263,
+      110,
+      90
+    ],
+    "configurationSha256": "6eea63e6a6a1bbe20e308c3db900206f1c05e9757633f9cd6e7452001965eb4b",
+    "imageSha256": "94fcd5c8652d7c6c7506c9f582386d0e62647970f6f2deffc806c34ca3584840"
+  },
+  "catalogue-vase-faceted-planter-r1-detail": {
+    "dimensionsMm": [
+      95.263,
+      110,
+      90
+    ],
+    "configurationSha256": "6eea63e6a6a1bbe20e308c3db900206f1c05e9757633f9cd6e7452001965eb4b",
+    "imageSha256": "5edb693255f6d2b2d3c45d7543ef3d4af684afcfff6cf0e356fe30728c98bf1a"
+  },
+  "catalogue-infinity-fidget-classic-r1": {
+    "dimensionsMm": [
+      83,
+      41,
+      20
+    ],
+    "configurationSha256": "67c08588119a179b914e6436ec46fa7516b426d84ff879d23c641a840e21c692",
+    "imageSha256": "03c158b5af1279157fe737865965e30b3eb8fa5b0df706ae225e2ee46d238770"
+  },
+  "catalogue-infinity-fidget-classic-r1-detail": {
+    "dimensionsMm": [
+      83,
+      41,
+      20
+    ],
+    "configurationSha256": "67c08588119a179b914e6436ec46fa7516b426d84ff879d23c641a840e21c692",
+    "imageSha256": "26e16ec7c79d6b702b253b69ec0403b52544212ef885248063f47a1801419365"
+  },
+  "catalogue-infinity-fidget-knurled-r1": {
+    "dimensionsMm": [
+      83,
+      41,
+      20
+    ],
+    "configurationSha256": "9bbe4bd06263bba79e4992792c88e5f813d713aced6a81d6ef465d961d017f78",
+    "imageSha256": "a24fa09e1d445a56e2fdb1012f6594fe9a65f8c317785998b4de3854726ec3ed"
+  },
+  "catalogue-infinity-fidget-knurled-r1-detail": {
+    "dimensionsMm": [
+      83,
+      41,
+      20
+    ],
+    "configurationSha256": "9bbe4bd06263bba79e4992792c88e5f813d713aced6a81d6ef465d961d017f78",
+    "imageSha256": "c742553e8de8c0f6acccd2fe68c6f698496e490f4d892068b8a50e03d84fd06b"
+  },
+  "catalogue-infinity-fidget-spheres-r1": {
+    "dimensionsMm": [
+      83,
+      41,
+      20
+    ],
+    "configurationSha256": "ffa1d4ad7da7465b173fac681af5be22a434595d91b4734e78fd81756fc88185",
+    "imageSha256": "b549835286c36319fbd8ecaba30d0424781f8bd30af750e1807b2d1ca7363d04"
+  },
+  "catalogue-infinity-fidget-spheres-r1-detail": {
+    "dimensionsMm": [
+      83,
+      41,
+      20
+    ],
+    "configurationSha256": "ffa1d4ad7da7465b173fac681af5be22a434595d91b4734e78fd81756fc88185",
+    "imageSha256": "eb2307529db11cc0c705405d350be9714831be6b35fcefec41550a24b0f5934b"
+  },
+  "catalogue-route-shield-route-66-r1": {
+    "dimensionsMm": [
+      80.0,
+      88,
+      5.8
+    ],
+    "configurationSha256": "7f4fbbf6c1fae59e8d442fa478511a17da27a0d4edaeb17de6bfc9e6b75735ff",
+    "imageSha256": "4a7c7c5792820982dcf9714c83cb3bdeaa6b46caa4929683301264f6dad744a5"
+  },
+  "catalogue-route-shield-route-66-r1-detail": {
+    "dimensionsMm": [
+      80.0,
+      88,
+      5.8
+    ],
+    "configurationSha256": "7f4fbbf6c1fae59e8d442fa478511a17da27a0d4edaeb17de6bfc9e6b75735ff",
+    "imageSha256": "507e1211615438c729a3b8a114e2c3bdcc63cbe0f7e8ab0e2e10b548e722e90c"
+  },
+  "catalogue-route-shield-i-95-r1": {
+    "dimensionsMm": [
+      80.0,
+      88,
+      5.8
+    ],
+    "configurationSha256": "cf1cc2410c628ea2342eca8489e2d051b23606d4706f2a870cf906c2032e6204",
+    "imageSha256": "57092e0436f8905634fab53554be826e9cbc46f70f73099281aa06caf4a5b737"
+  },
+  "catalogue-route-shield-i-95-r1-detail": {
+    "dimensionsMm": [
+      80.0,
+      88,
+      5.8
+    ],
+    "configurationSha256": "cf1cc2410c628ea2342eca8489e2d051b23606d4706f2a870cf906c2032e6204",
+    "imageSha256": "65fe656fdf8884543c506466dd5dc621748d5156625fea0637774669f758da20"
+  },
+  "catalogue-route-shield-us-101-r1": {
+    "dimensionsMm": [
+      80.0,
+      88,
+      5.8
+    ],
+    "configurationSha256": "de7b4804d31d3759f344e3e1b385a87520c966921204128574e2b6cb3308fd5c",
+    "imageSha256": "d835b1136a7e5ecc24d3dc944ac512c029e262e7789033a65a05294abb985c47"
+  },
+  "catalogue-route-shield-us-101-r1-detail": {
+    "dimensionsMm": [
+      80.0,
+      88,
+      5.8
+    ],
+    "configurationSha256": "de7b4804d31d3759f344e3e1b385a87520c966921204128574e2b6cb3308fd5c",
+    "imageSha256": "c1fea9e051c75f4a2a1477ce637b11683186bb5f665ac20910598bb13b67db14"
+  },
+  "catalogue-wifi-tag-placard-r1": {
+    "dimensionsMm": [
+      90,
+      120,
+      3
+    ],
+    "configurationSha256": "f0ede4d7668dd49dea4a5f391958d447483ed0c9269508efe776f1ab1d77c6c3",
+    "imageSha256": "71d6d22e5c70b2c0a19dc0abe39de6f3b84cdc6158f57225d28f7274fdadd1f0"
+  },
+  "catalogue-wifi-tag-placard-r1-detail": {
+    "dimensionsMm": [
+      90,
+      120,
+      3
+    ],
+    "configurationSha256": "f0ede4d7668dd49dea4a5f391958d447483ed0c9269508efe776f1ab1d77c6c3",
+    "imageSha256": "43d2494f691b7c4a766597ee74252c7418996a04fad52f9093c5133c9e31ce1c"
+  },
+  "catalogue-wifi-tag-keychain-r1": {
+    "dimensionsMm": [
+      45.0,
+      69,
+      3
+    ],
+    "configurationSha256": "dcf82857feb92c045cc57b47583f46a1ffac6ddbf8e2ebe1a2098340c4d00385",
+    "imageSha256": "8025b9712847717d78017dbc19d6f624d6a53a5c7e3e092fe22583b5684a6bf4"
+  },
+  "catalogue-wifi-tag-keychain-r1-detail": {
+    "dimensionsMm": [
+      45.0,
+      69,
+      3
+    ],
+    "configurationSha256": "dcf82857feb92c045cc57b47583f46a1ffac6ddbf8e2ebe1a2098340c4d00385",
+    "imageSha256": "713b97fff2fc54f05377645dbfb052ff63590a2c783754425f8e97f800de4dfd"
+  },
+  "catalogue-wifi-tag-card-r1": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      3
+    ],
+    "configurationSha256": "3a65aa7cfda5df885e226b8210f9b918a752d52996faf123f71661aef2380afb",
+    "imageSha256": "6a57dc1b6fa662bdb31f3fa4a3cb97494779de95baa4848d9786403e4ce139ca"
+  },
+  "catalogue-wifi-tag-card-r1-detail": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      3
+    ],
+    "configurationSha256": "3a65aa7cfda5df885e226b8210f9b918a752d52996faf123f71661aef2380afb",
+    "imageSha256": "f2977b890e2073b04292affc76d0780d31579785a5fb11df472a4375fd43eb30"
+  },
+  "catalogue-rating-card-toilet-r1": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      1.6
+    ],
+    "configurationSha256": "36a776cfe0b2f4525971b15f8a811f2178a6d887afcbeb111425ea10c9cb85cd",
+    "imageSha256": "b75a96ea63586241e5276d9e5f40827f3afe4fed8eeddb324d59772b317e2033"
+  },
+  "catalogue-rating-card-toilet-r1-detail": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      1.6
+    ],
+    "configurationSha256": "36a776cfe0b2f4525971b15f8a811f2178a6d887afcbeb111425ea10c9cb85cd",
+    "imageSha256": "dd481ce4a3427888b23ad73f44072224ef9414b8feae0e66a53e30b7434d2286"
+  },
+  "catalogue-rating-card-mug-r1": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      1.6
+    ],
+    "configurationSha256": "724816d15774c2852fa7e85608c9d4dea0949a36007b638a5815f620245d5ddb",
+    "imageSha256": "5a428ddbda4bbc8a758287c90141ac425aa116d41fa905279d6dc4e47e8d8c95"
+  },
+  "catalogue-rating-card-mug-r1-detail": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      1.6
+    ],
+    "configurationSha256": "724816d15774c2852fa7e85608c9d4dea0949a36007b638a5815f620245d5ddb",
+    "imageSha256": "07595ae7ff1cc28b632da89b0066f4a5d3d0969cc19cc92c855209a6060963ba"
+  },
+  "catalogue-rating-card-five-star-r1": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      1.6
+    ],
+    "configurationSha256": "53304474cd54f104ff126d15ad76491d9c56ebdb9118dca9875234c260b9c2eb",
+    "imageSha256": "a784824c4e7f457cfca3e57db10e0db3ff1f6cc2d85be869af4628ff9bd5379d"
+  },
+  "catalogue-rating-card-five-star-r1-detail": {
+    "dimensionsMm": [
+      85.6,
+      54,
+      1.6
+    ],
+    "configurationSha256": "53304474cd54f104ff126d15ad76491d9c56ebdb9118dca9875234c260b9c2eb",
+    "imageSha256": "0ce7df890fb648ff305462100b8f3283d59642972f0c44c2fb6fd20645e94194"
+  },
+  "catalogue-name-plate-classic-r1": {
+    "dimensionsMm": [
+      83.631,
+      30,
+      3
+    ],
+    "configurationSha256": "668a69eff5d826b84016b6ee0e9dbcf644633b0c2d9fea6e537a73f7d2dee084",
+    "imageSha256": "71a9fc7b2e050e7c2ef06b57667fb97dd1bb8a2b1882c71f3f7db9ba964dd3fd"
+  },
+  "catalogue-name-plate-classic-r1-detail": {
+    "dimensionsMm": [
+      83.631,
+      30,
+      3
+    ],
+    "configurationSha256": "668a69eff5d826b84016b6ee0e9dbcf644633b0c2d9fea6e537a73f7d2dee084",
+    "imageSha256": "6df8a36faf6371d1b0d8db30802332085ccfa6be6aec99a7118595548c897738"
+  },
+  "catalogue-name-plate-keychain-r1": {
+    "dimensionsMm": [
+      65.354,
+      19.2,
+      3
+    ],
+    "configurationSha256": "4d15965250b6f95bcbcf91951b7e631badf3b3f575c16594824ed76530fcc774",
+    "imageSha256": "cbe5c1bb7caa5f7bff32172ada4e9a3ce4867aeadea5e0a1bf63fd26a519bbac"
+  },
+  "catalogue-name-plate-keychain-r1-detail": {
+    "dimensionsMm": [
+      65.354,
+      19.2,
+      3
+    ],
+    "configurationSha256": "4d15965250b6f95bcbcf91951b7e631badf3b3f575c16594824ed76530fcc774",
+    "imageSha256": "0f268c14125dd18ff41ef9cdbd9cb7c72ae20e13668c158e60e3852d1a69886e"
+  },
+  "catalogue-name-plate-office-r1": {
+    "dimensionsMm": [
+      203.2,
+      50.8,
+      4
+    ],
+    "configurationSha256": "4d6d90e132566804459595ca08639711119a378339f0e19580e06ea564e1839b",
+    "imageSha256": "562847d45bb2b39cb0cde23bcbfae98cb09ae0adbf2dc1813124f231a7ed59c8"
+  },
+  "catalogue-name-plate-office-r1-detail": {
+    "dimensionsMm": [
+      203.2,
+      50.8,
+      4
+    ],
+    "configurationSha256": "4d6d90e132566804459595ca08639711119a378339f0e19580e06ea564e1839b",
+    "imageSha256": "d39fc0e99f27b764381cc9640e03930ed923cb87484537963635e6d6d3a6d5d5"
+  },
+  "catalogue-pumpkin-cute-r1": {
+    "dimensionsMm": [
+      78.298,
+      79.986,
+      75.58
+    ],
+    "configurationSha256": "173c32bfa8e59cdd8a5270833feb92531c419877ba3c31c2120c4ddd36343d76",
+    "imageSha256": "65d4d5bd4113330d3a875bca9e0ddfd58381139e428fd9acfad14c0e4d86cfcf"
+  },
+  "catalogue-pumpkin-cute-r1-detail": {
+    "dimensionsMm": [
+      78.298,
+      79.986,
+      75.58
+    ],
+    "configurationSha256": "173c32bfa8e59cdd8a5270833feb92531c419877ba3c31c2120c4ddd36343d76",
+    "imageSha256": "8b85f7cf1255461c5383bf6b29bd49d0c1f83824fe32f34291b4f69742d03f06"
+  },
+  "catalogue-pumpkin-witch-r1": {
+    "dimensionsMm": [
+      45.947,
+      45.988,
+      57.353
+    ],
+    "configurationSha256": "8bb3a65c081ba6ddfa22e776ba1b034e658d0d66fb76528b8d394d2b24a2e9c7",
+    "imageSha256": "5cfd87f3ba012cf08402cecaed0a791cdc3b107d45c0d53b43dc65fe8f49f3f5"
+  },
+  "catalogue-pumpkin-witch-r1-detail": {
+    "dimensionsMm": [
+      45.947,
+      45.988,
+      57.353
+    ],
+    "configurationSha256": "8bb3a65c081ba6ddfa22e776ba1b034e658d0d66fb76528b8d394d2b24a2e9c7",
+    "imageSha256": "6cfb5ad26d550b8292eda8ab3fea8a5509a3f9659ac0154cf14afe15d3bbb779"
+  },
+  "catalogue-pumpkin-lattice-r1": {
+    "dimensionsMm": [
+      117.442,
+      119.979,
+      104.658
+    ],
+    "configurationSha256": "28693f6f40cc034e86d2228897c22e6cd20f4b434aa90237456cce922b60d054",
+    "imageSha256": "4fea36dacb18620055f5117b8885a3a27edf2058615be079ab9db9e20bfe5e3b"
+  },
+  "catalogue-pumpkin-lattice-r1-detail": {
+    "dimensionsMm": [
+      117.442,
+      119.979,
+      104.658
+    ],
+    "configurationSha256": "28693f6f40cc034e86d2228897c22e6cd20f4b434aa90237456cce922b60d054",
+    "imageSha256": "3004f47db53ff77e72498076de9c8268f9b3d395da38016dede2ee8f96dafd75"
+  },
+  "catalogue-display-sign-starter-r1": {
+    "dimensionsMm": [
+      190,
+      84.251,
+      186.529
+    ],
+    "configurationSha256": "132848c0b4c22d32ac95909e88230bda860b1be9af289d26d2251521cb3d1412",
+    "imageSha256": "f7d2e278ab28a23171408d57d79a8b2cf6a1f292838ddc35e9cf48c57a1a0e8a"
+  },
+  "catalogue-display-sign-starter-r1-detail": {
+    "dimensionsMm": [
+      190,
+      84.251,
+      186.529
+    ],
+    "configurationSha256": "132848c0b4c22d32ac95909e88230bda860b1be9af289d26d2251521cb3d1412",
+    "imageSha256": "845a56f772eed1e1f5ebef78c6117a582edd59568749a199c95ea8f55dbf02b5"
+  },
+  "catalogue-display-sign-no-cards-r1": {
+    "dimensionsMm": [
+      190,
+      54.251,
+      186.529
+    ],
+    "configurationSha256": "080da0cf44d6959c26586f745ed7b2f815800f405c19545fcf064a120c341bde",
+    "imageSha256": "c6fc686dd697c34d5f8a75ddcb30eba519c97decca6b2536459d6b357a40bbc9"
+  },
+  "catalogue-display-sign-no-cards-r1-detail": {
+    "dimensionsMm": [
+      190,
+      54.251,
+      186.529
+    ],
+    "configurationSha256": "080da0cf44d6959c26586f745ed7b2f815800f405c19545fcf064a120c341bde",
+    "imageSha256": "5bfc511ece5f8108a98b83600c3907a97721ed476d8912df0f475cd5f5d50c24"
+  },
+  "catalogue-display-sign-sign-only-r1": {
+    "dimensionsMm": [
+      190,
+      4.8,
+      150.0
+    ],
+    "configurationSha256": "4487fffe51dfb4f2ce1f88c811acb6d6b13fb1e2e0180a392ce4f0200c64a8cc",
+    "imageSha256": "eae5993d8be9ee149eb47d0f6c2cf8cbd1256ffcfc1eeb05182ba520147c0f62"
+  },
+  "catalogue-display-sign-sign-only-r1-detail": {
+    "dimensionsMm": [
+      190,
+      4.8,
+      150.0
+    ],
+    "configurationSha256": "4487fffe51dfb4f2ce1f88c811acb6d6b13fb1e2e0180a392ce4f0200c64a8cc",
+    "imageSha256": "b782b68ba01df888c7121bcead0f21194d65ab960384fd8500e346ec86d13611"
+  },
+  "catalogue-gridfinity-base-standard-r1": {
+    "dimensionsMm": [
+      126,
+      84,
+      4.75
+    ],
+    "configurationSha256": "a395a39adf23d52ede3b328d11e8c2b0e2c57bd9e5e3afea919735af14d212be",
+    "imageSha256": "b5f4c9756ad656af0536143590fa6c034ded0dbcecde47efb6e3ad0c2945b602"
+  },
+  "catalogue-gridfinity-base-standard-r1-detail": {
+    "dimensionsMm": [
+      126,
+      84,
+      4.75
+    ],
+    "configurationSha256": "a395a39adf23d52ede3b328d11e8c2b0e2c57bd9e5e3afea919735af14d212be",
+    "imageSha256": "c4951d530f73b7f8fc724b1cb345b309a32bfaca1096faa7803f79558d2e2546"
+  },
+  "catalogue-gridfinity-base-light-r1": {
+    "dimensionsMm": [
+      168,
+      126,
+      4.75
+    ],
+    "configurationSha256": "bd4685ed38d9f98d032ca7af46501a75c6a98e9b9cc8a3b1922a14e3873f185c",
+    "imageSha256": "e988c20921c4e73b2d5f26f0c4e324db8764c17db6c0cc663449c54506e84b07"
+  },
+  "catalogue-gridfinity-base-light-r1-detail": {
+    "dimensionsMm": [
+      168,
+      126,
+      4.75
+    ],
+    "configurationSha256": "bd4685ed38d9f98d032ca7af46501a75c6a98e9b9cc8a3b1922a14e3873f185c",
+    "imageSha256": "dec7cd90b083071a0579edbd47bf55c99f6f5b3654871b5a677a45c4087b8841"
+  },
+  "catalogue-gridfinity-base-magnetic-r1": {
+    "dimensionsMm": [
+      126,
+      84,
+      7.95
+    ],
+    "configurationSha256": "5448470bba10b1ac230829108adf398e5f85af30a300dbd6e245299d3c79d203",
+    "imageSha256": "fcc6c315fe5128d6914f55acb44ca62e1f6ee3464d8f4bfdcaa2411607f8ebb4"
+  },
+  "catalogue-gridfinity-base-magnetic-r1-detail": {
+    "dimensionsMm": [
+      126,
+      84,
+      7.95
+    ],
+    "configurationSha256": "5448470bba10b1ac230829108adf398e5f85af30a300dbd6e245299d3c79d203",
+    "imageSha256": "dd8747f644fe948d591e325a5d9ef984551afe4c2ece16f2f4015acbdc2866e4"
+  },
+  "catalogue-gridfinity-bin-standard-r1": {
+    "dimensionsMm": [
+      83.5,
+      83.5,
+      46
+    ],
+    "configurationSha256": "16d5e0e07af328ab3a9eb8e5680a6676f0a1da5a788b087bd72470e43f1b76d6",
+    "imageSha256": "567307bbe1fabcdc33b7680fd16cc0c299a601dae26ca98cf284adf718f601dc"
+  },
+  "catalogue-gridfinity-bin-standard-r1-detail": {
+    "dimensionsMm": [
+      83.5,
+      83.5,
+      46
+    ],
+    "configurationSha256": "16d5e0e07af328ab3a9eb8e5680a6676f0a1da5a788b087bd72470e43f1b76d6",
+    "imageSha256": "71e48f8fdbbabb7eec04896190cb1d8462a20c99ae7b57dc3fb6e7ec549a0cee"
+  },
+  "catalogue-gridfinity-bin-divided-r1": {
+    "dimensionsMm": [
+      83.5,
+      83.5,
+      46
+    ],
+    "configurationSha256": "e05fd4acb14e3273daa81825e6ea352d3326d707c103a3fb739be8ff9f41e6d8",
+    "imageSha256": "27bbded05bc9d940f36c175281acf4ce89523b125fccc1844a90c778033ff250"
+  },
+  "catalogue-gridfinity-bin-divided-r1-detail": {
+    "dimensionsMm": [
+      83.5,
+      83.5,
+      46
+    ],
+    "configurationSha256": "e05fd4acb14e3273daa81825e6ea352d3326d707c103a3fb739be8ff9f41e6d8",
+    "imageSha256": "f05513e0768c76d651770a4c2b174f78657e0d55efc0c89af163cd3465dda337"
+  },
+  "catalogue-gridfinity-bin-labeled-r1": {
+    "dimensionsMm": [
+      83.5,
+      83.5,
+      46
+    ],
+    "configurationSha256": "3eeec62ab68a1bf9a3735ec29cfe55c9172ef495d20d62f945eee91ee4782e59",
+    "imageSha256": "87fa0f411308f88f6fcd0e3683462f80eef4f5c66a17f6cc370004e517be36c7"
+  },
+  "catalogue-gridfinity-bin-labeled-r1-detail": {
+    "dimensionsMm": [
+      83.5,
+      83.5,
+      46
+    ],
+    "configurationSha256": "3eeec62ab68a1bf9a3735ec29cfe55c9172ef495d20d62f945eee91ee4782e59",
+    "imageSha256": "c4961480f132b1738e1c022c9e0b16bf01dd07d4859509906469ecda1ae63c35"
+  }
+}

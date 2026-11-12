@@ -45,7 +45,7 @@ def main(image, diagnostics=None):
         source = root/'releases'/release
         (source/'neon/migrations').mkdir(parents=True)
         source.chmod(0o700)
-        for name in ('012_partner_outreach.sql','013_partner_weekly_statements.sql','014_work_communications.sql','015_operator_model_revisions.sql', '016_partner_statement_rls.sql','017_notification_skipped.sql','018_supply_ledger.sql'):
+        for name in ('012_partner_outreach.sql','013_partner_weekly_statements.sql','014_work_communications.sql','015_operator_model_revisions.sql', '016_partner_statement_rls.sql','017_notification_skipped.sql','018_supply_ledger.sql','019_product_catalogue.sql'):
             (source/'neon/migrations'/name).write_bytes((ROOT/'neon/migrations'/name).read_bytes())
         old_source = root/'candidate-source'
         old_source.mkdir(mode=0o700)

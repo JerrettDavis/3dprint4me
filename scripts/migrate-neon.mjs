@@ -2,9 +2,10 @@ import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { getDatabase, closeDatabase, databaseProvider } from '../lib/database.js';
 
-export const MIGRATIONS = Object.freeze(["001_service_requests.sql", "002_quick_inquiries.sql", "003_work_queue.sql", "004_print_estimation.sql", "005_print_estimate_rate_limits.sql", "006_model_packs.sql", "007_invoicing.sql", "008_platform.sql", "009_inquiry_workflow.sql", "010_filament_matching.sql", "011_spoolman_inventory.sql", "012_partner_outreach.sql", "013_partner_weekly_statements.sql", "014_work_communications.sql", "015_operator_model_revisions.sql", "016_partner_statement_rls.sql", "017_notification_skipped.sql", "018_supply_ledger.sql"]);
+export const MIGRATIONS = Object.freeze(["001_service_requests.sql", "002_quick_inquiries.sql", "003_work_queue.sql", "004_print_estimation.sql", "005_print_estimate_rate_limits.sql", "006_model_packs.sql", "007_invoicing.sql", "008_platform.sql", "009_inquiry_workflow.sql", "010_filament_matching.sql", "011_spoolman_inventory.sql", "012_partner_outreach.sql", "013_partner_weekly_statements.sql", "014_work_communications.sql", "015_operator_model_revisions.sql", "016_partner_statement_rls.sql", "017_notification_skipped.sql", "018_supply_ledger.sql", "019_product_catalogue.sql"]);
 
 export function assertMigrationTarget(migration, {driver=databaseProvider(), url=process.env.DATABASE_URL}={}) {
+  if(migration==='019_product_catalogue.sql' && (driver!=='postgres'||!url||new URL(url).hostname.endsWith('.neon.tech'))) throw new Error('Product catalogue migration requires the selected native PostgreSQL target.');
   if(['012_partner_outreach.sql','013_partner_weekly_statements.sql','016_partner_statement_rls.sql','017_notification_skipped.sql'].includes(migration)&&(driver!=='postgres'||!url||new URL(url).hostname.endsWith('.neon.tech')))
     throw new Error('Partner migration requires the selected native PostgreSQL target.');
   if(migration==='009_inquiry_workflow.sql'&&(driver!=='postgres'||new URL(url).hostname.endsWith('.neon.tech')))

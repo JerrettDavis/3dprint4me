@@ -8,11 +8,15 @@ import { getGenerator } from '../public/assets/js/customize/registry.js';
 import { validateParams, sensitiveKeys } from '../public/assets/js/customize/schema.js';
 import { loadFont } from '../customizer/framework/fonts.js';
 import { productRenderInputHash } from './product-render-inputs.mjs';
+import { PRODUCTS } from '../public/assets/js/catalogue/products.js';
+import { catalogueRenderRecipes } from './catalogue-render-recipes.mjs';
 
 const root = new URL('../', import.meta.url);
 const recipes = JSON.parse(await readFile(new URL('product-render-recipes.json', import.meta.url)));
+recipes.renders.push(...catalogueRenderRecipes(PRODUCTS));
 const wasm = await loadEngine();
 await mkdir(new URL('.private/product-renders/', root), { recursive: true });
+await writeFile(new URL('.private/product-renders/recipes.json', root), JSON.stringify(recipes));
 await writeFile(new URL('.private/product-renders/input-hash.txt', root), await productRenderInputHash());
 for (const recipe of recipes.renders) {
   const generator = getGenerator(recipe.generator ?? recipe.id);
