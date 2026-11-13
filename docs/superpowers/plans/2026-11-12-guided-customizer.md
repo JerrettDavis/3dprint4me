@@ -64,3 +64,27 @@ The complete 236-capture screenshot run was followed by a final refresh of 71 cu
 Final regressions also cover dense display-sign editing without extra navigation steps, preset Browse/Undo/private intake, and catalogue Review retaining its Change settings shortcut and separate customer draft. Merge and deployment are not part of this implementation.
 
 The hint bounds regression reproduced inherited overlay offsets on pumpkin and fidget at 1280px. Explicit normal-flow preview bounds keep the hint to one readable line; all 21 guided checks and the 289-check audit passed again after that final CSS correction. A final desktop-only capture refresh preserves the unchanged mobile captures.
+
+## Loading feedback refinement (November 13)
+
+Continue the approved studio with truthful feedback for first builds, rebuilding after edits,
+and preparing Model/Realistic previews. Keep the previous view visibly stale during updates,
+retain editing, and distinguish print-file readiness from presentation readiness. Explain long
+waits after eight seconds without inventing progress percentages. Preserve retry, validation,
+private parameters, same-origin operation, accessible announcements and reduced motion.
+
+The shared feedback card receives presentation state only, never customer parameters. Its
+polite live region sits outside the busy preview. Navigation hints are hidden while it is
+visible. A fresh review caught default Model mode clearing loading before lazy viewer startup;
+a delayed-import regression reproduced this and the phase now lasts through `setParts()`.
+Focused browser checks cover delayed/rapid edits, preview preparation, worker failure/retry,
+unavailable WebGL and reduced motion. Unit checks cover truthful copy and long-wait/reset timing.
+Six reproducible desktop/light and 390px/dark loading captures are part of the screenshot suite.
+The final `npm test` passed 1,552 unit/contract checks, 564 browser cases with seven
+capability skips, and all 289 UX audit checks. The handbook build and link checks passed
+for 115 pages and 711 search entries. The final fresh canonical screenshot run captured
+242 images; the actual preview board and all six viewport loading captures were visually
+inspected. Earlier refreshes encountered intermittent local owner-portal asset transport
+failures; all 39 owner states passed two isolated diagnostic runs and the final complete
+capture passed without transport failures. No production workaround or retry was added.
+The implementation remains a reviewable branch, without merge or deployment.

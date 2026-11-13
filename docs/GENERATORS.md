@@ -1,5 +1,13 @@
 # Parametric generators (Customize)
 
+The guided studio keeps editing available during model generation. A preview status card
+distinguishes the first build, updates (with the previous view dimmed and explicitly labeled),
+and preview preparation after the print file is ready. An eight-second wait adds a longer-build
+explanation without inventing percentages. Request/download actions follow model readiness;
+realistic-preview preparation does not block a ready print file. The preview exposes `aria-busy`,
+with a separate polite live region so pending updates can be announced. Reduced motion stops
+the spinner. Errors clear the busy state and preserve the existing validation/retry actions.
+
 Route shield outlines and color fields use chord-weighted cubic Hermite
 curves sampled at 0.25 template units. Explicit shoulder corners, center points,
 straight dividers and the bottom tab are preserved. The same contours feed

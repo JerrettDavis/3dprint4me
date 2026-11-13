@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import json
+import re
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -311,6 +312,53 @@ def capture_customize_states() -> list[tuple[str, Path]]:
                 site.screenshot(path, full_page=filename.startswith('customize-guided-'))
                 site.assert_no_page_errors(allow_console_warnings=("GL Driver Message", "GPU stall"))
             captured.append((label, path))
+    return captured
+
+
+def capture_customize_loading_states() -> list[tuple[str, Path]]:
+    """Hold real worker replies to capture honest pending states deterministically."""
+    captured = []
+    with running_server() as base_url:
+        for viewport, scheme, suffix in [((1440, 1000), 'light', 'desktop-light'), ((390, 844), 'dark', 'mobile-dark')]:
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion='reduce') as site:
+                page = site.page
+                page.add_init_script('''
+                  const RealWorker = window.Worker;
+                  window.holdPreviewReplies = true;
+                  window.previewReplies = [];
+                  window.releasePreviewReplies = () => {
+                    window.holdPreviewReplies = false;
+                    window.previewReplies.splice(0).forEach(reply => reply());
+                  };
+                  window.Worker = class extends RealWorker {
+                    addEventListener(type, listener, ...rest) {
+                      if (type !== 'message') return super.addEventListener(type, listener, ...rest);
+                      return super.addEventListener(type, event => {
+                        if (window.holdPreviewReplies) window.previewReplies.push(() => listener(event));
+                        else listener(event);
+                      }, ...rest);
+                    }
+                  };
+                ''')
+                page.goto(base_url + '/customize/g/pumpkin/')
+                page.locator('#cz-preview-feedback[data-busy=true]').wait_for()
+                for phase in ['initial', 'update', 'realistic']:
+                    if phase == 'update':
+                        page.evaluate('releasePreviewReplies()')
+                        page.locator('#cz-preview-feedback').wait_for(state='hidden', timeout=30000)
+                        page.evaluate('window.holdPreviewReplies = true')
+                        page.get_by_role('radio', name=re.compile('Santa ·')).check()
+                    elif phase == 'realistic':
+                        page.evaluate('releasePreviewReplies()')
+                        page.locator('#cz-preview-feedback').wait_for(state='hidden', timeout=30000)
+                        page.evaluate('window.holdPreviewReplies = true')
+                        page.get_by_role('button', name='Realistic preview', exact=True).click()
+                    page.locator('#cz-preview-feedback[data-busy=true]').wait_for()
+                    page.locator('.cz-preview').scroll_into_view_if_needed()
+                    path = OUTPUT / f'customize-loading-{phase}-{suffix}.png'
+                    site.screenshot(path, full_page=False)
+                    captured.append((f'Customizer {phase} · {suffix}', path))
+                site.assert_no_page_errors(allow_console_warnings=('GL Driver Message', 'GPU stall'))
     return captured
 
 
@@ -914,6 +962,7 @@ def main() -> int:
     cases.extend(capture_product_catalogue_states())
     cases.extend(capture_catalogue_owner_states())
     cases.extend(capture_customize_states())
+    cases.extend(capture_customize_loading_states())
     cases.extend(capture_operator_states())
     cases.extend(capture_work_conversations())
     cases.extend(capture_inquiry_workflow_states())

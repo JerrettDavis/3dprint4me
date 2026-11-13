@@ -17,6 +17,7 @@ import { createImageLoader, createLayerTracer, createTracer, drawTracePreview } 
 import { createPresentationControls } from './presentation-controls.js';
 import { createWorkerClient } from "./worker-client.js";
 import { buildFailureStatus } from "./build-status.js";
+import { createPreviewFeedback } from "./preview-feedback.js";
 import { colorCountLabel, describeFacts, FACTS_NOTE } from "./facts.js";
 import { continuePayload, continueState, continueToOrder } from "./continue.js";
 import { writeHandoff } from "./handoff.js";
@@ -202,14 +203,16 @@ function boot() {
   let frameNextBuild = false;
   let previewWindowState = null;
   const presentationClient = createWorkerClient();
+  const previewFeedback = createPreviewFeedback(els.stage);
+  let hasPreview = false;
   const presentationControls = createPresentationControls(document.querySelector('.cz-bar'), onPresentationChange);
 
   function presentationPhase(phase) {
     presentationControls.update(realistic, phase);
     if (els.stage) {
       els.stage.dataset.presentationState = realistic ? phase : 'ready';
-      els.stage.setAttribute('aria-busy', String(realistic && phase === 'loading'));
     }
+    previewFeedback.update({ status: state.status, phase, realistic, hasPreview });
   }
 
   function onPresentationChange(on) {
@@ -236,7 +239,7 @@ function boot() {
     const ticket = ++presentationSeq;
     const result = state.result;
     if (!result || state.status !== 'ready') { presentationPhase(state.status === 'error' ? 'invalid' : 'loading'); return; }
-    presentationPhase(realistic ? 'loading' : 'ready');
+    presentationPhase('loading');
     const v = await ensureViewer();
     if (ticket !== presentationSeq || result !== state.result) return;
     if (!v) { presentationPhase('error'); return; }
@@ -254,6 +257,7 @@ function boot() {
       v.setRealistic(realistic);
       v.setView(view, { animate: false });
       v.setParts(parts);
+      hasPreview = true;
       if (frameNextBuild) { v.resetCamera(); frameNextBuild = false; }
       presentationPhase('ready');
     } catch (error) {

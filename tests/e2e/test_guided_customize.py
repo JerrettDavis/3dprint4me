@@ -7,6 +7,97 @@ from tests.e2e.test_customize import base_url, browser, page, BUILD_TIMEOUT
 def ready(page):
     expect(page.locator("body[data-build-state=ready]")).to_be_attached(timeout=BUILD_TIMEOUT)
 
+def test_preview_feedback_tracks_delayed_builds_and_latest_edits(page, base_url):
+    page.emulate_media(reduced_motion='reduce')
+    # Delay real worker replies so both initial and update states are observable.
+    page.add_init_script('''
+      const RealWorker = window.Worker;
+      window.Worker = class extends RealWorker {
+        addEventListener(type, listener, ...rest) {
+          if (type !== 'message') return super.addEventListener(type, listener, ...rest);
+          return super.addEventListener(type, event => setTimeout(() => listener(event), 1200), ...rest);
+        }
+      };
+    ''')
+    page.goto(f'{base_url}/customize/g/pumpkin/')
+    feedback = page.locator('#cz-preview-feedback')
+    expect(feedback).to_contain_text('Building your model')
+    expect(page.locator('#cz-stage')).to_have_attribute('aria-busy', 'true')
+    assert page.locator('.cz-preview-spinner').evaluate('(el) => getComputedStyle(el).animationName') == 'none'
+    expect(page.locator('#cz-continue')).to_be_disabled()
+    ready(page)
+    expect(feedback).to_be_hidden(timeout=BUILD_TIMEOUT)
+    expect(page.locator('#cz-stage')).to_have_attribute('aria-busy', 'false')
+    page.get_by_role('radio', name=re.compile('Santa ·')).check()
+    expect(feedback).to_contain_text('Updating your model')
+    expect(feedback).to_contain_text('previous preview')
+    expect(page.locator('#cz-continue')).to_be_disabled()
+    page.get_by_role('radio', name=re.compile('Witch ·')).check()
+    ready(page)
+    expect(feedback).to_be_hidden(timeout=BUILD_TIMEOUT)
+    expect(page.locator('#cz-topper')).to_have_value('witch')
+    page.get_by_role('button', name='Realistic preview', exact=True).click()
+    expect(feedback).to_contain_text('Preparing realistic preview')
+    expect(feedback).to_contain_text('Your print file is ready')
+    expect(page.locator('#cz-continue')).to_be_enabled()
+    expect(feedback).to_be_hidden(timeout=BUILD_TIMEOUT)
+
+
+def test_preview_loader_clears_on_worker_failure(page, base_url):
+    page.add_init_script('''
+      const RealWorker = window.Worker;
+      let fail = true;
+      window.Worker = class extends RealWorker {
+        constructor(...args) {
+          if (fail) { fail = false; throw new Error('Builder unavailable'); }
+          super(...args);
+        }
+      };
+    ''')
+    page.goto(f'{base_url}/customize/g/pumpkin/')
+    expect(page.locator('body')).to_have_attribute('data-build-state', 'error')
+    expect(page.locator('#cz-stage')).to_have_attribute('aria-busy', 'false')
+    expect(page.locator('#cz-preview-feedback')).to_have_attribute('data-busy', 'false')
+    expect(page.locator('#cz-status')).to_contain_text("couldn't load the model builder")
+    expect(page.locator('#cz-retry')).to_be_visible()
+    expect(page.locator('#cz-continue')).to_be_disabled()
+    page.locator('#cz-retry').click()
+    ready(page)
+    expect(page.locator('#cz-preview-feedback')).to_be_hidden(timeout=BUILD_TIMEOUT)
+    expect(page.locator('#cz-stage')).to_have_attribute('aria-busy', 'false')
+
+
+def test_model_preview_stays_busy_until_viewer_finishes_loading(page, base_url):
+    import time
+    def delay_viewer(route):
+        time.sleep(2)
+        route.continue_()
+    page.route('**/viewer3d-*.js', delay_viewer)
+    page.goto(f'{base_url}/customize/g/pumpkin/')
+    ready(page)
+    expect(page.locator('#cz-preview-feedback')).to_contain_text('Preparing your preview')
+    expect(page.locator('#cz-stage')).to_have_attribute('aria-busy', 'true')
+    expect(page.locator('#cz-continue')).to_be_enabled()
+    expect(page.locator('#cz-preview-feedback')).to_be_hidden(timeout=BUILD_TIMEOUT)
+    expect(page.locator('#cz-stage canvas')).to_be_visible()
+
+
+def test_preview_unavailable_keeps_ready_print_file_without_a_spinner(page, base_url):
+    page.add_init_script('''
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+        return String(type).includes('webgl') ? null : original.call(this, type, ...args);
+      };
+    ''')
+    page.goto(f'{base_url}/customize/g/pumpkin/')
+    ready(page)
+    expect(page.locator('#cz-preview-feedback')).to_contain_text('Preview unavailable')
+    expect(page.locator('#cz-stage')).to_have_attribute('aria-busy', 'false')
+    expect(page.locator('.cz-preview-spinner')).to_be_hidden()
+    expect(page.locator('#cz-stage-message')).to_contain_text("can't show the preview")
+    expect(page.locator('#cz-continue')).to_be_enabled()
+
+
 @pytest.mark.parametrize('generator_id', ['pumpkin','route-shield','wifi-tag','rating-card','name-plate','display-sign','gridfinity-base','gridfinity-bin','infinity-fidget','vase'])
 def test_guided_default_builds_with_one_panel_and_complete_navigation(page, base_url, generator_id):
     page.goto(f'{base_url}/customize/g/{generator_id}/')
