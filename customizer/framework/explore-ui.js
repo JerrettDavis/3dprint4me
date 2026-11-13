@@ -4,6 +4,7 @@
 import { designGroups, designSwatches, designsOf } from "./designs.js";
 import { esc } from "./form.js";
 import { isRandomizable } from "./randomize.js";
+import { optionArt } from './option-art.js';
 
 const LOCK_SVG = `<svg class="cz-lock-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path class="cz-lock-open" d="M5 7V5a3 3 0 0 1 5.6-1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path class="cz-lock-shut" d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="3" y="7" width="10" height="7" rx="1.6" fill="currentColor"/></svg>`;
 
@@ -69,7 +70,7 @@ export function createDesignPanel(generator, { open = false, onPick = () => {} }
       <h3 class="cz-design-group-title">${esc(label)}</h3>
       <div class="cz-design-grid">${list.map(d => `
 <button class="cz-design" type="button" data-design="${esc(d.id)}" aria-pressed="false">
-${d.image ? `<img class="cz-design-image" src="${esc(d.image.src)}" alt="${esc(d.image.alt)}" loading="lazy" width="480" height="360"><span class="cz-design-render-label">Studio render</span>` : ''}
+${d.image ? `<img class="cz-design-image" src="${esc(d.image.src)}" alt="${esc(d.image.alt)}" loading="lazy" width="480" height="360"><span class="cz-design-render-label">Studio render</span>` : optionArt(generator.id, generator.id === 'pumpkin' ? (d.params?.topper && d.params.topper !== 'none' ? 'topper' : 'face') : generator.id === 'vase' ? 'pattern' : 'shape', d.params?.topper && d.params.topper !== 'none' ? d.params.topper : d.params?.face ?? d.params?.pattern ?? d.params?.shape ?? d.params?.style ?? 'design', d.params)}
 <span class="cz-swatches" aria-hidden="true">${designSwatches(generator, d).map(c => `<span style="background:${esc(c)}"></span>`).join("")}</span>
           <span class="cz-design-name">${esc(d.label)}${d.id === generator.defaultDesign ? ` <span class="cz-design-default">default</span>` : ""}</span>
           <span class="cz-design-blurb">${esc(d.blurb)}</span>

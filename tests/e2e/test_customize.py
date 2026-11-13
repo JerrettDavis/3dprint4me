@@ -162,6 +162,11 @@ def page(browser: Browser) -> Iterator[Page]:
 
 def wait_ready(page: Page) -> None:
     expect(page.locator("body[data-build-state='ready']")).to_be_attached(timeout=BUILD_TIMEOUT)
+    # These are full-form engine/export regressions. The default guided navigation has
+    # its own coverage in test_guided_customize.py; explicitly use the expert view here.
+    all_settings = page.get_by_role('button', name='All settings', exact=True)
+    if all_settings.count() and all_settings.get_attribute('aria-pressed') != 'true':
+        all_settings.click()
 
 
 def wait_settled(page: Page) -> None:
@@ -363,6 +368,7 @@ def test_route_shield_builds_and_continue_is_enabled(page: Page, base_url: str) 
     facts = page.locator("#cz-facts-list")
     expect(facts).to_contain_text("80 × 88")
     expect(facts).to_contain_text("cm³")
+    page.get_by_role('button',name='Review design',exact=True).click()
     expect(page.get_by_text("Planning figures only; we confirm before printing.")).to_be_visible()
     expect(page.locator("#cz-status")).to_have_attribute("aria-live", "polite")
 
@@ -705,7 +711,7 @@ def test_wifi_password_field_is_invisible_to_password_managers(page: Page, base_
 
 def test_wifi_keychain_builds_and_a_too_dense_code_is_explained_at_the_network_name(page: Page, base_url: str) -> None:
     open_wifi(page, base_url)
-    page.get_by_label("Tag format").select_option("keychain")
+    page.get_by_label("Tag format", exact=True).select_option("keychain")
     page.get_by_label("Network password", exact=True).fill(WIFI_SECRET)
     wait_ready(page)
     expect(page.locator("#cz-facts-list")).to_contain_text("45 × 69")
@@ -721,7 +727,7 @@ def test_wifi_keychain_builds_and_a_too_dense_code_is_explained_at_the_network_n
     expect(page.locator("#cz-qr_scale_pct")).to_have_attribute("aria-invalid", "true")
     page.locator("#cz-qr_scale_pct").fill("100")
     page.locator("#cz-qr_scale_pct").press("Tab")
-    page.get_by_label("Tag format").select_option("placard")
+    page.get_by_label("Tag format", exact=True).select_option("placard")
     wait_ready(page)
     expect(error).to_have_text("")
 
@@ -803,11 +809,11 @@ def test_wifi_loop_checkbox_follows_format_and_text_comes_back_after_keychain(pa
     show_text = page.get_by_label(re.compile("^Show title and network name"))
     expect(loop).to_be_hidden()
     expect(show_text).to_be_checked()
-    page.get_by_label("Tag format").select_option("keychain")
+    page.get_by_label("Tag format", exact=True).select_option("keychain")
     expect(loop).to_be_visible()
     expect(loop).to_be_checked()
     expect(show_text).not_to_be_checked()
-    page.get_by_label("Tag format").select_option("card")
+    page.get_by_label("Tag format", exact=True).select_option("card")
     expect(loop).to_be_hidden()
     expect(show_text).to_be_checked()
     # A sensitive field's note says plainly where the value goes.
@@ -818,13 +824,13 @@ def test_wifi_loop_checkbox_follows_format_and_text_comes_back_after_keychain(pa
 
 def test_wifi_label_too_small_to_read_is_an_error_at_the_network_name(page: Page, base_url: str) -> None:
     open_wifi(page, base_url)
-    page.get_by_label("Tag format").select_option("card")
+    page.get_by_label("Tag format", exact=True).select_option("card")
     page.get_by_label("Title", exact=True).fill("")
     page.get_by_label("Network name (SSID)", exact=True).fill("S" * 32)
     page.get_by_label("Network password", exact=True).fill(WIFI_SECRET)
     error = page.locator("[data-field='ssid'] #cz-ssid-error")
     expect(error).to_have_text("The network name is too long to print legibly at this tag size. Shorten it, turn the label off, or choose a larger format.", timeout=BUILD_TIMEOUT)
-    page.get_by_label("Tag format").select_option("placard")
+    page.get_by_label("Tag format", exact=True).select_option("placard")
     wait_ready(page)
     expect(error).to_have_text("")
 
@@ -1312,6 +1318,7 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
     including the password, which the server must never hold)."""
     page.goto(f"{origin}/customize/g/{generator_id}/")
     expect(page.locator("body[data-build-state]")).to_be_attached(timeout=BUILD_TIMEOUT)
+    page.get_by_role('button',name='All settings',exact=True).click()
     values: dict[str, str] = {}
     if generator_id == "route-shield":
         key, label, value = "top_text", "Upper text", f"R{token[:6].upper()}"
@@ -1604,6 +1611,7 @@ window.queryLocalFonts = async () => [
 def open_generator(page: Page, base_url: str, generator_id: str) -> None:
     page.goto(f"{base_url}/customize/g/{generator_id}/")
     expect(page.locator("body[data-build-state]")).to_be_attached(timeout=BUILD_TIMEOUT)
+    page.get_by_role('button',name='All settings',exact=True).click()
     if generator_id == "wifi-tag":
         page.get_by_label("Network password", exact=True).fill("pw-font-test")
     if generator_id == 'infinity-fidget':
@@ -1709,59 +1717,43 @@ def test_a_browser_that_cannot_list_fonts_still_offers_the_font_file(page: Page,
 UI_KEY = "3dp-customize:ui:v1"
 
 
-def test_the_preview_fills_the_canvas_and_the_tool_windows_float_beside_it(page: Page, base_url: str) -> None:
+def test_the_preview_has_its_own_large_region_beside_one_editing_panel(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/route-shield/")
     wait_ready(page)
     stage = page.locator("#cz-stage").bounding_box()
     canvas = page.locator("#cz-canvas").bounding_box()
     assert stage and canvas
-    assert stage["width"] >= canvas["width"] - 1 and stage["height"] >= canvas["height"] - 1, (stage, canvas)
-    assert canvas["height"] >= 600, canvas  # the studio takes the viewport under the header
+    assert stage['width'] >= canvas['width'] * .5 and stage['height'] >= 440, (stage, canvas)
     settings = page.locator("#cz-win-settings").bounding_box()
-    facts = page.locator("#cz-win-info").bounding_box()
-    assert settings and facts
-    assert settings["x"] + settings["width"] <= facts["x"], "the windows sit at opposite edges and never overlap"
+    assert settings
+    assert stage['x'] + stage['width'] <= settings['x'], 'controls never cover the preview'
+    expect(page.locator('#cz-win-info')).to_be_hidden()
     expect(page.locator("#cz-stage canvas")).to_be_visible()
     # The view tabs, bed toggle and Continue live in the top bar, above the canvas.
     assert page.get_by_role("button", name="Continue to request").bounding_box()["y"] < canvas["y"]
 
 
-def test_a_tool_window_collapses_with_its_button_and_the_choice_is_remembered(page: Page, base_url: str) -> None:
+def test_review_and_all_settings_switch_the_same_preserved_controls(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/route-shield/")
     wait_ready(page)
-    toggle = page.locator("#cz-win-settings .cz-win-toggle")
-    body = page.locator("#cz-win-settings-body")
-    expect(toggle).to_have_attribute("aria-expanded", "true")
-    expect(body).to_be_visible()
-    toggle.click()
-    expect(toggle).to_have_attribute("aria-expanded", "false")
-    expect(body).to_be_hidden()
-    assert '"settings":true' in page.evaluate(f"localStorage.getItem({UI_KEY!r}) || ''")
-    page.reload()
-    wait_ready(page)
-    expect(toggle).to_have_attribute("aria-expanded", "false")
-    expect(body).to_be_hidden()
-    toggle.click()
-    expect(body).to_be_visible()
-    # Escape in a control moves focus to the window's title button; Escape there collapses it.
-    page.get_by_label("Upper text", exact=True).focus()
-    page.keyboard.press("Escape")
-    expect(toggle).to_be_focused()
-    expect(toggle).to_have_attribute("aria-expanded", "true")
-    page.keyboard.press("Escape")
-    expect(toggle).to_have_attribute("aria-expanded", "false")
-    # The facts window is independent.
-    expect(page.locator("#cz-win-info .cz-win-toggle")).to_have_attribute("aria-expanded", "true")
+    page.get_by_label('Upper text',exact=True).fill('STATE')
+    page.get_by_label('Upper text',exact=True).press('Tab')
+    wait_settled(page)
+    page.get_by_role('button',name='Review design',exact=True).click()
+    expect(page.locator('#cz-win-settings')).to_be_hidden()
+    expect(page.locator('#cz-review-specification')).to_contain_text('STATE')
+    page.get_by_role('button',name='All settings',exact=True).click()
+    expect(page.get_by_label('Upper text',exact=True)).to_have_value('STATE')
 
 
-def test_collapsing_is_instant_when_reduced_motion_is_requested(browser: Browser, base_url: str) -> None:
+def test_section_navigation_is_instant_when_reduced_motion_is_requested(browser: Browser, base_url: str) -> None:
     context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
     page = context.new_page()
     try:
         page.goto(f"{base_url}/customize/g/route-shield/")
         wait_ready(page)
-        page.locator("#cz-win-settings .cz-win-toggle").click()
-        assert page.locator("#cz-win-settings-body").evaluate("el => el.hidden") is True, "no animation to wait for"
+        page.get_by_role('button',name='Review design',exact=True).click()
+        assert page.locator('#cz-win-settings').evaluate('el => el.hidden') is True
         duration = page.locator("#cz-win-settings-body").evaluate("el => el.getAnimations().length")
         assert duration == 0
         assert page.evaluate("getComputedStyle(document.body).getPropertyValue('--cz-dur').trim()") in ("0ms", "0s")
@@ -1790,7 +1782,7 @@ def test_a_settings_group_collapses_and_a_field_error_opens_and_closes(page: Pag
     expect(wrap).not_to_have_class(re.compile(r"\bis-open\b"))
 
 
-def test_mobile_uses_a_bottom_sheet_with_tabs_that_leaves_the_preview_room(browser: Browser, base_url: str) -> None:
+def test_mobile_controls_follow_preview_without_a_covering_sheet(browser: Browser, base_url: str) -> None:
     context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark")
     page = context.new_page()
     try:
@@ -1798,21 +1790,15 @@ def test_mobile_uses_a_bottom_sheet_with_tabs_that_leaves_the_preview_room(brows
         wait_ready(page)
         expect(page.locator("#cz-win-settings")).to_be_visible()
         expect(page.locator("#cz-win-info")).to_be_hidden()
-        sheet = page.locator(".cz-panels").bounding_box()
-        assert sheet and sheet["height"] <= 844 * 0.6 and sheet["y"] + sheet["height"] <= 844 + 1, sheet
-        page.get_by_role("button", name="Facts", exact=True).click()
+        panel = page.locator('.cz-panels').bounding_box()
+        stage = page.locator('#cz-stage').bounding_box()
+        assert panel['y'] >= stage['y'] + stage['height']
+        page.get_by_role('button', name='Review design', exact=True).click()
         expect(page.locator("#cz-win-info")).to_be_visible()
         expect(page.locator("#cz-facts-list")).to_contain_text("cm³")
         expect(page.locator("#cz-win-settings")).to_be_hidden()
-        page.get_by_role("button", name="Settings", exact=True).click()
+        page.get_by_role("button", name="All settings", exact=True).click()
         expect(page.locator("#cz-win-settings")).to_be_visible()
-        # The chevron folds the sheet down to its tab strip and back.
-        toggle = page.locator("#cz-sheet-toggle")
-        toggle.click()
-        expect(toggle).to_have_attribute("aria-expanded", "false")
-        expect(page.locator("#cz-win-settings-body")).to_be_hidden()
-        assert page.locator(".cz-panels").bounding_box()["height"] < 120
-        toggle.click()
         expect(page.locator("#cz-win-settings-body")).to_be_visible()
         assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0
     finally:
@@ -1890,7 +1876,9 @@ def test_group_by_toggle_shows_the_same_fields_in_both_modes_and_is_remembered(p
     open_generator(page, base_url, generator_id)
     mode = page.locator("#cz-mode")
     expect(mode).to_be_visible()
+    mode.get_by_role('button',name='Section',exact=True).click()
     expect(mode.get_by_role("button", name="Section")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator('.cz-groups')).to_have_attribute('data-mode','section')
     fields = page.locator("#cz-form [data-field]").evaluate_all("els => els.map(e => e.dataset.field).sort()")
     assert page.locator("#cz-form .cz-group[data-section]").count() >= 1
     mode.get_by_role("button", name="Category").click()
@@ -1907,6 +1895,7 @@ def test_hovering_and_clicking_a_part_leads_to_its_settings(page: Page, base_url
     needs(generator_id, "focus", "fieldSections")
     open_generator(page, base_url, generator_id)
     page.locator("#cz-mode").get_by_role("button", name="Section").click()
+    expect(page.locator('.cz-groups')).to_have_attribute('data-mode','section')
     box = page.locator("#cz-stage").bounding_box()
     assert box
     tip = page.locator("#cz-tip")
@@ -1938,6 +1927,8 @@ def test_hovering_and_clicking_a_part_leads_to_its_settings(page: Page, base_url
     focused_section = page.evaluate("document.activeElement.closest('.cz-group')?.dataset.section || ''")
     assert focused_section == section.get_attribute("data-section"), focused_section
     # Clicking empty canvas clears the selection.
+    # Normal-flow settings can scroll the document; use the preview's current position.
+    box = page.locator('#cz-stage').bounding_box()
     page.mouse.move(box["x"] + 4, box["y"] + 4)
     page.mouse.click(box["x"] + 4, box["y"] + 4)
     expect(page.locator("#cz-announce")).to_contain_text("Selection cleared", timeout=3000)
@@ -1959,8 +1950,9 @@ def test_a_per_location_font_loads_in_the_worker_and_builds(page: Page, base_url
 def test_design_gallery_applies_a_design_and_undo_restores(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/route-shield/")
     wait_ready(page)
-    # A fresh visit opens the gallery, with 66 the default.
-    expect(page.locator("#cz-designs-toggle")).to_have_attribute("aria-expanded", "true")
+    # The guided studio keeps the gallery compact until Browse is requested.
+    expect(page.locator("#cz-designs-toggle")).to_have_attribute("aria-expanded", "false")
+    page.locator("#cz-designs-toggle").click()
     expect(page.locator("#cz-designs-current")).to_have_text("Based on Route 66.")
     expect(page.locator("button.cz-design:not([data-design^='product-'])")).to_have_count(13)
     expect(page.locator("button.cz-design[data-design^='product-']")).to_have_count(3)
@@ -2005,6 +1997,7 @@ def test_randomize_respects_locks_and_never_touches_text(page: Page, base_url: s
 def test_name_plate_offers_common_names_and_randomizes_to_a_buildable_plate(page: Page, base_url: str) -> None:
     page.goto(f"{base_url}/customize/g/name-plate/")
     wait_ready(page)
+    page.locator("#cz-designs-toggle").click()
     page.locator("button.cz-design[data-design='emma']").click()
     expect(page.locator("#cz-name")).to_have_value("Emma")
     wait_settled(page)

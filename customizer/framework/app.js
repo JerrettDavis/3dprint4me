@@ -12,7 +12,7 @@ import { renderForm, restoreParams, storableParams, esc, isFieldVisible, hasAdva
 import { hasSections, partSection, sectionLabel } from "./sections.js";
 import { DUR, enter, play, reducedMotion, setOpen } from "./motion.js";
 import { loadUi, saveUi } from "./ui-state.js";
-import { initWindows } from "./windows.js";
+import { mountStudio } from './studio-shell.js';
 import { createImageLoader, createLayerTracer, createTracer, drawTracePreview } from "./image-input.js";
 import { createPresentationControls } from './presentation-controls.js';
 import { createWorkerClient } from "./worker-client.js";
@@ -199,6 +199,7 @@ function boot() {
   let presentationInput = null;
   let presentationCache = null;
   let lastPrintParts = null;
+  let frameNextBuild = false;
   let previewWindowState = null;
   const presentationClient = createWorkerClient();
   const presentationControls = createPresentationControls(document.querySelector('.cz-bar'), onPresentationChange);
@@ -253,6 +254,7 @@ function boot() {
       v.setRealistic(realistic);
       v.setView(view, { animate: false });
       v.setParts(parts);
+      if (frameNextBuild) { v.resetCamera(); frameNextBuild = false; }
       presentationPhase('ready');
     } catch (error) {
       if (error?.superseded || ticket !== presentationSeq) return;
@@ -558,6 +560,7 @@ function boot() {
     // A commit that changes nothing must not rebuild (see applyEdit).
     if (!changed) return;
     state.params = next;
+    if (key === 'body_source') frameNextBuild = true;
     explore.touched();
     saveDraft(generator, state.params);
     syncFontArea();
@@ -637,7 +640,6 @@ function boot() {
     els.mode.before(levelBar);
   }
   if (els.tip) els.tip.hidden = false;
-  windows = els.canvas ? initWindows(els.canvas, { onLayout: next => { inset = next; viewer?.setInset(next); } }) : null;
 
   els.imageInput?.addEventListener("change", async () => {
     const file = els.imageInput.files?.[0];
@@ -673,6 +675,7 @@ function boot() {
     const same = (a, b) => JSON.stringify(storableParams(generator, a)) === JSON.stringify(storableParams(generator, b));
     const paint = () => panel?.setCurrent(designId, { modified });
     function jump(next, { id, message, product = null }) {
+      frameNextBuild = true;
       previous = { params: state.params, product: state.product, designId, modified };
       state.params = next;
       state.product = product;
@@ -688,6 +691,7 @@ function boot() {
     }
     function undo() {
       if (!previous) return;
+      frameNextBuild = true;
       const back = previous;
       previous = null;
       state.params = back.params;
@@ -767,7 +771,10 @@ function boot() {
     };
   })();
 
+  windows = els.canvas ? mountStudio({ generator, form, root: els.canvas, getParams: () => state.params }) : null;
+
   els.reset?.addEventListener("click", () => {
+    frameNextBuild = true;
     clearDraft(generator);
     state.params = validateParams(generator, {}).value;
     explore.reset();

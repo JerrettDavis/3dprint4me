@@ -454,52 +454,45 @@ volume, rough weight/time, color count) come from analysing the built 3MF with t
 
 ## Page layout (the studio)
 
-A generator page is one full-height workspace under the site header (`customizer/g/<id>/index.html`
-is the same markup for every generator; only title, intro and the generator-specific notes differ):
+All ten generator pages share the guided studio (`framework/studio-shell.js`,
+`framework/studio-sections.js`, `studio.css`). Desktop devotes approximately two thirds
+of the workspace to a stable model preview, with one contextual editing rail alongside it.
+On mobile, the preview and status precede the controls in normal document flow. Controls
+never cover the model, and there is no fixed-height bottom sheet.
 
-- **Top bar**: back link, title (`h1.cz-title`), the **Front / Back / 3D** view tabs (`[data-view]`,
-  roving `tabindex`, arrow keys), **Print bed** (3D only; `#cz-bed-toggle`), and **Continue to
-  request** (`#cz-continue`). Changing view eases in (a camera tween for 3D framing changes, a quick
-  fade/flip of the canvas between views).
-- **Canvas** (`#cz-stage`): the preview fills the whole area; the model is centred in the space the
-  floating windows leave free (`viewer.setInset`). Dark in both themes so light model colors stay
-  visible. `#cz-status` (state chip), the Try again strip (`#cz-fallback`) and the Continue note
-  (`#cz-continue-note`) float over it; a separate visually hidden live region (`#cz-announce`)
-  announces section selections.
-- **Tool windows** (`framework/windows.js`): **Settings** (left: group-by toggle, Reset to defaults,
-  the form, image/font areas, privacy note) and **Local facts** (right: color badge, facts,
-  warnings, "About this design" with the intro and font-license link). Each title bar is a real
-  button (`aria-expanded`) that collapses the window; collapsed state is remembered. **Escape**
-  inside a window moves focus to its title button; Escape on the title button collapses it; Escape
-  elsewhere clears the selected section. Windows are docked, not draggable.
-- **At 899 px and below** the windows are one **bottom sheet** with a **Settings | Facts** tab
-  strip and a chevron that collapses it to the strip; the preview keeps the rest of the screen and
-  the model is centred above the sheet. Sheet motion is `transform`/`opacity` only (no horizontal
-  overflow at 390 px).
-- **Group by: Section | Category** (Settings window, persisted per user): Section groups by
-  `section` (labels from `sections`), Category by `group` (the original fieldsets). Every group is a
-  collapsible `h3 > button` with `aria-expanded`; switching re-parents the same field nodes (values,
-  secrets and attached areas survive) with a short fade. Hidden when no field has a `section`.
-- **Preview ⇄ settings linking** (needs `focus`): hovering a part outlines and tints it, shows a
-  label tooltip (the section's label) and softly marks that section's settings; hovering or focusing
-  a section's settings tints its parts. Clicking or tapping a part selects its section: the window
-  opens, the section expands and scrolls into view with a brief pulse, keyboard focus moves to its
-  first control (Category mode: the section's fields; touch does not move focus, to avoid the
-  on-screen keyboard), and `#cz-announce` says which section was selected. Dragging (more than 6 px,
-  a long press, or two fingers) orbits/pans and never picks. Parts are per-solid meshes tagged with
-  the solid's `name`; picking is a raycast in both the 3D and the flat views.
-- **Motion**: panel and group expand/collapse (height + opacity), mode switch, field errors opening
-  and closing, new warnings, status changes, model swap (cross-fade and scale-in), view and camera
-  changes, bottom-sheet tab switch. Everything uses WAAPI/transitions on `transform`/`opacity` (one
-  height transition for collapsing), never gates state (`hidden`/`aria-*` are set at once), and is
-  instant under `prefers-reduced-motion: reduce` (`motion.js`, the `--cz-dur*` tokens).
-- **Remembered per user** (`localStorage` key `3dp-customize:ui:v1`, try/catch, no parameter
-  values): window collapsed state, the sheet tab, the group-by mode and collapsed groups.
-
-Stable hooks (tests, `customize-handoff`, screenshots): `#cz-form`, `#cz-status`, `#cz-facts-list`,
-`#cz-color-badge`, `#cz-warnings`, `#cz-continue`, `#cz-continue-note`, `#cz-retry`, `#cz-fallback`,
-`#cz-stage`, `#cz-stage-message`, `#cz-reset`, `#cz-bed-toggle`, `[data-view]`, `#cz-image-area` and
-its children, `#cz-font-*`, `.cz-preview`, `.cz-summary`, `body[data-build-state]`, `[data-field]`.
+- **Grouped sections:** two or three editing sections plus **Review design**, directly
+  accessible in any order. Each contains related fields, rather than one field per step.
+  Pumpkin groups appearance and construction; Gridfinity groups layout and construction;
+  display signs retain a separate size/holder section. `editingSections(generator)` assigns
+  every schema field once; unrecognized future groups fall into the final editing section.
+  Sections with no currently visible fields are omitted from navigation and Next/Back.
+- **Visual choices:** enums use labeled illustrated radio tiles with roving focus,
+  arrow/Home/End keys, outlines and checkmarks. Colors use labeled swatches plus the native
+  custom-color input. Native controls remain authoritative and use the existing validation,
+  dependency and build path. Large sets show featured choices plus the selected value and
+  a **See all** disclosure. Fonts retain their actual font samples and keyboard picker.
+- **Accurate art:** `scripts/build-option-art.mjs` derives face paths from the actual pumpkin
+  face builder into `framework/face-art.js`. Toppers and physical choices use local SVG
+  illustrations; unfamiliar options use an honest typographic sample. Presets with verified
+  catalogue renders retain them; other presets use illustrations. No remote assets or new CSP
+  permissions are needed. Regenerate face art after changing the face geometry.
+- **Advanced and expert access:** Simple/Advanced stays within the editing surface. **All
+  settings** provides the full Category/Section inspector, preserving specialized controls,
+  group collapsing, locks and Randomize. Navigation re-parents existing fields; image/font
+  attachments, sensitive live values and pending edits survive. Presets retain replacement
+  semantics and Undo. The first section holds the expandable preset gallery.
+- **Review:** the facts/warnings panel replaces settings, with a readable specification.
+  Sensitive, transient and dependency-hidden values are excluded. Existing facts update live;
+  planning figures remain non-binding. Download and Continue to request retain their existing
+  behavior and availability checks. Product request shortcuts open Review initially.
+- **Validation and model linking:** error links above the editing surface open the relevant
+  section and Advanced when necessary. Picking a model part opens its containing editing
+  section and focuses the appropriate settings. Camera/view, realistic preview, export,
+  order handoff, drafts and provenance use the same engine as before. Layout and theme
+  changes do not rebuild geometry. `windows.js` remains a legacy module; it no longer
+  supplies overlay insets or collapses panels in the default studio.
+  Presets, Undo, Reset and body-source changes refit the camera to the model; ordinary
+  edits retain the user's camera view. The sticky preview stays below the site header.
 
 ## Download my model
 

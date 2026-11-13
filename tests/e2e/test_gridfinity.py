@@ -67,6 +67,7 @@ def test_magnetic_light_advanced_dimensions_survive_reload_and_offline_download(
     page.on('request', lambda request: requests.append(request.url))
     page.goto(base_url + '/customize/g/gridfinity-base/')
     wait_ready(page)
+    page.locator('#cz-designs-toggle').click()
     page.locator('button.cz-design[data-design="magnetic-sample"]').click()
     wait_settled(page)
     expect(page.locator('#cz-style')).to_have_value('magnetic-light')
@@ -159,6 +160,7 @@ def test_gridfinity_design_private_intake_preserves_component_provenance(browser
         try:
             page.goto(f'{storefront}/customize/g/{generator_id}/')
             wait_ready(page)
+            page.locator('#cz-designs-toggle').click()
             page.locator(f'button.cz-design[data-design="{design}"]').click()
             wait_settled(page)
             expected_component = 'adapter' if design == 'adapter' else 'shell' if design == 'vase' else None
