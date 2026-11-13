@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import json
+import re
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -103,7 +104,7 @@ def show_project_dialog(page) -> None:
 
 
 def build_preview_board(items: list[tuple[str, Path]]) -> Path:
-    width = 1680
+    width = 1280
     margin = 56
     gap = 34
     card_width = (width - margin * 2 - gap) // 2
@@ -112,18 +113,18 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
         image = Image.open(path).convert("RGB")
         ratio = card_width / image.width
         resized = image.resize((card_width, int(image.height * ratio)), Image.Resampling.LANCZOS)
-        if resized.height > 820:
+        if resized.height > 400:
             # Keep the complete festive model visible in the review board. A top-only
             # crop of these mobile studios shows the toolbar and cuts off the hat.
-            if path.stem.startswith(('customize-pumpkin-witch-mobile-', 'customize-pumpkin-santa-mobile-', 'customize-pumpkin-baseball-mobile-')):
-                resized.thumbnail((card_width, 820), Image.Resampling.LANCZOS)
-                fitted = Image.new('RGB', (card_width, 820), '#edf0f3')
+            if path.stem.startswith('customize-guided-') or (path.stem.startswith('customize-') and 'mobile' in path.stem):
+                resized.thumbnail((card_width, 400), Image.Resampling.LANCZOS)
+                fitted = Image.new('RGB', (card_width, 400), '#edf0f3')
                 fitted.paste(resized, ((card_width - resized.width) // 2, 0))
                 resized = fitted
             # These viewport captures show a late approval error near the footer.
             # Keep that changed state visible in the board's bounded thumbnail.
-            top = resized.height - 820 if path.stem.startswith(('operator-partners-missing-review-','partner-materials-owner-error-')) else 0
-            resized = resized.crop((0, top, resized.width, top + 820))
+            top = resized.height - 400 if path.stem.startswith(('operator-partners-missing-review-','partner-materials-owner-error-')) else 0
+            resized = resized.crop((0, top, resized.width, top + 400))
         rendered.append((label, resized))
 
     row_heights = []
@@ -132,7 +133,7 @@ def build_preview_board(items: list[tuple[str, Path]]) -> Path:
     height = margin + sum(row_heights) + gap * (len(row_heights) - 1) + margin
     board = Image.new("RGB", (width, height), "#edf0f3")
     draw = ImageDraw.Draw(board)
-    font = ImageFont.load_default(size=24)
+    font = ImageFont.load_default(size=18)
     x_positions = [margin, margin + card_width + gap]
     y = margin
     for row_index, row_height in enumerate(row_heights):
@@ -152,6 +153,7 @@ GENERATOR_READY = "body[data-build-state='ready']"
 
 
 def magnetic_light(page) -> None:
+    page.get_by_role('button', name='All settings', exact=True).click()
     if page.viewport_size['width'] < 900:
         page.get_by_role('button', name='Settings', exact=True).click()
     page.locator('#cz-style').select_option('magnetic-light')
@@ -229,6 +231,10 @@ def capture_customize_states() -> list[tuple[str, Path]]:
     captured: list[tuple[str, Path]] = []
     with running_server() as base_url:
         for label, route, filename, viewport, scheme, ready, prepare in [
+            ('Guided visual choices · desktop · light', '/customize/g/pumpkin/', 'customize-guided-desktop-light.png', (1440,1000), 'light', GENERATOR_READY, pumpkin("Jack-o'-lantern")),
+            ('Guided visual choices · desktop · dark', '/customize/g/pumpkin/', 'customize-guided-desktop-dark.png', (1440,1000), 'dark', GENERATOR_READY, pumpkin("Jack-o'-lantern")),
+            ('Guided visual choices · mobile · light', '/customize/g/pumpkin/', 'customize-guided-mobile-light.png', (390,844), 'light', GENERATOR_READY, pumpkin("Jack-o'-lantern")),
+            ('Guided visual choices · mobile · dark', '/customize/g/pumpkin/', 'customize-guided-mobile-dark.png', (390,844), 'dark', GENERATOR_READY, pumpkin("Jack-o'-lantern")),
             ("Algorithmic vase · desktop · light", "/customize/g/vase/", "customize-vase-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
             ("Algorithmic vase · mobile · dark", "/customize/g/vase/", "customize-vase-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, None),
             ("Vase realistic · desktop · light", "/customize/g/vase/", "customize-vase-realistic-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, show_realistic_preview),
@@ -303,9 +309,56 @@ def capture_customize_states() -> list[tuple[str, Path]]:
                 if prepare:
                     prepare(page)
                 page.wait_for_timeout(400)
-                site.screenshot(path, full_page=False)
+                site.screenshot(path, full_page=filename.startswith('customize-guided-'))
                 site.assert_no_page_errors(allow_console_warnings=("GL Driver Message", "GPU stall"))
             captured.append((label, path))
+    return captured
+
+
+def capture_customize_loading_states() -> list[tuple[str, Path]]:
+    """Hold real worker replies to capture honest pending states deterministically."""
+    captured = []
+    with running_server() as base_url:
+        for viewport, scheme, suffix in [((1440, 1000), 'light', 'desktop-light'), ((390, 844), 'dark', 'mobile-dark')]:
+            with SiteBrowser(viewport=viewport, color_scheme=scheme, reduced_motion='reduce') as site:
+                page = site.page
+                page.add_init_script('''
+                  const RealWorker = window.Worker;
+                  window.holdPreviewReplies = true;
+                  window.previewReplies = [];
+                  window.releasePreviewReplies = () => {
+                    window.holdPreviewReplies = false;
+                    window.previewReplies.splice(0).forEach(reply => reply());
+                  };
+                  window.Worker = class extends RealWorker {
+                    addEventListener(type, listener, ...rest) {
+                      if (type !== 'message') return super.addEventListener(type, listener, ...rest);
+                      return super.addEventListener(type, event => {
+                        if (window.holdPreviewReplies) window.previewReplies.push(() => listener(event));
+                        else listener(event);
+                      }, ...rest);
+                    }
+                  };
+                ''')
+                page.goto(base_url + '/customize/g/pumpkin/')
+                page.locator('#cz-preview-feedback[data-busy=true]').wait_for()
+                for phase in ['initial', 'update', 'realistic']:
+                    if phase == 'update':
+                        page.evaluate('releasePreviewReplies()')
+                        page.locator('#cz-preview-feedback').wait_for(state='hidden', timeout=30000)
+                        page.evaluate('window.holdPreviewReplies = true')
+                        page.get_by_role('radio', name=re.compile('Santa ·')).check()
+                    elif phase == 'realistic':
+                        page.evaluate('releasePreviewReplies()')
+                        page.locator('#cz-preview-feedback').wait_for(state='hidden', timeout=30000)
+                        page.evaluate('window.holdPreviewReplies = true')
+                        page.get_by_role('button', name='Realistic preview', exact=True).click()
+                    page.locator('#cz-preview-feedback[data-busy=true]').wait_for()
+                    page.locator('.cz-preview').scroll_into_view_if_needed()
+                    path = OUTPUT / f'customize-loading-{phase}-{suffix}.png'
+                    site.screenshot(path, full_page=False)
+                    captured.append((f'Customizer {phase} · {suffix}', path))
+                site.assert_no_page_errors(allow_console_warnings=('GL Driver Message', 'GPU stall'))
     return captured
 
 
@@ -322,6 +375,11 @@ def show_3d_preview(page) -> None:
 def scroll_in_panel(page, selector: str) -> None:
     """Scrolls a control to the top of its settings window. (Element.scrollIntoView would also
     scroll the document itself, which a studio page never does for a visitor.)"""
+    if page.locator('.cz-guided').count():
+        if not page.locator(selector).is_visible():
+            page.get_by_role('button',name='All settings',exact=True).click()
+        page.locator(selector).scroll_into_view_if_needed()
+        return
     page.evaluate("""(selector) => {
       const el = document.querySelector(selector);
       const body = el.closest('.cz-win-body');
@@ -331,6 +389,9 @@ def scroll_in_panel(page, selector: str) -> None:
 
 
 def show_facts(page) -> None:
+    if page.locator('.cz-guided').count():
+        page.get_by_role('button',name='Review design',exact=True).click()
+        return
     # Narrow screens: the facts live on the bottom sheet's second tab. Wide screens show them beside the canvas.
     tab = page.get_by_role("button", name="Facts", exact=True)
     if tab.is_visible():
@@ -341,7 +402,7 @@ def show_facts(page) -> None:
 def wifi_tag(fmt: str, *, mobile: bool = False, show: str = "preview"):
     """The Wi-Fi page needs a password before it builds; type a sample one, pick the format, wait for the model."""
     def prepare(page) -> None:
-        page.get_by_label("Tag format").select_option(fmt)
+        page.get_by_label("Tag format", exact=True).select_option(fmt)
         page.get_by_label("Network name (SSID)", exact=True).fill("Cafe Guest")
         page.get_by_label("Network password", exact=True).fill("correct-horse-battery")
         page.locator(GENERATOR_READY).wait_for(state="attached", timeout=30000)
@@ -382,6 +443,7 @@ def rating_card(*, image: bool = False, mobile: bool = False):
 def name_plate(*, font: str = "block", name: str = "Alex", style: str = "raised", plate: str = "pill", loop: bool = False, view: str | None = None, open_picker: bool = False):
     """Pick a font from the picker, set the name, style and plate, wait for the model; optionally show 3D or the open picker."""
     def prepare(page) -> None:
+        page.get_by_role('button',name='All settings',exact=True).click()
         page.locator("#cz-font-toggle").click()
         page.locator(f"label[for='cz-font-{font}']").click()
         page.get_by_label("Name", exact=True).fill(name)
@@ -900,6 +962,7 @@ def main() -> int:
     cases.extend(capture_product_catalogue_states())
     cases.extend(capture_catalogue_owner_states())
     cases.extend(capture_customize_states())
+    cases.extend(capture_customize_loading_states())
     cases.extend(capture_operator_states())
     cases.extend(capture_work_conversations())
     cases.extend(capture_inquiry_workflow_states())

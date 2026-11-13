@@ -5,6 +5,8 @@ import { fontNeedsLicense } from "../../public/assets/js/customize/fonts.js";
 import { GENERAL, fieldSection, hasSections, sectionLabel, sectionList } from "./sections.js";
 import { DUR, EASE, play, reducedMotion, setOpen } from "./motion.js";
 import { renderProfileInput, mountProfileInput } from "./profile-input.js";
+import { editingSections } from './studio-sections.js';
+import { optionArt } from './option-art.js';
 
 export { hasSections };
 
@@ -89,14 +91,16 @@ function textField(key, def, value, error) {
 </div>`;
 }
 
-function enumField(key, def, value, error) {
+function enumField(key, def, value, error, current, generator) {
   if (def.picker === "font") return fontPickerField(key, def, value, error);
   const id = controlId(key);
   const base = def.help ? [`${id}-help`] : [];
   const options = (def.options ?? []).map(o => `<option value="${esc(o.value)}"${o.value === value ? " selected" : ""}>${esc(o.label ?? o.value)}</option>`).join("");
-  return `<div class="cz-field cz-field-enum" data-field="${esc(key)}">
+  return `<div class="cz-field cz-field-enum${(def.options?.length ?? 0)>6?' cz-choice-curated':''}" data-field="${esc(key)}">
   <label class="cz-label" for="${id}">${esc(def.label ?? key)}</label>
-  <select class="select" id="${id}" name="${esc(key)}"${describe(base, key, error)}>${options}</select>
+  <select class="select cz-choice-source" id="${id}" name="${esc(key)}" tabindex="-1" aria-hidden="true"${describe(base, key, error)}>${options}</select>
+  <div class="cz-visual-options" role="radiogroup" aria-label="${esc(def.label ?? key)} choices">${(def.options ?? []).map(o => `<button class="cz-visual-option" type="button" role="radio" data-visual-choice="${esc(key)}" data-value="${esc(o.value)}" aria-checked="${o.value === value}" tabindex="${o.value === value ? '0' : '-1'}"${describe(base, key, error)}>${optionArt(generator?.id, key, o.value, current)}<span>${esc(o.label ?? o.value)}</span><span class="cz-choice-check" aria-hidden="true">✓</span></button>`).join('')}</div>
+  ${(def.options?.length ?? 0)>6?`<button class="cz-show-choices" type="button" aria-expanded="false" data-show-choices="${esc(key)}">See all ${def.options.length} options</button>`:''}
   ${errorSlot(key, error)}${def.help ? `\n  <p class="help" id="${id}-help">${esc(def.help)}</p>` : ""}
 </div>`;
 }
@@ -137,16 +141,18 @@ function fontPickerField(key, def, value, error) {
     ${radios}
     </div>
   </fieldset>
+  <p class="help"><a href="/customize/fonts/LICENSES.md">Font licenses</a></p>
   ${errorSlot(key, error)}
 </div>`;
 }
 
-function boolField(key, def, value, error) {
+function boolField(key, def, value, error, current, generator) {
   const id = controlId(key);
   const base = def.help ? [`${id}-help`] : [];
   return `<div class="cz-field cz-field-bool" data-field="${esc(key)}">
   <div class="cz-inline">
     <input class="cz-checkbox" type="checkbox" id="${id}" name="${esc(key)}"${value ? " checked" : ""}${describe(base, key, error)}>
+    ${/magnet|stacking_lip|tealight_fit|hat_supports|keychain_loop|multicolor/.test(key) ? optionArt(generator?.id, key, 'enabled') : ''}
     <label class="cz-label" for="${id}">${esc(def.label ?? key)}</label>
   </div>
   ${errorSlot(key, error)}${def.help ? `
@@ -161,6 +167,7 @@ function colorField(key, def, value, error) {
     <input class="cz-color" type="color" id="${id}" name="${esc(key)}"${attr("value", value)}${describe([], key, error)}>
     <label class="cz-label" for="${id}">${esc(def.label ?? key)}</label>
   </div>
+  <div class="cz-color-options" role="group" aria-label="${esc(def.label ?? key)} swatches">${[['#ee7d20','Orange'],['#f2ead9','Ivory'],['#008e95','Teal'],['#075b76','Blue'],['#593274','Purple'],['#17222b','Black']].map(([color,label])=>`<button class="cz-color-option" type="button" data-color-choice="${esc(key)}" data-value="${color}" aria-pressed="${color === value}"><svg viewBox="0 0 40 32" aria-hidden="true"><circle cx="20" cy="16" r="12" fill="${color}" stroke="#81909a"/></svg><span>${label}</span><span class="cz-choice-check" aria-hidden="true">✓</span></button>`).join('')}</div>
   ${errorSlot(key, error)}
 </div>`;
 }
@@ -200,6 +207,7 @@ export function summaryHtml(errors = [], fieldErrors = {}) {
  * with none (see sections.js).
  */
 export function groupFields(generator, mode = "category") {
+  if (mode === 'studio') return editingSections(generator);
   const entries = Object.entries(generator.schema).filter(([, def]) => RENDERERS[def.type]);
   if (mode === "section") {
     const buckets = new Map(sectionList(generator).map(s => [s.key, { key: s.key, label: s.label, keys: [] }]));
@@ -224,7 +232,7 @@ export function renderFormHtml(generator, params = {}, { errors = [], fieldError
   const renderField = key => {
     const def = generator.schema[key];
     const value = Object.hasOwn(params, key) ? params[key] : def.default;
-    let field = RENDERERS[def.type](key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : "", current);
+    let field = RENDERERS[def.type](key, def, value, Object.hasOwn(fieldErrors, key) ? fieldErrors[key] : "", current, generator);
     if (!isFieldVisible(def, current, advanced)) field = field.replace(`data-field="${esc(key)}">`, `data-field="${esc(key)}" hidden>`);
     return field;
   };
@@ -327,6 +335,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   const groupEls = new Map(); // group key -> { el, toggle, body, key, mode }
   let mode = hasSections(generator) && initialMode === "section" ? "section" : "category";
   let linked = null;
+  let editingSection = null;
 
   const collapseKey = (m, key) => `${m}:${key}`;
   function setGroupOpen(entry, open, { animate = true, remember = true } = {}) {
@@ -364,13 +373,37 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     for (const key of g.keys) {
       const wrapper = fieldEls.get(key);
       if (!wrapper) continue;
-      body.append(wrapper, ...(attachments.get(key) ?? []));
+      let destination = body;
+      if (mode === 'studio' && generator.id === 'display-sign' && g.keys.filter(k => !generator.schema[k].advanced).length > 12) {
+        const def = generator.schema[key];
+        const slot = key.match(/^(t|d|h)([0-9]+)_/);
+        const bucket = slot ? slot[0] : def.group || 'options';
+        let detail = [...body.children].find(child => child.dataset.detailBucket === bucket);
+        if (!detail) {
+          detail = document.createElement('details');
+          detail.className = 'cz-detail-group';
+          detail.dataset.detailBucket = bucket;
+          detail.open = g.key === 'content' ? bucket === 't1_' : body.childElementCount === 0;
+          const summary = document.createElement('summary');
+          summary.textContent = slot ? `${{ t: 'Text', d: 'Decoration', h: 'Holder text' }[slot[1]]} ${slot[2]}` : ({ qr: 'QR code', text: 'Typography' }[bucket] ?? groupLabel(bucket));
+          detail.append(summary);
+          body.append(detail);
+        }
+        destination = detail;
+      }
+      destination.append(wrapper, ...(attachments.get(key) ?? []));
     }
     setGroupOpen(entry, collapsed[collapseKey(mode, g.key)] !== true, { animate: false, remember: false });
     return entry;
   }
   function refreshGroupVisibility() {
-    for (const { el, body } of groupEls.values()) el.hidden = ![...body.querySelectorAll(".cz-field[data-field]")].some(f => !f.hidden);
+    for (const { body } of groupEls.values()) for (const detail of body.querySelectorAll('.cz-detail-group')) detail.hidden = ![...detail.querySelectorAll('.cz-field')].some(field => !field.hidden);
+    for (const { el, body, key } of groupEls.values()) el.hidden = (mode === 'studio' && editingSection !== null && key !== editingSection) || ![...body.querySelectorAll(".cz-field[data-field]")].some(f => !f.hidden);
+  }
+  function setEditingSection(key) {
+    editingSection = key;
+    refreshGroupVisibility();
+    for (const entry of groupEls.values()) if (!entry.el.hidden) setGroupOpen(entry, true, { animate: false, remember: false });
   }
   function layout(nextMode) {
     const active = container.contains(document.activeElement) ? document.activeElement : null;
@@ -389,7 +422,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   }
   let modeToken = 0;
   async function setMode(next, { animate = true } = {}) {
-    const target = next === "section" && hasSections(generator) ? "section" : "category";
+    const target = next === 'studio' ? 'studio' : next === "section" && hasSections(generator) ? "section" : "category";
     if (target === mode) return;
     const token = ++modeToken;
     if (!animate || reducedMotion() || typeof host.animate !== "function") { layout(target); return; }
@@ -435,6 +468,10 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
    * and moves keyboard focus to the first control. Returns { count, control } or null.
    */
   function revealSection(key, { focus = true } = {}) {
+    if (mode === 'studio') {
+      const group = editingSections(generator).find(g => g.keys.some(k => generator.schema[k].section === key));
+      if (group) { setEditingSection(group.key); container.dispatchEvent(new CustomEvent('cz-section-revealed', { detail: group.key, bubbles: true })); }
+    }
     let targets;
     if (mode === "section") {
       const entry = groupEls.get(key);
@@ -445,16 +482,19 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       targets = [...fieldEls.values()].filter(w => w.dataset.section === key && !w.hidden);
       if (!targets.length) return null;
       for (const w of targets) {
-        const entry = groupEls.get(w.dataset.group || "options");
+        const detail = w.closest('details');
+        if (detail) detail.open = true;
+        const entry = mode === 'studio' ? groupEls.get(editingSection) : groupEls.get(w.dataset.group || "options");
         if (entry?.body.hidden) setGroupOpen(entry, true);
       }
     }
-    const control = targets.map(t => t.querySelector(".cz-field:not([hidden]) :is(input:not(.cz-picker-radio):not(.cz-range), select, textarea, button.cz-picker-toggle)") ?? (t.matches(".cz-field") ? t.querySelector(":is(input:not(.cz-picker-radio):not(.cz-range), select, textarea, button.cz-picker-toggle)") : null)).find(Boolean) ?? null;
+    const control = targets.map(t => t.querySelector(".cz-field:not([hidden]) :is(input:not(.cz-picker-radio):not(.cz-range), select:not(.cz-choice-source), textarea, button.cz-picker-toggle, button.cz-visual-option[aria-checked=true])") ?? (t.matches(".cz-field") ? t.querySelector(":is(input:not(.cz-picker-radio):not(.cz-range), select:not(.cz-choice-source), textarea, button.cz-picker-toggle, button.cz-visual-option[aria-checked=true])") : null)).find(Boolean) ?? null;
     const scroller = container.closest(".cz-win-body") ?? container;
     // Leave room for the sticky tool row at the top of the window.
     const sticky = scroller.querySelector(".cz-win-tools")?.offsetHeight ?? 0;
     const delta = targets[0].getBoundingClientRect().top - scroller.getBoundingClientRect().top - sticky - 8;
     if (Math.abs(delta) > 2) scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: reducedMotion() ? "auto" : "smooth" });
+    if (container.closest('.cz-guided')) (control ?? targets[0]).scrollIntoView({block:'nearest',behavior:reducedMotion()?'auto':'smooth'});
     for (const t of targets) {
       t.classList.remove("cz-pulse");
       void t.offsetWidth;
@@ -580,7 +620,44 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
     applyVisibility();
     applyLinked();
     if (generator.rules) setLimits(generator.rules(values).limits ?? {});
+    syncVisualChoices();
+    container.dispatchEvent(new Event('cz-form-updated', { bubbles: true }));
   }
+  function syncVisualChoices() {
+    for (const button of container.querySelectorAll('[data-visual-choice], [data-color-choice]')) {
+      const key = button.dataset.visualChoice ?? button.dataset.colorChoice;
+      const selected = named(key)?.value === button.dataset.value;
+      button.setAttribute(button.dataset.visualChoice ? 'aria-checked' : 'aria-pressed', String(selected));
+      if (button.dataset.visualChoice) button.tabIndex = selected ? 0 : -1;
+      if (button.dataset.visualChoice) {
+        const art=button.querySelector('.cz-option-art');
+        const markup=optionArt(generator.id,key,button.dataset.value,lastValues);
+        if (art && art.outerHTML!==markup) art.outerHTML=markup;
+      }
+    }
+  }
+  function onVisualClick(event) {
+    const more = event.target.closest?.('[data-show-choices]');
+    if (more) { const field=more.closest('.cz-field'); const expanded=more.getAttribute('aria-expanded')!=='true'; more.setAttribute('aria-expanded',String(expanded)); field.classList.toggle('cz-choices-expanded',expanded); more.textContent=expanded?'Show fewer options':`See all ${generator.schema[more.dataset.showChoices].options.length} options`; return; }
+    const button = event.target.closest?.('[data-visual-choice], [data-color-choice]');
+    if (!button || !container.contains(button)) return;
+    const key = button.dataset.visualChoice ?? button.dataset.colorChoice;
+    const input = named(key);
+    if (!input || input.disabled || input.value === button.dataset.value) return;
+    input.value = button.dataset.value;
+    syncVisualChoices();
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  function onVisualKey(event) {
+    const button = event.target.closest?.('[data-visual-choice]');
+    if (!button || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key)) return;
+    const choices = [...button.parentElement.querySelectorAll('[data-visual-choice]:not(:disabled)')].filter(choice=>choice.getClientRects().length);
+    const delta = ['ArrowLeft','ArrowUp'].includes(event.key) ? -1 : 1;
+    const index = event.key === 'Home' ? 0 : event.key === 'End' ? choices.length - 1 : (choices.indexOf(button) + delta + choices.length) % choices.length;
+    event.preventDefault(); choices[index].focus(); choices[index].click();
+  }
+  container.addEventListener('click', onVisualClick);
+  container.addEventListener('keydown', onVisualKey);
 
   /** Shows each keyed message under its control (aria-invalid + aria-describedby) and the rest in the summary. */
   let lastErrors = { errors: [], fieldErrors: {} };
@@ -607,7 +684,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
           setTimeout(() => { if (!slot.textContent) delete slot.dataset.ghost; }, DUR.base + 60);
         }
       }
-      for (const control of [...allNamed(key), range(key), toggleOf(key)]) {
+      for (const control of [...allNamed(key), range(key), toggleOf(key), ...container.querySelectorAll(`[data-visual-choice="${CSS.escape(key)}"], [data-color-choice="${CSS.escape(key)}"]`)]) {
         if (!control) continue;
         const base = (control.dataset.describedby ?? "").split(" ").filter(Boolean);
         const ids = message ? [...base, errorId(key)] : base;
@@ -625,6 +702,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
         if (appearing) play(errorBox, [{ opacity: 0, transform: "translateY(-4px)" }, { opacity: 1, transform: "none" }], { duration: DUR.base });
       }
     }
+    container.dispatchEvent(new Event('cz-form-updated', { bubbles: true }));
   }
 
   // ---- Picker fields (font): open/close, keyboard and pointer behavior ----
@@ -742,6 +820,7 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
   container.addEventListener("click", onShowAdvancedClick);
 
   return {
+    setEditingSection,
     setAdvanced,
     getAdvanced: () => advanced,
     setValues,
@@ -760,6 +839,8 @@ export function renderForm(container, generator, params, { onChange = () => {}, 
       container.removeEventListener("change", onCommit);
       container.removeEventListener("submit", onSubmit);
       container.removeEventListener("click", onShowAdvancedClick);
+      container.removeEventListener('click', onVisualClick);
+      container.removeEventListener('keydown', onVisualKey);
       container.innerHTML = "";
     }
   };
