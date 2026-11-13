@@ -1,5 +1,5 @@
-import { compileVaseField } from './vase-field.js?v=5d93ee7157a9c9d2';
-import { validateVaseProfile, VASE_PROFILE_LIMITS } from './vase-shape.js?v=5d93ee7157a9c9d2';
+import { compileVaseField } from './vase-field.js?v=6daa4247b164acdc';
+import { validateVaseProfile, VASE_PROFILE_LIMITS } from './vase-shape.js?v=6daa4247b164acdc';
 
 const TAU = 2 * Math.PI;
 function dimension(settings, key, min, max) {
