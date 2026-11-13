@@ -29,3 +29,18 @@ test('failed child processes expose a bounded failure without credentials, paths
   const render = createCatalogueRenderAdapter({ privateRoot: directory, runProcess: async () => { throw new Error('PRIVATE CREDENTIAL /internal/path'); } });
   await assert.rejects(render(job), error => !/PRIVATE CREDENTIAL|internal\/path/.test(error.message));
 });
+
+test('Blender script failures stop the render before finishing stale previews', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'catalogue-adapter-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const calls = [];
+  const render = createCatalogueRenderAdapter({ privateRoot: directory, runProcess: async (command, args) => {
+    calls.push(args);
+    if (calls.length === 2) throw new Error('Blender script failed');
+  } });
+  await assert.rejects(render(job), /private draft is preserved/);
+  assert.equal(calls.length, 2, 'do not run the finishing step after Blender fails');
+  const flag = calls[1].indexOf('--python-exit-code');
+  assert.ok(flag >= 0, 'Blender must report Python exceptions as process failures');
+  assert.equal(calls[1][flag + 1], '1');
+});

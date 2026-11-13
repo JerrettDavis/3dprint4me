@@ -6,7 +6,7 @@
       3
     ],
     "configurationSha256": null,
-    "imageSha256": "71a9fc7b2e050e7c2ef06b57667fb97dd1bb8a2b1882c71f3f7db9ba964dd3fd"
+    "imageSha256": "913fedc91a31d014211e7ec9c3018c1f1d4b64d97a1cb5ad5ca7dadf958b29f6"
   },
   "wifi-tag": {
     "dimensionsMm": [
@@ -15,7 +15,7 @@
       3
     ],
     "configurationSha256": null,
-    "imageSha256": "bd3bc821d476c5a8dbc4077078a0e063ce483f489d3ec0561ba556ee49f53068"
+    "imageSha256": "16b95b1dc181547e536abbfd26111a7af080d1a8722b7a004d39aae6d2564970"
   },
   "rating-card": {
     "dimensionsMm": [
@@ -24,7 +24,7 @@
       1.6
     ],
     "configurationSha256": null,
-    "imageSha256": "1d6d181e974a13a4e8cebc75e65cd86b30c2ecd084274cf1bb96e7b2dcf16876"
+    "imageSha256": "04c3e110d15a52b5121491ca2b7d4749b873f10b72524a245fe1cae6d1756e57"
   },
   "pumpkin": {
     "dimensionsMm": [
@@ -33,7 +33,7 @@
       57.353
     ],
     "configurationSha256": null,
-    "imageSha256": "5cfd87f3ba012cf08402cecaed0a791cdc3b107d45c0d53b43dc65fe8f49f3f5"
+    "imageSha256": "e5294bb43684bad4cb758dbbb6a3278ae515ddaa22ad871ea51a6630a5e808ca"
   },
   "infinity-fidget": {
     "dimensionsMm": [
@@ -42,7 +42,7 @@
       20
     ],
     "configurationSha256": null,
-    "imageSha256": "03c158b5af1279157fe737865965e30b3eb8fa5b0df706ae225e2ee46d238770"
+    "imageSha256": "9aff05999fe4d18884826e11df5df310bb11e26cb4fdec2515ab2c81c5846c53"
   },
   "gridfinity-base": {
     "dimensionsMm": [
@@ -51,7 +51,7 @@
       4.75
     ],
     "configurationSha256": null,
-    "imageSha256": "b5f4c9756ad656af0536143590fa6c034ded0dbcecde47efb6e3ad0c2945b602"
+    "imageSha256": "bef8225b3148184d0e424967e108c4f179ef6e41bfb2beb7ae32c4e109683743"
   },
   "gridfinity-bin": {
     "dimensionsMm": [
@@ -60,7 +60,7 @@
       46
     ],
     "configurationSha256": null,
-    "imageSha256": "567307bbe1fabcdc33b7680fd16cc0c299a601dae26ca98cf284adf718f601dc"
+    "imageSha256": "a836a5bdc758c03980728567865fad060bd2a8c4880bd2326eaaeefc9028fccc"
   },
   "vase": {
     "dimensionsMm": [
@@ -69,7 +69,7 @@
       155
     ],
     "configurationSha256": null,
-    "imageSha256": "57bbd2f81f855585384830dfce1042389f61b973279b72d3829f63a0a0315380"
+    "imageSha256": "41d8db123a0d16f6b73e37c74c3dd5262f1e2ce7d648cc8ec0d2ec4f4325c287"
   },
   "catalogue-vase-dune-r1": {
     "dimensionsMm": [
@@ -78,7 +78,7 @@
       155
     ],
     "configurationSha256": "50d6912a27b6877ed6670eb4b877d17e5bdd39e9c733576d7b0563be931f6489",
-    "imageSha256": "57bbd2f81f855585384830dfce1042389f61b973279b72d3829f63a0a0315380"
+    "imageSha256": "0ba93392e5cb9c5a431a1de927c2eb5ecb76eb09cfce8d2e9636d9ab5fd8d53b"
   },
   "catalogue-vase-dune-r1-detail": {
     "dimensionsMm": [
@@ -87,7 +87,7 @@
       155
     ],
     "configurationSha256": "50d6912a27b6877ed6670eb4b877d17e5bdd39e9c733576d7b0563be931f6489",
-    "imageSha256": "ee96f0fa4ac76a9bdbd3dd6450d8542840ca136ca4646b155ae2e7278e9e0bfe"
+    "imageSha256": "aa5b5f5092861e7b1cfe00093521d0fe37f2223066004b6c485606752f4ff3a7"
   },
   "catalogue-vase-blossom-r1": {
     "dimensionsMm": [
@@ -96,7 +96,7 @@
       155
     ],
     "configurationSha256": "09b23f6f5a804b581eaa38639ebdca4e7d47fffcc15a9c3fbb9867b0f86d0ba0",
-    "imageSha256": "e3ba43e36b6fcaffeb84c6e92563d801cee242f5acd56e5e1a0b90689a9fa03e"
+    "imageSha256": "7b11abd616b72f58766590f91cef33e97e1b06391bdd72b410d9019fa3703a63"
   },
   "catalogue-vase-blossom-r1-detail": {
     "dimensionsMm": [
@@ -105,7 +105,7 @@
       155
     ],
     "configurationSha256": "09b23f6f5a804b581eaa38639ebdca4e7d47fffcc15a9c3fbb9867b0f86d0ba0",
-    "imageSha256": "3bfc325f91966a0f048ce534f4ff971535edfb4354641b5ef1e52f7a6b65c710"
+    "imageSha256": "023c0e4df20926c303d43c7e69fed8b8a031488adbe81223e7f3638784ba94f5"
   },
   "catalogue-vase-faceted-planter-r1": {
     "dimensionsMm": [
@@ -114,7 +114,7 @@
       90
     ],
     "configurationSha256": "6eea63e6a6a1bbe20e308c3db900206f1c05e9757633f9cd6e7452001965eb4b",
-    "imageSha256": "94fcd5c8652d7c6c7506c9f582386d0e62647970f6f2deffc806c34ca3584840"
+    "imageSha256": "b06d3e844ca80cc310658b1d3a8617f4a7e7b87634647f8466e035dc52844574"
   },
   "catalogue-vase-faceted-planter-r1-detail": {
     "dimensionsMm": [
@@ -123,7 +123,7 @@
       90
     ],
     "configurationSha256": "6eea63e6a6a1bbe20e308c3db900206f1c05e9757633f9cd6e7452001965eb4b",
-    "imageSha256": "5edb693255f6d2b2d3c45d7543ef3d4af684afcfff6cf0e356fe30728c98bf1a"
+    "imageSha256": "7b830a4bf90bfa80dea24c9730f9c3c623736aa3ee098a90c9023f378629307f"
   },
   "catalogue-infinity-fidget-classic-r1": {
     "dimensionsMm": [
@@ -132,7 +132,7 @@
       20
     ],
     "configurationSha256": "67c08588119a179b914e6436ec46fa7516b426d84ff879d23c641a840e21c692",
-    "imageSha256": "03c158b5af1279157fe737865965e30b3eb8fa5b0df706ae225e2ee46d238770"
+    "imageSha256": "ecc721422c0faa542fe4a23b1e0f806777cfdb029938cf88871e19137bc6aa47"
   },
   "catalogue-infinity-fidget-classic-r1-detail": {
     "dimensionsMm": [
@@ -141,7 +141,7 @@
       20
     ],
     "configurationSha256": "67c08588119a179b914e6436ec46fa7516b426d84ff879d23c641a840e21c692",
-    "imageSha256": "26e16ec7c79d6b702b253b69ec0403b52544212ef885248063f47a1801419365"
+    "imageSha256": "b9b84407cf1ff2e3c584906e0edc1f84e07ea675f4dbe5953c73ddfd197ce26e"
   },
   "catalogue-infinity-fidget-knurled-r1": {
     "dimensionsMm": [
@@ -150,7 +150,7 @@
       20
     ],
     "configurationSha256": "9bbe4bd06263bba79e4992792c88e5f813d713aced6a81d6ef465d961d017f78",
-    "imageSha256": "a24fa09e1d445a56e2fdb1012f6594fe9a65f8c317785998b4de3854726ec3ed"
+    "imageSha256": "779b6570046fad660007c95be5e6deef93dfad7eb1999959f03fd65ef0944f5b"
   },
   "catalogue-infinity-fidget-knurled-r1-detail": {
     "dimensionsMm": [
@@ -159,7 +159,7 @@
       20
     ],
     "configurationSha256": "9bbe4bd06263bba79e4992792c88e5f813d713aced6a81d6ef465d961d017f78",
-    "imageSha256": "c742553e8de8c0f6acccd2fe68c6f698496e490f4d892068b8a50e03d84fd06b"
+    "imageSha256": "856a86767de8f2d5303ebb8268bc13c09566eff71708377e1018694a89fe27fb"
   },
   "catalogue-infinity-fidget-spheres-r1": {
     "dimensionsMm": [
@@ -168,7 +168,7 @@
       20
     ],
     "configurationSha256": "ffa1d4ad7da7465b173fac681af5be22a434595d91b4734e78fd81756fc88185",
-    "imageSha256": "b549835286c36319fbd8ecaba30d0424781f8bd30af750e1807b2d1ca7363d04"
+    "imageSha256": "d0d143a21d3dec91b0f8e4a9809dcdccb0611bb1e11e1ffc1645498980c0e300"
   },
   "catalogue-infinity-fidget-spheres-r1-detail": {
     "dimensionsMm": [
@@ -177,7 +177,7 @@
       20
     ],
     "configurationSha256": "ffa1d4ad7da7465b173fac681af5be22a434595d91b4734e78fd81756fc88185",
-    "imageSha256": "eb2307529db11cc0c705405d350be9714831be6b35fcefec41550a24b0f5934b"
+    "imageSha256": "55c123081205745038c5a209cd593f84c1b15aca913047918e73dc910a311acc"
   },
   "catalogue-route-shield-route-66-r1": {
     "dimensionsMm": [
@@ -186,7 +186,7 @@
       5.8
     ],
     "configurationSha256": "27d7aa872e6eb97618d185027691451e144c1e1029e932ede6ef055962e94bb3",
-    "imageSha256": "874651315a8aba81282b7bbf830f3811218396dcfb129d250fc45e8eb2cb4aee"
+    "imageSha256": "3f8a5a48e3fd6a4e0ab0ba115e98db8973252e4b2294da32208d83e9bd3c02ab"
   },
   "catalogue-route-shield-route-66-r1-detail": {
     "dimensionsMm": [
@@ -195,7 +195,7 @@
       5.8
     ],
     "configurationSha256": "27d7aa872e6eb97618d185027691451e144c1e1029e932ede6ef055962e94bb3",
-    "imageSha256": "28779c0f9ff807bf94261b4be4a01be312a136afef2c8a9875ecb23b063061a5"
+    "imageSha256": "a63599343b179cf3bc8dabadf3b7db0c5bc8d1734f6cf528493dce3dbea7290d"
   },
   "catalogue-route-shield-i-95-r1": {
     "dimensionsMm": [
@@ -204,7 +204,7 @@
       5.8
     ],
     "configurationSha256": "1c6d7ffba74aa5031528f2860537f6442d6531aa1e0d1e56ef4207556c9cbe62",
-    "imageSha256": "bf73199b6d9eab841d82a95281b9c3cb52bb66507ee8e0236b7ff33ba88130ce"
+    "imageSha256": "0633796f6cddc2faed389235fe15b50b3dd826c9bb05ecd808fc8a778d397c47"
   },
   "catalogue-route-shield-i-95-r1-detail": {
     "dimensionsMm": [
@@ -213,7 +213,7 @@
       5.8
     ],
     "configurationSha256": "1c6d7ffba74aa5031528f2860537f6442d6531aa1e0d1e56ef4207556c9cbe62",
-    "imageSha256": "13ef45aa62a17310335b902558c8316cff80474300812b3aedc21b889e9130a0"
+    "imageSha256": "de920b8ca49c6b9162b1151a5b2f602e5be0e72c9480ab8bfa2187128503491a"
   },
   "catalogue-route-shield-us-101-r1": {
     "dimensionsMm": [
@@ -222,7 +222,7 @@
       5.8
     ],
     "configurationSha256": "03b19436f419fff4008f51bdaf2a25122f186db97a9134c4aee51f40736ce1c6",
-    "imageSha256": "016c5d6afd808b7f9ea96f069594dbc89959c51dce12e8f56be1b0edbde6c35d"
+    "imageSha256": "33b1d9aff4498fcfc0c82709458629135b2a0f54d953cf3776fec5362a12fe4d"
   },
   "catalogue-route-shield-us-101-r1-detail": {
     "dimensionsMm": [
@@ -231,7 +231,7 @@
       5.8
     ],
     "configurationSha256": "03b19436f419fff4008f51bdaf2a25122f186db97a9134c4aee51f40736ce1c6",
-    "imageSha256": "3808ca3aa385730c6a890fecd14b3b49197ee5faa1ba52f8ceda6bf697d1151d"
+    "imageSha256": "9440197d462ac57d96ad60daaaeb76bf4185a396edf8d74c4784326f381a78f1"
   },
   "catalogue-wifi-tag-placard-r1": {
     "dimensionsMm": [
@@ -240,7 +240,7 @@
       3
     ],
     "configurationSha256": "f0ede4d7668dd49dea4a5f391958d447483ed0c9269508efe776f1ab1d77c6c3",
-    "imageSha256": "71d6d22e5c70b2c0a19dc0abe39de6f3b84cdc6158f57225d28f7274fdadd1f0"
+    "imageSha256": "d8e529fa592ab69aa35f9b26e6545d87c6784e1ad3d734cfb66f4ba5038609c7"
   },
   "catalogue-wifi-tag-placard-r1-detail": {
     "dimensionsMm": [
@@ -249,7 +249,7 @@
       3
     ],
     "configurationSha256": "f0ede4d7668dd49dea4a5f391958d447483ed0c9269508efe776f1ab1d77c6c3",
-    "imageSha256": "43d2494f691b7c4a766597ee74252c7418996a04fad52f9093c5133c9e31ce1c"
+    "imageSha256": "e8a985540db29c5c3602bcd4b5c53a81228c39f9b59f18bed7ca950c1cdd46d8"
   },
   "catalogue-wifi-tag-keychain-r1": {
     "dimensionsMm": [
@@ -258,7 +258,7 @@
       3
     ],
     "configurationSha256": "dcf82857feb92c045cc57b47583f46a1ffac6ddbf8e2ebe1a2098340c4d00385",
-    "imageSha256": "8025b9712847717d78017dbc19d6f624d6a53a5c7e3e092fe22583b5684a6bf4"
+    "imageSha256": "c91be79b4ceac88fa219e3ad78974e7b95766a8cf623b33115af27c7895c4be4"
   },
   "catalogue-wifi-tag-keychain-r1-detail": {
     "dimensionsMm": [
@@ -267,7 +267,7 @@
       3
     ],
     "configurationSha256": "dcf82857feb92c045cc57b47583f46a1ffac6ddbf8e2ebe1a2098340c4d00385",
-    "imageSha256": "713b97fff2fc54f05377645dbfb052ff63590a2c783754425f8e97f800de4dfd"
+    "imageSha256": "009a56777ed7e6823ac3035aa34250de176a90f6636bb76b53fb5379f9198b00"
   },
   "catalogue-wifi-tag-card-r1": {
     "dimensionsMm": [
@@ -276,7 +276,7 @@
       3
     ],
     "configurationSha256": "3a65aa7cfda5df885e226b8210f9b918a752d52996faf123f71661aef2380afb",
-    "imageSha256": "6a57dc1b6fa662bdb31f3fa4a3cb97494779de95baa4848d9786403e4ce139ca"
+    "imageSha256": "bf95335969a8edac86391aafdbdefdf7fe8f4e84159ca8d44796648fb592ca8e"
   },
   "catalogue-wifi-tag-card-r1-detail": {
     "dimensionsMm": [
@@ -285,7 +285,7 @@
       3
     ],
     "configurationSha256": "3a65aa7cfda5df885e226b8210f9b918a752d52996faf123f71661aef2380afb",
-    "imageSha256": "f2977b890e2073b04292affc76d0780d31579785a5fb11df472a4375fd43eb30"
+    "imageSha256": "2ffd6bddcadaaf93736ce6065861b82b64c87e51dbae847a2fe6b0ef9621a514"
   },
   "catalogue-rating-card-toilet-r1": {
     "dimensionsMm": [
@@ -294,7 +294,7 @@
       1.6
     ],
     "configurationSha256": "36a776cfe0b2f4525971b15f8a811f2178a6d887afcbeb111425ea10c9cb85cd",
-    "imageSha256": "b75a96ea63586241e5276d9e5f40827f3afe4fed8eeddb324d59772b317e2033"
+    "imageSha256": "dc180fafd72052e67c185421016b760c3a6aacf21da707558be4e67b4a2a0ec7"
   },
   "catalogue-rating-card-toilet-r1-detail": {
     "dimensionsMm": [
@@ -303,7 +303,7 @@
       1.6
     ],
     "configurationSha256": "36a776cfe0b2f4525971b15f8a811f2178a6d887afcbeb111425ea10c9cb85cd",
-    "imageSha256": "dd481ce4a3427888b23ad73f44072224ef9414b8feae0e66a53e30b7434d2286"
+    "imageSha256": "f343ea13dd6f5fda5b6787de76b006a7cb733a787eda8ec627fa131e3bde43aa"
   },
   "catalogue-rating-card-mug-r1": {
     "dimensionsMm": [
@@ -312,7 +312,7 @@
       1.6
     ],
     "configurationSha256": "724816d15774c2852fa7e85608c9d4dea0949a36007b638a5815f620245d5ddb",
-    "imageSha256": "5a428ddbda4bbc8a758287c90141ac425aa116d41fa905279d6dc4e47e8d8c95"
+    "imageSha256": "9bccae7355fa8d41c57d4a6c142a01f4dff47d3abcfb9ecea72457d6eeca4b1f"
   },
   "catalogue-rating-card-mug-r1-detail": {
     "dimensionsMm": [
@@ -321,7 +321,7 @@
       1.6
     ],
     "configurationSha256": "724816d15774c2852fa7e85608c9d4dea0949a36007b638a5815f620245d5ddb",
-    "imageSha256": "07595ae7ff1cc28b632da89b0066f4a5d3d0969cc19cc92c855209a6060963ba"
+    "imageSha256": "17545569739e1107f103cb4ce1dc42d8f4963a3649bc6566873715449cda5cd4"
   },
   "catalogue-rating-card-five-star-r1": {
     "dimensionsMm": [
@@ -330,7 +330,7 @@
       1.6
     ],
     "configurationSha256": "53304474cd54f104ff126d15ad76491d9c56ebdb9118dca9875234c260b9c2eb",
-    "imageSha256": "a784824c4e7f457cfca3e57db10e0db3ff1f6cc2d85be869af4628ff9bd5379d"
+    "imageSha256": "728eaf3f4a07c2a3f1c748e65fb81fa5074c3e493522a255165b92caf7cb259a"
   },
   "catalogue-rating-card-five-star-r1-detail": {
     "dimensionsMm": [
@@ -339,7 +339,7 @@
       1.6
     ],
     "configurationSha256": "53304474cd54f104ff126d15ad76491d9c56ebdb9118dca9875234c260b9c2eb",
-    "imageSha256": "0ce7df890fb648ff305462100b8f3283d59642972f0c44c2fb6fd20645e94194"
+    "imageSha256": "38b0ad34b9f9bc8242a49e4a9a3b4abb7e48c2b8460c24ece82fd8cff2ed6113"
   },
   "catalogue-name-plate-classic-r1": {
     "dimensionsMm": [
@@ -348,7 +348,7 @@
       3
     ],
     "configurationSha256": "668a69eff5d826b84016b6ee0e9dbcf644633b0c2d9fea6e537a73f7d2dee084",
-    "imageSha256": "71a9fc7b2e050e7c2ef06b57667fb97dd1bb8a2b1882c71f3f7db9ba964dd3fd"
+    "imageSha256": "7cfc2946a0412034743ce367327bbe71075a24a914ab7d730415ce80152c1461"
   },
   "catalogue-name-plate-classic-r1-detail": {
     "dimensionsMm": [
@@ -357,7 +357,7 @@
       3
     ],
     "configurationSha256": "668a69eff5d826b84016b6ee0e9dbcf644633b0c2d9fea6e537a73f7d2dee084",
-    "imageSha256": "6df8a36faf6371d1b0d8db30802332085ccfa6be6aec99a7118595548c897738"
+    "imageSha256": "63f6bd7b7f1599b34b453b8e287075aa1e77232f6b2926a1146f2b84a1380474"
   },
   "catalogue-name-plate-keychain-r1": {
     "dimensionsMm": [
@@ -366,7 +366,7 @@
       3
     ],
     "configurationSha256": "4d15965250b6f95bcbcf91951b7e631badf3b3f575c16594824ed76530fcc774",
-    "imageSha256": "cbe5c1bb7caa5f7bff32172ada4e9a3ce4867aeadea5e0a1bf63fd26a519bbac"
+    "imageSha256": "fb459ab9b5529dd191faf9624f5dfe773c18d8851b29f36eac15a8040f979120"
   },
   "catalogue-name-plate-keychain-r1-detail": {
     "dimensionsMm": [
@@ -375,7 +375,7 @@
       3
     ],
     "configurationSha256": "4d15965250b6f95bcbcf91951b7e631badf3b3f575c16594824ed76530fcc774",
-    "imageSha256": "0f268c14125dd18ff41ef9cdbd9cb7c72ae20e13668c158e60e3852d1a69886e"
+    "imageSha256": "21479df2f25d4d357f81d14ffaf2ec9b4bf2f20b910faf71533c8270beb37e87"
   },
   "catalogue-name-plate-office-r1": {
     "dimensionsMm": [
@@ -384,7 +384,7 @@
       4
     ],
     "configurationSha256": "4d6d90e132566804459595ca08639711119a378339f0e19580e06ea564e1839b",
-    "imageSha256": "562847d45bb2b39cb0cde23bcbfae98cb09ae0adbf2dc1813124f231a7ed59c8"
+    "imageSha256": "936e2c4d098c07bde5d2d79b8787eabc5b00fd602d9061ec58635d8a096fcccd"
   },
   "catalogue-name-plate-office-r1-detail": {
     "dimensionsMm": [
@@ -393,7 +393,7 @@
       4
     ],
     "configurationSha256": "4d6d90e132566804459595ca08639711119a378339f0e19580e06ea564e1839b",
-    "imageSha256": "d39fc0e99f27b764381cc9640e03930ed923cb87484537963635e6d6d3a6d5d5"
+    "imageSha256": "11c1eee22551183a8174b315efa8ded8a2b124652a74c4126b85be35c5a14a39"
   },
   "catalogue-pumpkin-cute-r1": {
     "dimensionsMm": [
@@ -402,7 +402,7 @@
       75.58
     ],
     "configurationSha256": "173c32bfa8e59cdd8a5270833feb92531c419877ba3c31c2120c4ddd36343d76",
-    "imageSha256": "65d4d5bd4113330d3a875bca9e0ddfd58381139e428fd9acfad14c0e4d86cfcf"
+    "imageSha256": "112565ea4de4a8af2b991d1ad3606ab7cfd95a7b36488c69fabf1a6337ddbe83"
   },
   "catalogue-pumpkin-cute-r1-detail": {
     "dimensionsMm": [
@@ -411,7 +411,7 @@
       75.58
     ],
     "configurationSha256": "173c32bfa8e59cdd8a5270833feb92531c419877ba3c31c2120c4ddd36343d76",
-    "imageSha256": "8b85f7cf1255461c5383bf6b29bd49d0c1f83824fe32f34291b4f69742d03f06"
+    "imageSha256": "9f9b43720d108e018e990be4b0637f6825eebc17d393816d11516475100b2811"
   },
   "catalogue-pumpkin-witch-r1": {
     "dimensionsMm": [
@@ -420,7 +420,7 @@
       57.353
     ],
     "configurationSha256": "8bb3a65c081ba6ddfa22e776ba1b034e658d0d66fb76528b8d394d2b24a2e9c7",
-    "imageSha256": "5cfd87f3ba012cf08402cecaed0a791cdc3b107d45c0d53b43dc65fe8f49f3f5"
+    "imageSha256": "d60f9bb0bf765dd8b3499ac8b67904dc330ea8ca8b053a9b2effa12017a64b02"
   },
   "catalogue-pumpkin-witch-r1-detail": {
     "dimensionsMm": [
@@ -429,7 +429,7 @@
       57.353
     ],
     "configurationSha256": "8bb3a65c081ba6ddfa22e776ba1b034e658d0d66fb76528b8d394d2b24a2e9c7",
-    "imageSha256": "6cfb5ad26d550b8292eda8ab3fea8a5509a3f9659ac0154cf14afe15d3bbb779"
+    "imageSha256": "b796dbe58f77bca1ab37089289eb9e838539096b6ed1032c740cd511e86a87ca"
   },
   "catalogue-pumpkin-lattice-r1": {
     "dimensionsMm": [
@@ -438,7 +438,7 @@
       104.658
     ],
     "configurationSha256": "28693f6f40cc034e86d2228897c22e6cd20f4b434aa90237456cce922b60d054",
-    "imageSha256": "4fea36dacb18620055f5117b8885a3a27edf2058615be079ab9db9e20bfe5e3b"
+    "imageSha256": "46254394345a0ed24ecd9865540b19fa6806210ff408755ffbfcd107848d832e"
   },
   "catalogue-pumpkin-lattice-r1-detail": {
     "dimensionsMm": [
@@ -447,7 +447,7 @@
       104.658
     ],
     "configurationSha256": "28693f6f40cc034e86d2228897c22e6cd20f4b434aa90237456cce922b60d054",
-    "imageSha256": "3004f47db53ff77e72498076de9c8268f9b3d395da38016dede2ee8f96dafd75"
+    "imageSha256": "c428431b5e66095740543eaa1bfaa4c1c05058dd348deefd59a8f6b5dc079098"
   },
   "catalogue-display-sign-starter-r1": {
     "dimensionsMm": [
@@ -456,7 +456,7 @@
       186.529
     ],
     "configurationSha256": "132848c0b4c22d32ac95909e88230bda860b1be9af289d26d2251521cb3d1412",
-    "imageSha256": "f7d2e278ab28a23171408d57d79a8b2cf6a1f292838ddc35e9cf48c57a1a0e8a"
+    "imageSha256": "927eab39bfeff204abe5ace41773b3d7a4ff8c7c0ee8ac04a07ce84a55e65fe6"
   },
   "catalogue-display-sign-starter-r1-detail": {
     "dimensionsMm": [
@@ -465,7 +465,7 @@
       186.529
     ],
     "configurationSha256": "132848c0b4c22d32ac95909e88230bda860b1be9af289d26d2251521cb3d1412",
-    "imageSha256": "845a56f772eed1e1f5ebef78c6117a582edd59568749a199c95ea8f55dbf02b5"
+    "imageSha256": "569cea7eefdd44f94ccf71967a489360fc9b05a22d5124b63a0f52e713ccd121"
   },
   "catalogue-display-sign-no-cards-r1": {
     "dimensionsMm": [
@@ -474,7 +474,7 @@
       186.529
     ],
     "configurationSha256": "080da0cf44d6959c26586f745ed7b2f815800f405c19545fcf064a120c341bde",
-    "imageSha256": "c6fc686dd697c34d5f8a75ddcb30eba519c97decca6b2536459d6b357a40bbc9"
+    "imageSha256": "a1f36d0fec6a2ea30d5a1341f5e96d80824372906e5facda465f6f3f8efc1310"
   },
   "catalogue-display-sign-no-cards-r1-detail": {
     "dimensionsMm": [
@@ -483,7 +483,7 @@
       186.529
     ],
     "configurationSha256": "080da0cf44d6959c26586f745ed7b2f815800f405c19545fcf064a120c341bde",
-    "imageSha256": "5bfc511ece5f8108a98b83600c3907a97721ed476d8912df0f475cd5f5d50c24"
+    "imageSha256": "a9131fddbd79924a58d011469072f251baf82cc2cb6e15c4b52afe0e79c5aa6d"
   },
   "catalogue-display-sign-sign-only-r1": {
     "dimensionsMm": [
@@ -492,7 +492,7 @@
       150.0
     ],
     "configurationSha256": "4487fffe51dfb4f2ce1f88c811acb6d6b13fb1e2e0180a392ce4f0200c64a8cc",
-    "imageSha256": "eae5993d8be9ee149eb47d0f6c2cf8cbd1256ffcfc1eeb05182ba520147c0f62"
+    "imageSha256": "90fc6ccc8f73678e679c4106b0314ed4a30d2d2253b9043dd8a7a69d4ec218da"
   },
   "catalogue-display-sign-sign-only-r1-detail": {
     "dimensionsMm": [
@@ -501,7 +501,7 @@
       150.0
     ],
     "configurationSha256": "4487fffe51dfb4f2ce1f88c811acb6d6b13fb1e2e0180a392ce4f0200c64a8cc",
-    "imageSha256": "b782b68ba01df888c7121bcead0f21194d65ab960384fd8500e346ec86d13611"
+    "imageSha256": "0480b6660613fd525963182c6921a4ffea597e65587700cd4c617921c17a3acf"
   },
   "catalogue-gridfinity-base-standard-r1": {
     "dimensionsMm": [
@@ -510,7 +510,7 @@
       4.75
     ],
     "configurationSha256": "a395a39adf23d52ede3b328d11e8c2b0e2c57bd9e5e3afea919735af14d212be",
-    "imageSha256": "b5f4c9756ad656af0536143590fa6c034ded0dbcecde47efb6e3ad0c2945b602"
+    "imageSha256": "80f443ef33f67ec5ba7c8c547059ba12f572bc2a7fed417808ad6837347e017f"
   },
   "catalogue-gridfinity-base-standard-r1-detail": {
     "dimensionsMm": [
@@ -519,7 +519,7 @@
       4.75
     ],
     "configurationSha256": "a395a39adf23d52ede3b328d11e8c2b0e2c57bd9e5e3afea919735af14d212be",
-    "imageSha256": "c4951d530f73b7f8fc724b1cb345b309a32bfaca1096faa7803f79558d2e2546"
+    "imageSha256": "d11312daa41ed448f46fbed05bb3334a4bcdfaa6dadf082d42d6eaaf2ae76d34"
   },
   "catalogue-gridfinity-base-light-r1": {
     "dimensionsMm": [
@@ -528,7 +528,7 @@
       4.75
     ],
     "configurationSha256": "bd4685ed38d9f98d032ca7af46501a75c6a98e9b9cc8a3b1922a14e3873f185c",
-    "imageSha256": "e988c20921c4e73b2d5f26f0c4e324db8764c17db6c0cc663449c54506e84b07"
+    "imageSha256": "81ab060015e2038df28c2c2f785da9237efbe8f605b4124c7f8fa644684e5e70"
   },
   "catalogue-gridfinity-base-light-r1-detail": {
     "dimensionsMm": [
@@ -537,7 +537,7 @@
       4.75
     ],
     "configurationSha256": "bd4685ed38d9f98d032ca7af46501a75c6a98e9b9cc8a3b1922a14e3873f185c",
-    "imageSha256": "dec7cd90b083071a0579edbd47bf55c99f6f5b3654871b5a677a45c4087b8841"
+    "imageSha256": "22495a90bd3659274db63b563e87403f8ab85ab9152477e79b0aae59129f0148"
   },
   "catalogue-gridfinity-base-magnetic-r1": {
     "dimensionsMm": [
@@ -546,7 +546,7 @@
       7.95
     ],
     "configurationSha256": "5448470bba10b1ac230829108adf398e5f85af30a300dbd6e245299d3c79d203",
-    "imageSha256": "fcc6c315fe5128d6914f55acb44ca62e1f6ee3464d8f4bfdcaa2411607f8ebb4"
+    "imageSha256": "d84c0ba4186b610e76d0edb78b83cd5c4d48e1f343354636845de14a230fe808"
   },
   "catalogue-gridfinity-base-magnetic-r1-detail": {
     "dimensionsMm": [
@@ -555,7 +555,7 @@
       7.95
     ],
     "configurationSha256": "5448470bba10b1ac230829108adf398e5f85af30a300dbd6e245299d3c79d203",
-    "imageSha256": "dd8747f644fe948d591e325a5d9ef984551afe4c2ece16f2f4015acbdc2866e4"
+    "imageSha256": "5a9c78aad055af8d711264fb332637d5e54783783ae07766b1ca7a2702d26f9f"
   },
   "catalogue-gridfinity-bin-standard-r1": {
     "dimensionsMm": [
@@ -564,7 +564,7 @@
       46
     ],
     "configurationSha256": "16d5e0e07af328ab3a9eb8e5680a6676f0a1da5a788b087bd72470e43f1b76d6",
-    "imageSha256": "567307bbe1fabcdc33b7680fd16cc0c299a601dae26ca98cf284adf718f601dc"
+    "imageSha256": "874f766a2e0bd60e6a8a603af5442f505faa8f27a43051530ca34df3c4135766"
   },
   "catalogue-gridfinity-bin-standard-r1-detail": {
     "dimensionsMm": [
@@ -573,7 +573,7 @@
       46
     ],
     "configurationSha256": "16d5e0e07af328ab3a9eb8e5680a6676f0a1da5a788b087bd72470e43f1b76d6",
-    "imageSha256": "71e48f8fdbbabb7eec04896190cb1d8462a20c99ae7b57dc3fb6e7ec549a0cee"
+    "imageSha256": "75bcefac486146c1289492d01bfcdb40cd1ac53378187c20981ae07881465f08"
   },
   "catalogue-gridfinity-bin-divided-r1": {
     "dimensionsMm": [
@@ -582,7 +582,7 @@
       46
     ],
     "configurationSha256": "e05fd4acb14e3273daa81825e6ea352d3326d707c103a3fb739be8ff9f41e6d8",
-    "imageSha256": "27bbded05bc9d940f36c175281acf4ce89523b125fccc1844a90c778033ff250"
+    "imageSha256": "475ba1dabd21745b9e66f532913bc4876827f4ef1077935f71a62b476da30e8d"
   },
   "catalogue-gridfinity-bin-divided-r1-detail": {
     "dimensionsMm": [
@@ -591,7 +591,7 @@
       46
     ],
     "configurationSha256": "e05fd4acb14e3273daa81825e6ea352d3326d707c103a3fb739be8ff9f41e6d8",
-    "imageSha256": "f05513e0768c76d651770a4c2b174f78657e0d55efc0c89af163cd3465dda337"
+    "imageSha256": "75371a7c3fb633a48f4dfb3236d10ee6e9391bbf5762d70833175d74c27a7a1e"
   },
   "catalogue-gridfinity-bin-labeled-r1": {
     "dimensionsMm": [
@@ -600,7 +600,7 @@
       46
     ],
     "configurationSha256": "3eeec62ab68a1bf9a3735ec29cfe55c9172ef495d20d62f945eee91ee4782e59",
-    "imageSha256": "87fa0f411308f88f6fcd0e3683462f80eef4f5c66a17f6cc370004e517be36c7"
+    "imageSha256": "3e65eb2264ac71131d2f5d07498f2887b5b7fd67554408704170e8651a9d69a1"
   },
   "catalogue-gridfinity-bin-labeled-r1-detail": {
     "dimensionsMm": [
@@ -609,6 +609,6 @@
       46
     ],
     "configurationSha256": "3eeec62ab68a1bf9a3735ec29cfe55c9172ef495d20d62f945eee91ee4782e59",
-    "imageSha256": "c4961480f132b1738e1c022c9e0b16bf01dd07d4859509906469ecda1ae63c35"
+    "imageSha256": "6fa92df15dc963bbef3fed5c54c64992587a30107b3a6696488f7e1494a05a56"
   }
 }

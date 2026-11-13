@@ -13,5 +13,5 @@ if not blender:
 if not blender:
     raise SystemExit('Install Blender 5.2, add it to PATH or set BLENDER_BIN to its executable.')
 subprocess.run(['node', 'scripts/export-product-render-meshes.mjs'], cwd=ROOT, check=True)
-subprocess.run([blender, '--background', '--python', 'scripts/render-products.py'], cwd=ROOT, check=True)
+subprocess.run([blender, '--background', '--python-exit-code', '1', '--python', 'scripts/render-products.py'], cwd=ROOT, check=True)
 subprocess.run([sys.executable, 'scripts/finish-product-renders.py'], cwd=ROOT, check=True)
