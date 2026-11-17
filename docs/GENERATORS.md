@@ -42,7 +42,50 @@ preview, local planning facts, and **Continue to request**, which hands the buil
 ordinary print request on `/order.html`. The server never builds geometry; it re-validates the
 parameters as provenance. The uploaded 3MF is the object that is estimated and printed.
 
-Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`, `infinity-fidget`, `vase`.
+Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`, `infinity-fidget`, `vase`, `skull-keychain`, `skeleton-figure`.
+
+**Skull keychain and Skeleton figure** generate their geometry locally from equations.
+Reference measurements inform proportions, but no STL vertices, sampled heights or baked
+head surface are shipped. The skull uses a variable superelliptic outline, recessed eyes
+with raised socket rims and three nose openings, a swept-up grin and rounded generated
+tooth crowns. Chin fullness, socket
+depth and tooth count change anatomy rather than scaling a reference mesh. Dark face
+inlays follow the entire generated eye/nose cavities; there is no painted mouth stripe.
+
+The keychain has a closed flat back and selectable forehead hole, external loop or no
+attachment. The figure adds a curved narrow-waisted jacket, raised lapels, conformal
+shirt/pinstripe inlays, smoothly shaped sleeves and trousers, four curled fingers and a
+thumb on each hand, flat cuffs and rounded shoes. Elbow and knee bend controls change
+the bed-plane pose without changing the configured bone segment lengths. These are
+sculpted bends, not extra moving joints. Narrower elbows/knees, shallow fabric folds,
+and flush pinstripes follow the curved limb surfaces; hands align with the forearms.
+Knee bends redistribute the thigh/shin angles according to their lengths, keeping the
+overall hip-to-ankle stance narrow rather than splaying the feet. A raised collar,
+broader lapels, split side tails and tapered, relief-shaped bow rays carry the reference's
+silhouette without importing its surface. The five digits have a distinct palm, rounded
+knuckles and staggered finger lengths rather than a set of closed-looking loops.
+Bow thickness sets the ray base thickness; the separate knot adds up to 0.6 mm of relief.
+An attached knot rises over the jacket while the outer rays stay near the bed.
+Jacket depth and limb depth are independent. The fused neck is ivory with the
+skull in multicolor exports. Disabling multicolor preserves the complete solid jacket.
+
+Fused figures print on their backs. The optional paired coat tails can be shortened or removed;
+the branched bow can be attached, exported separately for gluing, or omitted. Screw-on
+heads use a matching helical neck stud normal to the bed and a blind socket in the
+separately laid-out skull. The threaded fit coupon checks per-side radial clearance.
+The flexi assembly uses six rigid pieces connected by five pairs of closed interlocked
+loops at the neck, shoulders and hips: **not TPU or bending flexures**. Its bow must be
+separate or omitted so it cannot bridge the moving neck. Its shoulder anchors spread
+farther apart when needed to keep large hands and sharply bent elbows clear of the legs.
+The compact loops use round tube sections and tapered, rounded attachment stems rather
+than broad slab connectors. Hip anchors widen only when needed to keep broad shoes
+or thick trousers apart. Joint loop wall sets the tube thickness; the selected
+clearance is retained between the interlocked loops. The coupon uses the same joints as
+the figure. Fused and screw-on assemblies are unchanged by these flexi joint dimensions.
+Export the joint coupon first.
+These are print layouts, not evidence of physical strength or support-free fit. Fingers
+and bow branches remain delicate; verify bridging, elephant foot, joint movement and
+thread fit with real prints before committing to the full figure.
 
 The **algorithmic vase** has an editable shape-preserving spline profile, ten original presets,
 polygon sides, twist, lobes, seeded organic displacement, and smooth/ripple/dune/scale/cell/zigzag/

@@ -51,12 +51,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/vase-dune-r1.webp?v=0ba93392e5cb9c5a",
+        "src": "/assets/images/products/catalogue/vase-dune-r1.webp?v=1e9426ffd8d59463",
         "alt": "Dune vase, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/vase-dune-r1-detail.webp?v=aa5b5f5092861e7b",
+        "src": "/assets/images/products/catalogue/vase-dune-r1-detail.webp?v=779a11ff3d8f4a47",
         "alt": "Dune vase, alternate studio view",
         "kind": "render"
       }
@@ -105,12 +105,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/vase-blossom-r1.webp?v=7b11abd616b72f58",
+        "src": "/assets/images/products/catalogue/vase-blossom-r1.webp?v=fcbab8cfcef57939",
         "alt": "Blossom vase, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/vase-blossom-r1-detail.webp?v=023c0e4df20926c3",
+        "src": "/assets/images/products/catalogue/vase-blossom-r1-detail.webp?v=6e75f09d600026cb",
         "alt": "Blossom vase, alternate studio view",
         "kind": "render"
       }
@@ -159,12 +159,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/vase-faceted-planter-r1.webp?v=b06d3e844ca80cc3",
+        "src": "/assets/images/products/catalogue/vase-faceted-planter-r1.webp?v=e3ed85d4af3b6688",
         "alt": "Faceted planter, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/vase-faceted-planter-r1-detail.webp?v=7b830a4bf90bfa80",
+        "src": "/assets/images/products/catalogue/vase-faceted-planter-r1-detail.webp?v=e02f7b4aa3334594",
         "alt": "Faceted planter, alternate studio view",
         "kind": "render"
       }
@@ -220,12 +220,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-classic-r1.webp?v=ecc721422c0faa54",
+        "src": "/assets/images/products/catalogue/infinity-fidget-classic-r1.webp?v=8f2ae06adff9fcf6",
         "alt": "Classic folding fidget, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-classic-r1-detail.webp?v=b9b84407cf1ff2e3",
+        "src": "/assets/images/products/catalogue/infinity-fidget-classic-r1-detail.webp?v=b13ea5b98dde17c6",
         "alt": "Classic folding fidget, alternate studio view",
         "kind": "render"
       }
@@ -281,12 +281,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-knurled-r1.webp?v=779b6570046fad66",
+        "src": "/assets/images/products/catalogue/infinity-fidget-knurled-r1.webp?v=6a360380e8a176f0",
         "alt": "Knurled folding fidget, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-knurled-r1-detail.webp?v=856a86767de8f2d5",
+        "src": "/assets/images/products/catalogue/infinity-fidget-knurled-r1-detail.webp?v=9919f302082346b9",
         "alt": "Knurled folding fidget, alternate studio view",
         "kind": "render"
       }
@@ -342,12 +342,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-spheres-r1.webp?v=d0d143a21d3dec91",
+        "src": "/assets/images/products/catalogue/infinity-fidget-spheres-r1.webp?v=518b7e9b3362f381",
         "alt": "Round-block folding fidget, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/infinity-fidget-spheres-r1-detail.webp?v=55c1230812057450",
+        "src": "/assets/images/products/catalogue/infinity-fidget-spheres-r1-detail.webp?v=1450fa8dc3a66220",
         "alt": "Round-block folding fidget, alternate studio view",
         "kind": "render"
       }
@@ -394,12 +394,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-route-66-r1.webp?v=3f8a5a48e3fd6a4e",
+        "src": "/assets/images/products/catalogue/route-shield-route-66-r1.webp?v=6025ef02f86866c8",
         "alt": "Route 66 sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/route-shield-route-66-r1-detail.webp?v=a63599343b179cf3",
+        "src": "/assets/images/products/catalogue/route-shield-route-66-r1-detail.webp?v=c5c3fe19eb8bb84e",
         "alt": "Route 66 sign, alternate studio view",
         "kind": "render"
       }
@@ -446,12 +446,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-i-95-r1.webp?v=0633796f6cddc2fa",
+        "src": "/assets/images/products/catalogue/route-shield-i-95-r1.webp?v=eab9986269cd5376",
         "alt": "Interstate 95 sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/route-shield-i-95-r1-detail.webp?v=de920b8ca49c6b91",
+        "src": "/assets/images/products/catalogue/route-shield-i-95-r1-detail.webp?v=44af3f65b2bcbbcc",
         "alt": "Interstate 95 sign, alternate studio view",
         "kind": "render"
       }
@@ -498,12 +498,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/route-shield-us-101-r1.webp?v=33b1d9aff4498fcf",
+        "src": "/assets/images/products/catalogue/route-shield-us-101-r1.webp?v=8f88d6970f63aae7",
         "alt": "US 101 sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/route-shield-us-101-r1-detail.webp?v=9440197d462ac57d",
+        "src": "/assets/images/products/catalogue/route-shield-us-101-r1-detail.webp?v=ec5289caccf74cbf",
         "alt": "US 101 sign, alternate studio view",
         "kind": "render"
       }
@@ -552,12 +552,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-placard-r1.webp?v=d8e529fa592ab69a",
+        "src": "/assets/images/products/catalogue/wifi-tag-placard-r1.webp?v=f30783f368f7eb40",
         "alt": "Guest Wi-Fi placard, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-placard-r1-detail.webp?v=e8a985540db29c5c",
+        "src": "/assets/images/products/catalogue/wifi-tag-placard-r1-detail.webp?v=77ad88ce3976a371",
         "alt": "Guest Wi-Fi placard, alternate studio view",
         "kind": "render"
       }
@@ -606,12 +606,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-keychain-r1.webp?v=c91be79b4ceac88f",
+        "src": "/assets/images/products/catalogue/wifi-tag-keychain-r1.webp?v=f53253fdce2fdba1",
         "alt": "Guest Wi-Fi keychain, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-keychain-r1-detail.webp?v=009a56777ed7e682",
+        "src": "/assets/images/products/catalogue/wifi-tag-keychain-r1-detail.webp?v=f9a18dc52734710f",
         "alt": "Guest Wi-Fi keychain, alternate studio view",
         "kind": "render"
       }
@@ -660,12 +660,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-card-r1.webp?v=bf95335969a8edac",
+        "src": "/assets/images/products/catalogue/wifi-tag-card-r1.webp?v=c312f1e385b82fc4",
         "alt": "Guest Wi-Fi card, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/wifi-tag-card-r1-detail.webp?v=2ffd6bddcadaaf93",
+        "src": "/assets/images/products/catalogue/wifi-tag-card-r1-detail.webp?v=60c49fcacc41a108",
         "alt": "Guest Wi-Fi card, alternate studio view",
         "kind": "render"
       }
@@ -712,12 +712,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/rating-card-toilet-r1.webp?v=dc180fafd72052e6",
+        "src": "/assets/images/products/catalogue/rating-card-toilet-r1.webp?v=7f28d5cb8c7b3921",
         "alt": "Throne review card, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/rating-card-toilet-r1-detail.webp?v=f343ea13dd6f5fda",
+        "src": "/assets/images/products/catalogue/rating-card-toilet-r1-detail.webp?v=0afb1d894626bd88",
         "alt": "Throne review card, alternate studio view",
         "kind": "render"
       }
@@ -764,12 +764,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/rating-card-mug-r1.webp?v=9bccae7355fa8d41",
+        "src": "/assets/images/products/catalogue/rating-card-mug-r1.webp?v=318d0641b36be8d8",
         "alt": "Coffee review card, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/rating-card-mug-r1-detail.webp?v=17545569739e1107",
+        "src": "/assets/images/products/catalogue/rating-card-mug-r1-detail.webp?v=8a25df26b17c9e8c",
         "alt": "Coffee review card, alternate studio view",
         "kind": "render"
       }
@@ -816,12 +816,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/rating-card-five-star-r1.webp?v=728eaf3f4a07c2a3",
+        "src": "/assets/images/products/catalogue/rating-card-five-star-r1.webp?v=9a2389e2c8e045ea",
         "alt": "Five-star review card, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/rating-card-five-star-r1-detail.webp?v=38b0ad34b9f9bc82",
+        "src": "/assets/images/products/catalogue/rating-card-five-star-r1-detail.webp?v=a9238e6d6fd83773",
         "alt": "Five-star review card, alternate studio view",
         "kind": "render"
       }
@@ -859,12 +859,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/name-plate-classic-r1.webp?v=7cfc2946a0412034",
+        "src": "/assets/images/products/catalogue/name-plate-classic-r1.webp?v=5ab7642bcd4e02b8",
         "alt": "Classic name sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/name-plate-classic-r1-detail.webp?v=63f6bd7b7f1599b3",
+        "src": "/assets/images/products/catalogue/name-plate-classic-r1-detail.webp?v=1f8e8eb287a86cd1",
         "alt": "Classic name sign, alternate studio view",
         "kind": "render"
       }
@@ -902,12 +902,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/name-plate-keychain-r1.webp?v=fb459ab9b5529dd1",
+        "src": "/assets/images/products/catalogue/name-plate-keychain-r1.webp?v=fe90b49315a04cc1",
         "alt": "Name keychain, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/name-plate-keychain-r1-detail.webp?v=21479df2f25d4d35",
+        "src": "/assets/images/products/catalogue/name-plate-keychain-r1-detail.webp?v=6e225e01cc6caa4a",
         "alt": "Name keychain, alternate studio view",
         "kind": "render"
       }
@@ -945,12 +945,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/name-plate-office-r1.webp?v=936e2c4d098c07bd",
+        "src": "/assets/images/products/catalogue/name-plate-office-r1.webp?v=c13ddcc26ebc974b",
         "alt": "Office name sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/name-plate-office-r1-detail.webp?v=11c1eee22551183a",
+        "src": "/assets/images/products/catalogue/name-plate-office-r1-detail.webp?v=2f520351b19b37fd",
         "alt": "Office name sign, alternate studio view",
         "kind": "render"
       }
@@ -1029,12 +1029,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/pumpkin-cute-r1.webp?v=112565ea4de4a8af",
+        "src": "/assets/images/products/catalogue/pumpkin-cute-r1.webp?v=756c38876ae1290a",
         "alt": "Cute pumpkin, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/pumpkin-cute-r1-detail.webp?v=9f9b43720d108e01",
+        "src": "/assets/images/products/catalogue/pumpkin-cute-r1-detail.webp?v=dbb395e569ccfcbb",
         "alt": "Cute pumpkin, alternate studio view",
         "kind": "render"
       }
@@ -1113,12 +1113,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/pumpkin-witch-r1.webp?v=d60f9bb0bf765dd8",
+        "src": "/assets/images/products/catalogue/pumpkin-witch-r1.webp?v=2b6afca3e9ff5b08",
         "alt": "Little witch pumpkin, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/pumpkin-witch-r1-detail.webp?v=b796dbe58f77bca1",
+        "src": "/assets/images/products/catalogue/pumpkin-witch-r1-detail.webp?v=b386d416e5d78fef",
         "alt": "Little witch pumpkin, alternate studio view",
         "kind": "render"
       }
@@ -1197,12 +1197,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/pumpkin-lattice-r1.webp?v=46254394345a0ed2",
+        "src": "/assets/images/products/catalogue/pumpkin-lattice-r1.webp?v=fc5aaff87b8e0d33",
         "alt": "Lattice pumpkin lantern, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/pumpkin-lattice-r1-detail.webp?v=c428431b5e660957",
+        "src": "/assets/images/products/catalogue/pumpkin-lattice-r1-detail.webp?v=2d613111f5511a2d",
         "alt": "Lattice pumpkin lantern, alternate studio view",
         "kind": "render"
       }
@@ -1474,12 +1474,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/display-sign-starter-r1.webp?v=927eab39bfeff204",
+        "src": "/assets/images/products/catalogue/display-sign-starter-r1.webp?v=ae462056fcd42ae8",
         "alt": "Business counter sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/display-sign-starter-r1-detail.webp?v=569cea7eefdd44f9",
+        "src": "/assets/images/products/catalogue/display-sign-starter-r1-detail.webp?v=06b0aa946886661e",
         "alt": "Business counter sign, alternate studio view",
         "kind": "render"
       }
@@ -1751,12 +1751,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/display-sign-no-cards-r1.webp?v=a1f36d0fec6a2ea3",
+        "src": "/assets/images/products/catalogue/display-sign-no-cards-r1.webp?v=14bbbf0be86194d6",
         "alt": "Welcome table sign, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/display-sign-no-cards-r1-detail.webp?v=a9131fddbd79924a",
+        "src": "/assets/images/products/catalogue/display-sign-no-cards-r1-detail.webp?v=016f02959549aa43",
         "alt": "Welcome table sign, alternate studio view",
         "kind": "render"
       }
@@ -2028,12 +2028,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/display-sign-sign-only-r1.webp?v=90fc6ccc8f73678e",
+        "src": "/assets/images/products/catalogue/display-sign-sign-only-r1.webp?v=15bfdba70c43954b",
         "alt": "Business sign panel, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/display-sign-sign-only-r1-detail.webp?v=0480b6660613fd52",
+        "src": "/assets/images/products/catalogue/display-sign-sign-only-r1-detail.webp?v=949ca540e439db87",
         "alt": "Business sign panel, alternate studio view",
         "kind": "render"
       }
@@ -2065,12 +2065,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-standard-r1.webp?v=80f443ef33f67ec5",
+        "src": "/assets/images/products/catalogue/gridfinity-base-standard-r1.webp?v=17e5c7ea0177a061",
         "alt": "Gridfinity baseplate, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-standard-r1-detail.webp?v=d11312daa41ed448",
+        "src": "/assets/images/products/catalogue/gridfinity-base-standard-r1-detail.webp?v=59a2dad9002e276b",
         "alt": "Gridfinity baseplate, alternate studio view",
         "kind": "render"
       }
@@ -2102,12 +2102,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-light-r1.webp?v=81ab060015e2038d",
+        "src": "/assets/images/products/catalogue/gridfinity-base-light-r1.webp?v=39c2c02766890ef4",
         "alt": "Light Gridfinity baseplate, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-light-r1-detail.webp?v=22495a90bd365927",
+        "src": "/assets/images/products/catalogue/gridfinity-base-light-r1-detail.webp?v=f9d7c23a015641cf",
         "alt": "Light Gridfinity baseplate, alternate studio view",
         "kind": "render"
       }
@@ -2139,12 +2139,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-magnetic-r1.webp?v=d84c0ba4186b610e",
+        "src": "/assets/images/products/catalogue/gridfinity-base-magnetic-r1.webp?v=4e4fc37320c15055",
         "alt": "Magnetic Gridfinity baseplate, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/gridfinity-base-magnetic-r1-detail.webp?v=5a9c78aad055af8d",
+        "src": "/assets/images/products/catalogue/gridfinity-base-magnetic-r1-detail.webp?v=40f37129585a2e5d",
         "alt": "Magnetic Gridfinity baseplate, alternate studio view",
         "kind": "render"
       }
@@ -2177,12 +2177,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-standard-r1.webp?v=874f766a2e0bd60e",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-standard-r1.webp?v=48249665318cd1eb",
         "alt": "Gridfinity storage bin, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-standard-r1-detail.webp?v=75bcefac486146c1",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-standard-r1-detail.webp?v=a55ee1103d13522d",
         "alt": "Gridfinity storage bin, alternate studio view",
         "kind": "render"
       }
@@ -2215,12 +2215,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-divided-r1.webp?v=475ba1dabd21745b",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-divided-r1.webp?v=8ef09dd88c288ec1",
         "alt": "Divided Gridfinity bin, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-divided-r1-detail.webp?v=75371a7c3fb633a4",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-divided-r1-detail.webp?v=10a86b15e621dd27",
         "alt": "Divided Gridfinity bin, alternate studio view",
         "kind": "render"
       }
@@ -2253,12 +2253,12 @@ export const PRODUCTS = [
     },
     "images": [
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-labeled-r1.webp?v=3e65eb2264ac7113",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-labeled-r1.webp?v=8d4f2f8029da5673",
         "alt": "Label-ready Gridfinity bin, studio render",
         "kind": "render"
       },
       {
-        "src": "/assets/images/products/catalogue/gridfinity-bin-labeled-r1-detail.webp?v=6fa92df15dc963bb",
+        "src": "/assets/images/products/catalogue/gridfinity-bin-labeled-r1-detail.webp?v=d546f4684cd34e86",
         "alt": "Label-ready Gridfinity bin, alternate studio view",
         "kind": "render"
       }

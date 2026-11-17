@@ -18,12 +18,17 @@ Every route is `/customize/g/<id>/`. Counts include hidden/dependency-controlled
 | display-sign | 253 | 0 | Text & artwork; Style & color; Size & holder |
 | gridfinity-base | 13 | 9 | Size & layout; Construction & finish |
 | gridfinity-bin | 14 | 2 | Size & layout; Construction & finish |
+| skull-keychain | 15 | 6 | Head & face; Keyring attachment |
+| skeleton-figure | 48 | 11 | Body & assembly; Head & bow; Arms & legs |
 
 The Wi-Fi password is the one sensitive field. Review excludes it, transient inputs, and fields hidden by dependencies. It remains live only in its original masked control. Image files and own fonts retain their existing browser-only memory ownership; switching sections re-parents their containing group and does not serialize them.
 
 ## Components and tokens
 
 - `studio-sections.js`: pure schema-to-editing-section mapping and privacy-safe review entries. Every field maps exactly once; future groups fall into the final editing section.
+  Skull keychain and skeleton figure use their anatomical schema sections rather than
+  the shared numeric/color categories, keeping assembly and fit coupons together
+  without crowding head, arm and leg controls into one long panel.
 - `studio-shell.js`: navigation, previous/next, available-section recovery, error links, Review and All settings. It reuses the existing settings/facts nodes, with no engine or storage ownership.
 - `form.js`: original native controls, validation, dependencies, debouncing and attachments. Visual radio tiles commit through the existing native select change event; swatches use the original color input. Fonts retain real typography samples. Numeric/text/profile editing remains precise.
 - `option-art.js` / `face-art.js`: local SVG diagrams and actual geometry-derived pumpkin face/feature paths. Known physical options use distinct diagrams; unknown cases use honest typography instead of unrelated model imagery. Verified catalogue preset renders retain their provenance.

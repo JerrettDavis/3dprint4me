@@ -1,6 +1,6 @@
 // Public snapshot contract shared by static shop, offline customizers and server validation.
-import { getGenerator } from '../customize/registry.js?v=7d07d40d5e3cc157';
-import { sensitiveKeys, validateParams } from '../customize/schema.js?v=7d07d40d5e3cc157';
+import { getGenerator } from '../customize/registry.js?v=3db4f0b250d4b958';
+import { sensitiveKeys, validateParams } from '../customize/schema.js?v=3db4f0b250d4b958';
 
 const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const IMAGE = /^\/assets\/images\/products\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)*[a-z0-9]+(?:-[a-z0-9]+)*\.(?:webp|png|jpg)(?:\?v=[a-f0-9]{16})?$/;

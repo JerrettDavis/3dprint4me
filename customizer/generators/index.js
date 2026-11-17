@@ -1,5 +1,7 @@
 // Each generator adds one line; dynamic imports keep per-generator code split.
 export const loadBuilder = {
+  "skull-keychain": () => import("./skull-keychain/build.js"),
+  "skeleton-figure": () => import("./skeleton-figure/build.js"),
   'vase': () => import('./vase/build.js'),
   'infinity-fidget': () => import('./infinity-fidget/build.js'),
   'gridfinity-bin': () => import('./gridfinity-bin/build.js'),

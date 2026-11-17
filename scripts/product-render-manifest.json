@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "inputSha256": "bc45aa9962ccd829396af00b326f47e919a15ee8817bb1d8ff663aa012ae7d71",
+  "inputSha256": "6c72c870cc657f892801b7ca6a467adea2e7803e59a517199f6066b0fc2bb8b6",
   "renders": [
     {
       "id": "name-plate",
@@ -13,7 +13,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "22a37c0111265c9b5315a4d0903f93286fa6f48fe0cece6d8f45b4d9d8ca2c25",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "913fedc91a31d014211e7ec9c3018c1f1d4b64d97a1cb5ad5ca7dadf958b29f6"
+      "sha256": "1f50c2ecbf429fa21114d87ac9e72239d0935b7975b8c334f7d42ba1d781c968"
     },
     {
       "id": "wifi-tag",
@@ -28,7 +28,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "980bd01a1bd3fd263aaf511c2c938d6c81d1dd48e56287a7ed9d7abb0dd2bc26",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "16b95b1dc181547e536abbfd26111a7af080d1a8722b7a004d39aae6d2564970"
+      "sha256": "907258093887f00ff89f35b7e6127c947d90e3399fd6196c55109c663f371dcd"
     },
     {
       "id": "rating-card",
@@ -45,7 +45,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "eb1a103928711ab7c1d103ad760030856c774d0aee67f90aad5952b9a82db41f",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "04c3e110d15a52b5121491ca2b7d4749b873f10b72524a245fe1cae6d1756e57"
+      "sha256": "06593028671da03b2ebfcfc11471528d2dc80ccc96138802399fdf4e8512897c"
     },
     {
       "id": "pumpkin",
@@ -58,7 +58,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "d0a08f688c7489698397cd0141057e23ecf90966be52c035dd5257e19a700bd1",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "e5294bb43684bad4cb758dbbb6a3278ae515ddaa22ad871ea51a6630a5e808ca"
+      "sha256": "f6b6fa81419c0cabf5be33a940fe3ed691e2db834f7263ecc3949af03ae19faa"
     },
     {
       "id": "infinity-fidget",
@@ -71,7 +71,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "04add00565a2212ccc0dbe6cc7373c39c1b4193b6ed5871ea1ac1fddb4c42897",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "9aff05999fe4d18884826e11df5df310bb11e26cb4fdec2515ab2c81c5846c53"
+      "sha256": "b85a7b3da093124e78b4a5b4c9a2f49ba4a61fea3c38a20347f1103913df4791"
     },
     {
       "id": "gridfinity-base",
@@ -84,7 +84,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "5c5545bf866d01baccc730ee80d1c877b81771bd7fe411d7071f9a4e6c9d6592",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "bef8225b3148184d0e424967e108c4f179ef6e41bfb2beb7ae32c4e109683743"
+      "sha256": "45634c9bd7c88d59e26b3adac35ff4468188c78ac5c4917f625a981900690c1b"
     },
     {
       "id": "gridfinity-bin",
@@ -97,7 +97,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "9e09114e4068bd4a880902342f7f7aa405f250ced590904e8e4134584e01e6ea",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "a836a5bdc758c03980728567865fad060bd2a8c4880bd2326eaaeefc9028fccc"
+      "sha256": "c1f9ced5aeea3d5f5b1e2fc7c27f404a39cb24d9181b171a179b2d2f6c9e910d"
     },
     {
       "id": "vase",
@@ -112,7 +112,33 @@
       "renderer": "Blender Cycles",
       "meshSha256": "ed4efddadce3865a07fdceff39bbdcce9a4c388512251a9fdcaf883586f98c66",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "41d8db123a0d16f6b73e37c74c3dd5262f1e2ce7d648cc8ec0d2ec4f4325c287"
+      "sha256": "04d3b39849297ea151d0bc956507f5d5537b74fe79a13661920440ee21456b2f"
+    },
+    {
+      "id": "skull-keychain",
+      "recipe": {
+        "id": "skull-keychain",
+        "params": {},
+        "elevation": 60,
+        "azimuth": -90
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "a61041be3ca8aeacb8f93f92cb15c78e68fef000a848c43332a94f3e3cd59ad7",
+      "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
+      "sha256": "8816bb6f075e526d5f7ec433163286e45adc28fd80867873f394d96ec8b7e87f"
+    },
+    {
+      "id": "skeleton-figure",
+      "recipe": {
+        "id": "skeleton-figure",
+        "params": {},
+        "elevation": 70,
+        "azimuth": -90
+      },
+      "renderer": "Blender Cycles",
+      "meshSha256": "31977d1fb7babe6230d39bfb38f50df82d772c551e70d05b4491529a18773872",
+      "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
+      "sha256": "30d7bf1d7a2aeb9b207958dfe17e74ad4a0632dc728277618df2016df16c0743"
     },
     {
       "id": "catalogue-vase-dune-r1",
@@ -167,7 +193,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "c44c0e21486f6e5ec462e17e704c237ad1d80a54896c41fbfbf4da2ca019cb4e",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "0ba93392e5cb9c5a431a1de927c2eb5ecb76eb09cfce8d2e9636d9ab5fd8d53b"
+      "sha256": "1e9426ffd8d594637f0b1e4aa505f5a2ef8cc02e9946b214fbcd9bfdd0c3665a"
     },
     {
       "id": "catalogue-vase-dune-r1-detail",
@@ -222,7 +248,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "53171d9c21b6f1897a4e8bd9dd61c7dcdef7a2543a3bf9ceb4efff651d5d793a",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "aa5b5f5092861e7b1cfe00093521d0fe37f2223066004b6c485606752f4ff3a7"
+      "sha256": "779a11ff3d8f4a474f2f42a1589a7a903318a00c251975b3f3c052e850b13197"
     },
     {
       "id": "catalogue-vase-blossom-r1",
@@ -269,7 +295,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "505ae34bf4c313b252603f563c2104a20d691da35676245ae7927dca433a46fc",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "7b11abd616b72f58766590f91cef33e97e1b06391bdd72b410d9019fa3703a63"
+      "sha256": "fcbab8cfcef57939bbdf0571710d4a96b4556a820d908142db9017613c5e1fdf"
     },
     {
       "id": "catalogue-vase-blossom-r1-detail",
@@ -316,7 +342,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "68cedae868256e8b9fedbf79ebb48cdb46cbeaf91a64a5bc23801bbec9b132e6",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "023c0e4df20926c303d43c7e69fed8b8a031488adbe81223e7f3638784ba94f5"
+      "sha256": "6e75f09d600026cb5bb3c93b4739cb6b69a66f55b2a8db1e8d1b4ffbba4a4387"
     },
     {
       "id": "catalogue-vase-faceted-planter-r1",
@@ -363,7 +389,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "b504490c38ecd7d64003800619a9c6600e805a10a662210a52587a562f811a88",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "b06d3e844ca80cc310658b1d3a8617f4a7e7b87634647f8466e035dc52844574"
+      "sha256": "e3ed85d4af3b6688e49bf51cf669d86ad7bb77272604b3b383c3ef42df433519"
     },
     {
       "id": "catalogue-vase-faceted-planter-r1-detail",
@@ -410,7 +436,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "a6c2e878d97501a709ae75dfdc1c3f0a3820e1856f5b7fd3e15bf8ac1b72a0bb",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "7b830a4bf90bfa80dea24c9730f9c3c623736aa3ee098a90c9023f378629307f"
+      "sha256": "e02f7b4aa3334594d95326d5361366bd13060d54b761cc4815e1791b3f764a66"
     },
     {
       "id": "catalogue-infinity-fidget-classic-r1",
@@ -464,7 +490,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "77e5be86831a43dff8136a854fd5a9c2aae67a3e3eb4320abc72ca7ba9ece4de",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "ecc721422c0faa542fe4a23b1e0f806777cfdb029938cf88871e19137bc6aa47"
+      "sha256": "8f2ae06adff9fcf6cb141a74c39cf99cb7b2b70d2d48bf319629a7f31a605601"
     },
     {
       "id": "catalogue-infinity-fidget-classic-r1-detail",
@@ -518,7 +544,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "d1ce0a4cf311bce3f189ea52efb903ced16aa433750aaca081a72fcd18d4af7a",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "b9b84407cf1ff2e3c584906e0edc1f84e07ea675f4dbe5953c73ddfd197ce26e"
+      "sha256": "b13ea5b98dde17c682263777e7ae49022755b26b727c86a044ed9244730bd1ac"
     },
     {
       "id": "catalogue-infinity-fidget-knurled-r1",
@@ -572,7 +598,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "ec9efb522f32089c1042404b38e351fd7c4f14b9a7d492a09b593fd7c7b331bc",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "779b6570046fad660007c95be5e6deef93dfad7eb1999959f03fd65ef0944f5b"
+      "sha256": "6a360380e8a176f056701fdbe43ce351a5d565e914363c9f79a51504f105cdd4"
     },
     {
       "id": "catalogue-infinity-fidget-knurled-r1-detail",
@@ -626,7 +652,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "a95904fa0ed50b03cf8b51036329d4d3da5656608fcd8981290e796edc129b5d",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "856a86767de8f2d5303ebb8268bc13c09566eff71708377e1018694a89fe27fb"
+      "sha256": "9919f302082346b9b084b1779c5e0cc6b0ebf01af93048be7396283d568040e4"
     },
     {
       "id": "catalogue-infinity-fidget-spheres-r1",
@@ -680,7 +706,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "b0cb9cc36454f36430e7560453a5d2fe61cbe39d79b39512910c18126eed7d8a",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "d0d143a21d3dec91b0f8e4a9809dcdccb0611bb1e11e1ffc1645498980c0e300"
+      "sha256": "518b7e9b3362f381dac6692c4c7a77a6adb35994d4d98d059a4e14bcd6e2bed7"
     },
     {
       "id": "catalogue-infinity-fidget-spheres-r1-detail",
@@ -734,7 +760,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "4e2a235e1bb5ec826e60e8c2e46501f6620c7535e41590f88223f476cd721069",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "55c123081205745038c5a209cd593f84c1b15aca913047918e73dc910a311acc"
+      "sha256": "1450fa8dc3a6622050718a492240a17ced6814112151d709ddb58b09f304d5ad"
     },
     {
       "id": "catalogue-route-shield-route-66-r1",
@@ -780,7 +806,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "c76ff83d4abf8c087d619f5ab19e19ac3a90b2b1a6e7e1779a7d8302cd4dd9cc",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "3f8a5a48e3fd6a4e0ab0ba115e98db8973252e4b2294da32208d83e9bd3c02ab"
+      "sha256": "6025ef02f86866c81bf8aade5d77b2642ec8d352594be997e18540028085a5d7"
     },
     {
       "id": "catalogue-route-shield-route-66-r1-detail",
@@ -826,7 +852,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "95399101269f4fd8b19eba6216e32973c498e45237519f3b7bb08164b66d7296",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "a63599343b179cf3bc8dabadf3b7db0c5bc8d1734f6cf528493dce3dbea7290d"
+      "sha256": "c5c3fe19eb8bb84ed7cd404ee7eaea79f88d335b7272ddb0239024319c09580b"
     },
     {
       "id": "catalogue-route-shield-i-95-r1",
@@ -872,7 +898,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "62d0ffaae8460b23a8dc9278a562251f3f7536d3a414ee72a45a2ad991f11266",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "0633796f6cddc2faed389235fe15b50b3dd826c9bb05ecd808fc8a778d397c47"
+      "sha256": "eab9986269cd5376eeffe60b5754b99efca4f3183fe0ce7daab4cc6933ca8d6b"
     },
     {
       "id": "catalogue-route-shield-i-95-r1-detail",
@@ -918,7 +944,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "84b1ae8d23147eca5b0d25cdcbf171357cb779343d45531e28f96f1d34eca150",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "de920b8ca49c6b9162b1151a5b2f602e5be0e72c9480ab8bfa2187128503491a"
+      "sha256": "44af3f65b2bcbbcc36a64facef012ea02c4e852d60d9e6448394d6042dac4e8e"
     },
     {
       "id": "catalogue-route-shield-us-101-r1",
@@ -964,7 +990,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "f87c2245258755d8383eb24eab67aa79d8c14ae632c3636da88785372c64c16a",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "33b1d9aff4498fcfc0c82709458629135b2a0f54d953cf3776fec5362a12fe4d"
+      "sha256": "8f88d6970f63aae73f35d7f19bdaaa158eabe29191d3463229125f8433a7d6ac"
     },
     {
       "id": "catalogue-route-shield-us-101-r1-detail",
@@ -1010,7 +1036,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "d60bb92d9ab83c73f022eabef018f8a093f52ce910274ef1c1fc4f95900eca7e",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "9440197d462ac57d96ad60daaaeb76bf4185a396edf8d74c4784326f381a78f1"
+      "sha256": "ec5289caccf74cbf397671f55ec499c420b73738bc4d1bc89ae3b15a06240211"
     },
     {
       "id": "catalogue-wifi-tag-placard-r1",
@@ -1057,7 +1083,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "0470f9331f3a4eef2bf9838d380fbc041ca1346aac42e524330bf32005566ebb",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "d8e529fa592ab69aa35f9b26e6545d87c6784e1ad3d734cfb66f4ba5038609c7"
+      "sha256": "f30783f368f7eb405421562a704798728d06c6cb90a65dae2589224f5bcee3c4"
     },
     {
       "id": "catalogue-wifi-tag-placard-r1-detail",
@@ -1104,7 +1130,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "d58b4649fe97c46eb077b944f93f75f96071065951be42b15666e1bad1598b75",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "e8a985540db29c5c3602bcd4b5c53a81228c39f9b59f18bed7ca950c1cdd46d8"
+      "sha256": "77ad88ce3976a371f3375f27ea0039cd75567a08f858f54e9e9a12807ce87ced"
     },
     {
       "id": "catalogue-wifi-tag-keychain-r1",
@@ -1151,7 +1177,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "f150aed406917de46ecff8e07e5fbe760c395d601afc627bcd7770a9e27ecc7d",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "c91be79b4ceac88fa219e3ad78974e7b95766a8cf623b33115af27c7895c4be4"
+      "sha256": "f53253fdce2fdba1d7211e5315304b62d2ea64943deeb743bf093225eeb2c8e8"
     },
     {
       "id": "catalogue-wifi-tag-keychain-r1-detail",
@@ -1198,7 +1224,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "65e9b0c2fef65246469c4d1d5cad97c2b09b42d2b9554bcc5700b7c213513106",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "009a56777ed7e6823ac3035aa34250de176a90f6636bb76b53fb5379f9198b00"
+      "sha256": "f9a18dc52734710f4c5f092a166c2c596ffd23fdcadaf46379e98d055ce2664f"
     },
     {
       "id": "catalogue-wifi-tag-card-r1",
@@ -1245,7 +1271,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "50a39e3f7decfc7099b3754965826adf86a6c6f8d9a632c8f340ba02d2d1db7e",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "bf95335969a8edac86391aafdbdefdf7fe8f4e84159ca8d44796648fb592ca8e"
+      "sha256": "c312f1e385b82fc4e525aea27b841c63c8b85c7f77b0faad9cdacbe7677028ef"
     },
     {
       "id": "catalogue-wifi-tag-card-r1-detail",
@@ -1292,7 +1318,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "36fc7aa3ad3aa17772e55607cf5e832ea18cb587cc342a873b018457763b5ea8",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "2ffd6bddcadaaf93736ce6065861b82b64c87e51dbae847a2fe6b0ef9621a514"
+      "sha256": "60c49fcacc41a108a383e588b597d0a5eb640eb5836d3da063134db59defe667"
     },
     {
       "id": "catalogue-rating-card-toilet-r1",
@@ -1337,7 +1363,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "310ac3e39a640223b16800673b0075596315b56a151720c7bfece3cbd43d5495",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "dc180fafd72052e67c185421016b760c3a6aacf21da707558be4e67b4a2a0ec7"
+      "sha256": "7f28d5cb8c7b39214271f878ce85d37c8d28381c352d913be268872bdc01d501"
     },
     {
       "id": "catalogue-rating-card-toilet-r1-detail",
@@ -1382,7 +1408,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "4d1d2a18ef9767af465305ffb98176d85840beb5199deaaaefc9d3e15bb0726e",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "f343ea13dd6f5fda5b6787de76b006a7cb733a787eda8ec627fa131e3bde43aa"
+      "sha256": "0afb1d894626bd88a2befd5e7811b97c401c25433f76fcddb52f53d51b94c261"
     },
     {
       "id": "catalogue-rating-card-mug-r1",
@@ -1427,7 +1453,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "61075311db763c790eddd7e8ccd3ebc2195711a14c7cb91492f739a81355cd3f",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "9bccae7355fa8d41c57d4a6c142a01f4dff47d3abcfb9ecea72457d6eeca4b1f"
+      "sha256": "318d0641b36be8d87aa56621e98b5e76794a7fb4df40a62454b3ab4bf831fba8"
     },
     {
       "id": "catalogue-rating-card-mug-r1-detail",
@@ -1472,7 +1498,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "de02682ea4d0790b02c7a1f390978379f2c3b448863d6b2816e46ded343df776",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "17545569739e1107f103cb4ce1dc42d8f4963a3649bc6566873715449cda5cd4"
+      "sha256": "8a25df26b17c9e8ce92f07e2b83b6f38f6731b4db587a4f876032b943bdc5097"
     },
     {
       "id": "catalogue-rating-card-five-star-r1",
@@ -1517,7 +1543,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "65e13e46b61e2f1c2d0693caacf55c8d877a5d13b7ec0f6ff01ad00418563ba3",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "728eaf3f4a07c2a3f1c748e65fb81fa5074c3e493522a255165b92caf7cb259a"
+      "sha256": "9a2389e2c8e045ea094f06fe6d8d18a2b1c559ae66733ef884f275fd5f2192bf"
     },
     {
       "id": "catalogue-rating-card-five-star-r1-detail",
@@ -1562,7 +1588,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "7b3ba88637090627aa1956c4e23424180aa23495b22955ac8880cd91b0585886",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "38b0ad34b9f9bc8242a49e4a9a3b4abb7e48c2b8460c24ece82fd8cff2ed6113"
+      "sha256": "a9238e6d6fd837731dcb5b1ed9f3c43a8aa0d200382cb4f380c1eda56ac24544"
     },
     {
       "id": "catalogue-name-plate-classic-r1",
@@ -1598,7 +1624,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "147212f362df66ca5133e3a3225c689665808aa9a76265d4bdcc653571a26461",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "7cfc2946a0412034743ce367327bbe71075a24a914ab7d730415ce80152c1461"
+      "sha256": "5ab7642bcd4e02b81e0ade37f8cf43bf4dfc62f1c35d15f0039e090c591865d6"
     },
     {
       "id": "catalogue-name-plate-classic-r1-detail",
@@ -1634,7 +1660,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "b445805a2886d85fd1bc31a5484a89005a8e8694c8b22dd981e07a0e0e8c9c71",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "63f6bd7b7f1599b34b453b8e287075aa1e77232f6b2926a1146f2b84a1380474"
+      "sha256": "1f8e8eb287a86cd1d79a959e00973a3dd3f0d045700b35be5ad0dfe83eb0ec4a"
     },
     {
       "id": "catalogue-name-plate-keychain-r1",
@@ -1670,7 +1696,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "d4972a95306f719bf011d7c58fca715314fbe836f25c65e4e25969246f0164fb",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "fb459ab9b5529dd191faf9624f5dfe773c18d8851b29f36eac15a8040f979120"
+      "sha256": "fe90b49315a04cc1eca185266aa1d3f6c7ce8fc11150d9290041904216af8fe9"
     },
     {
       "id": "catalogue-name-plate-keychain-r1-detail",
@@ -1706,7 +1732,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "057714276840923d88c6cf3c9bfd469d4ef7e5bb874c52b94474e8179e1730d6",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "21479df2f25d4d357f81d14ffaf2ec9b4bf2f20b910faf71533c8270beb37e87"
+      "sha256": "6e225e01cc6caa4a49b68d675c8f27d653b892586b8bb0a79214a75a72b83c01"
     },
     {
       "id": "catalogue-name-plate-office-r1",
@@ -1742,7 +1768,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "7c462aad20dd727458d3dd66fcc8f729d6bbe99acc8ce4dab63b52a6065f78cf",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "936e2c4d098c07bde5d2d79b8787eabc5b00fd602d9061ec58635d8a096fcccd"
+      "sha256": "c13ddcc26ebc974beabf4e9e2e8257fa16b79ead6675020d65c3149dd0261efc"
     },
     {
       "id": "catalogue-name-plate-office-r1-detail",
@@ -1778,7 +1804,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "4683a395d7442011e0cd40aa7760ffb7e270e78580323c8b98a091b7a35cba19",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "11c1eee22551183a8174b315efa8ded8a2b124652a74c4126b85be35c5a14a39"
+      "sha256": "2f520351b19b37fda5f9d627b375cda01e6e515badaf0b9c42d63d1ba22f0852"
     },
     {
       "id": "catalogue-pumpkin-cute-r1",
@@ -1855,7 +1881,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "5ceca0d021135c933cf614c5ca6568a362f8dc0278573609735eb21af6f8ee50",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "112565ea4de4a8af2b991d1ad3606ab7cfd95a7b36488c69fabf1a6337ddbe83"
+      "sha256": "756c38876ae1290a2c360ecd8db3a6435f100dd698259581c8ae5fd2b6a3a340"
     },
     {
       "id": "catalogue-pumpkin-cute-r1-detail",
@@ -1932,7 +1958,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "621037e99d757445df7d02c540845db2c2b79b48856749ebee97dae468c48959",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "9f9b43720d108e018e990be4b0637f6825eebc17d393816d11516475100b2811"
+      "sha256": "dbb395e569ccfcbb9b7e2ea9fd14fb27efd4976ea34d04ae5466e1c886251af2"
     },
     {
       "id": "catalogue-pumpkin-witch-r1",
@@ -2009,7 +2035,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "f4a0a0f0bfc728a98c4e4f8632c9dc7271035a3609b95629b32e91f1f09e23bf",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "d60f9bb0bf765dd8b3499ac8b67904dc330ea8ca8b053a9b2effa12017a64b02"
+      "sha256": "2b6afca3e9ff5b08a8ba80891c784d752a73dc2ed16887ae7fc7381489046be9"
     },
     {
       "id": "catalogue-pumpkin-witch-r1-detail",
@@ -2086,7 +2112,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "8d1b6e08d48931724454fab03ffc9c815562fb603773d2bc3fadb19445a8054c",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "b796dbe58f77bca1ab37089289eb9e838539096b6ed1032c740cd511e86a87ca"
+      "sha256": "b386d416e5d78fefa4aba47ceef98f3a366f81f0e277ddaa388f01c7ae301b1c"
     },
     {
       "id": "catalogue-pumpkin-lattice-r1",
@@ -2163,7 +2189,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "2370b2d02122c17e26c40801def8f6138ad4197e1885f0ecc1cab92ecc0795d6",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "46254394345a0ed24ecd9865540b19fa6806210ff408755ffbfcd107848d832e"
+      "sha256": "fc5aaff87b8e0d334efaa35ff38ca0d42df8ad014017de2391e7c72e138648cb"
     },
     {
       "id": "catalogue-pumpkin-lattice-r1-detail",
@@ -2240,7 +2266,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "ed42d3a1cbbb85dde410c93bc5d418de3d642e1658a8e8c3313d8f0f94da60d2",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "c428431b5e66095740543eaa1bfaa4c1c05058dd348deefd59a8f6b5dc079098"
+      "sha256": "2d613111f5511a2d1f452e9863f023bd5f8bbb6063c582554a071cb759401863"
     },
     {
       "id": "catalogue-display-sign-starter-r1",
@@ -2510,7 +2536,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "7e2e04f8033e49ec6d9378a7a929bbbc6bb24bc8fc773b9625e3be3591ef9b16",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "927eab39bfeff204abe5ace41773b3d7a4ff8c7c0ee8ac04a07ce84a55e65fe6"
+      "sha256": "ae462056fcd42ae8a3cd5c2d3c90691736f2d2a9444454421cc0c1c572e8e693"
     },
     {
       "id": "catalogue-display-sign-starter-r1-detail",
@@ -2780,7 +2806,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "94c649ce267d477840262de999551cb7aa5ac8800f6b96d2b8f66e0bc91a4b7f",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "569cea7eefdd44f94ccf71967a489360fc9b05a22d5124b63a0f52e713ccd121"
+      "sha256": "06b0aa946886661ee166a17d70a8956dbb8b3e1994eb8ffbecb93c52ab9ea37e"
     },
     {
       "id": "catalogue-display-sign-no-cards-r1",
@@ -3050,7 +3076,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "d69329b3e3440933dbd9ea2e506ac7ebcff59cabd0df5b1eff8be3aaff294df8",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "a1f36d0fec6a2ea30d5a1341f5e96d80824372906e5facda465f6f3f8efc1310"
+      "sha256": "14bbbf0be86194d69d760f9a1943e0b44d8ed507a9a70cd29f9f574e47a338ea"
     },
     {
       "id": "catalogue-display-sign-no-cards-r1-detail",
@@ -3320,7 +3346,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "adba2ed75bf01f95bf319ae8f2aa704fe1f3c0cea26c41b774ee47fadda8200c",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "a9131fddbd79924a58d011469072f251baf82cc2cb6e15c4b52afe0e79c5aa6d"
+      "sha256": "016f02959549aa43656be2ee44a755e42b51823192ef1edbb279a26d3ae37203"
     },
     {
       "id": "catalogue-display-sign-sign-only-r1",
@@ -3590,7 +3616,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "ef4b3a8d3e7b3d670a040ceade9b3265c443f9563a6ff1351803e56552fffe53",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "90fc6ccc8f73678e679c4106b0314ed4a30d2d2253b9043dd8a7a69d4ec218da"
+      "sha256": "15bfdba70c43954b544e34c865b58f5bc32463d528ffffd682586282916fecc0"
     },
     {
       "id": "catalogue-display-sign-sign-only-r1-detail",
@@ -3860,7 +3886,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "ffe44021ec120b24b7c8c3a695d3eb46b0d9680be3e1b4fb5e052c47c4ac7cab",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "0480b6660613fd525963182c6921a4ffea597e65587700cd4c617921c17a3acf"
+      "sha256": "949ca540e439db87440bfb2601a9bc166b03c5827dfbbe62850074f3c4d4e1c7"
     },
     {
       "id": "catalogue-gridfinity-base-standard-r1",
@@ -3890,7 +3916,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "933adc90d306427ecae00c4c8f84d9ef0194abf89f7009f1392fce8d776c2ab7",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "80f443ef33f67ec5ba7c8c547059ba12f572bc2a7fed417808ad6837347e017f"
+      "sha256": "17e5c7ea0177a06167be1f8c67176702a9d27be3ba51404f54acebec87283bbf"
     },
     {
       "id": "catalogue-gridfinity-base-standard-r1-detail",
@@ -3920,7 +3946,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "c437204eb8db11e0856c8e78a4b19dcae7cbbd48b0d6c7af59701e31444ce701",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "d11312daa41ed448f46fbed05bb3334a4bcdfaa6dadf082d42d6eaaf2ae76d34"
+      "sha256": "59a2dad9002e276b25e85de50b6d35b245d9752f73b90b65571f516acdb83382"
     },
     {
       "id": "catalogue-gridfinity-base-light-r1",
@@ -3950,7 +3976,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "71fd37b02810545835a094baa5c572adf053ed6eab11b626a2f0feb1362ef922",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "81ab060015e2038df28c2c2f785da9237efbe8f605b4124c7f8fa644684e5e70"
+      "sha256": "39c2c02766890ef43ba894a24cd2d967f60e3dfb05a5b892f1394484dcbc9475"
     },
     {
       "id": "catalogue-gridfinity-base-light-r1-detail",
@@ -3980,7 +4006,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "ab1b5570cae8051513b3f31df6bd105a1044482d587029786e95b3748eb9654f",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "22495a90bd3659274db63b563e87403f8ab85ab9152477e79b0aae59129f0148"
+      "sha256": "f9d7c23a015641cf54d5daf79192f04aa62d6b6c78b59eebf0467c116daa1f20"
     },
     {
       "id": "catalogue-gridfinity-base-magnetic-r1",
@@ -4010,7 +4036,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "99e580cedeb5117e37ce98448d6a6a979f2024f4b7f4c4a9c09c71cf280abf01",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "d84c0ba4186b610e76d0edb78b83cd5c4d48e1f343354636845de14a230fe808"
+      "sha256": "4e4fc37320c15055813acf9450a753a620ede83077d2172e650ae14f7fc89add"
     },
     {
       "id": "catalogue-gridfinity-base-magnetic-r1-detail",
@@ -4040,7 +4066,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "a2ed19da840828267f8ec39719cbc40c71d47e19d690409be62711e9e4d48da7",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "5a9c78aad055af8d711264fb332637d5e54783783ae07766b1ca7a2702d26f9f"
+      "sha256": "40f37129585a2e5d792435dae4ac6667e9e732977b671e77fbffeea0a14ae4bd"
     },
     {
       "id": "catalogue-gridfinity-bin-standard-r1",
@@ -4071,7 +4097,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "68b30a0cdddcc184e095e1f60b1c41ba92ada90c2c27037de45e4dfb68bf7370",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "874f766a2e0bd60e6a8a603af5442f505faa8f27a43051530ca34df3c4135766"
+      "sha256": "48249665318cd1ebe60b8d4df56ce1dd9108e7c70bc15fb02bba966e94f9ea80"
     },
     {
       "id": "catalogue-gridfinity-bin-standard-r1-detail",
@@ -4102,7 +4128,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "fd5d15a787407ba917ecdd6700634ade561adbb488db4a41d9d4e2d3838f4a54",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "75bcefac486146c1289492d01bfcdb40cd1ac53378187c20981ae07881465f08"
+      "sha256": "a55ee1103d13522d790f4c7a0d1ebbc63a7f5cce32049dd20798e921dd2623f5"
     },
     {
       "id": "catalogue-gridfinity-bin-divided-r1",
@@ -4133,7 +4159,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "9a5fa5fbd5c4fb7108f36640f0027186c8c69d0592d858544c446d1a86f98579",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "475ba1dabd21745b9e66f532913bc4876827f4ef1077935f71a62b476da30e8d"
+      "sha256": "8ef09dd88c288ec1e2204c6b29b37603e627d1e2b40ba4c857d229e5d210c404"
     },
     {
       "id": "catalogue-gridfinity-bin-divided-r1-detail",
@@ -4164,7 +4190,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "42633577b546b76a58a82af28cc92961dd35e3e09297de974abcc1fc23a5c878",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "75371a7c3fb633a48f4dfb3236d10ee6e9391bbf5762d70833175d74c27a7a1e"
+      "sha256": "10a86b15e621dd276a0df219643950a9bc983c41da399a5dc92df92e72337284"
     },
     {
       "id": "catalogue-gridfinity-bin-labeled-r1",
@@ -4195,7 +4221,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "cf3cff0dd436a22357a2d05b53fd2c20c8fca3097053b2624432b2f14aa75710",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "3e65eb2264ac71131d2f5d07498f2887b5b7fd67554408704170e8651a9d69a1"
+      "sha256": "8d4f2f8029da5673c85a5b337b56955141030ab016b9dd5a5e1a34fc78950318"
     },
     {
       "id": "catalogue-gridfinity-bin-labeled-r1-detail",
@@ -4226,7 +4252,7 @@
       "renderer": "Blender Cycles",
       "meshSha256": "9c29c31876f526436dc1f76be70238809321b32b1db2361ca24979a5d2ee34e8",
       "studioSha256": "de36ea75a9c6c80f9e542c8fa48b6e12c50eb711d9fdc362f1abdf359d26bad8",
-      "sha256": "6fa92df15dc963bbef3fed5c54c64992587a30107b3a6696488f7e1494a05a56"
+      "sha256": "d546f4684cd34e86bac118b2a41bc424fa835c25f7acf2832f416ce742226044"
     }
   ]
 }

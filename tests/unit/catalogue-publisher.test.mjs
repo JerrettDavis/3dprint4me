@@ -13,7 +13,7 @@ import { createLocalCatalogueRepository } from '../../lib/product-catalogue/loca
 import { createCatalogueApplication } from '../../lib/product-catalogue/application.js';
 import { createCatalogueWorker } from '../../lib/product-catalogue/worker.js';
 
-const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true }).trim();
+const git = (cwd, ...args) => execFileSync('git', cwd.endsWith('remote.git') ? ['--git-dir', cwd, ...args] : args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true }).trim();
 async function fixture(t, existing = [PRODUCTS.find(p => p.id === 'name-plate-classic')]) {
   const root = await mkdtemp(join(tmpdir(), 'catalogue-publish-'));
   t.after(() => rm(root, { recursive: true, force: true }));

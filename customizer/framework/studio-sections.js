@@ -1,5 +1,7 @@
 // Presentation only. Every schema field belongs to exactly one broad editing section.
 const PLANS = {
+  'skull-keychain': [['head', 'Head & face', ['head', 'face']], ['attachment', 'Keyring attachment', ['loop']]],
+  'skeleton-figure': [['body', 'Body & assembly', ['body', 'suit', 'joints']], ['head', 'Head & bow', ['head', 'face', 'bow']], ['limbs', 'Arms & legs', ['arms', 'legs']]],
   pumpkin: [['appearance', 'Design & appearance', ['hat', 'colors', 'face', 'surface']], ['construction', 'Size & construction', ['type', 'size', 'ribs', 'stem']]],
   'gridfinity-bin': [['layout', 'Size & layout', ['size', 'inside']], ['construction', 'Construction & finish', ['construction', 'colors']]],
   'gridfinity-base': [['layout', 'Size & layout', ['size']], ['construction', 'Construction & finish', ['base', 'colors']]],
@@ -11,8 +13,9 @@ const DEFAULT = [['content', 'Content & details', ['text', 'network', 'rating', 
 export function editingSections(generator) {
   const plan = PLANS[generator.id] ?? DEFAULT;
   const result = plan.map(([key, label]) => ({ key, label, keys: [] }));
+  const anatomy = generator.id === 'skull-keychain' || generator.id === 'skeleton-figure';
   for (const [key, def] of Object.entries(generator.schema)) {
-    const index = generator.id === 'pumpkin' && key === 'body_source' ? 0 : plan.findIndex(([, , groups]) => groups.includes(def.group));
+    const index = generator.id === 'pumpkin' && key === 'body_source' ? 0 : plan.findIndex(([, , groups]) => groups.includes(anatomy ? def.section : def.group));
     result[index < 0 ? result.length - 1 : index].keys.push(key);
   }
   return result;
