@@ -40,7 +40,7 @@
 .cz-guided .cz-field>.help{font-size:.75rem;line-height:1.5}
 .cz-guided .cz-field-bool .cz-option-art{width:62px;height:46px;flex:none}.cz-guided .cz-field-bool .cz-inline{flex-wrap:nowrap;align-items:center}
 .cz-guided:not([data-editing="all"]) #cz-mode{display:none}
-.cz-guided:not([data-editing="appearance"]):not([data-editing="layout"]):not([data-editing="form"]):not([data-editing="content"]):not([data-editing="all"]) .cz-designs{display:none}
+.cz-guided:not([data-editing="appearance"]):not([data-editing="layout"]):not([data-editing="form"]):not([data-editing="content"]):not([data-editing="head"]):not([data-editing="body"]):not([data-editing="all"]) .cz-designs{display:none}
 .cz-guided .cz-designs{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;padding:.5rem 0 1rem;margin:0}
 .cz-guided .cz-designs-head{gap:.5rem}.cz-guided .cz-designs-title{font-size:1rem}.cz-guided .cz-design-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}.cz-guided .cz-design{padding:.5rem}.cz-guided .cz-design-blurb{font-size:.75rem}.cz-guided .cz-design-image{border-radius:5px}.cz-guided .cz-designs-list{max-height:480px;overflow:auto}
 .cz-guided .cz-random-help{font-size:.7rem;line-height:1.4;margin:.5rem 0}

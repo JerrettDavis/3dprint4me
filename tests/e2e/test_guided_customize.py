@@ -174,6 +174,19 @@ def test_grouped_visual_choice_keyboard_review_and_mobile_state(browser, base_ur
     finally:
         context.close()
 
+@pytest.mark.parametrize('generator_id',['skull-keychain','skeleton-figure'])
+def test_anatomy_sections_keep_starter_designs_accessible(page,base_url,generator_id):
+    page.goto(f'{base_url}/customize/g/{generator_id}/')
+    ready(page)
+    toggle=page.locator('#cz-designs-toggle')
+    expect(toggle).to_be_visible()
+    if toggle.get_attribute('aria-expanded') != 'true':
+        toggle.click()
+    design=page.locator('button.cz-design').last
+    design.click()
+    ready(page)
+    expect(design).to_have_attribute('aria-pressed','true')
+
 def test_guided_review_never_includes_wifi_secret(page,base_url):
     page.goto(f'{base_url}/customize/g/wifi-tag/')
     page.get_by_label('Network password',exact=True).fill('private-guided-secret')
