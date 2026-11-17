@@ -17,6 +17,17 @@ for (const generator of Object.values(GENERATORS)) {
 test('future schema groups fall back without losing controls', () => {
   assert.ok(editingSections({ id: 'unknown', schema: { future: { group: 'future' } } }).flatMap(s => s.keys).includes('future'));
 });
+test('skeleton controls follow anatomy rather than putting every numeric field in one section', () => {
+  const sections = editingSections(GENERATORS['skeleton-figure']);
+  const sectionFor = key => sections.find(s => s.keys.includes(key)).key;
+  for (const key of ['assembly', 'body_depth_mm', 'pinstripes', 'joint_coupon', 'fit_coupon']) assert.equal(sectionFor(key), 'body');
+  for (const key of ['head_width_mm', 'eye_size_pct', 'bow', 'bow_color']) assert.equal(sectionFor(key), 'head');
+  for (const key of ['upper_arm_mm', 'finger_width_mm', 'knee_bend_deg', 'foot_length_mm']) assert.equal(sectionFor(key), 'limbs');
+  const keychain = editingSections(GENERATORS['skull-keychain']);
+  assert.ok(keychain[0].keys.includes('head_width_mm'));
+  assert.ok(keychain[0].keys.includes('multicolor'));
+  assert.deepEqual(keychain[1].keys, ['attachment', 'hole_diameter_mm', 'loop_wall_mm']);
+});
 test('review excludes sensitive, transient and invisible fields', () => {
   const generator = { schema: { secret: { sensitive: true }, temp: { transient: true }, hidden: { visibleWhen: { enabled: true } }, color: { type: 'color', label: 'Body' } } };
   assert.deepEqual(reviewEntries(generator, { secret: 'PRIVATE', temp: 'TEMP', hidden: 'HIDDEN', color: '#008e95' }), [{ key: 'color', label: 'Body', value: '#008e95' }]);

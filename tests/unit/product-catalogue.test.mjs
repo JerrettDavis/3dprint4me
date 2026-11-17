@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateProduct, productHref, resolveProductLink } from '../../public/assets/js/catalogue/contract.js';
-import { getGenerator, listPublicGenerators } from '../../public/assets/js/customize/registry.js';
+import { getGenerator } from '../../public/assets/js/customize/registry.js';
 import { sensitiveKeys } from '../../public/assets/js/customize/schema.js';
 import { launchProducts } from '../../scripts/catalogue-seeds.mjs';
 
@@ -82,11 +82,14 @@ test('withdrawal also blocks older pinned links, including after a later republi
   assert.equal(resolveProductLink(g, '?product=little-witch&revision=3', [original, withdrawal, republished]).status, 'ready');
 });
 
-test('thirty launch candidates cover all generators with valid distinct safe settings', () => {
+test('thirty approved launch candidates retain their original generator coverage and valid distinct safe settings', () => {
   const products = launchProducts();
+  const launchIds = ['vase', 'infinity-fidget', 'route-shield', 'wifi-tag', 'rating-card', 'name-plate', 'pumpkin', 'display-sign', 'gridfinity-base', 'gridfinity-bin'];
   assert.equal(products.length, 30);
   assert.equal(new Set(products.map(p => p.id)).size, 30);
-  for (const g of listPublicGenerators()) {
+  assert.deepEqual([...new Set(products.map(p => p.generatorId))].sort(), [...launchIds].sort());
+  for (const id of launchIds) {
+    const g = getGenerator(id);
     const entries = products.filter(p => p.generatorId === g.id);
     assert.equal(entries.length, 3, g.id);
     assert.equal(new Set(entries.map(p => JSON.stringify(p.params))).size, 3, g.id);

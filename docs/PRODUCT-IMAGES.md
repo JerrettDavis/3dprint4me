@@ -2,7 +2,7 @@
 
 ## Current reproducible studio renders (November 12, 2026)
 
-All eight public customizer categories without a printed photograph now use Blender Cycles renders of the actual generator's finished-preview geometry. Route shield and Display sign retain their printed photographs. The historical AI prompts and capture instructions below describe superseded assets, not the current shipped images.
+All ten public customizer categories without a printed photograph now use Blender Cycles renders of the actual generator's finished-preview geometry. Route shield and Display sign retain their printed photographs. The historical AI prompts and capture instructions below describe superseded assets, not the current shipped images.
 
 Install the repository's Node dependencies (`npm ci`), Python Pillow (`python -m pip install Pillow`) and Blender 5.2 (the reviewed run used 5.2.3 LTS). Run `npm run products:render`. The command resolves Blender from `BLENDER_BIN`, PATH, or its standard Windows 5.2 installation. It fails if a build or render fails. No renderer runs in the production site. CPU rendering is the portable default. Set `PRODUCT_RENDER_DEVICE=OPTIX` (NVIDIA RTX) or `CUDA` for a supported local GPU; unsupported or unavailable devices fail explicitly rather than silently falling back. The reviewed November 12 regeneration used Blender 5.2.3 LTS with OptiX on an RTX 4090.
 

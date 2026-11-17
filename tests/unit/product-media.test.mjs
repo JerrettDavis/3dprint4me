@@ -10,7 +10,7 @@ const cards = [...home.matchAll(/<a class="cat-tile"[\s\S]*?<\/a>/g)].map(m => m
 test('every public generator has the same representative local image on both browsing catalogs', () => {
   const catalog = renderCatalogHtml(listPublicGenerators());
   for (const g of listPublicGenerators()) {
-    const homeCard = cards.find(c => c.includes(`href="/shop/?generator=${g.id}"`));
+    const homeCard = cards.find(c => c.includes(`href="/shop/?generator=${g.id}"`) || c.includes(`href="/customize/g/${g.id}/"`));
     assert.ok(homeCard, `${g.id} discoverable on home`);
     const catalogCard = catalog.split('<li class="cz-card">').find(c => c.includes(`href="/customize/g/${g.id}/"`));
     const image = homeCard.match(/<img[^>]+src="([^"]+)"[^>]+alt="([^"]+)"/);
@@ -26,7 +26,7 @@ test('every public generator has the same representative local image on both bro
 });
 
 test('all home products have shipped raster images and name plate does not reuse display sign', () => {
-  assert.equal(cards.length, 14);
+  assert.equal(cards.length, listPublicGenerators().length + 4);
   for (const card of cards) {
     const src = card.match(/<img[^>]+src="([^"]+)"/)?.[1];
     assert.ok(src?.startsWith('/assets/images/'), card);

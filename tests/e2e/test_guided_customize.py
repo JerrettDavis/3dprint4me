@@ -98,7 +98,7 @@ def test_preview_unavailable_keeps_ready_print_file_without_a_spinner(page, base
     expect(page.locator('#cz-continue')).to_be_enabled()
 
 
-@pytest.mark.parametrize('generator_id', ['pumpkin','route-shield','wifi-tag','rating-card','name-plate','display-sign','gridfinity-base','gridfinity-bin','infinity-fidget','vase'])
+@pytest.mark.parametrize('generator_id', ['pumpkin','route-shield','wifi-tag','rating-card','name-plate','display-sign','gridfinity-base','gridfinity-bin','infinity-fidget','vase','skull-keychain','skeleton-figure'])
 def test_guided_default_builds_with_one_panel_and_complete_navigation(page, base_url, generator_id):
     page.goto(f'{base_url}/customize/g/{generator_id}/')
     if generator_id == 'wifi-tag':
@@ -118,6 +118,39 @@ def test_guided_default_builds_with_one_panel_and_complete_navigation(page, base
     expect(page.locator('#cz-review-specification')).to_be_visible()
     expect(page.locator('#cz-win-settings')).to_be_hidden()
     expect(page.locator('#cz-facts-list')).to_be_visible()
+
+@pytest.mark.parametrize('scheme', ['light', 'dark'])
+def test_skeleton_guided_sections_preserve_assembly_and_limb_edits_on_mobile(browser, base_url, scheme):
+    context = browser.new_context(viewport={'width': 390, 'height': 844}, color_scheme=scheme, reduced_motion='reduce')
+    page = context.new_page()
+    try:
+        page.goto(f'{base_url}/customize/g/skeleton-figure/')
+        ready(page)
+        nav = page.get_by_role('navigation', name='Design sections')
+        expect(nav.get_by_role('button', name='Body & assembly', exact=True)).to_have_attribute('aria-current', 'step')
+        expect(page.locator('#cz-head_width_mm')).to_be_hidden()
+        page.get_by_role('radio', name='Interlocked flexi figure', exact=True).focus()
+        page.keyboard.press('Space')
+        ready(page)
+        expect(page.locator('#cz-assembly')).to_have_value('flex')
+        expect(page.locator('#cz-bow')).to_have_value('none')
+        expect(page.locator('#cz-joint_clearance_mm')).to_be_visible()
+        nav.get_by_role('button', name='Arms & legs', exact=True).click()
+        page.locator('#cz-elbow_bend_deg').fill('26')
+        page.locator('#cz-elbow_bend_deg').press('Tab')
+        expect(page.locator('#cz-form:not([data-settling])')).to_be_attached(timeout=BUILD_TIMEOUT)
+        ready(page)
+        nav.get_by_role('button', name='Review design', exact=True).click()
+        expect(page.locator('#cz-review-specification')).to_contain_text('Interlocked flexi figure')
+        expect(page.locator('#cz-warnings')).to_contain_text('Test the joint coupon first')
+        nav.get_by_role('button', name='Arms & legs', exact=True).click()
+        expect(page.locator('#cz-elbow_bend_deg')).to_have_value('26')
+        nav.get_by_role('button', name='Head & bow', exact=True).click()
+        expect(page.locator('#cz-head_width_mm')).to_be_visible()
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        expect(page.locator('#cz-continue')).to_be_enabled()
+    finally:
+        context.close()
 
 @pytest.mark.parametrize('scheme',['light','dark'])
 def test_grouped_visual_choice_keyboard_review_and_mobile_state(browser, base_url, scheme):

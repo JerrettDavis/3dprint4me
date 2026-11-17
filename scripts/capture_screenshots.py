@@ -253,6 +253,12 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Display sign realistic · desktop · light", "/customize/g/display-sign/", "customize-realistic-display-sign-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, show_realistic_preview),
             ("Customize catalog · desktop · light", "/customize/", "customize-catalog-desktop-light.png", (1440, 1000), "light", None, None),
             ("Customize catalog · mobile · dark", "/customize/", "customize-catalog-mobile-dark.png", (390, 844), "dark", None, None),
+            ("Skull keychain · desktop · light", "/customize/g/skull-keychain/", "customize-skull-keychain-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Skull keychain · mobile · dark", "/customize/g/skull-keychain/", "customize-skull-keychain-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, show_mobile_model),
+            ("Skeleton figure · desktop · light", "/customize/g/skeleton-figure/", "customize-skeleton-figure-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Skeleton threaded · desktop · dark", "/customize/g/skeleton-figure/", "customize-skeleton-threaded-desktop-dark.png", (1440, 1000), "dark", GENERATOR_READY, skeleton_design("Screw-on head")),
+            ("Skeleton flexi · desktop · light", "/customize/g/skeleton-figure/", "customize-skeleton-flexi-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, skeleton_design("Interlocked flexi skeleton")),
+            ("Skeleton flexi · mobile · dark", "/customize/g/skeleton-figure/", "customize-skeleton-flexi-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, skeleton_design("Interlocked flexi skeleton", mobile=True)),
             ("Route shield · desktop · light", "/customize/g/route-shield/", "customize-route-shield-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
             ("Route multiline and heading · desktop · light", "/customize/g/route-shield/", "customize-route-heading-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, route_heading),
             ("Route multiline and heading · mobile · dark", "/customize/g/route-shield/", "customize-route-heading-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, route_heading),
@@ -365,6 +371,20 @@ def capture_customize_loading_states() -> list[tuple[str, Path]]:
 def show_realistic_preview(page) -> None:
     page.get_by_role('button', name='Realistic preview', exact=True).click()
     page.wait_for_selector('#cz-stage[data-presentation-state="ready"][data-presentation="realistic"]', timeout=30000)
+
+
+def show_mobile_model(page):
+    page.get_by_role("tab", name="Front", exact=True).click()
+
+
+def skeleton_design(label: str, *, mobile: bool = False):
+    def prepare(page):
+        page.evaluate("""(label) => { const n = [...document.querySelectorAll('.cz-design-name')].find(e => e.textContent.trim() === label); n.closest('button').click(); }""", label)
+        page.locator("#cz-form:not([data-settling])").wait_for(timeout=30000)
+        page.locator(GENERATOR_READY).wait_for(timeout=30000)
+        if mobile:
+            show_mobile_model(page)
+    return prepare
 
 
 def show_3d_preview(page) -> None:

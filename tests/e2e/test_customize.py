@@ -21,7 +21,7 @@ BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
 DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 9}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 9, "skull-keychain": 4, "skeleton-figure": 6}
 
 
 @pytest.mark.parametrize('shape', ['cube', 'rectangular', 'spherical', 'triangle'])
@@ -329,9 +329,9 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
     requests = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.on('request', lambda request: requests.append(request.url))
-    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin', 'infinity-fidget', 'vase']
+    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin', 'infinity-fidget', 'vase', 'skull-keychain', 'skeleton-figure']
     try:
-        for path, selector, count in [('/', '.cat-tile', 14), ('/customize/', '.cz-card', 10)]:
+        for path, selector, count in [('/', '.cat-tile', 16), ('/customize/', '.cz-card', 12)]:
             requests.clear()
             page.goto(base_url + path)
             expect(page.locator(selector)).to_have_count(count)
@@ -343,9 +343,9 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
                 assert img.evaluate('(img) => img.naturalWidth') >= 600
                 assert len(img.get_attribute('alt')) > 20
             for id in ids:
-                href = f'/shop/?generator={id}' if path == '/' else f'/customize/g/{id}/'
+                href = f'/shop/?generator={id}' if path == '/' and id not in ('skull-keychain', 'skeleton-figure') else f'/customize/g/{id}/'
                 assert page.locator(f'{selector} a[href="{href}"], a{selector}[href="{href}"]').count() == 1
-            assert page.locator(selector).filter(has_text='Illustrative render').count() == 8
+            assert page.locator(selector).filter(has_text='Illustrative render').count() == 10
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert not page.workers
             assert not any('.wasm' in url or '/worker-' in url for url in requests)
@@ -1344,6 +1344,8 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         key, label, value = "columns", None, str(1 + int(token[:4], 16) % 6)
     elif generator_id == "vase":
         key, label, value = "height_mm", None, str(100 + int(token[:4], 16) % 100)
+    elif generator_id in ("skull-keychain", "skeleton-figure"):
+        key, label, value = "head_width_mm", None, str(38 + int(token[:4], 16) % 27)
     else:  # a new generator needs a flow here (see test_the_matrix_covers_every_registered_generator)
         pytest.fail(f"No matrix flow for generator {generator_id}")
     if label is None:
@@ -2013,6 +2015,67 @@ def test_name_plate_offers_common_names_and_randomizes_to_a_buildable_plate(page
 def pick_design(page: Page, label: str) -> None:
     page.evaluate("""(label) => { const n = [...document.querySelectorAll('.cz-design-name')].find(e => e.childNodes[0].textContent.trim() === label); n.closest('button').click(); }""", label)
     wait_settled(page)
+
+
+def test_skeleton_assembly_controls_build_interlocked_and_thread_coupons(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/skeleton-figure/")
+    wait_ready(page)
+    expect(page.get_by_role("tab", name="3D")).to_have_attribute("aria-selected", "true")
+    for field, value in [("elbow_bend_deg", "30"), ("knee_bend_deg", "14")]:
+        page.locator(f"#cz-{field}").fill(value)
+        page.locator(f"#cz-{field}").press("Tab")
+        wait_settled(page)
+    expect(page.locator("#cz-warnings")).to_contain_text("Elbows and knees are sculpted")
+    page.locator("#cz-assembly").select_option("flex")
+    wait_settled(page)
+    expect(page.locator("#cz-bow")).to_have_value("none")
+    expect(page.locator("[data-field='joint_clearance_mm']")).to_be_visible()
+    expect(page.locator("[data-field='thread_clearance_mm']")).to_be_hidden()
+    page.locator("#cz-limb_width_mm-range").focus()
+    page.keyboard.press("ArrowRight")
+    page.keyboard.press("Tab")
+    wait_settled(page)
+    expect(page.locator("#cz-limb_width_mm")).to_have_value("7.5")
+    page.locator("#cz-joint_coupon").check()
+    wait_settled(page)
+    expect(page.locator("#cz-facts-list")).to_contain_text("7.6")
+    expect(page.locator("#cz-warnings")).to_contain_text("Rigid interlocked links, not TPU")
+    page.locator("#cz-assembly").select_option("threaded")
+    wait_settled(page)
+    expect(page.locator("#cz-head_depth_mm")).to_have_value("33.5")
+    expect(page.locator("[data-field='joint_clearance_mm']")).to_be_hidden()
+    expect(page.locator("[data-field='thread_clearance_mm']")).to_be_visible()
+    page.locator("#cz-fit_coupon").check()
+    wait_settled(page)
+    expect(page.locator("#cz-warnings")).to_contain_text("fit coupon first")
+    expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
+    saved = json.loads(page.evaluate("sessionStorage.getItem('3dp-customize:skeleton-figure:v6')"))
+    assert saved["assembly"] == "threaded" and saved["fit_coupon"] is True
+    assert saved["elbow_bend_deg"] == 30 and saved["knee_bend_deg"] == 14
+    page.reload()
+    wait_ready(page)
+    expect(page.locator("#cz-fit_coupon")).to_be_checked()
+    expect(page.locator("#cz-elbow_bend_deg")).to_have_value("30")
+    expect(page.locator("#cz-knee_bend_deg")).to_have_value("14")
+
+
+def test_skull_attachment_and_face_controls_rebuild_without_remote_requests(page: Page, base_url: str) -> None:
+    requests: list[str] = []
+    page.on("request", lambda r: requests.append(r.url))
+    page.goto(f"{base_url}/customize/g/skull-keychain/")
+    wait_ready(page)
+    pick_design(page, "Forehead hole")
+    expect(page.locator("#cz-attachment")).to_have_value("hole")
+    page.locator("#cz-multicolor").uncheck()
+    wait_settled(page)
+    expect(page.locator("#cz-color-badge")).to_have_text("1 color")
+    page.get_by_role("button", name="Advanced", exact=True).click()
+    expect(page.locator("[data-field='eye_size_pct']")).to_be_visible()
+    page.locator("#cz-eye_size_pct").fill("110")
+    page.locator("#cz-eye_size_pct").press("Tab")
+    wait_settled(page)
+    expect(page.get_by_role("button", name="Continue to request")).to_be_enabled()
+    assert not [u for u in requests if not u.startswith((base_url, "blob:", "data:"))]
 
 
 def test_the_pumpkin_starts_simple_and_advanced_shows_the_shape_controls(page: Page, base_url: str) -> None:

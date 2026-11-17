@@ -8,6 +8,8 @@
     { "id": "infinity-fidget", "params": {}, "elevation": 35, "azimuth": -65 },
     { "id": "gridfinity-base", "params": {}, "elevation": 48, "azimuth": -65 },
     { "id": "gridfinity-bin", "params": {}, "elevation": 40, "azimuth": -65 },
-    { "id": "vase", "params": { "construction": "hollow" }, "elevation": 22, "azimuth": -65 }
+    { "id": "vase", "params": { "construction": "hollow" }, "elevation": 22, "azimuth": -65 },
+    { "id": "skull-keychain", "params": {}, "elevation": 60, "azimuth": -90 },
+    { "id": "skeleton-figure", "params": {}, "elevation": 70, "azimuth": -90 }
   ]
 }
