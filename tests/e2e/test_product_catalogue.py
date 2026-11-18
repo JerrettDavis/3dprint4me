@@ -79,6 +79,107 @@ def test_home_product_category_opens_a_pictured_collection(catalogue_browser, ca
         expect(page.locator('.catalogue-card:visible')).to_have_count(3)
         expect(page.locator('.catalogue-card:visible')).to_contain_text(['pumpkin', 'pumpkin', 'pumpkin'])
 
+
+@pytest.mark.parametrize("width", [1920, 2560, 3440])
+@pytest.mark.parametrize("scheme", ["light", "dark"])
+def test_catalogue_uses_wide_space_but_keeps_product_details_readable(catalogue_browser, catalogue_url, width, scheme):
+    with catalogue_browser.new_context(viewport={"width": width, "height": 1080}, color_scheme=scheme, reduced_motion="reduce") as context:
+        page = context.new_page()
+        page.goto(catalogue_url + "/shop/")
+        assert page.locator(".catalogue-page").bounding_box()["width"] >= width * .9
+        first_width = page.locator(".catalogue-card").first.bounding_box()["width"]
+        assert 280 <= first_width <= 400
+        for selector, token in [(".catalogue-card a", "--radius-md"), (".catalogue-card img", "--radius-md"), (".catalogue-filters input", "--radius-sm")]:
+            assert page.locator(selector).first.evaluate("""(element, token) =>
+                getComputedStyle(element).borderRadius ===
+                getComputedStyle(document.documentElement).getPropertyValue(token).trim()
+            """, token)
+        assert page.locator(".catalogue-grid").evaluate("""element => {
+            const style = getComputedStyle(element);
+            return parseFloat(style.columnGap) >= 24 && parseFloat(style.rowGap) >= 40;
+        }""")
+        assert page.locator(".catalogue-card-copy").first.evaluate("element => parseFloat(getComputedStyle(element).paddingTop) >= 24")
+        page.get_by_label("Find a design", exact=True).fill("witch")
+        expect(page.locator(".catalogue-card:visible")).to_have_count(1)
+        assert abs(page.locator(".catalogue-card:visible").bounding_box()["width"] - first_width) <= 1
+        assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+        page.locator(".catalogue-card:visible a").click()
+        assert 1256 < page.locator(".catalogue-page").bounding_box()["width"] <= 1600
+        expect(page.get_by_role("link", name="Request this design", exact=True)).to_be_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+
+
+@pytest.mark.parametrize("route,selector", [("/", "#shop-grid .cat-tile"), ("/shop/", ".catalogue-card")])
+@pytest.mark.parametrize("motion,observer_available", [("no-preference", True), ("reduce", True), ("no-preference", False)])
+def test_product_tiles_enter_individually_without_blocking_focus_or_reduced_motion(catalogue_browser, catalogue_url, route, selector, motion, observer_available):
+    with catalogue_browser.new_context(viewport={"width": 3440, "height": 600}, reduced_motion=motion) as context:
+        if not observer_available:
+            context.add_init_script("delete window.IntersectionObserver")
+        page = context.new_page()
+        page.goto(catalogue_url + route)
+        page.locator(selector).first.evaluate("element => element.scrollIntoView({block: 'start', behavior: 'instant'})")
+        if motion == "reduce" or not observer_available:
+            page.evaluate("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
+            assert page.locator(selector).evaluate_all("tiles => tiles.every(tile => getComputedStyle(tile).opacity === '1')")
+            assert page.locator(".tile-entering").count() == 0
+            return
+        page.wait_for_function("""selector => {
+            const animations = document.getAnimations().filter(animation =>
+                animation.animationName === 'tile-enter' && animation.effect.target.matches(selector));
+            if (animations.length < 2) return false;
+            animations.forEach(animation => animation.pause());
+            return true;
+        }""", arg=selector)
+        timing = page.evaluate("""() => document.getAnimations()
+            .filter(animation => animation.animationName === 'tile-enter')
+            .map(animation => ({delay: animation.effect.getTiming().delay, duration: animation.effect.getTiming().duration}))""")
+        assert len({animation["delay"] for animation in timing}) == len(timing)
+        assert max(animation["delay"] for animation in timing) <= 300
+        assert all(200 <= animation["duration"] <= 500 for animation in timing)
+        first = page.locator(selector).first
+        first.evaluate("element => (element.matches('a') ? element : element.querySelector('a')).focus()")
+        assert first.evaluate("element => getComputedStyle(element).opacity === '1'")
+        page.evaluate("() => document.getAnimations().filter(animation => animation.animationName === 'tile-enter').forEach(animation => animation.finish())")
+        assert page.locator(selector).evaluate_all("tiles => tiles.every(tile => getComputedStyle(tile).opacity === '1')")
+
+
+@pytest.mark.parametrize("route,selector", [("/", "#shop-grid .cat-tile"), ("/shop/", ".catalogue-card")])
+def test_filter_and_reset_replay_previously_seen_tiles(catalogue_browser, catalogue_url, route, selector):
+    with catalogue_browser.new_context(viewport={"width": 3440, "height": 1080}) as context:
+        page = context.new_page()
+        page.goto(catalogue_url + route)
+        page.locator(selector).first.evaluate("element => element.scrollIntoView({block: 'start', behavior: 'instant'})")
+        page.wait_for_function("() => document.getAnimations().filter(animation => animation.animationName === 'tile-enter').length >= 2")
+        page.evaluate("""() => document.getAnimations()
+            .filter(animation => animation.animationName === 'tile-enter')
+            .forEach(animation => { animation.effect.target.dataset.previouslySeen = 'true'; animation.finish(); })""")
+        if route == "/":
+            page.locator('[data-purpose-filter="business"]').click()
+            search, reset = page.locator("#shop-search"), page.locator("#shop-reset")
+        else:
+            page.get_by_label("Find a design", exact=True).fill("vase")
+            search, reset = page.get_by_label("Find a design", exact=True), page.locator("#catalogue-reset")
+        page.wait_for_function("""() => {
+            const animations = document.getAnimations().filter(animation =>
+                animation.animationName === 'tile-enter' && animation.effect.target.dataset.previouslySeen === 'true');
+            if (animations.length < 2) return false;
+            animations.forEach(animation => animation.pause());
+            return true;
+        }""")
+        assert page.locator(f"{selector}:visible").count() >= 2
+        search.fill("unmatched zebra")
+        assert page.locator(f"{selector}:visible").count() == 0
+        assert page.locator(".tile-entering").count() == 0
+        reset.click()
+        page.wait_for_function("() => document.getAnimations().filter(animation => animation.animationName === 'tile-enter').length >= 2")
+        page.emulate_media(reduced_motion="reduce")
+        page.wait_for_function("() => document.querySelectorAll('.tile-entering').length === 0")
+        search.fill("vase" if route == "/shop/" else "name")
+        assert page.locator(f"{selector}:visible").count() >= 1
+        assert page.locator(f"{selector}:visible").evaluate_all("tiles => tiles.every(tile => getComputedStyle(tile).opacity === '1')")
+        assert page.locator(".tile-entering").count() == 0
+
+
 @pytest.mark.parametrize('width,scheme', [(1440, 'light'), (390, 'dark')])
 def test_owner_publication_controls_show_pending_then_verified_withdrawal(catalogue_browser, width, scheme):
     with running_operator_workspace() as (_, operator, _):

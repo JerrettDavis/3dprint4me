@@ -59,6 +59,48 @@ The visual system is based on a workshop dashboard rather than a novelty maker s
 
 The voice is direct, practical, and specific. It avoids exaggerated claims, fake precision, and generic phrases such as "bringing dreams to life."
 
+### Storefront refinement foundation
+
+The homepage leads with the collection and a secondary path for an existing 3D
+file. Printed examples remain distinct from illustrative renders. A short
+expectations strip explains customization and human confirmation of price and
+timing; browsing is not checkout and estimates remain non-binding.
+
+Storefront panels and product cards use modest rounded corners and the existing
+shared blue/teal light/dark tokens, without new fonts, tracking or dependencies.
+Use the shared radius scale throughout the storefront: 8px for controls and
+small labels, 12px for cards and images, and 16px for panels and dialogs.
+Circles and pill-shaped progress/status elements keep their semantic shapes;
+connected media inside a rounded card is clipped by the parent rather than
+adding another set of corners.
+On mobile, service navigation and purpose filters wrap instead of requiring
+horizontal scrolling. Product descriptions and search inputs remain at least
+16px. Preserve these foundations when extending the shop; do not imply stock,
+instant fulfillment, verified reviews or final pricing without supporting data.
+
+Desktop page frames are fluid, with 32-64px responsive side gutters rather than
+a fixed 1256px cap. Home and shop grids add columns as space becomes available;
+filtering keeps the card width stable instead of stretching a lone result.
+Keep reading and decision surfaces bounded within that frame: legal copy stays
+at 860px, project intake at 1400px, and product detail pages at 1600px. Tablet
+and phone gutters and their existing column changes remain intact.
+
+At desktop widths of 1440px and above, give objects more room rather than
+enlarging those outer gutters: product rows have 40-64px gaps, columns have
+24-48px gaps, and homepage cards have 24-32px of internal padding. Wider
+minimum card tracks reduce crowding while section spacing, filter controls,
+and media-to-copy spacing grow independently. Compact layouts retain their
+existing spacing so this breathing room does not push mobile actions away.
+
+Product tiles enter individually on reaching the viewport: a short fade and
+20px rise, staggered by up to 60ms with a 300ms maximum delay. Content stays visible
+without JavaScript or IntersectionObserver; reduced-motion users get no
+entrance or lift effect, and keyboard focus immediately settles an entering
+tile. Hover and focus transitions do not change layout bounds. Sidebar headings
+have a distinct gap before their controls, including "Shop by purpose."
+Filter, search, and reset changes replay the stagger for visible results,
+including tiles the visitor has already seen; hidden results do not animate.
+
 ## Information architecture
 
 | Route | Customer question answered |
