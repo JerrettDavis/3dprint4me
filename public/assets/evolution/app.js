@@ -1,8 +1,8 @@
-import '../js/site.js?v=38f5a1beb7fb2f67';
-import { revealTiles } from '../js/tile-motion.js?v=38f5a1beb7fb2f67';
-import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=38f5a1beb7fb2f67';
-import { PROJECTS, INTENT_LABELS } from './projects.js?v=38f5a1beb7fb2f67';
-import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=38f5a1beb7fb2f67';
+import '../js/site.js?v=8cfde5de2cda44f2';
+import { revealTiles } from '../js/tile-motion.js?v=8cfde5de2cda44f2';
+import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=8cfde5de2cda44f2';
+import { PROJECTS, INTENT_LABELS } from './projects.js?v=8cfde5de2cda44f2';
+import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=8cfde5de2cda44f2';
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
