@@ -65,7 +65,7 @@ def test_returning_browser_gets_matching_modules_and_working_theme_after_deploy(
             background = lambda: page.evaluate('getComputedStyle(document.body).backgroundColor')
             assert background() == 'rgb(255, 255, 255)'
             page.emulate_media(color_scheme='dark')
-            assert background() == 'rgb(16, 31, 43)'
+            assert background() == 'rgb(21, 25, 27)'
             page.locator('#theme-toggle').click()  # explicit light overrides a dark OS
             assert background() == 'rgb(255, 255, 255)'
             page.reload()
@@ -73,7 +73,7 @@ def test_returning_browser_gets_matching_modules_and_working_theme_after_deploy(
             assert background() == 'rgb(255, 255, 255)'
             page.locator('#theme-toggle').click()  # explicit dark overrides a light OS
             page.emulate_media(color_scheme='light')
-            assert background() == 'rgb(16, 31, 43)'
+            assert background() == 'rgb(21, 25, 27)'
             page.locator('#theme-toggle').click()  # system resumes live OS tracking
             assert background() == 'rgb(255, 255, 255)'
             page.locator('#project-grid [data-project="ioniq-console-organizer"]').click()

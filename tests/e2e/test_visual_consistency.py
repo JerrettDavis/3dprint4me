@@ -80,3 +80,66 @@ def test_shared_inquiry_entry_and_mobile_menu():
         assert page.locator('#ask-dialog').is_visible()
         assert page.locator('#menu-toggle').get_attribute('aria-expanded') == 'false'
         site.assert_no_page_errors()
+
+
+@pytest.mark.parametrize("route", ["/", "/order.html"])
+def test_dark_palette_contrast_and_system_override_parity(route):
+    with SiteBrowser(color_scheme="dark", reduced_motion="reduce") as site:
+        page = site.load(route)
+
+        def palette():
+            return page.evaluate("""() => {
+                const style = getComputedStyle(document.documentElement);
+                return Object.fromEntries([
+                    'bg', 'paper', 'soft', 'slate-soft', 'teal-soft', 'blue-soft', 'sky-soft',
+                    'ink', 'muted', 'accent', 'accent-hover', 'on-accent',
+                    'focus-color', 'control-line', 'brand-blue', 'danger'
+                ].map(name => [name, style.getPropertyValue('--' + name).trim()]));
+            }""")
+
+        def rgb(color):
+            return [int(color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+
+        def luminance(color):
+            channels = [value / 12.92 if value <= .04045 else ((value + .055) / 1.055) ** 2.4
+                        for value in rgb(color)]
+            return sum(value * weight for value, weight in zip(channels, (.2126, .7152, .0722)))
+
+        def contrast(one, two):
+            lighter, darker = sorted([luminance(one), luminance(two)], reverse=True)
+            return (lighter + .05) / (darker + .05)
+
+        system_dark = palette()
+        surfaces = ['bg', 'paper', 'soft', 'slate-soft', 'teal-soft', 'blue-soft', 'sky-soft']
+        for surface in surfaces:
+            for foreground in ['ink', 'muted', 'accent', 'accent-hover', 'danger']:
+                assert contrast(system_dark[foreground], system_dark[surface]) >= 4.5, (foreground, surface)
+            assert contrast(system_dark['focus-color'], system_dark[surface]) >= 3, surface
+            assert contrast(system_dark['control-line'], system_dark[surface]) >= 3, surface
+        for background in ['accent', 'accent-hover']:
+            assert contrast(system_dark['on-accent'], system_dark[background]) >= 4.5, background
+        assert contrast(system_dark['brand-blue'], system_dark['bg']) >= 4.5
+        assert luminance(system_dark['bg']) < luminance(system_dark['paper']) < luminance(system_dark['soft'])
+        for surface in ['bg', 'paper', 'soft']:
+            assert max(rgb(system_dark[surface])) - min(rgb(system_dark[surface])) < .06, surface
+
+        toggle = page.locator('#theme-toggle')
+        toggle.click()  # System -> explicit light, even while the OS prefers dark.
+        light = palette()
+        assert light['bg'] != system_dark['bg']
+        toggle.click()
+        assert palette() == system_dark
+        page.emulate_media(color_scheme="light")
+        assert palette() == system_dark
+        toggle.click()
+        assert palette() == light
+        page.emulate_media(color_scheme="dark")
+        assert palette() == system_dark
+        page.keyboard.press("Tab")
+        page.keyboard.press("Shift+Tab")
+        assert toggle.evaluate("element => element === document.activeElement")
+        assert toggle.evaluate("""element => {
+            const style = getComputedStyle(element);
+            return style.outlineStyle !== 'none' || style.boxShadow !== 'none';
+        }""")
+        site.assert_no_page_errors()

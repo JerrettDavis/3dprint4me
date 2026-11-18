@@ -57,6 +57,16 @@ The visual system is based on a workshop dashboard rather than a novelty maker s
 - Published project names, source links, and concrete design constraints provide visual proof without invented likenesses or stand-in product renders. Use actual shop or product photography only when its source and rights are confirmed.
 - Light and dark themes preserve the same hierarchy and meaning.
 
+Dark mode uses charcoal rather than a navy or purple-tinted wash: page `#15191b`,
+card `#1e2427`, and raised surface `#252d31`. Sea-glass teal (`#73cec5`) identifies
+actions and focus; steel blue (`#82b5d6`) anchors the brand and header rule.
+Reserve tinted surfaces for selected states and small supporting accents, not
+entire page backgrounds. Neutral secondary text keeps product photography in
+charge of the color. This direction was selected against graphite/blue and
+deep-petrol alternatives: graphite reduced action differentiation, while petrol
+retained too much full-page color. Explicit dark mode and system dark mode must
+resolve to the same tokens; light mode retains its existing palette.
+
 The voice is direct, practical, and specific. It avoids exaggerated claims, fake precision, and generic phrases such as "bringing dreams to life."
 
 ### Storefront refinement foundation
