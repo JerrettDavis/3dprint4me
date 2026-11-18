@@ -19,6 +19,15 @@ from tests.support.catalogue_preview import owner_catalogue_fixture, install_own
 OUTPUT = ROOT / "screenshots"
 
 
+def settle_tile_motion(page) -> None:
+    page.evaluate("""async () => {
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        await Promise.all(document.getAnimations().filter(animation =>
+            animation.effect?.target?.classList?.contains('tile-entering')
+        ).map(animation => animation.finished));
+    }""")
+
+
 def capture(route: str, filename: str, *, viewport: tuple[int, int], scheme: str, full_page: bool = False, prepare=None, storage_denied: bool = False) -> Path:
     path = OUTPUT / filename
     with SiteBrowser(viewport=viewport, color_scheme=scheme, device_scale_factor=1) as site:
@@ -26,6 +35,7 @@ def capture(route: str, filename: str, *, viewport: tuple[int, int], scheme: str
         if prepare:
             prepare(page)
         page.wait_for_timeout(120)
+        settle_tile_motion(page)
         site.screenshot(path, full_page=full_page)
         site.assert_no_page_errors()
     return path
@@ -91,6 +101,10 @@ def show_work_record(page) -> None:
 
 def show_project_cards(page) -> None:
     page.locator(".portfolio-grid.designed-work").scroll_into_view_if_needed()
+
+
+def show_shop_grid(page) -> None:
+    page.locator(".shop-layout").scroll_into_view_if_needed()
 
 
 def show_inquiry(page) -> None:
@@ -197,7 +211,7 @@ def capture_catalogue_owner_states() -> list[tuple[str, Path]]:
 def capture_product_catalogue_states() -> list[tuple[str, Path]]:
     captured = []
     with running_server() as base_url:
-        for width, height, scheme in [(1440, 1000, 'light'), (1440, 1000, 'dark'), (390, 844, 'light'), (390, 844, 'dark')]:
+        for width, height, scheme in [(1440, 1000, 'light'), (1440, 1000, 'dark'), (390, 844, 'light'), (390, 844, 'dark'), (1920, 1080, 'light'), (3440, 1440, 'dark')]:
             for name, route, ready in [
                 ('shop', '/shop/', '#catalogue-grid'),
                 ('product', '/shop/pumpkin-witch/', '.catalogue-product'),
@@ -207,6 +221,7 @@ def capture_product_catalogue_states() -> list[tuple[str, Path]]:
                 with SiteBrowser(viewport=(width, height), color_scheme=scheme, device_scale_factor=1) as site:
                     page = site.goto(base_url + route, ready_selector=ready, timeout=60000)
                     page.locator('img').evaluate_all("async images => { for (const image of images) image.loading='eager'; await Promise.all(images.map(image => image.decode().catch(() => {}))); }")
+                    settle_tile_motion(page)
                     site.screenshot(path, full_page=name == 'product')
                     site.assert_no_page_errors(allow_console_warnings=('GL Driver Message', 'GPU stall'))
                 captured.append((f'Catalogue {name} · {width} · {scheme}', path))
@@ -955,6 +970,15 @@ def main() -> int:
         ("Home · desktop · dark", capture("/", "home-desktop-dark.png", viewport=(1440, 1000), scheme="dark")),
         ("Home · mobile · light", capture("/", "home-mobile-light.png", viewport=(390, 844), scheme="light")),
         ("Home · mobile · dark", capture("/", "home-mobile-dark.png", viewport=(390, 844), scheme="dark")),
+        *[
+            (f"Home {view} · {width} · {scheme}", capture(
+                "/", f"home-{view}-{width}-{scheme}.png", viewport=(width, height),
+                scheme=scheme, prepare=show_shop_grid if view == "grid" else None,
+            ))
+            for width, height in [(1920, 1080), (3440, 1440)]
+            for scheme in ("light", "dark")
+            for view in ("opening", "grid")
+        ],
         ("Quick inquiry · desktop · light", capture("/", "inquiry-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=show_inquiry)),
         ("Quick inquiry · mobile · dark", capture("/", "inquiry-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=show_inquiry)),
         ("Project detail · desktop · dark", capture("/", "project-dialog-desktop-dark.png", viewport=(1440, 1000), scheme="dark", prepare=show_project_dialog)),

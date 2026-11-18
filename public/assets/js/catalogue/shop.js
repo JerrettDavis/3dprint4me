@@ -1,11 +1,13 @@
-import { PRODUCTS } from './products.js?v=3db4f0b250d4b958';
-import { filterProducts } from './views.js?v=3db4f0b250d4b958';
+import { PRODUCTS } from './products.js?v=38f5a1beb7fb2f67';
+import { filterProducts } from './views.js?v=38f5a1beb7fb2f67';
+import { revealTiles } from '../tile-motion.js?v=38f5a1beb7fb2f67';
 
 const form = document.querySelector('.catalogue-filters');
 if (form) {
   const search = form.elements.q;
   const category = form.elements.category;
   const cards = [...document.querySelectorAll('[data-product-id]')];
+  const replayTiles = revealTiles(cards);
   const count = document.querySelector('#catalogue-count');
   const empty = document.querySelector('#catalogue-empty');
   function paint({ writeUrl = true } = {}) {
@@ -16,6 +18,7 @@ if (form) {
     for (const card of cards) card.hidden = !visible.has(card.dataset.productId);
     count.textContent = `${visible.size} ${visible.size === 1 ? 'design' : 'designs'} to make your own`;
     empty.hidden = visible.size !== 0;
+    replayTiles();
     if (writeUrl) {
       for (const [key, value] of [['q', search.value], ['category', category.value]]) {
         if (value) url.searchParams.set(key, value); else url.searchParams.delete(key);

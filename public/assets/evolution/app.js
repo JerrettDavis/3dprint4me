@@ -1,7 +1,8 @@
-import '../js/site.js?v=3db4f0b250d4b958';
-import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=3db4f0b250d4b958';
-import { PROJECTS, INTENT_LABELS } from './projects.js?v=3db4f0b250d4b958';
-import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=3db4f0b250d4b958';
+import '../js/site.js?v=38f5a1beb7fb2f67';
+import { revealTiles } from '../js/tile-motion.js?v=38f5a1beb7fb2f67';
+import { INQUIRY_LIMITS, validateAttachment, validateInquiry, normalizeInquiry, projectShareUrl, inquiryTextPrefill } from './inquiry-core.js?v=38f5a1beb7fb2f67';
+import { PROJECTS, INTENT_LABELS } from './projects.js?v=38f5a1beb7fb2f67';
+import { submitInquiry, issueInquiryHandoff } from './inquiry-client.js?v=38f5a1beb7fb2f67';
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
@@ -53,11 +54,13 @@ function renderGallery() {
   $('#project-grid').innerHTML = PROJECTS.map(project => `<a class="work-card" href="?project=${project.slug}" data-project="${project.slug}" data-category="${project.category}"><div class="work-card-image"><img class="project-image" data-project-image="${project.slug}" src="${project.image}" alt="${esc(project.alt)}" width="900" height="620" loading="lazy"><span class="work-card-label">${esc(project.label)}</span><span class="media-note" data-media-label="${project.slug}">${esc(project.media)}</span></div><div class="work-card-body"><h3>${esc(project.title)}</h3><p>${esc(project.summary)}</p><span class="work-card-footer">See the idea behind it ${ico('diagonal')}</span></div></a>`).join('');
 }
 renderGallery();
+const replayGallery = revealTiles(document.querySelectorAll('#project-grid .work-card'));
 $$('[data-filter]').forEach(button => button.addEventListener('click', () => {
   $$('[data-filter]').forEach(other => { const selected = other === button; other.classList.toggle('active', selected); other.setAttribute('aria-pressed', String(selected)); });
   const filter = button.dataset.filter;
   $$('.work-card').forEach(card => { card.hidden = filter !== 'all' && card.dataset.category !== filter; });
   const count = $$('.work-card:not([hidden])').length;
+  replayGallery();
   $('#filter-status').textContent = `Showing ${count} ${count === 1 ? 'project' : 'projects'}${filter === 'all' ? ' in all work' : ` in ${button.textContent.trim()}`}.`;
 }));
 
@@ -264,6 +267,7 @@ const shopSearch = document.querySelector('#shop-search');
 if (shopSearch) {
   let purpose = 'all';
   const productCards = [...document.querySelectorAll('#shop-grid .cat-tile')];
+  const replayShop = revealTiles(productCards);
   const purposeButtons = [...document.querySelectorAll('[data-purpose-filter]')];
   const updateShop = () => {
     const words = shopSearch.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
@@ -276,6 +280,7 @@ if (shopSearch) {
     document.querySelector('#shop-count').textContent = `${count} starting point${count === 1 ? '' : 's'}`;
     document.querySelector('#shop-empty').hidden = count !== 0;
     purposeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.purposeFilter === purpose)));
+    replayShop();
   };
   purposeButtons.forEach(button => button.addEventListener('click', () => { purpose = button.dataset.purposeFilter; updateShop(); }));
   shopSearch.addEventListener('input', updateShop);

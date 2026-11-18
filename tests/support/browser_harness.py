@@ -46,6 +46,7 @@ def _bundle(order: bool, *, home: bool = False) -> str:
         paths = [SITE_ROOT / "assets/evolution" / name for name in (
             "inquiry-core.js", "projects.js", "inquiry-client.js", "app.js"
         )]
+        paths.insert(0, SITE_ROOT / "assets/js/tile-motion.js")
         bundle = "(() => {" + _module_source(SITE_ROOT / "assets/js/config.js") + _module_source(SITE_ROOT / "assets/js/site.js") + "})();\n" + "\n".join(_module_source(path) for path in paths)
         # Gallery and dialog photos are created from the production project data.
         return re.sub(
