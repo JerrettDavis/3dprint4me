@@ -21,7 +21,7 @@ BUILT_PAGE = ROOT / "public/customize/g/route-shield/index.html"
 BUILD_TIMEOUT = 30000
 DRAFT_KEY = "3dp-customize:route-shield:v3"
 # Generators past version 1 (their draft key and recorded provenance carry it).
-GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 9, "skull-keychain": 4, "skeleton-figure": 6}
+GENERATOR_VERSIONS = {"route-shield": 3, "wifi-tag": 2, "rating-card": 2, "name-plate": 2, "pumpkin": 9, "skull-keychain": 4, "skeleton-figure": 6, "holiday-ornament": 3}
 
 
 @pytest.mark.parametrize('shape', ['cube', 'rectangular', 'spherical', 'triangle'])
@@ -329,9 +329,9 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
     requests = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.on('request', lambda request: requests.append(request.url))
-    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin', 'infinity-fidget', 'vase', 'skull-keychain', 'skeleton-figure']
+    ids = ['name-plate', 'route-shield', 'wifi-tag', 'rating-card', 'display-sign', 'pumpkin', 'gridfinity-base', 'gridfinity-bin', 'infinity-fidget', 'vase', 'skull-keychain', 'skeleton-figure', 'holiday-ornament']
     try:
-        for path, selector, count in [('/', '.cat-tile', 16), ('/customize/', '.cz-card', 12)]:
+        for path, selector, count in [('/', '.cat-tile', len(ids) + 4), ('/customize/', '.cz-card', len(ids))]:
             requests.clear()
             page.goto(base_url + path)
             expect(page.locator(selector)).to_have_count(count)
@@ -343,9 +343,9 @@ def test_browse_product_images_without_starting_customizer(browser: Browser, bas
                 assert img.evaluate('(img) => img.naturalWidth') >= 600
                 assert len(img.get_attribute('alt')) > 20
             for id in ids:
-                href = f'/shop/?generator={id}' if path == '/' and id not in ('skull-keychain', 'skeleton-figure') else f'/customize/g/{id}/'
+                href = f'/shop/?generator={id}' if path == '/' and id not in ('skull-keychain', 'skeleton-figure', 'holiday-ornament') else f'/customize/g/{id}/'
                 assert page.locator(f'{selector} a[href="{href}"], a{selector}[href="{href}"]').count() == 1
-            assert page.locator(selector).filter(has_text='Illustrative render').count() == 10
+            assert page.locator(selector).filter(has_text='Illustrative render').count() == len(ids) - 2
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
             assert not page.workers
             assert not any('.wasm' in url or '/worker-' in url for url in requests)
@@ -1330,6 +1330,8 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         key, label, value = "caption", "Caption", f"GREAT {token[:6].upper()}"
     elif generator_id == "name-plate":
         key, label, value = "name", "Name", f"Robin {token[:4].upper()}"
+    elif generator_id == "holiday-ornament":
+        key, label, value = "name", "Name", f"Noel {token[:4].upper()}"
     elif generator_id == "display-sign":
         key, label, value = "t1_text", "Text 1", f"SIGN {token[:6].upper()}"
     elif generator_id == 'infinity-fidget':
@@ -1366,7 +1368,57 @@ def edit_and_wait(page: Page, origin: str, generator_id: str, token: str) -> dic
         catch { return false; }
     }""", arg={"draftKey": draft_key, "key": key, "value": values[key]}, timeout=BUILD_TIMEOUT)
     wait_settled(page)
+    if generator_id == "holiday-ornament":
+        page.get_by_label("Winter scene", exact=True).select_option("reindeer")
+        wait_settled(page)
+        expect(page.get_by_label("Name", exact=True)).to_have_value(value)
+        values["scene"] = "reindeer"
     return values
+
+
+def test_holiday_ornament_gallery_keeps_name_and_switches_script_and_construction(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/holiday-ornament/")
+    wait_ready(page)
+    expect(page.locator("#cz-font-toggle")).to_have_text("Pacifico")
+    page.get_by_label("Name", exact=True).fill("Evangeline")
+    wait_settled(page)
+
+    gallery = page.locator("#cz-designs-toggle")
+    for design, font in [("snowflake-lace", "Alex Brush"), ("square-photo", "Kaushan Script")]:
+        if gallery.get_attribute("aria-expanded") == "false":
+            gallery.click()
+        card = page.locator(f'[data-design="{design}"]')
+        image = card.locator("img")
+        image.scroll_into_view_if_needed()
+        expect(image).to_have_js_property("complete", True)
+        assert image.evaluate("img => img.naturalWidth") > 0
+        card.click()
+        wait_settled(page)
+        expect(page.get_by_label("Name", exact=True)).to_have_value("Evangeline")
+        expect(page.locator("#cz-font-toggle")).to_have_text(font)
+    expect(page.locator("#cz-warnings")).to_contain_text("Insert it from the back")
+
+
+def test_holiday_ornament_year_and_stencil_controls(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/customize/g/holiday-ornament/")
+    wait_ready(page)
+    year = page.get_by_label("Year (optional)", exact=True)
+    placement = page.get_by_role("radiogroup", name="Year placement choices")
+    finish = page.get_by_role("radiogroup", name="Year finish choices")
+    expect(placement).to_be_hidden()
+    year.fill("2026")
+    year.press("Tab")
+    wait_settled(page)
+    placement.get_by_role("radio", name="On the back").click()
+    wait_settled(page)
+    expect(page.locator("#cz-warnings")).to_contain_text("under the rear face only")
+    finish.get_by_role("radio", name="Engraved").click()
+    wait_settled(page)
+    expect(page.locator("#cz-warnings")).not_to_contain_text("under the rear face only")
+    page.get_by_role("radiogroup", name="Name finish choices").get_by_role("radio", name="Cut through").click()
+    placement.get_by_role("radio", name="Below the name").click()
+    finish.get_by_role("radio", name="Cut through").click()
+    wait_settled(page)
 
 
 def new_matrix_page(browser: Browser, **context_options) -> Page:
