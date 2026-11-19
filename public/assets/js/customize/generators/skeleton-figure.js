@@ -1,4 +1,4 @@
-import { choice, number, skullRules, skullSchema, threadSpec } from "../skeleton.js?v=8cfde5de2cda44f2";
+import { choice, number, skullRules, skullSchema, threadSpec } from "../skeleton.js?v=9ac764f878c3801f";
 
 const threaded = { assembly: "threaded" }, flex = { assembly: "flex" };
 export default {

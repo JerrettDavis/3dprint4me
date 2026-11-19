@@ -268,6 +268,8 @@ def capture_customize_states() -> list[tuple[str, Path]]:
             ("Display sign realistic · desktop · light", "/customize/g/display-sign/", "customize-realistic-display-sign-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, show_realistic_preview),
             ("Customize catalog · desktop · light", "/customize/", "customize-catalog-desktop-light.png", (1440, 1000), "light", None, None),
             ("Customize catalog · mobile · dark", "/customize/", "customize-catalog-mobile-dark.png", (390, 844), "dark", None, None),
+            ("Holiday ornament · desktop · light", "/customize/g/holiday-ornament/", "customize-holiday-ornament-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
+            ("Holiday ornament · mobile · dark", "/customize/g/holiday-ornament/", "customize-holiday-ornament-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, show_mobile_model),
             ("Skull keychain · desktop · light", "/customize/g/skull-keychain/", "customize-skull-keychain-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),
             ("Skull keychain · mobile · dark", "/customize/g/skull-keychain/", "customize-skull-keychain-mobile-dark.png", (390, 844), "dark", GENERATOR_READY, show_mobile_model),
             ("Skeleton figure · desktop · light", "/customize/g/skeleton-figure/", "customize-skeleton-figure-desktop-light.png", (1440, 1000), "light", GENERATOR_READY, None),

@@ -337,6 +337,7 @@ and socket tests unchanged.
 | `rules(params)` | no | Cross-field rules; returns `{ limits, errors, fieldErrors }`. |
 | `presets` | no | Named partial parameter sets, **data only** (the all-generators test builds every preset). The page offers `designs`, below. |
 | `designs`, `defaultDesign` | no | Ready-made starting points shown in the page's "Start from a design" gallery: `[{ id, label, blurb, group?, params }]`, `params` a partial parameter set over the schema defaults (never a sensitive key). `defaultDesign` names the one equal to the defaults (marked "default"). See *Designs and Randomize*. |
+| `preserveDesignFields` | no | Schema keys whose current values survive choosing a built-in design. Published shop products still apply their exact configuration. |
 | `errorField(message)` | no | Maps a build (geometry) error message to the schema key it belongs next to, or `null` for the Settings summary. An unkeyed error keeps **Try again** visible. |
 | `onParamChange(key, params)` | no | Runs only for a committed edit of `key`; returns values derived from it (e.g. a format's own defaults), or `null`/`{}`. |
 | `image` | no | `{ when: { <field>: <value> }, threshold: <int field>, invert: <bool field> }` — while `when` holds, the page shows a local image picker under that field and traces the image (rating card). |
@@ -723,6 +724,8 @@ and an entry to `FONTS` in
 `public/assets/js/customize/fonts.js`. Run the name-plate tests and look at the picker.
 
 ## Generator parameter notes (current versions)
+
+**Holiday ornament (v3):** Four solid scenes, two cut-through designs and two rear-load photo frames. Script names can be raised or cut through with stencil bridges. An optional four-digit year goes below the name or on the back and can be raised, engraved or cut through. Rear lettering reads from the back; raised rear lettering needs rear-only slicer supports when printed rear down. The photo window and wider rear recess scale with the body; Local facts gives the paper insert size.
 
 | Generator | Version | Notes |
 |---|---|---|
