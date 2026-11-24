@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS invoice_tracking_commands (
   id text PRIMARY KEY CHECK (id ~ '^[A-Za-z0-9_-]{8,128}$'),
   actor_id text NOT NULL CHECK (char_length(actor_id) BETWEEN 1 AND 200),
   fingerprint text NOT NULL CHECK (fingerprint ~ '^[a-f0-9]{64}$'),
+  command jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(command) = 'object' AND octet_length(command::text) <= 8192),
   result jsonb NOT NULL CHECK (jsonb_typeof(result) = 'object' AND octet_length(result::text) <= 1048576),
   created_at timestamptz NOT NULL DEFAULT now()
 );

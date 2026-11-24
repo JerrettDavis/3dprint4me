@@ -16,6 +16,7 @@ const snapshot = (invoices = [invoice()], allocations = [allocation()]) => ({ so
 
 async function fixture() {
   const db = new PGlite();
+  await db.exec('CREATE TABLE work_items(id text PRIMARY KEY, revision integer); CREATE TABLE invoice_operations(work_item_id text, state text, provider jsonb);');
   await db.exec(await readFile(new URL('../../neon/migrations/020_invoice_tracking.sql', import.meta.url), 'utf8'));
   const queryFor = connection => async (parts, ...values) =>
     (await connection.query(parts.reduce((sql, part, i) => sql + (i ? `$${i}` : '') + part, ''), values)).rows;
@@ -128,6 +129,8 @@ test('billing settings commands replay by identity and reject stale or conflicti
     await assert.rejects(repository.command({ ...command, actorId: 'owner-two' }), e => e.status === 409);
     await assert.rejects(repository.command({ ...command, id: 'stale-command' }), e => e.status === 409);
     assert.equal((await repository.readTracking()).revision, 2);
+    const audit = (await db.query("SELECT command FROM invoice_tracking_commands WHERE id='settings-command'")).rows[0].command;
+    assert.deepEqual(audit, {});
   } finally { await db.close(); }
 });
 
@@ -141,5 +144,20 @@ test('an invalid event rolls back both earlier event inserts and the snapshot up
     ] }));
     assert.equal((await repository.readTracking()).lastSuccessfulAt, null);
     assert.deepEqual(await repository.listEvents(), []);
+  } finally { await db.close(); }
+});
+
+test('project billing changes check the actual work revision inside the command transaction', async () => {
+  const { db, repository } = await fixture();
+  try {
+    await db.query("INSERT INTO work_items VALUES ('work_project123', 6)");
+    const command = { id: 'work-command', actorId: 'owner-one', fingerprint: 'a'.repeat(64), revision: 1,
+      work: { id: 'work_project123', revision: 5 }, mutate: settings => ({ ...settings,
+        workBilling: [{ workId: 'work_project123', state: 'needs_invoice' }] }) };
+    await assert.rejects(repository.command(command), e => e.status === 409);
+    assert.equal((await repository.readTracking()).settings.workBilling.length, 0);
+    assert.equal((await repository.command({ ...command, work: { ...command.work, revision: 6 } })).settings.workBilling.length, 1);
+    await db.query("INSERT INTO invoice_operations VALUES ('work_project123','draft','{\"id\":\"Invoice123\"}')");
+    assert.deepEqual(await repository.linkedWorks(), [{ workId: 'work_project123', invoiceId: 'Invoice123' }]);
   } finally { await db.close(); }
 });
