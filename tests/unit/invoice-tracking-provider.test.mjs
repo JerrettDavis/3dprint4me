@@ -26,6 +26,7 @@ function fixture(overrides = {}) {
     assert.equal(options.headers.Accept, 'application/json');
     if (overrides[path]) return overrides[path](parsed, options);
     if (path === 'statics') { assert.equal(options.method, 'GET'); return json({ currencies: [{ id: '1', code: 'USD' }, { id: '3', code: 'EUR' }] }); }
+    if (path === 'companies/current') { assert.equal(options.method, 'POST'); return json({ data: { id: 'Company123', settings: { currency_id: '1' } } }); }
     if (path === 'group_settings/Group1234') return json({ data: { id: 'Group1234', settings: { currency_id: '1' } } });
     if (path === 'clients') {
       assert.equal(parsed.searchParams.get('group_settings_id'), 'Group1234');
@@ -48,6 +49,7 @@ test('scoped provider reads normalize manual invoices, activity and allocation e
   assert.equal(result.invoices[0].currency, 'USD');
   assert.equal(result.invoices[0].openedAt, '2026-11-12T17:00:00.000Z');
   assert.equal(result.allocations[0].amountCents, 5426);
+  assert.deepEqual(result.source, { companyId: 'Company123', groupId: 'Group1234' });
   assert.doesNotMatch(JSON.stringify(result), /secret-sentinel|transaction_reference|invitations|contacts|settings/);
 });
 
@@ -78,7 +80,7 @@ test('incomplete, duplicated, mismatched-client or malformed collection reads fa
 test('client, group and company currency inheritance resolves through official statics', async () => {
   const result = await provider(fixture({
     'group_settings/Group1234': () => json({ data: { id: 'Group1234', settings: {} } }),
-    'companies/current': (_url, options) => { assert.equal(options.method, 'POST'); assert.equal(options.body, '{}'); return json({ data: { settings: { currency_id: '3' } } }); },
+    'companies/current': (_url, options) => { assert.equal(options.method, 'POST'); assert.equal(options.body, '{}'); return json({ data: { id: 'Company123', settings: { currency_id: '3' } } }); },
     payments: () => list([payment({ currency_id: '3' })])
   })).readSnapshot();
   assert.equal(result.invoices[0].currency, 'EUR');
