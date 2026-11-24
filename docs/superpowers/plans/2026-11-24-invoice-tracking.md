@@ -93,6 +93,11 @@ Use managed worktree `C:/Users/jd/.codex/worktrees/0f78/3dprint4me`, based on `o
 - [ ] Verify production smoke, intake paths and offline customizers; mark goal complete only when every requested outcome has current authoritative evidence.
 
 ## Ledger
+- 2026-11-24 continuation: release/rollout support suite completed 36/36; repaired migration inventory E2E completed 4/4. Official OTC Businesses Help Center confirms the 20th of the following month and next-business-day adjustment for weekends/observed state holidays. Monthly frequency is owner-confirmed; first period and holiday calendar remain to verify before activation.
+- Task 3: independently callable transactional tax advancement now generates monthly periods and deduplicates durable filing/payment reminders even when the invoice provider fails. Observed missing-method RED, then native PGlite contracts GREEN (10/10). Existing acknowledgements and unchanged revisions survive repeated ticks.
+
+- 2026-11-24 17:47 CST: owner explicitly confirmed OKTAP filing frequency is monthly. Monthly is now a product requirement, not a guessed default. Due-day/holiday rules, effective reporting period and activation still require validation.
+- Full suite 99910 is terminal: builds/static validation and 1,596 unit tests passed; browser run finished with 621 passed, seven skipped, one failure in the reviewed migration inventory guard (19 expected vs new migration 020). Audit did not run because the pipeline stopped. Reproduced the guard failure before updating reviewed release inventories; do not restart the old session.
 
 - 2026-11-24: authenticated Edge access recovered through Browser extension; original Windows helper was the wrong control path. Existing fabrication-number filter returned one paid and one draft invoice. Existing HA work dashboard is live and queue-only. Do not commit customer-specific invoice details or portal links.
 - Task 1: implementation and eight focused tests added; observed missing-module RED, implemented GREEN, then strengthened malformed status/time checks with a second RED→GREEN cycle. Broad baseline unit run remains live in session 18167; no whole-suite completion claim yet.

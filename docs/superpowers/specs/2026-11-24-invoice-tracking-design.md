@@ -50,6 +50,8 @@ Delivery uses a server-only adapter posting to Home Assistant's authenticated se
 
 ## OKTAP
 
+The owner confirmed monthly filing on 2026-11-24. Oklahoma Tax Commission's [Businesses Help Center](https://oklahoma.gov/tax/helpcenter/businesses.html), inspected on that date, says business tax returns are due no later than the 20th of the following month; a Saturday, Sunday or observed state holiday moves the deadline to the next business day. For example, November 2026 reporting is due December 21, 2026. Activation still requires the first reporting period and the applicable observed-state-holiday calendar; the confirmation does not acknowledge any return as filed or paid.
+
 Represent reporting periods with owner-confirmed filing frequency, period boundaries, official due date, timezone and reminder lead times. Obtain frequency from the owner's account or confirmation; no inferred monthly default. Check current Oklahoma Tax Commission rules, including non-business-day adjustments and zero-return requirements, before calculating dates.
 
 Show upcoming, due and overdue filing actions independently of customer invoice balances. Persist submitted/paid acknowledgements with an audit trail; one does not automatically prove the other. Reminder data is operational assistance, not an automatically prepared tax return. Do not store OKTAP login credentials or automate filing/payment.

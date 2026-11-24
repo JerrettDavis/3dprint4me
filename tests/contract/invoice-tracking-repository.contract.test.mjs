@@ -5,6 +5,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { createInvoiceTrackingRepository } from '../../lib/invoicing/tracking-repository.js';
 import { createInvoiceTrackingService } from '../../lib/invoicing/tracking-service.js';
 import { normalizeTrackedInvoice, normalizePaymentAllocation } from '../../lib/invoicing/tracking-domain.js';
+import { normalizeTaxSchedule } from '../../lib/invoicing/tax-periods.js';
 
 const time = '2026-11-24T18:00:00.000Z';
 const invoice = overrides => normalizeTrackedInvoice({ id: 'Invoice123', client_id: 'Client1234', number: '3DP-TEST-001',
@@ -23,6 +24,28 @@ async function fixture() {
   const database = { query: queryFor(db), withTransaction: operation => db.transaction(tx => operation({ query: queryFor(tx) })) };
   return { db, repository: createInvoiceTrackingRepository({ database }) };
 }
+test('monthly periods advance and reminders deduplicate independently of a failed invoice provider', async () => {
+  const { db, repository } = await fixture();
+  try {
+    const taxSchedule = normalizeTaxSchedule({ confirmed: true, frequency: 'monthly', effectiveFrom: '2026-10-01',
+      dueDay: 20, nextBusinessDay: true, holidayDates: [], timeZone: 'America/Chicago', reference: 'Owner confirmed monthly; OTC business help center' },
+    { actorId: 'owner-one', now: new Date(time) });
+    await db.query("UPDATE invoice_tracking_state SET settings=settings || $1::jsonb", [JSON.stringify({ taxSchedule, notificationsEnabled: true })]);
+    const service = createInvoiceTrackingService({ repository, provider: { readSnapshot: async () => { throw new Error('private failure'); } }, now: () => new Date(time) });
+    await service.advanceTax();
+    assert.equal((await service.sync()).status, 'unavailable');
+    await service.advanceTax();
+    const state = await repository.readTracking();
+    assert.equal(state.settings.taxPeriods.length, 2);
+    assert.equal(state.settings.taxPeriods[1].dueDate, '2026-12-21');
+    const events = await repository.listEvents();
+    assert.deepEqual(events.map(e => e.payload.kind).sort(), ['tax_filing_due', 'tax_payment_due']);
+    assert.ok(events.every(e => e.deliveryState === 'pending'));
+    const revision = state.revision;
+    await service.advanceTax();
+    assert.equal((await repository.readTracking()).revision, revision);
+  } finally { await db.close(); }
+});
 
 test('native sync claims are exclusive and an expired lease cannot overwrite a new run', async () => {
   const { db, repository } = await fixture();

@@ -29,5 +29,5 @@ def test_host_inventory_reads_the_export_once_without_guard_references():
     root=Path(__file__).resolve().parents[2]
     spec=importlib.util.spec_from_file_location('qa_inventory',root/'deploy/platform/partner-qa-host.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     names=module.migration_inventory((root/'scripts/migrate-neon.mjs').read_text(encoding='utf-8'))
-    assert len(names)==19 and len(set(names))==19
-    assert names[-1]=='019_product_catalogue.sql'
+    assert len(names)==20 and len(set(names))==20
+    assert names[-1]=='020_invoice_tracking.sql'
