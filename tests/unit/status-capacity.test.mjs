@@ -42,3 +42,22 @@ test('period reset clears thresholds; corrupt persisted state is ignored', () =>
   assert.doesNotThrow(() => capacitySnapshot({readings:{secret:'unsafe'},thresholds:[],history:Array(100).fill({})},now));
   assert.ok(capacitySnapshot(state,now).history.length <= 30);
 });
+test('freshness uses source deadlines and keeps unknown data out of normal state', () => {
+  for (const [source,age] of [['provider',7200000],['local',720000],['application',720000],['backup',7200000],['manual',86400000]]) {
+    const state=updateCapacity(null,[record({source})],now);
+    assert.notEqual(metric(state,now+age).status,'stale');
+    assert.equal(metric(state,now+age+1).status,'stale');
+  }
+  assert.equal(metric(null).status,'unknown');
+  assert.equal(metric(updateCapacity(null,[record({limit:null})],now)).status,'unknown');
+});
+test('recovery must cross hysteresis margin twice and history stays bounded', () => {
+  let state=updateCapacity(null,[record({used:95})],now);
+  for (const [offset,used,status] of [[1,89,'critical'],[2,84,'critical'],[3,86,'critical'],[4,84,'critical'],[5,84,'warning'],[6,64,'warning'],[7,64,'normal']]) {
+    state=updateCapacity(state,[record({used,observedAt:now+offset})],now+offset);
+    assert.equal(metric(state,now+offset).status,status);
+  }
+  for(let day=1;day<40;day++) state=updateCapacity(state,[],now+day*86400000);
+  assert.equal(state.history.length,30);
+  assert.ok(state.readings.length<=40);
+});
