@@ -6,6 +6,24 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { exportObjects, validateObjects, restoreObjects, exportObjectStream } from '../../lib/platform/blob-recovery.js';
+import { readJsonRecords } from '../../lib/platform/blob-json-records.js';
+
+test('bounded JSON record parser handles fragmented UTF-8, multiple records and exact byte bounds',async()=>{
+ const input=Buffer.from('{"text":"é"}\n{}\n');
+ const chunks=Array.from(input,b=>Buffer.from([b]));
+ const records=[];for await(const r of readJsonRecords(chunks,{maxRecordBytes:13}))records.push(r);
+ assert.deepEqual(records,[{text:'é'},{}]);
+ const exact=[];for await(const r of readJsonRecords([Buffer.from('{}\n{}\n')],{maxRecordBytes:2}))exact.push(r);
+ assert.equal(exact.length,2);
+});
+test('bounded JSON record parser rejects fragmented oversize, incomplete and malformed records',async()=>{
+ async function consume(chunks,maxRecordBytes=4){for await(const r of readJsonRecords(chunks,{maxRecordBytes}))void r;}
+ await assert.rejects(consume([Buffer.from('12'),Buffer.from('345\n')]),/Record bound/);
+ await assert.rejects(consume([Buffer.from('12345')]),/Record bound/);
+ await assert.rejects(consume([Buffer.from('{}')]),/Incomplete stream/);
+ await assert.rejects(consume([Buffer.from('{}\nx\n')]),SyntaxError);
+ await assert.rejects(consume([Buffer.from('{}\n\n')]),SyntaxError);
+});
 
 const bytes=Buffer.from('private model');
 const stream=()=>new ReadableStream({start(c){c.enqueue(bytes);c.close();}});

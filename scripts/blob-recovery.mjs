@@ -1,17 +1,8 @@
 import * as sdk from '@vercel/blob';
 import { exportObjects, restoreObjects, validateObjects, exportObjectStream } from '../lib/platform/blob-recovery.js';
 import { once } from 'node:events';
-
-async function* lines() {
-  let pending=Buffer.alloc(0);
-  for await(const chunk of process.stdin) {
-    pending=Buffer.concat([pending,chunk]);
-    if(pending.length>96*1024*1024)throw Error('Record bound');
-    let index;
-    while((index=pending.indexOf(10))!==-1){yield JSON.parse(pending.subarray(0,index).toString());pending=pending.subarray(index+1);}
-  }
-  if(pending.length)throw Error('Incomplete stream');
-}
+import { readJsonRecords } from '../lib/platform/blob-json-records.js';
+const lines=()=>readJsonRecords(process.stdin);
 
 try {
   const mode=process.argv[2];
