@@ -106,6 +106,24 @@ database credentials, tunnel token, jobs/slicer settings, and the platform colle
 configuration. Dumps and private files stay in memory until Restic encrypts them.
 Controller output contains only snapshot identities, aggregate counts and hashes.
 
+Object backups reuse bytes from the newest completed checkpoint receipt in the
+first configured encrypted repository. The controller validates the receipt's
+exact object snapshot, filename and SHA-256, then streams its decrypted contents
+over pinned SSH without a plaintext cache. The exporter validates every prior
+object and matches the current inventory by pathname, size and ETag. New, changed
+and legacy objects without ETags are downloaded; deleted objects are omitted only
+when the database does not require them. Each new snapshot is complete and both
+repositories still undergo full encrypted readback. Receipt counters report
+downloaded/reused objects and bytes without customer paths. No prior receipt means
+a full bootstrap; a selected damaged or unavailable receipt fails the checkpoint
+rather than silently starting over. Keep the first repository's completed receipts
+and referenced object snapshots together when applying any future retention policy.
+Reinstall the copied controller and deploy the matching API exporter together.
+During guarded deployment, the predeployment checkpoint probes CLI capability.
+An older runtime uses its existing full exporter once, with `legacyFallback:true`
+in the aggregate receipt; the next checkpoint uses incremental reuse after the
+new API starts. This preserves the required checkpoint before changing runtime.
+
 `restore-drill.py` decrypts the exact snapshot in memory, verifies its hash and all
 archive members, and restores into a new randomly named isolated container. It
 never selects a production database. A real host rebuild must recreate the pinned

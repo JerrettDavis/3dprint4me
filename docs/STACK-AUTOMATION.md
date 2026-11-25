@@ -222,7 +222,15 @@ monitor them and move to a streaming database exporter before approaching that
 bound. Object exports allow at most one million paths and 15 minutes per stage.
 No automatic pruning is enabled: review storage growth and legal retention before
 adding a separate prune policy. API reads/provider egress may consume provider
-quotas; full-store readback is intentional and is not claimed cost-free.
+quotas. The hourly controller reuses unchanged object bytes from the newest
+completed encrypted checkpoint: pathname, size and provider ETag must match the
+current listing. Only new, changed or legacy objects without ETags are downloaded.
+Every resulting object snapshot remains complete and independently restorable.
+The prior stream is decrypted in memory and forwarded over pinned SSH, never
+persisted as plaintext. Both stores still receive and verify the complete stream;
+this reduces Blob transfer, not SSH or Restic readback traffic. A missing prior
+checkpoint bootstraps; a selected corrupt or unavailable checkpoint fails closed.
+Receipts expose aggregate downloaded/reused object and byte counters only.
 
 The database snapshot determines required retained files, including assets in
 `analyzing` state, submitted inquiry attachments and inherited inquiry files.
