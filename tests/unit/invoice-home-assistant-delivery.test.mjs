@@ -38,3 +38,13 @@ test('unconfigured delivery does not claim events and provider errors are saniti
   const failed = createHomeAssistantBillingDelivery({ origin: 'https://ha.example.test', token, fetchImpl: async () => { throw Error(token); } });
   await assert.rejects(failed.send(event), error => !error.message.includes(token));
 });
+test('controlled acceptance alerts are clearly labelled synthetic and contain no invoice data', async () => {
+  let payload;
+  const delivery = createHomeAssistantBillingDelivery({ origin: 'https://ha.example.test', token, fetchImpl: async (_, options) => {
+    payload = JSON.parse(options.body); return new Response('[]');
+  } });
+  await delivery.send({ id, payload: { kind: 'integration_test', invoiceNumber: 'DO NOT SEND' } });
+  assert.match(payload.title, /TEST/);
+  assert.match(payload.message, /synthetic/i);
+  assert.doesNotMatch(JSON.stringify(payload), /DO NOT SEND/);
+});
