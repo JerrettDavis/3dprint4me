@@ -7,6 +7,7 @@ const definitions = [
   ['cf-do-writes','Durable Object writes','Cloudflare','rows'], ['cf-do-storage','Durable Object storage','Cloudflare','bytes'],
   ['resend-daily','Daily email','Resend','emails'], ['resend-monthly','Monthly email','Resend','emails'], ['resend-rate','Email request rate','Resend','requests'],
   ['host-disk','Host disk','Host','bytes','local'], ['host-memory','Host memory','Host','bytes','local'], ['host-cpu','Host CPU','Host','percent','local'],
+  ['container-memory','Container memory','Host','bytes','local'], ['container-cpu','Container CPU','Host','percent','local'],
   ['db-size','Database size','Database','bytes','local'], ['db-connections','Database connections','Database','connections','local'],
   ['rate-sessions-global','Global session rate','Application','requests','application'], ['rate-uploads-global','Global upload rate','Application','requests','application'],
   ['rate-sessions-client','Client session rate','Application','requests','application'], ['rate-uploads-client','Client upload rate','Application','requests','application'],
@@ -66,7 +67,7 @@ export function updateCapacity(state, records, now = Date.now()) {
       const p = percentage(r);
       const recovering = (t.severity === 'critical' && p < 85) || (t.severity === 'warning' && p < 65);
       const crossing = (target === 'critical' && t.severity !== 'critical') || (target === 'warning' && t.severity === 'normal');
-      const local = ['host-cpu','host-memory','host-disk'].includes(r.id);
+      const local = ['host-cpu','host-memory','host-disk','container-cpu','container-memory'].includes(r.id);
       const desired = recovering ? target : crossing ? target : t.severity;
       if (desired !== t.severity) {
         t.count = t.candidate === desired ? Math.min(2,t.count+1) : 1; t.candidate = desired;
