@@ -1165,7 +1165,7 @@
     {
       "file": "docs/PLATFORM-RECOVERY.md",
       "output": "reference/PLATFORM-RECOVERY.md",
-      "sha256": "ee7c34fa4046fbaa0db36d63b6af5ce94e6436938380c1ee26d2c7e0f32a6a80"
+      "sha256": "1b641ad6068c29cde3fe316aaa1795ded6ff759b2cfdce001ed09759929f5b07"
     },
     {
       "file": "docs/PRICING-CALIBRATION.md",
@@ -1175,7 +1175,7 @@
     {
       "file": "docs/PRINT-ESTIMATION.md",
       "output": "reference/PRINT-ESTIMATION.md",
-      "sha256": "852f2ce7ae7abb8f4664349bd36f9bf56b1ac514e476520a0f2dd8821bc7ed71"
+      "sha256": "61091f17fccc302343fe973665a5747fd4f93ce0704aa53569868a4155116c6f"
     },
     {
       "file": "docs/QUICK-INQUIRY.md",
@@ -1195,7 +1195,7 @@
     {
       "file": "docs/STACK-AUTOMATION.md",
       "output": "reference/STACK-AUTOMATION.md",
-      "sha256": "a1581b0d18da20a4e5a17bdaacd4b0fabfefd7eb15cc92ad7c20bb63a36de5fc"
+      "sha256": "c727f5373ae4c9f9d1d5b25032075d36a0c724d5da272b5030d33d5f6e8aa7d7"
     },
     {
       "file": "docs/VERIFICATION.md",

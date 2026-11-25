@@ -1,21 +1,18 @@
 import * as sdk from '@vercel/blob';
 import { exportObjects, restoreObjects, validateObjects, exportObjectStream } from '../lib/platform/blob-recovery.js';
 import { once } from 'node:events';
-
-async function* lines() {
-  let pending=Buffer.alloc(0);
-  for await(const chunk of process.stdin) {
-    pending=Buffer.concat([pending,chunk]);
-    if(pending.length>96*1024*1024)throw Error('Record bound');
-    let index;
-    while((index=pending.indexOf(10))!==-1){yield JSON.parse(pending.subarray(0,index).toString());pending=pending.subarray(index+1);}
-  }
-  if(pending.length)throw Error('Incomplete stream');
-}
+import { readJsonRecords } from '../lib/platform/blob-json-records.js';
+const lines=()=>readJsonRecords(process.stdin);
 
 try {
   const mode=process.argv[2];
-  if(mode==='export-stream') {
+  if(mode==='export-incremental') {
+    if(!process.env.BLOB_READ_WRITE_TOKEN)throw Error('Private store required');
+    const records=lines();
+    const first=await records.next();
+    if(first.done||first.value?.type!=='requirements'||!Array.isArray(first.value.paths)||Buffer.byteLength(JSON.stringify(first.value))>8*1024*1024)throw Error('Requirements required');
+    for await(const record of exportObjectStream(sdk,first.value.paths,{priorRecords:records}))if(!process.stdout.write(JSON.stringify(record)+'\n'))await once(process.stdout,'drain');
+  }else if(mode==='export-stream') {
     if(!process.env.BLOB_READ_WRITE_TOKEN)throw Error('Private store required');
     const input=[];let size=0;
     for await(const chunk of process.stdin){size+=chunk.length;if(size>8*1024*1024)throw Error('Required paths bound');input.push(chunk);}

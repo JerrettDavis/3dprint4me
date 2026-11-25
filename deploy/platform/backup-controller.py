@@ -220,28 +220,126 @@ def copied_snapshot(destination, env, source_snapshot, filename):
     return copied[0]
 
 
+def previous_objects(args, env):
+    """Only completed receipts qualify; a selected damaged receipt fails closed."""
+    entries=json.loads(command(args+['snapshots','--json','--tag','platform:3dprint4me-complete-checkpoint'],env=env,limit=8*1024*1024))
+    if not isinstance(entries,list):raise ValueError('Invalid checkpoint inventory')
+    if not entries:return None
+    selected=max(entries,key=lambda entry:entry['time'])
+    snapshot=selected['id']
+    if not re.fullmatch('[a-f0-9]{64}',snapshot):raise ValueError('Invalid checkpoint identity')
+    listing=command(args+['ls','--json',snapshot],env=env,limit=8*1024*1024)
+    paths=[entry.get('path','') for line in listing.splitlines() if (entry:=json.loads(line)).get('path','').endswith('-checkpoint.json')]
+    if len(paths)!=1 or not re.fullmatch(r'/3dprint4me/platform-\d{8}T\d{6}Z-checkpoint\.json',paths[0]):raise ValueError('Invalid checkpoint path')
+    receipt=json.loads(command(args+['dump',snapshot,paths[0]],env=env,limit=1024*1024))
+    objects=receipt['private_objects']
+    expected=paths[0][1:].replace('-checkpoint.json','-objects.ndjson')
+    if (receipt.get('version')!=1 or receipt.get('roundtrip_verified') is not True or
+        receipt.get('filename')!=expected.replace('-objects.ndjson','.tar') or
+        objects.get('roundtrip_verified') is not True or objects.get('filename')!=expected or
+        not isinstance(objects.get('snapshots'),list) or len(objects['snapshots'])<2 or
+        any(not isinstance(value,str) or not re.fullmatch('[a-f0-9]{64}',value) for value in objects['snapshots']) or
+        not isinstance(objects.get('sha256'),str) or not re.fullmatch('[a-f0-9]{64}',objects['sha256'])):
+        raise ValueError('Invalid completed object checkpoint')
+    return objects
+
+
+class ObjectStreamReader:
+    """Hash outgoing bytes and retain only a bounded trailing footer."""
+    def __init__(self,stream):
+        self.stream=stream;self.digest=hashlib.sha256();self.tail=b''
+    def read(self,size):
+        chunk=self.stream.read(size);self.digest.update(chunk)
+        self.tail=(self.tail+chunk)[-8192:]
+        return chunk
+    def finish(self):
+        if not self.tail.endswith(b'\n'):raise ValueError('Incomplete object stream')
+        footer=json.loads(self.tail.rstrip(b'\n').rsplit(b'\n',1)[-1])
+        if footer.get('type')!='footer' or footer.get('version')!=1:raise ValueError('Object footer required')
+        names=('objects','downloadedObjects','downloadedBytes','reusedObjects','reusedBytes')
+        if any(type(footer.get(key)) is not int or footer[key]<0 for key in names):raise ValueError('Invalid object counters')
+        if footer['objects']!=footer['downloadedObjects']+footer['reusedObjects']:raise ValueError('Object counter mismatch')
+        return {**{key:footer[key] for key in names},'legacyFallback':footer.get('exportMode')=='legacy-bootstrap'}
+
+
 def backup_objects(config, required, repositories, database_filename):
     root=config.get('platform_root','/home/jd/3dprint4me-platform')
-    remote_code="import subprocess,sys; root="+repr(root)+"; sys.exit(subprocess.run(['docker','compose','--env-file',root+'/compose.env','-f',root+'/candidate-source/deploy/platform/compose.yml','exec','-T','api','node','scripts/blob-recovery.mjs','export-stream'],input=sys.stdin.buffer.read(8*1024*1024+1),stderr=subprocess.DEVNULL).returncode)"
+    args,env=repositories[0]
+    prior=previous_objects(args,env)
+    paths=json.loads(required)
+    if not isinstance(paths,list):raise ValueError('Required object paths required')
+    # Guarded releases checkpoint the OLD image before deploying the new one.
+    # Probe the fixed CLI capability without provider reads; preserve that gate.
+    remote_code="root="+repr(root)+"\n"+r'''
+import json,subprocess,sys
+base=['docker','compose','--env-file',root+'/compose.env','-f',root+'/candidate-source/deploy/platform/compose.yml','exec','-T','api','node']
+probe=subprocess.run(base+['-e',"process.exit(require('node:fs').readFileSync('scripts/blob-recovery.mjs','utf8').includes(\"mode==='export-incremental'\")?0:3)"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+if probe.returncode==0:
+ sys.exit(subprocess.call(base+['scripts/blob-recovery.mjs','export-incremental'],stdin=sys.stdin.buffer,stderr=subprocess.DEVNULL))
+if probe.returncode!=3:sys.exit(1)
+line=sys.stdin.buffer.readline(8*1024*1024+1)
+if len(line)>8*1024*1024 or not line.endswith(b'\n'):sys.exit(1)
+request=json.loads(line)
+if request.get('type')!='requirements' or not isinstance(request.get('paths'),list):sys.exit(1)
+while sys.stdin.buffer.read(65536):pass
+p=subprocess.Popen(base+['scripts/blob-recovery.mjs','export-stream'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
+p.stdin.write(json.dumps(request['paths']).encode());p.stdin.close()
+count=total=0;footer=False
+while True:
+ line=p.stdout.readline(96*1024*1024+1)
+ if not line:break
+ if len(line)>96*1024*1024 or not line.endswith(b'\n') or footer:p.kill();sys.exit(1)
+ record=json.loads(line)
+ if record.get('type')=='object':count+=1;total+=record['size']
+ if record.get('type')=='footer':
+  if record.get('objects')!=count:p.kill();sys.exit(1)
+  footer=True;record.update(downloadedObjects=count,downloadedBytes=total,reusedObjects=0,reusedBytes=0,exportMode='legacy-bootstrap')
+  line=json.dumps(record,separators=(',',':')).encode()+b'\n'
+ sys.stdout.buffer.write(line);sys.stdout.buffer.flush()
+code=p.wait()
+sys.exit(code if code else (0 if footer else 1))
+'''
     producer=subprocess.Popen(['ssh','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','ConnectTimeout=8',config['ssh_host'],'python3 -c '+shlex.quote(remote_code)],
                               stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
     timer=threading.Timer(900,producer.kill);timer.start()
-    digest=hashlib.sha256()
-    class HashReader:
-        def read(self,size):
-            chunk=producer.stdout.read(size);digest.update(chunk);return chunk
+    reader=ObjectStreamReader(producer.stdout)
+    write_errors=[]
+    def write_prior():
+        source=None;source_timer=None
+        try:
+            producer.stdin.write(json.dumps({'type':'requirements','paths':paths},separators=(',',':')).encode()+b'\n')
+            if prior:
+                source=subprocess.Popen(args+['dump',prior['snapshots'][0],'/'+prior['filename']],stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,env=env)
+                source_timer=threading.Timer(900,source.kill);source_timer.start()
+                digest=hashlib.sha256()
+                while chunk:=source.stdout.read(65536):
+                    digest.update(chunk);producer.stdin.write(chunk)
+                if source.wait(timeout=5) or digest.hexdigest()!=prior['sha256']:raise ValueError('Prior checkpoint read failed')
+            else:
+                producer.stdin.write(b'{"type":"header","version":1}\n{"type":"footer","version":1,"objects":0}\n')
+        except Exception:write_errors.append(True)
+        finally:
+            if source_timer:source_timer.cancel()
+            if source:
+                if source.poll() is None:source.kill()
+                source.wait()
+            try:producer.stdin.close()
+            except OSError:pass
+    writer=threading.Thread(target=write_prior,daemon=True);writer.start()
     filename=database_filename.removesuffix('.tar')+'-objects.ndjson'
-    args,env=repositories[0]
     try:
-        producer.stdin.write(required);producer.stdin.close()
-        output=command(args+['backup','--stdin','--stdin-filename',filename,'--tag','platform:3dprint4me-private-objects','--json'],data=HashReader(),env=env,timeout=900,limit=1024*1024)
+        output=command(args+['backup','--stdin','--stdin-filename',filename,'--tag','platform:3dprint4me-private-objects','--json'],data=reader,env=env,timeout=900,limit=1024*1024)
         if producer.wait(timeout=10):raise ValueError('Private object export incomplete')
+        writer.join(timeout=10)
+        if writer.is_alive() or write_errors:raise ValueError('Prior object stream failed')
+        counters=reader.finish()
         snapshot=summary_snapshot(output)
     finally:
         timer.cancel()
         if producer.poll() is None:producer.kill()
         producer.wait()
-    expected=digest.hexdigest();snapshots=[]
+        writer.join(timeout=2)
+    expected=reader.digest.hexdigest();snapshots=[]
     for index,(destination,store_env) in enumerate(repositories):
         destination_snapshot=snapshot
         if index:
@@ -251,7 +349,7 @@ def backup_objects(config, required, repositories, database_filename):
             destination_snapshot=copied_snapshot(destination,store_env,snapshot,filename)
         if stream_hash(destination+['dump',destination_snapshot,'/'+filename],store_env)!=expected:raise ValueError('Private object roundtrip mismatch')
         snapshots.append(destination_snapshot)
-    return {'snapshots':snapshots,'filename':filename,'sha256':expected,'roundtrip_verified':True}
+    return {'snapshots':snapshots,'filename':filename,'sha256':expected,'roundtrip_verified':True,**counters}
 
 
 def report(config_path,success):
