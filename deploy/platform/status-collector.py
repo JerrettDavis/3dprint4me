@@ -125,7 +125,11 @@ def container_capacity(command):
                 raise ValueError('Container usage unavailable')
             cpu += cpu_value
             memory += float(match[1]) * units[match[2]]
-        return [record('container-memory', memory, sum(row[0] for row in parsed_limits)), record('container-cpu', cpu, sum(row[1] for row in parsed_limits) / 10000000)]
+        memory_limit = sum(row[0] for row in parsed_limits)
+        cpu_limit = sum(row[1] for row in parsed_limits) / 10000000
+        if not all(numeric(value) for value in (memory, cpu, memory_limit, cpu_limit)):
+            raise ValueError('Container usage unavailable')
+        return [record('container-memory', memory, memory_limit), record('container-cpu', cpu, cpu_limit)]
     except Exception:
         return [record('container-memory', None, None), record('container-cpu', None, None)]
 
