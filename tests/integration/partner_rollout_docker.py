@@ -109,10 +109,10 @@ def main(image, diagnostics=None):
             services = {name:run(compose+['ps','-q',name]) for name in ('api','jobs','slicer','tunnel')}
             networks = json.loads(run(['docker','inspect',services['api'],'--format','{{json .NetworkSettings.Networks}}']))
             egress = next(name for name in networks if name.endswith('_egress'))
-            probe_code = """import{existsSync}from'node:fs';let checked=0,failed=0;const deadline=Date.now()+180000;
+            probe_code = """import{existsSync}from'node:fs';let checked=0,failed=0;const errors=[];const deadline=Date.now()+180000;
 while(!existsSync('/tmp/stop')&&Date.now()<deadline){try{const r=await fetch('http://api:8080/api/partner/v1/status',{signal:AbortSignal.timeout(2000)});
-if(!r.ok||(await r.json()).invitationRequired!==true)failed++;}catch{failed++;}checked++;await new Promise(r=>setTimeout(r,100));}
-if(!existsSync('/tmp/stop'))failed++;console.log(JSON.stringify({checked,failed}));"""
+if(!r.ok||(await r.json()).invitationRequired!==true){failed++;if(errors.length<10)errors.push({at:Date.now(),status:r.status});}}catch(e){failed++;if(errors.length<10)errors.push({at:Date.now(),error:e.cause?.code??e.name});}checked++;await new Promise(r=>setTimeout(r,100));}
+if(!existsSync('/tmp/stop'))failed++;console.log(JSON.stringify({checked,failed,errors}));"""
             continuity_probe = run(['docker','run','-d','--name',project+'-continuity-probe','--network',egress,
                                     '--label','3dprint4me.purpose=partner-rollout-native','--read-only',
                                     '--tmpfs','/tmp:size=1m,mode=1777','--cap-drop=ALL','--security-opt=no-new-privileges:true',
@@ -133,7 +133,7 @@ if(!existsSync('/tmp/stop'))failed++;console.log(JSON.stringify({checked,failed}
             run(['docker','exec',continuity_probe,'node','-e',"require('fs').writeFileSync('/tmp/stop','')"])
             assert run(['docker','wait',continuity_probe]) == '0'
             continuity = json.loads(run(['docker','logs',continuity_probe]))
-            assert continuity['checked'] > 0 and continuity['failed'] == 0
+            assert continuity['checked'] > 0 and continuity['failed'] == 0, continuity
             assert sql("SELECT id||':'||project_title FROM service_requests ORDER BY id",db=selected,user='platform_owner') == original
             assert sql("SELECT to_regclass('public.partner_weekly_statements') IS NOT NULL",db=selected,user='platform_owner') == 't'
             assert sql("SELECT relrowsecurity FROM pg_class WHERE oid='public.partner_weekly_statements'::regclass",db=selected,user='platform_owner') == 't'

@@ -6,6 +6,7 @@ on:
       - 'operator/**'
       - 'partner/**'
       - 'tests/e2e/test_operator_pwa.py'
+      - 'tests/e2e/test_workspace_task_hierarchy.py'
       - 'tests/e2e/test_partner_*.py'
       - '.github/workflows/workspace-regressions.yml'
   workflow_dispatch:
@@ -38,6 +39,7 @@ jobs:
           tests/e2e/test_partner_responsive_navigation.py
           tests/e2e/test_partner_owner_workspace.py
           tests/e2e/test_operator_pwa.py
+          tests/e2e/test_workspace_task_hierarchy.py
           tests/e2e/test_partner_pwa.py
           tests/e2e/test_partner_qa_ui.py
           tests/e2e/test_partner_qa_upgrade.py

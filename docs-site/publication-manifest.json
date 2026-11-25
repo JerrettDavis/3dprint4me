@@ -25,7 +25,7 @@
     {
       "file": "docs/GENERATORS.md",
       "output": "reference/GENERATORS.md",
-      "sha256": "dfc2cbb2676ff6e1c09197904aaa85c0bfb04a043cc715dcbcdbd67ad754c20d"
+      "sha256": "82f4f2b3129ece67566f270d26a7840f5d16f72b622f680f2b57d5710c8752bd"
     },
     {
       "file": "docs/PRODUCT-IMAGES.md",
@@ -50,7 +50,7 @@
     {
       "file": "docs/OPERATOR-INBOX.md",
       "output": "reference/OPERATOR-INBOX.md",
-      "sha256": "6b4f84bef24a34715a3142234f079f0896c464cc8668859cfb6e65cb7414a313"
+      "sha256": "9b725f945ace7f5256b0f20cd0a9915d9407e789b42a55ec886dede968cef037"
     },
     {
       "file": "docs/PARTNER-API.md",

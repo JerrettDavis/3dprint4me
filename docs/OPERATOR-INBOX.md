@@ -80,7 +80,7 @@ Submit a harmless synthetic request and verify, in order:
 - an unapproved or disabled identity receives 403 and no customer data;
 - acknowledge, priority, target date, status, and note changes increment `revision` and append events;
 - a stale revision returns `revision_conflict` and does not overwrite the newer change;
-- notification permission is requested only after pressing **Manage notifications**;
+- notification permission is requested only after pressing **Alerts**;
 - the Push payload is generic and the outbox reaches `delivered`, or returns to `pending` after a temporary provider failure;
 - expired Push endpoints are disabled without exposing provider response bodies;
 - Cache Storage contains shell files only, and local/session storage contain no request or session data.
