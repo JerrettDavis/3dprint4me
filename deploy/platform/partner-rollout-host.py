@@ -89,15 +89,147 @@ for(const path of ['/api/partner/v1/session','/api/partner/v1/gigs','/api/operat
 if((await get('/api/partner/v1/status',{headers:{Origin:'https://untrusted.invalid'}})).status!==403)throw Error('Origin denial failed');
 console.log(JSON.stringify({featureOff:true,privateDenied:true,originDenied:true}));"""
 
-JOBS_SMOKE = """import{readFileSync}from'node:fs';import{readJobHealth}from'./lib/platform/job-health.js';
+STATEMENT_POLL_PARSER = """function parseStatementPoll(text,{startedAt,now,maxAge=180000}) {
+try {
+if(typeof text!=='string'||Buffer.byteLength(text)>512||!Number.isSafeInteger(startedAt)||!Number.isSafeInteger(now)||!Number.isSafeInteger(maxAge)||maxAge<1)return null;
+const row=JSON.parse(text),c=row?.counts;
+if(row?.name!=='statements'||typeof row.ok!=='boolean'||!Number.isSafeInteger(row.observedAt)||row.observedAt<startedAt||row.observedAt>now+30000||now-row.observedAt>maxAge||!c||typeof c!=='object'||Array.isArray(c))return null;
+if(['claimed','generated','skipped'].some(k=>!Number.isSafeInteger(c[k])||c[k]<0)||!Number.isSafeInteger(c.generated+c.skipped)||c.generated+c.skipped!==c.claimed)return null;
+if(['failed','retrying','errors'].some(k=>Object.hasOwn(c,k)&&(!Number.isSafeInteger(c[k])||c[k]!==0)))return null;
+if(!row.ok&&c.claimed!==0)return null;
+return {statementsProcessingHealthy:row.ok};
+}catch{return null;}
+}
+"""
+JOBS_SMOKE = """import{readFileSync,openSync,readSync,closeSync}from'node:fs';
+""" + STATEMENT_POLL_PARSER + """
 const config=JSON.parse(readFileSync(0,'utf8')),url=new URL(process.env.DATABASE_URL);
 if(process.env.PLATFORM_JOBS_ENABLED!=='1'||process.env.DATABASE_DRIVER!=='postgres'||url.hostname!=='postgres'||url.username!=='platform_app'||url.pathname!=='/'+config.selected)throw Error('Native writer scope failed');
 if(['PARTNER_PROGRAM_ENABLED','PARTNER_CLASSIFICATION_APPROVED','PARTNER_ACCOUNTING_APPROVED'].some(key=>process.env[key]!=='0'))throw Error('Disabled rollout required');
-let healthy=false;for(let i=0;i<90;i++){const directory=process.env.PLATFORM_JOB_HEALTH_DIR;
-const result=await readJobHealth('statements',{directory,maxAge:180000});
-try{const row=JSON.parse(readFileSync(directory+'/statements.json','utf8'));if(result.ok&&row.observedAt>=config.startedAt){healthy=true;break;}}catch{}
-await new Promise(r=>setTimeout(r,1000));}if(!healthy)throw Error('Fresh statement worker evidence unavailable');
-console.log(JSON.stringify({nativeWriter:true,flagsOff:true,statementsHealthy:true}));"""
+let poll=null;for(let i=0;i<90;i++){const directory=process.env.PLATFORM_JOB_HEALTH_DIR;
+try{const fd=openSync(directory+'/statements.json','r');let text;try{const b=Buffer.alloc(513);text=b.subarray(0,readSync(fd,b,0,b.length,0)).toString('utf8');}finally{closeSync(fd);}
+poll=parseStatementPoll(text,{startedAt:config.startedAt,now:Date.now()});if(poll)break;}catch{}
+await new Promise(r=>setTimeout(r,1000));}if(!poll)throw Error('Fresh statement worker poll evidence unavailable');
+console.log(JSON.stringify({nativeWriter:true,flagsOff:true,statementsPolled:true,...poll}));"""
+
+def writer_proof(value):
+    return (isinstance(value, dict) and set(value) == {'nativeWriter','flagsOff','statementsPolled','statementsProcessingHealthy'}
+            and all(value[key] is True for key in ('nativeWriter','flagsOff','statementsPolled'))
+            and type(value['statementsProcessingHealthy']) is bool)
+
+def source_tree_sha256(source):
+    """Compare with a digest derived independently from the verified release archive."""
+    digest = hashlib.sha256()
+    for path in sorted(Path(source).rglob('*'), key=lambda path:path.relative_to(source).as_posix()):
+        if path.is_symlink():
+            raise ValueError('Release source must not contain symbolic links.')
+        if path.is_file():
+            digest.update(path.relative_to(source).as_posix().encode('utf-8') + b'\0'
+                          + hashlib.sha256(path.read_bytes()).hexdigest().encode('ascii') + b'\n')
+    return digest.hexdigest()
+
+def resume_admitted_release(verified_context, *, runner):
+    """Forward-only completion of one inspected candidate-api-admitted journal.
+
+    Caller holds the deployment lock and supplies independently verified private
+    hashes/identities. Never restart services, rerun migrations or rewrite health.
+    """
+    try:
+        ctx = verified_context
+        root, source, release = Path(ctx['root']), Path(ctx['source']), ctx['release']
+        selected, pg, images, expected = ctx['selected'], ctx['postgres'], ctx['images'], ctx['resume']
+        if (not re.fullmatch(r'[a-f0-9]{40}', release) or source != root/'releases'/release
+                or not re.fullmatch(r'platform_live_[a-z0-9_]{1,48}', selected)
+                or not re.fullmatch(r'[a-f0-9]{64}', pg)
+                or set(images) != {'api','slicer'}
+                or any(not re.fullmatch(r'sha256:[a-f0-9]{64}', value) for value in images.values())):
+            raise ValueError('Verified admitted release context required.')
+        private_path(root, directory=True)
+        private_path(source, directory=True)
+        checkpoint_ready(ctx.get('checkpoint'), selected)
+        journal = root/('partner-rollout-'+release[:12]+'.private.json')
+        override = root/('partner-rollout-'+release[:12]+'.private.yml')
+        config_names = {'api.env','jobs.env','compose.env','database-target.private.json'}
+        if (set(expected['configSha256']) != config_names
+                or not re.fullmatch(r'[a-f0-9]{64}', expected['jobs'])
+                or not re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,62}', expected['project'])
+                or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}_egress', expected['egress'])):
+            raise ValueError('Verified resume identities required.')
+        def unchanged():
+            for path, wanted in [(journal,expected['journalSha256']), (override,expected['overrideSha256'])] + [(root/name,expected['configSha256'][name]) for name in sorted(config_names)]:
+                if not re.fullmatch(r'[a-f0-9]{64}', wanted) or hashlib.sha256(private_path(path).read_bytes()).hexdigest() != wanted:
+                    raise ValueError('Private rollout state changed.')
+            if ((root/'candidate-source').is_symlink() is not True or (root/'candidate-source').resolve() != source.resolve()
+                    or not re.fullmatch(r'[a-f0-9]{64}', expected['sourceSha256'])
+                    or source_tree_sha256(source) != expected['sourceSha256']):
+                raise ValueError('Immutable admitted source changed.')
+            for name in ('api.env','jobs.env'):
+                if any(read_env(root/name).get(flag) != '0' for flag in FLAGS):
+                    raise ValueError('Engagement must remain disabled.')
+            if read_env(root/'compose.env').get('PLATFORM_RELEASE') != release[:12]:
+                raise ValueError('Selected release changed.')
+        unchanged()
+        state = json.loads(journal.read_text(encoding='utf-8'))
+        if (state.get('stage') != 'candidate-api-admitted' or state.get('release') != release
+                or state.get('selected') != selected or state.get('candidateImages') != images):
+            raise ValueError('Only an inspected admitted candidate can resume.')
+        for key in ('api','guard'):
+            if not re.fullmatch(r'[a-f0-9]{64}', state.get(key,'')):
+                raise ValueError('Admitted API identities missing.')
+        if len({state['api'],state['guard'],expected['jobs']}) != 3:
+            raise ValueError('Distinct admitted services required.')
+        compose = ['docker','compose','--env-file',str(root/'compose.env'),'-f',str(source/'deploy/platform/compose.yml'),'-f',str(override)]
+        def validate_live():
+            unchanged()
+            answer = runner(['docker','exec','-i',pg,'psql','-X','-U','platform_owner','-d','platform','-At','-v','ON_ERROR_STOP=1'],input=b'SELECT database_name FROM platform_deployment_state WHERE singleton=true')
+            if answer != selected:
+                raise ValueError('Selected native generation changed.')
+            for name, cid in [('api',state['api']),('api_guard',state['guard']),('jobs',expected['jobs'])]:
+                if runner(compose+['ps','-q',name]) != cid:
+                    raise ValueError('Admitted service identity changed.')
+                if (runner(['docker','inspect',cid,'--format','{{.Image}}']) != images['api']
+                        or runner(['docker','inspect',cid,'--format','{{.State.Running}}']) != 'true'
+                        or runner(['docker','inspect',cid,'--format','{{index .Config.Labels "com.docker.compose.project"}}']) != expected['project']):
+                    raise ValueError('Admitted service is incompatible.')
+                if name != 'jobs':
+                    if runner(['docker','inspect',cid,'--format','{{.Image}} {{.State.Running}} {{.State.Health.Status}}']) != images['api']+' true healthy':
+                        raise ValueError('Admitted API is unhealthy.')
+                    networks = json.loads(runner(['docker','inspect',cid,'--format','{{json .NetworkSettings.Networks}}']))
+                    if 'api' not in networks.get(expected['egress'],{}).get('Aliases',[]):
+                        raise ValueError('Admitted API network changed.')
+                    if json.loads(runner(['docker','exec',cid,'node','--input-type=module','-e',API_SMOKE])) != {'featureOff':True,'privateDenied':True,'originDenied':True}:
+                        raise ValueError('Admitted API smoke failed.')
+            for name in ('slicer','tunnel'):
+                cid = state['previousServices'][name]
+                if (runner(compose+['ps','-q',name]) != cid
+                        or runner(['docker','inspect',cid,'--format','{{.Image}}']) != state['previousImages'][name]
+                        or runner(['docker','inspect',cid,'--format','{{.State.Running}}']) != 'true'):
+                    raise ValueError('Unrelated service changed.')
+            old_jobs = state['previousServices']['jobs']
+            if old_jobs and (not re.fullmatch(r'[a-f0-9]{64}',old_jobs) or old_jobs == expected['jobs']
+                             or runner(['docker','ps','-q','--no-trunc','--filter','id='+old_jobs])):
+                raise ValueError('Prior writer has not drained.')
+        started_at = int(time.time()*1000)
+        validate_live()
+        proof = json.loads(runner(['docker','exec','-i',expected['jobs'],'node','--input-type=module','-e',JOBS_SMOKE],input=json.dumps({'selected':selected,'startedAt':started_at}).encode(),timeout=120))
+        if not writer_proof(proof):
+            raise ValueError('Fresh writer poll evidence unavailable.')
+        validate_live()
+        checkpoint_ready(ctx.get('checkpoint'), selected)
+        state['writerProof'] = proof
+        state['resumeCheckpointReceipts'] = ctx['checkpoint']['checkpointReceipts']
+        state['stage'] = 'compatible-writer-intent-preserved'
+        atomic_write(journal,json.dumps(state,sort_keys=True).encode(),replace=True)
+        runner(['docker','stop','-t','45',state['guard']],timeout=90)
+        if runner(['docker','inspect',state['guard'],'--format','{{.State.Running}}']) != 'false':
+            raise RuntimeError('Guard did not drain.')
+        runner(['docker','rm',state['guard']])
+        state['stage'] = 'disabled-rollout-passed'
+        atomic_write(journal,json.dumps(state,sort_keys=True).encode(),replace=True)
+        override.unlink()
+        return proof
+    except Exception:
+        raise RuntimeError('Admitted rollout resume stopped; retain private state and inspect admitted API/guard before further recovery.') from None
 
 
 def deploy_release(verified_context, *, runner):
@@ -260,8 +392,9 @@ def deploy_release(verified_context, *, runner):
                 raise RuntimeError('Compatible writer did not start.')
             proof = json.loads(runner(['docker','exec','-i',jobs,'node','--input-type=module','-e',JOBS_SMOKE],
                                      input=json.dumps({'selected':selected,'startedAt':started_at}).encode(), timeout=120))
-            if proof != {'nativeWriter': True, 'flagsOff': True, 'statementsHealthy': True}:
+            if not writer_proof(proof):
                 raise RuntimeError('Compatible writer evidence is unavailable.')
+            state['writerProof'] = proof
         stage('compatible-writer-intent-preserved')
         for name in ('slicer','tunnel'):
             current = cid(name)
