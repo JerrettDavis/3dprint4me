@@ -6,6 +6,8 @@ Private filament inventory also supports work readiness; see [OPERATOR-INBOX.md]
 
 This runbook covers the `print-estimation` vertical slice: model-aware print estimates, private STL/3MF retention, the asynchronous slicer contract, operator economics, and cleanup.
 
+Server ZIP analysis reuses the bytes it has just extracted when analyzing each privately stored child; it still runs the same geometry and SHA-256 validation. Local slicer workers reuse verified bytes for repeated profiles or retries in a runner-private memory cache (32 MiB total, five-minute expiry). Cache identity includes the private object path and authoritative SHA-256; every job rechecks current asset state, and assets without a verified hash bypass reuse. Oversized models bypass caching. No plaintext cache is written to disk. The HTTP slicer path continues to skip worker-side downloads. These optimizations complement the incremental encrypted backups described in [platform recovery](PLATFORM-RECOVERY.md).
+
 ## Flow
 
 ```text
