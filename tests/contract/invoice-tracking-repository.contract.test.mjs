@@ -39,11 +39,45 @@ async function fixture() {
   const database = { query: queryFor(db), withTransaction: operation => db.transaction(tx => operation({ query: queryFor(tx) })) };
   return { db, repository: createInvoiceTrackingRepository({ database }) };
 }
+test('a paid-total increase without transaction evidence requires review and never fabricates a payment alert', async () => {
+  const { db, repository } = await fixture();
+  try {
+    let current = snapshot([invoice({ status_id: 2, paid_to_date: 0, balance: 54.26 })], []);
+    const service = createInvoiceTrackingService({ repository, provider: { readSnapshot: async () => current }, now: () => new Date(time) });
+    await service.sync();
+    current = snapshot([invoice()], []); await service.sync();
+    const model = await service.read({ id: 'owner', role: 'owner' });
+    assert.equal(model.counts.reviewRequired, 1);
+    assert.equal(model.items[0].reviewRequired, true);
+    assert.equal((await repository.listEvents()).filter(e => e.payload.kind === 'invoice_payment').length, 0);
+    current = snapshot(); await service.sync();
+    assert.equal((await service.read({ id: 'owner', role: 'owner' })).counts.reviewRequired, 0);
+  } finally { await db.close(); }
+});
+test('correcting a filing acknowledgement rearms the current reminder without replaying payment history', async () => {
+  const { db, repository } = await fixture();
+  try {
+    const taxSchedule = normalizeTaxSchedule({ confirmed: true, frequency: 'monthly', effectiveFrom: '2026-10-01', dueDay: 20,
+      nextBusinessDay: true, holidayDates: [], timeZone: 'America/Chicago', reference: 'Confirmed monthly OTC schedule' }, { actorId: 'owner', now: new Date(time) });
+    await db.query('UPDATE invoice_tracking_state SET settings=settings || $1::jsonb', [JSON.stringify({ taxSchedule, notificationsEnabled: true })]);
+    await repository.advanceTax({ now: time });
+    const commands = createInvoiceTrackingCommands({ repository, now: () => new Date(time) });
+    const revision = (await repository.readTracking()).revision;
+    await commands.execute({ action: 'tax-acknowledge', commandId: 'filing-acknowledge-one', revision, periodId: 'ok-sales-2026-10', kind: 'submitted', date: '2026-11-20', reference: 'Demo filing reference' }, { id: 'owner', role: 'owner' });
+    await commands.execute({ action: 'tax-correct', commandId: 'filing-correction-one', revision: revision + 1, periodId: 'ok-sales-2026-10', kind: 'submitted', reference: 'Incorrect reporting period recorded' }, { id: 'owner', role: 'owner' });
+    await repository.advanceTax({ now: time }); await repository.advanceTax({ now: time });
+    const events = await repository.listEvents();
+    assert.equal(events.filter(e => e.payload.kind === 'tax_filing_due' && e.deliveryState === 'pending').length, 1);
+    assert.equal(events.filter(e => e.payload.kind === 'tax_payment_due').length, 1);
+  } finally { await db.close(); }
+});
 test('turning alerts off suppresses queued deliveries permanently and tax acknowledgement cancels only its own reminder', async () => {
   const { db, repository } = await fixture();
   try {
     const period = { id: 'ok-sales-2026-10', submitted: null, paid: null };
-    await db.query('UPDATE invoice_tracking_state SET settings=settings || $1::jsonb', [JSON.stringify({ notificationsEnabled: true, taxPeriods: [period] })]);
+    const taxSchedule = normalizeTaxSchedule({ confirmed: true, frequency: 'monthly', effectiveFrom: '2026-10-01', dueDay: 20,
+      nextBusinessDay: true, holidayDates: [], timeZone: 'America/Chicago', reference: 'Confirmed monthly OTC schedule' }, { actorId: 'owner', now: new Date(time) });
+    await db.query('UPDATE invoice_tracking_state SET settings=settings || $1::jsonb', [JSON.stringify({ notificationsEnabled: true, taxSchedule, taxPeriods: [period] })]);
     for (const [id, kind] of [['a'.repeat(64), 'tax_filing_due'], ['b'.repeat(64), 'tax_payment_due']]) {
       await db.query("INSERT INTO invoice_tracking_events(id,payload,delivery_state) VALUES($1,$2::jsonb,'pending')", [id, JSON.stringify({ periodId: period.id, kind })]);
     }
@@ -52,7 +86,10 @@ test('turning alerts off suppresses queued deliveries permanently and tax acknow
     let events = await repository.listEvents();
     assert.equal(events.find(e => e.payload.kind === 'tax_filing_due').deliveryState, 'suppressed');
     assert.equal(events.find(e => e.payload.kind === 'tax_payment_due').deliveryState, 'pending');
-    await repository.command({ id: 'disable-command', actorId: 'owner', fingerprint: 'd'.repeat(64), revision: 2,
+    await repository.command({ id: 'disable-tax-command', actorId: 'owner', fingerprint: 'e'.repeat(64), revision: 2,
+      mutate: settings => ({ ...settings, taxSchedule: null }) });
+    assert.deepEqual(await repository.claimEvents({ token: 'tax-delivery-disabled', now: time, leaseMs: 1000, limit: 10 }), []);
+    await repository.command({ id: 'disable-command', actorId: 'owner', fingerprint: 'd'.repeat(64), revision: 3,
       mutate: settings => ({ ...settings, notificationsEnabled: false }) });
     assert.deepEqual(await repository.claimEvents({ token: 'delivery-disabled', now: time, leaseMs: 1000, limit: 10 }), []);
     events = await repository.listEvents(); assert.ok(events.every(e => e.deliveryState === 'suppressed'));

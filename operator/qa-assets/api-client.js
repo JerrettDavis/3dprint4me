@@ -12,6 +12,8 @@ export function createApiClient({ apiBase = "", getSessionHeaders = async () => 
     } catch (error) { if (error instanceof OperatorApiError) throw error; throw new OperatorApiError("network", 0); }
   }
   return {
+    billingTracking: () => request('/api/operator-work?resource=billing'),
+    billingCommand: command => request('/api/operator-work?resource=billing', { method: 'POST', body: JSON.stringify(command) }),
     session: () => request("/api/operator-session"),
     listWork: filters => request(`/api/operator-work?${new URLSearchParams(filters ?? {})}`),
     getWork: id => request(`/api/operator-work?id=${encodeURIComponent(id)}&schema=2`),

@@ -7,7 +7,7 @@ function field(form, text, type = 'text', value = '') {
 }
 const money = (cents, currency) => new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);
 export function renderWorkBillingDisposition({ item, api, onAuthError = () => {} }) {
-  const section = el('section', null, 'invoice-sheet'), status = el('p', 'Loading billing disposition…'); status.setAttribute('role', 'status');
+  const section = el('section', null, 'billing-disposition'), status = el('p', 'Loading billing disposition…'); status.setAttribute('role', 'status');
   section.append(el('h3', 'Billing disposition'), status);
   queueMicrotask(async () => {
     try {
@@ -74,7 +74,7 @@ export async function openBillingDialog({ api, onAuthError = () => {} }) {
     if (data.sync.status !== 'current') health.append(el('p', 'Amounts show the last complete snapshot. Check Invoice Ninja before acting.'));
     content.append(health);
     const counts = el('dl', null, 'billing-counts');
-    for (const [key, label] of [['needsInvoicing', 'Needs invoicing'], ['draft', 'Draft'], ['viewed', 'Viewed'], ['paid', 'Paid'], ['overdue', 'Overdue']]) {
+    for (const [key, label] of [['needsInvoicing', 'Needs invoicing'], ['draft', 'Draft'], ['viewed', 'Viewed'], ['paid', 'Paid'], ['overdue', 'Overdue'], ['reviewRequired', 'Review required']]) {
       const group = el('div'); group.append(el('dt', label), el('dd', String(data.counts[key] ?? 0))); counts.append(group);
     }
     content.append(counts);
@@ -82,15 +82,16 @@ export async function openBillingDialog({ api, onAuthError = () => {} }) {
       if (total.currency && Number.isSafeInteger(total.outstandingCents)) content.append(el('p', `${total.currency} outstanding: ${money(total.outstandingCents, total.currency)}`));
     }
     const label = el('label', 'Invoice filter'), select = el('select'); select.setAttribute('aria-label', 'Invoice filter');
-    for (const [value, text] of [['all', 'All invoices'], ['needs_invoice', 'Needs invoicing'], ['outstanding', 'Outstanding'], ['overdue', 'Overdue'], ['draft', 'Draft'], ['paid', 'Paid'], ['viewed', 'Viewed']]) {
+    for (const [value, text] of [['all', 'All invoices'], ['needs_invoice', 'Needs invoicing'], ['outstanding', 'Outstanding'], ['overdue', 'Overdue'], ['draft', 'Draft'], ['paid', 'Paid'], ['viewed', 'Viewed'], ['review', 'Review required']]) {
       const option = el('option', text); option.value = value; select.append(option);
     }
     select.value = filter; select.onchange = () => { filter = select.value; draw(); content.querySelector('select').focus(); }; label.append(select); content.append(label);
     const list = el('div', null, 'billing-list');
-    const rows = data.items.filter(row => filter === 'all' || filter === 'overdue' && row.overdue || filter === 'viewed' && row.viewed || filter === 'outstanding' && ['sent', 'partially_paid'].includes(row.status) || row.status === filter);
+    const rows = data.items.filter(row => filter === 'all' || filter === 'review' && row.reviewRequired || filter === 'overdue' && row.overdue || filter === 'viewed' && row.viewed || filter === 'outstanding' && ['sent', 'partially_paid'].includes(row.status) || row.status === filter);
     for (const row of rows) {
       const article = el('article', null, 'billing-row');
       article.append(el('h3', row.number), el('strong', row.status.replaceAll('_', ' ')), el('p', `Total ${money(row.totalCents, row.currency)} · Balance ${money(row.balanceCents, row.currency)}`));
+      if (row.reviewRequired) article.append(el('strong', 'Review required: payment total differs from transaction evidence. Reconcile in Invoice Ninja.'));
       if (row.dueDate) article.append(el('p', `Due ${row.dueDate}${row.overdue ? ' · Overdue' : ''}`));
       article.append(el('p', `${row.opened ? 'Email opened' : 'No recorded email open'} · ${row.viewed ? 'Invoice viewed' : 'No recorded invoice view'}`));
       const link = el('a', 'Review in Invoice Ninja');

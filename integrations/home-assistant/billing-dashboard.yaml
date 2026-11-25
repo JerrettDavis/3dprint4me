@@ -25,12 +25,15 @@ views:
           {% if states('sensor.three_d_print_billing') != 'current' %}
           Provider data may be stale. Review Invoice Ninja before acting.
           {% endif %}
+          {% if counts.get('reviewRequired', 0) %}
+          **{{ counts.get('reviewRequired') }} invoices need payment-evidence reconciliation.** Review private Billing.
+          {% endif %}
       - type: markdown
         entity_id: sensor.three_d_print_billing
         title: Fabrication invoices
         content: |-
           {% for item in state_attr('sensor.three_d_print_billing', 'items') or [] %}
-          - **{{ item.number | replace('[', '') | replace(']', '') | replace('*', '') | replace('`', '') }}** · {{ item.status }}{% if item.overdue %} · **OVERDUE**{% endif %} · {{ item.currency }} {{ '%.2f' | format(item.balanceCents / 100) }} remaining{% if item.viewed %} · viewed{% endif %}{% if item.opened %} · email opened{% endif %}
+          - **{{ item.number | replace('[', '') | replace(']', '') | replace('*', '') | replace('`', '') }}** · {{ item.status }}{% if item.overdue %} · **OVERDUE**{% endif %} · {{ item.currency }} {{ '%.2f' | format(item.balanceCents / 100) }} remaining{% if item.viewed %} · viewed{% endif %}{% if item.opened %} · email opened{% endif %}{% if item.reviewRequired %} · **review payment evidence**{% endif %}
           {% else %}
           No invoice snapshot available.
           {% endfor %}

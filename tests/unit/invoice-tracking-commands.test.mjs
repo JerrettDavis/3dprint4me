@@ -18,6 +18,14 @@ test('non-owners and malformed actions fail before any repository mutation', asy
   await assert.rejects(app.execute(command({ action: 'mark-paid' }), owner), e => e.status === 400);
   assert.equal(writes, 0);
 });
+test('OKTAP settings require the confirmed monthly twentieth-day business-day rule', async () => {
+  const app = createInvoiceTrackingCommands({ repository: { command: async () => assert.fail('Unverified rule reached persistence') }, now });
+  const valid = { confirmed: true, frequency: 'monthly', effectiveFrom: '2026-11-01', dueDay: 20, nextBusinessDay: true,
+    holidayDates: [], timeZone: 'America/Chicago', reference: 'OTC business filing guidance' };
+  for (const change of [{ frequency: 'quarterly' }, { dueDay: 21 }, { nextBusinessDay: false }]) {
+    await assert.rejects(app.execute(command({ settings: { ...command().settings, taxSchedule: { ...valid, ...change } } }), owner), { status: 400 });
+  }
+});
 
 test('settings commands normalize a confirmed schedule and preserve existing filing acknowledgements', async () => {
   let saved;
