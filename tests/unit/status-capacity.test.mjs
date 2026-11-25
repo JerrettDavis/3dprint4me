@@ -6,7 +6,7 @@ const now = 1800000000000;
 const record = (overrides = {}) => ({ id: 'blob-storage', used: 70, limit: 100, observedAt: now, periodStart: null, periodEnd: null, source: 'provider', scope: 'project', ...overrides });
 const metric = (state, time = now, id = 'blob-storage') => capacitySnapshot(state, time).metrics.find(m => m.id === id);
 test('capacity validates finite nonnegative measurements, registry, keys and bounds', () => {
-  for (const change of [{used: -1}, {limit: Infinity}, {observedAt: now + 1}, {source: 'invented'}, {scope: 'invented'}, {id:'invented'}, {extra:true}, {periodStart:now,periodEnd:now-1}]) {
+  for (const change of [{used: -1}, {limit: Infinity}, {observedAt: now + 30001}, {source: 'invented'}, {scope: 'invented'}, {id:'invented'}, {extra:true}, {periodStart:now,periodEnd:now-1}]) {
     assert.throws(() => validateCapacity([record(change)], now));
   }
   assert.throws(() => validateCapacity([record(), record()], now));
@@ -44,12 +44,29 @@ test('period reset clears thresholds; corrupt persisted state is ignored', () =>
 });
 test('freshness uses source deadlines and keeps unknown data out of normal state', () => {
   for (const [source,age] of [['provider',7200000],['local',720000],['application',720000],['backup',7200000],['manual',86400000]]) {
-    const state=updateCapacity(null,[record({source})],now);
-    assert.notEqual(metric(state,now+age).status,'stale');
-    assert.equal(metric(state,now+age+1).status,'stale');
+    const ids={local:'db-size',application:'rate-sessions-global',backup:'backup-downloaded'};
+    const id=ids[source] ?? 'blob-storage';
+    const scope=source==='local'?'host':source==='application'||source==='backup'?'application':'project';
+    const state=updateCapacity(null,[record({id,source,scope})],now);
+    assert.notEqual(metric(state,now+age,id).status,'stale');
+    assert.equal(metric(state,now+age+1,id).status,'stale');
   }
   assert.equal(metric(null).status,'unknown');
   assert.equal(metric(updateCapacity(null,[record({limit:null})],now)).status,'unknown');
+});
+test('source and scope attest metric ownership; numeric bounds and clock allowance are enforced', () => {
+  for (const changes of [{source:'local',scope:'host'},{source:'application',scope:'application'},{scope:'host'},{scope:'application'}, {used:Number.MAX_SAFE_INTEGER+1},{limit:Number.MAX_SAFE_INTEGER+1}]) assert.throws(()=>validateCapacity([record(changes)],now));
+  assert.doesNotThrow(()=>validateCapacity([record({source:'manual',scope:'account',observedAt:now+30000})],now));
+  assert.throws(()=>validateCapacity([record({id:'host-disk',source:'manual',scope:'host'})],now));
+  for(const key of ['used','limit','observedAt','periodStart','periodEnd','scope','source']) {
+    const r=record(); delete r[key]; assert.throws(()=>validateCapacity([r],now));
+  }
+});
+test('expired windows are stale and old observations cannot replace current readings', () => {
+  const state=updateCapacity(null,[record({periodStart:now-1000,periodEnd:now+1000})],now);
+  assert.equal(metric(state,now+1000).status,'stale');
+  const unchanged=updateCapacity(state,[record({used:99,observedAt:now-1})],now);
+  assert.equal(metric(unchanged).used,70);
 });
 test('recovery must cross hysteresis margin twice and history stays bounded', () => {
   let state=updateCapacity(null,[record({used:95})],now);

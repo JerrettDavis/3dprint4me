@@ -18,18 +18,23 @@ const ages = {provider:7200000,local:720000,application:720000,backup:7200000,ma
 export const CAPACITY_METRICS = Object.freeze(Object.fromEntries(definitions.map(([id,label,service,unit,source='provider']) => [id,Object.freeze({label,service,unit,source,maxAge:ages[source]})])));
 const keys = new Set(['id','used','limit','observedAt','periodStart','periodEnd','source','scope','unlimited']);
 const scopes = new Set(['account','project','store','host','application']);
-const number = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;
+const number = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER;
 const nullable = value => value === null || number(value);
+function validOrigin(record) {
+  const source=CAPACITY_METRICS[record.id]?.source;
+  if (record.source !== source && !(source === 'provider' && record.source === 'manual')) return false;
+  return source === 'provider' ? ['account','project','store'].includes(record.scope) : source === 'local' ? record.scope === 'host' : record.scope === 'application';
+}
 export function validateCapacity(records, now = Date.now()) {
   if (!Array.isArray(records) || records.length > 40 || !number(now)) throw new Error('Invalid capacity records');
   const seen = new Set();
   return records.map(record => {
     if (!record || typeof record !== 'object' || Array.isArray(record) || Object.keys(record).some(key => !keys.has(key)) ||
       !Object.hasOwn(CAPACITY_METRICS,record.id) || seen.has(record.id) || !nullable(record.used) || !nullable(record.limit) ||
-      !number(record.observedAt) || record.observedAt > now || !nullable(record.periodStart) || !nullable(record.periodEnd) ||
+      !number(record.observedAt) || record.observedAt > now+30000 || !nullable(record.periodStart) || !nullable(record.periodEnd) ||
       (record.periodStart !== null && record.periodStart > record.observedAt) ||
       (record.periodStart !== null && record.periodEnd !== null && record.periodStart >= record.periodEnd) ||
-      !Object.hasOwn(ages,record.source) || !scopes.has(record.scope) ||
+      !Object.hasOwn(ages,record.source) || !scopes.has(record.scope) || !validOrigin(record) ||
       (record.unlimited !== undefined && typeof record.unlimited !== 'boolean') || (record.unlimited === true && record.limit !== null)) throw new Error('Invalid capacity record');
     seen.add(record.id);
     return {...record};
@@ -63,7 +68,7 @@ export function updateCapacity(state, records, now = Date.now()) {
     const target = severity(r);
     if (!t || t.period !== period(r)) t = {severity:'normal',candidate:null,count:0,observedAt:0,period:period(r)};
     if (now-t.observedAt > ages[r.source]) { t.count=0; t.candidate=null; }
-    if (target !== null && now-r.observedAt <= ages[r.source]) {
+    if (target !== null && now-r.observedAt <= ages[r.source] && (r.periodEnd === null || r.periodEnd > now)) {
       const p = percentage(r);
       const recovering = (t.severity === 'critical' && p < 85) || (t.severity === 'warning' && p < 65);
       const crossing = (target === 'critical' && t.severity !== 'critical') || (target === 'warning' && t.severity === 'normal');
@@ -92,7 +97,7 @@ export function capacitySnapshot(state, now = Date.now()) {
     const base={id,label:definition.label,service:definition.service,unit:definition.unit,scope:r?.scope ?? null,source:r?.source ?? definition.source,
       used:r?.used ?? null,limit:r?.limit ?? null,observedAt:r?.observedAt ?? null,periodStart:r?.periodStart ?? null,periodEnd:r?.periodEnd ?? null,unlimited:r?.unlimited === true};
     const percent=r ? percentage(r) : null;
-    const status=!r ? 'unknown' : now-r.observedAt > ages[r.source] ? 'stale' : r.unlimited ? 'normal' : percent === null ? 'unknown' : activeSeverity;
+    const status=!r ? 'unknown' : now-r.observedAt > ages[r.source] || (r.periodEnd !== null && r.periodEnd <= now) ? 'stale' : r.unlimited ? 'normal' : percent === null ? 'unknown' : activeSeverity;
     return {...base,percent,remaining:r?.used !== null && r?.limit !== null && r ? Math.max(0,r.limit-r.used) : null,status,activeSeverity,thresholdFingerprint:r ? `${id}:${period(r)}:${activeSeverity}` : null};
   }),history:clean.history};
 }
