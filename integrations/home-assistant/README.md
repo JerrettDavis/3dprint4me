@@ -1,5 +1,7 @@
 # Home Assistant work peek
 
+For the separate private financial view, install [billing.yaml](billing.yaml) and [billing-dashboard.yaml](billing-dashboard.yaml). See [the billing runbook](../../docs/INVOICE-TRACKING.md) for minimized feed scope, distinct outbound delivery credentials, baseline suppression and confirmed monthly filing rules. Keep the existing work dashboard intact.
+
 This read-only package polls `GET https://3dprint4.me/api/home-assistant-work` every 60 seconds. It shows active work counts and up to 20 active summaries. The latest-created marker covers **all** work statuses, including completed or declined work that is absent from the active list. Links open the authenticated [operator inbox](https://work.3dprint4.me/); Home Assistant cannot update work.
 
 ## Install

@@ -1,0 +1,50 @@
+title: 3D Print Billing
+views:
+  - title: Billing
+    path: billing
+    icon: mdi:receipt-text
+    cards:
+      - type: markdown
+        entity_id: sensor.three_d_print_billing
+        title: Invoice tracking
+        content: |-
+          [Open private Billing](https://work.3dprint4.me/?view=billing)
+
+          {% set counts = state_attr('sensor.three_d_print_billing', 'counts') or {} %}
+          {% set sync = state_attr('sensor.three_d_print_billing', 'sync') or {} %}
+          **Sync: {{ states('sensor.three_d_print_billing') }}**
+          Last complete snapshot: {{ sync.get('lastSuccessfulAt') or 'None' }}
+
+          | Needs invoicing | Draft | Viewed | Paid | Overdue |
+          | --- | --- | --- | --- | --- |
+          | {{ counts.get('needsInvoicing', 0) }} | {{ counts.get('draft', 0) }} | {{ counts.get('viewed', 0) }} | {{ counts.get('paid', 0) }} | {{ counts.get('overdue', 0) }} |
+
+          {% for total in state_attr('sensor.three_d_print_billing', 'totals') or [] %}
+          **{{ total.currency }} outstanding:** {{ '%.2f' | format(total.outstandingCents / 100) }} · overdue {{ '%.2f' | format(total.overdueCents / 100) }}
+          {% endfor %}
+          {% if states('sensor.three_d_print_billing') != 'current' %}
+          Provider data may be stale. Review Invoice Ninja before acting.
+          {% endif %}
+      - type: markdown
+        entity_id: sensor.three_d_print_billing
+        title: Fabrication invoices
+        content: |-
+          {% for item in state_attr('sensor.three_d_print_billing', 'items') or [] %}
+          - **{{ item.number | replace('[', '') | replace(']', '') | replace('*', '') | replace('`', '') }}** · {{ item.status }}{% if item.overdue %} · **OVERDUE**{% endif %} · {{ item.currency }} {{ '%.2f' | format(item.balanceCents / 100) }} remaining{% if item.viewed %} · viewed{% endif %}{% if item.opened %} · email opened{% endif %}
+          {% else %}
+          No invoice snapshot available.
+          {% endfor %}
+      - type: markdown
+        entity_id: sensor.three_d_print_billing
+        title: Monthly OKTAP actions
+        content: |-
+          {% set tax = state_attr('sensor.three_d_print_billing', 'tax') or {} %}
+          {% if not tax.get('configured') %}
+          Confirm the first reporting period and observed state holidays in private Billing settings.
+          {% endif %}
+          {% for period in tax.get('periods', []) %}
+          **{{ period.startsOn }} – {{ period.endsOn }}** · due {{ period.dueDate }}
+          Filing: {{ 'acknowledged' if period.submitted else 'action needed' }} · Payment: {{ 'acknowledged' if period.paid else 'action needed' }}
+
+          {% endfor %}
+          [Review and record confirmations](https://work.3dprint4.me/?view=billing)

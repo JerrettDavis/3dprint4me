@@ -7,6 +7,7 @@ import { HttpError } from "../lib/http.js";
 import { createOperatorPrintView } from "../lib/print-estimation/application/operator-view.js";
 import { createPrintEstimationRuntime } from "../lib/print-estimation/runtime.js";
 import { createOperatorInvoiceHandler } from "../lib/invoicing/operator-api.js";
+import { createInvoiceTrackingHandler } from '../lib/invoicing/tracking-api.js';
 import { createOperatorInquiryWorkflowHandler } from '../lib/inquiry-workflow/operator-api.js';
 import { createInquiryWorkflowRuntime } from '../lib/inquiry-workflow/runtime.js';
 import { createFilamentMatchingUseCases } from '../lib/filament-matching/application.js';
@@ -38,11 +39,12 @@ function eventLimit(value) {
   return limit;
 }
 
-export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), printEstimates = runtime ? null : defaultPrintEstimates(), filamentMatching = runtime ? null : defaultFilamentMatching(), invoicing, invoiceLocalPath, inquiryWorkflow } = {}) {
+export function createWorkHandler({ store, runtime, identityProvider, authorize, allowedOrigins = configuredOperatorOrigins(), printEstimates = runtime ? null : defaultPrintEstimates(), filamentMatching = runtime ? null : defaultFilamentMatching(), invoicing, invoiceLocalPath, inquiryWorkflow, tracking } = {}) {
   const work = resolveWorkManagementRuntime({ runtime, repository: store, printEstimates, filamentMatching });
   let provider = identityProvider;
   const authorizeRequest = authorize ?? (req => authorizeOperator(req, work.repository, provider ??= createConfiguredIdentityProvider()));
   const billingHandler = createOperatorInvoiceHandler({ runtime: work, authorize: authorizeRequest, allowedOrigins, invoicing, localPath: invoiceLocalPath });
+  const trackingHandler = createInvoiceTrackingHandler({ tracking, localPath: invoiceLocalPath, workRepository: work.repository, authorize: authorizeRequest, allowedOrigins });
   const communicationHandler=createCommunicationHandler({work,authorize:authorizeRequest,allowedOrigins});
   const catalogueHandler = createCatalogueOperatorHandler({ workRepository: work.repository, authorize: authorizeRequest, allowedOrigins,
     localPath: invoiceLocalPath ? `${invoiceLocalPath}.catalogue.json` : undefined });
@@ -61,7 +63,7 @@ export function createWorkHandler({ store, runtime, identityProvider, authorize,
   } });
   return (req,res)=>{
     const resource=new URL(req.url??'/api/operator-work','https://operator-api.invalid').searchParams.get('resource');
-    return (resource==='catalogue'?catalogueHandler:resource==='communications'?communicationHandler:resource==='invoices'?billingHandler:resource==='inquiries'?inquiryHandler:workHandler)(req,res);
+    return (resource==='billing'?trackingHandler:resource==='catalogue'?catalogueHandler:resource==='communications'?communicationHandler:resource==='invoices'?billingHandler:resource==='inquiries'?inquiryHandler:workHandler)(req,res);
   };
 }
 

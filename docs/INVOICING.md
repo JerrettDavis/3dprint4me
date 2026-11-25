@@ -1,5 +1,7 @@
 # Invoice Ninja invoicing
 
+Owner invoice tracking, durable Home Assistant alerts and monthly OKTAP reminders are documented in [INVOICE-TRACKING.md](INVOICE-TRACKING.md). The tracking API is separate from draft creation; invoice dispatch remains manual.
+
 ## Account setup
 
 The hosted JDH Productions LLC account is at <https://app.invoicing.co/>.

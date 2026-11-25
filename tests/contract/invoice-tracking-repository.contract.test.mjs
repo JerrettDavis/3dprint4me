@@ -6,6 +6,7 @@ import { createInvoiceTrackingRepository } from '../../lib/invoicing/tracking-re
 import { createInvoiceTrackingService } from '../../lib/invoicing/tracking-service.js';
 import { normalizeTrackedInvoice, normalizePaymentAllocation } from '../../lib/invoicing/tracking-domain.js';
 import { normalizeTaxSchedule } from '../../lib/invoicing/tax-periods.js';
+import { createInvoiceTrackingCommands } from '../../lib/invoicing/tracking-commands.js';
 
 const time = '2026-11-24T18:00:00.000Z';
 const invoice = overrides => normalizeTrackedInvoice({ id: 'Invoice123', client_id: 'Client1234', number: '3DP-TEST-001',
@@ -14,6 +15,20 @@ const invoice = overrides => normalizeTrackedInvoice({ id: 'Invoice123', client_
 const allocation = overrides => normalizePaymentAllocation({ id: 'Allocation1', invoiceId: 'Invoice123', paymentId: 'Payment123',
   amount: 54.26, refunded: 0, currency: 'USD', status: 'completed', deleted: false, date: '2026-11-20', updatedAt: 1795197600, ...overrides });
 const snapshot = (invoices = [invoice()], allocations = [allocation()]) => ({ source: { companyId: 'Company123', groupId: 'Group1234' }, invoices, allocations });
+test('overdue boundary alerts are durable without replaying historical overdue invoices on baseline', async () => {
+  const { db, repository } = await fixture();
+  try {
+    let at = new Date('2026-11-24T18:00:00Z');
+    const current = snapshot([invoice({ status_id: 2, balance: 54.26, paid_to_date: 0, due_date: '2026-11-24' }),
+      invoice({ id: 'Invoice456', status_id: 2, balance: 54.26, paid_to_date: 0, due_date: '2026-10-01' })], []);
+    const service = createInvoiceTrackingService({ repository, provider: { readSnapshot: async () => current }, now: () => at });
+    await service.sync(); assert.equal((await repository.listEvents()).length, 0);
+    at = new Date('2026-11-25T18:00:00Z'); await service.sync(); await service.sync();
+    const events = await repository.listEvents(); assert.equal(events.length, 1);
+    assert.equal(events[0].payload.kind, 'invoice_overdue');
+    assert.equal(events[0].payload.invoiceId, 'Invoice123');
+  } finally { await db.close(); }
+});
 
 async function fixture() {
   const db = new PGlite();
@@ -24,6 +39,41 @@ async function fixture() {
   const database = { query: queryFor(db), withTransaction: operation => db.transaction(tx => operation({ query: queryFor(tx) })) };
   return { db, repository: createInvoiceTrackingRepository({ database }) };
 }
+test('turning alerts off suppresses queued deliveries permanently and tax acknowledgement cancels only its own reminder', async () => {
+  const { db, repository } = await fixture();
+  try {
+    const period = { id: 'ok-sales-2026-10', submitted: null, paid: null };
+    await db.query('UPDATE invoice_tracking_state SET settings=settings || $1::jsonb', [JSON.stringify({ notificationsEnabled: true, taxPeriods: [period] })]);
+    for (const [id, kind] of [['a'.repeat(64), 'tax_filing_due'], ['b'.repeat(64), 'tax_payment_due']]) {
+      await db.query("INSERT INTO invoice_tracking_events(id,payload,delivery_state) VALUES($1,$2::jsonb,'pending')", [id, JSON.stringify({ periodId: period.id, kind })]);
+    }
+    await repository.command({ id: 'acknowledge-command', actorId: 'owner', fingerprint: 'c'.repeat(64), revision: 1,
+      mutate: settings => ({ ...settings, taxPeriods: [{ ...period, submitted: { date: '2026-11-20' } }] }) });
+    let events = await repository.listEvents();
+    assert.equal(events.find(e => e.payload.kind === 'tax_filing_due').deliveryState, 'suppressed');
+    assert.equal(events.find(e => e.payload.kind === 'tax_payment_due').deliveryState, 'pending');
+    await repository.command({ id: 'disable-command', actorId: 'owner', fingerprint: 'd'.repeat(64), revision: 2,
+      mutate: settings => ({ ...settings, notificationsEnabled: false }) });
+    assert.deepEqual(await repository.claimEvents({ token: 'delivery-disabled', now: time, leaseMs: 1000, limit: 10 }), []);
+    events = await repository.listEvents(); assert.ok(events.every(e => e.deliveryState === 'suppressed'));
+  } finally { await db.close(); }
+});
+test('owner can explicitly retry an exhausted delivery once with an audited idempotent command', async () => {
+  const { db, repository } = await fixture();
+  try {
+    const eventId = 'f'.repeat(64);
+    await db.query("UPDATE invoice_tracking_state SET settings=settings || '{\"notificationsEnabled\":true}'::jsonb");
+    await db.query("INSERT INTO invoice_tracking_events(id,payload,delivery_state,attempts) VALUES($1,$2::jsonb,'failed',8)", [eventId, JSON.stringify({ kind: 'invoice_viewed' })]);
+    const commands = createInvoiceTrackingCommands({ repository, now: () => new Date(time) });
+    const input = { action: 'retry-notification', commandId: 'retry-notification-one', revision: 1, eventId };
+    const result = await commands.execute(input, { id: 'owner-one', role: 'owner' });
+    assert.deepEqual(await commands.execute(input, { id: 'owner-one', role: 'owner' }), result);
+    assert.equal((await repository.listEvents())[0].deliveryState, 'pending');
+    assert.equal((await repository.listEvents())[0].attempts, 0);
+    const audit = (await db.query('SELECT command FROM invoice_tracking_commands')).rows[0].command;
+    assert.equal(audit.action, 'retry-notification'); assert.equal(audit.details.eventId, eventId);
+  } finally { await db.close(); }
+});
 test('monthly periods advance and reminders deduplicate independently of a failed invoice provider', async () => {
   const { db, repository } = await fixture();
   try {

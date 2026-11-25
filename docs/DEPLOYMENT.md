@@ -1,5 +1,7 @@
 # Deployment Guide
 
+Invoice tracking adds private migration `020_invoice_tracking.sql`; apply it before updating native API/jobs and deploy the matching operator shell. See [INVOICE-TRACKING.md](INVOICE-TRACKING.md) for server-only notification configuration, monthly tax schedule activation and rollback requirements. Back up all three tracking tables together. An older release can ignore the additive schema, but must not drop or clear its snapshot, command receipts or notification history.
+
 ## Current production setup
 
 Start with [STACK-AUTOMATION.md](STACK-AUTOMATION.md) for the complete component
