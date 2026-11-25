@@ -16,7 +16,7 @@ const definitions = [
 ];
 const ages = {provider:7200000,local:720000,application:720000,backup:7200000,manual:86400000};
 export const CAPACITY_METRICS = Object.freeze(Object.fromEntries(definitions.map(([id,label,service,unit,source='provider']) => [id,Object.freeze({label,service,unit,source,maxAge:ages[source]})])));
-const keys = new Set(['id','used','limit','observedAt','periodStart','periodEnd','source','scope','unlimited']);
+const keys = new Set(['id','used','limit','observedAt','periodStart','periodEnd','source','scope','unlimited','limitSource','limitVerifiedAt']);
 const scopes = new Set(['account','project','store','host','application']);
 const number = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER;
 const nullable = value => value === null || number(value);
@@ -35,6 +35,9 @@ export function validateCapacity(records, now = Date.now()) {
       (record.periodStart !== null && record.periodStart > record.observedAt) ||
       (record.periodStart !== null && record.periodEnd !== null && record.periodStart >= record.periodEnd) ||
       !Object.hasOwn(ages,record.source) || !scopes.has(record.scope) || !validOrigin(record) ||
+      (record.limitSource !== undefined && !['provider','manual','configured'].includes(record.limitSource)) ||
+      (record.limitVerifiedAt !== undefined && record.limitVerifiedAt !== null && (!number(record.limitVerifiedAt) || record.limitVerifiedAt > now+30000)) ||
+      (record.limitSource === 'manual' && !number(record.limitVerifiedAt)) ||
       (record.unlimited !== undefined && typeof record.unlimited !== 'boolean') || (record.unlimited === true && record.limit !== null)) throw new Error('Invalid capacity record');
     seen.add(record.id);
     return {...record};
@@ -54,6 +57,14 @@ function stored(state, now) {
   return {readings,thresholds,history};
 }
 const period = r => `${r.periodStart ?? ''}:${r.periodEnd ?? ''}`;
+function quotaState(r,now) {
+  if (!r || (!r.unlimited && r.limit === null)) return 'unknown';
+  if ((r.limitSource ?? r.source) === 'manual') {
+    if (!number(r.limitVerifiedAt)) return 'unknown';
+    if (now-r.limitVerifiedAt > ages.manual) return 'stale';
+  }
+  return 'current';
+}
 function percentage(r) { return r.used !== null && r.limit !== null ? (r.limit === 0 ? 100 : Math.min(Number.MAX_VALUE,r.used / r.limit * 100)) : null; }
 function severity(r) { const p=percentage(r); return p === null || r.unlimited ? null : p >= 90 ? 'critical' : p >= 70 ? 'warning' : 'normal'; }
 export function updateCapacity(state, records, now = Date.now()) {
@@ -68,7 +79,7 @@ export function updateCapacity(state, records, now = Date.now()) {
     const target = severity(r);
     if (!t || t.period !== period(r)) t = {severity:'normal',candidate:null,count:0,observedAt:0,period:period(r)};
     if (now-t.observedAt > ages[r.source]) { t.count=0; t.candidate=null; }
-    if (target !== null && now-r.observedAt <= ages[r.source] && (r.periodEnd === null || r.periodEnd > now)) {
+    if (target !== null && quotaState(r,now) === 'current' && now-r.observedAt <= ages[r.source] && (r.periodEnd === null || r.periodEnd > now)) {
       const p = percentage(r);
       const recovering = (t.severity === 'critical' && p < 85) || (t.severity === 'warning' && p < 65);
       const crossing = (target === 'critical' && t.severity !== 'critical') || (target === 'warning' && t.severity === 'normal');
@@ -96,8 +107,9 @@ export function capacitySnapshot(state, now = Date.now()) {
     const activeSeverity=clean.thresholds[id]?.severity ?? 'normal';
     const base={id,label:definition.label,service:definition.service,unit:definition.unit,scope:r?.scope ?? null,source:r?.source ?? definition.source,
       used:r?.used ?? null,limit:r?.limit ?? null,observedAt:r?.observedAt ?? null,periodStart:r?.periodStart ?? null,periodEnd:r?.periodEnd ?? null,unlimited:r?.unlimited === true};
-    const percent=r ? percentage(r) : null;
-    const status=!r ? 'unknown' : now-r.observedAt > ages[r.source] || (r.periodEnd !== null && r.periodEnd <= now) ? 'stale' : r.unlimited ? 'normal' : percent === null ? 'unknown' : activeSeverity;
-    return {...base,percent,remaining:r?.used !== null && r?.limit !== null && r ? Math.max(0,r.limit-r.used) : null,status,activeSeverity,thresholdFingerprint:r ? `${id}:${period(r)}:${activeSeverity}` : null};
+    const quota=quotaState(r,now);
+    const percent=r && quota === 'current' ? percentage(r) : null;
+    const status=!r ? 'unknown' : now-r.observedAt > ages[r.source] || (r.periodEnd !== null && r.periodEnd <= now) ? 'stale' : quota !== 'current' ? 'unknown' : r.unlimited ? 'normal' : percent === null ? 'unknown' : activeSeverity;
+    return {...base,limitSource:r?.limitSource ?? r?.source ?? definition.source,limitVerifiedAt:r?.limitVerifiedAt ?? null,quotaState:quota,percent,remaining:r && quota === 'current' && r.used !== null && r.limit !== null ? Math.max(0,r.limit-r.used) : null,status,activeSeverity,thresholdFingerprint:r ? `${id}:${period(r)}:${activeSeverity}` : null};
   }),history:clean.history};
 }

@@ -68,6 +68,30 @@ test('expired windows are stale and old observations cannot replace current read
   const unchanged=updateCapacity(state,[record({used:99,observedAt:now-1})],now);
   assert.equal(metric(unchanged).used,70);
 });
+test('manual allowance provenance expires independently of fresh provider usage', () => {
+  const verified=now-86400000;
+  const input=record({used:95,limitSource:'manual',limitVerifiedAt:verified});
+  let state=updateCapacity(null,[input],now);
+  assert.equal(metric(state).status,'critical');
+  assert.equal(metric(state).limitSource,'manual');
+  assert.equal(metric(state).limitVerifiedAt,verified);
+  state=updateCapacity(state,[{...input,used:10,observedAt:now+1}],now+1);
+  const value=metric(state,now+1);
+  assert.equal(value.status,'unknown');
+  assert.equal(value.quotaState,'stale');
+  assert.equal(value.percent,null);
+  assert.equal(value.remaining,null);
+  assert.equal(value.used,10);
+  assert.equal(value.activeSeverity,'critical');
+  state=updateCapacity(state,[{...input,used:10,observedAt:now+2}],now+2);
+  assert.equal(metric(state,now+2).activeSeverity,'critical');
+});
+test('manual limit verification is required and source annotations are bounded', () => {
+  for(const change of [{limitSource:'manual'}, {limitSource:'manual',limitVerifiedAt:null}, {limitSource:'manual',limitVerifiedAt:now+30001}, {limitSource:'invented'}]) assert.throws(()=>validateCapacity([record(change)],now));
+  assert.doesNotThrow(()=>validateCapacity([record({limitSource:'manual',limitVerifiedAt:now+30000})],now));
+  assert.equal(metric(updateCapacity(null,[record()],now)).limitSource,'provider');
+  assert.equal(metric(updateCapacity(null,[record({source:'manual'})],now)).quotaState,'unknown');
+});
 test('recovery must cross hysteresis margin twice and history stays bounded', () => {
   let state=updateCapacity(null,[record({used:95})],now);
   for (const [offset,used,status] of [[1,89,'critical'],[2,84,'critical'],[3,86,'critical'],[4,84,'critical'],[5,84,'warning'],[6,64,'warning'],[7,64,'normal']]) {
