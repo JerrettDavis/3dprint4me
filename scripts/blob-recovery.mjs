@@ -15,7 +15,13 @@ async function* lines() {
 
 try {
   const mode=process.argv[2];
-  if(mode==='export-stream') {
+  if(mode==='export-incremental') {
+    if(!process.env.BLOB_READ_WRITE_TOKEN)throw Error('Private store required');
+    const records=lines();
+    const first=await records.next();
+    if(first.done||first.value?.type!=='requirements'||!Array.isArray(first.value.paths)||Buffer.byteLength(JSON.stringify(first.value))>8*1024*1024)throw Error('Requirements required');
+    for await(const record of exportObjectStream(sdk,first.value.paths,{priorRecords:records}))if(!process.stdout.write(JSON.stringify(record)+'\n'))await once(process.stdout,'drain');
+  }else if(mode==='export-stream') {
     if(!process.env.BLOB_READ_WRITE_TOKEN)throw Error('Private store required');
     const input=[];let size=0;
     for await(const chunk of process.stdin){size+=chunk.length;if(size>8*1024*1024)throw Error('Required paths bound');input.push(chunk);}
