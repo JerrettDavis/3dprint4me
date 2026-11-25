@@ -2,7 +2,7 @@
 const definitions = [
   ['blob-transfer','Blob transfer','Vercel Blob','bytes'], ['blob-storage','Blob storage','Vercel Blob','bytes'],
   ['blob-simple','Blob simple operations','Vercel Blob','operations'], ['blob-advanced','Blob advanced operations','Vercel Blob','operations'],
-  ['vercel-transfer','Data transfer','Vercel','bytes'], ['vercel-functions','Function execution','Vercel','seconds'],
+  ['vercel-transfer','Data transfer','Vercel','bytes'], ['vercel-functions','Function execution','Vercel','GB-seconds'],
   ['cf-requests','Worker requests','Cloudflare','requests'], ['cf-do-reads','Durable Object reads','Cloudflare','rows'],
   ['cf-do-writes','Durable Object writes','Cloudflare','rows'], ['cf-do-storage','Durable Object storage','Cloudflare','bytes'],
   ['resend-daily','Daily email','Resend','emails'], ['resend-monthly','Monthly email','Resend','emails'], ['resend-rate','Email request rate','Resend','requests'],
