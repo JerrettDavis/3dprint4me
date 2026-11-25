@@ -12,4 +12,4 @@ Restic deduplication happens after the provider download and therefore did not p
 - Independent controller review: no blockers; nine focused Python tests passed.
 - Actual pinned Restic 0.19.1 rehearsal with synthetic objects: first checkpoint three GETs; unchanged checkpoint zero GETs; changed/new/deleted checkpoint two GETs. Each complete stream was encrypted, copied to the second repository, decrypted and hash checked. A damaged newest receipt failed closed.
 
-Production rollout and final CI evidence will be recorded after verification. No customer bytes, object paths or credentials belong in this record.
+Final CI and production rollout evidence, including the real checkpoint transfer counters, belong in the release PR. No customer bytes, object paths or credentials belong in this record.
