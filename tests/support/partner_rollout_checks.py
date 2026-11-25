@@ -37,7 +37,8 @@ class RolloutChecks(unittest.TestCase):
                            ('016_partner_statement_rls.sql', 'CREATE TABLE partner_fixture_016(id uuid);'),
                            ('017_notification_skipped.sql', 'CREATE TABLE partner_fixture_017(id uuid);'),
 ('018_supply_ledger.sql', 'CREATE TABLE bookkeeping_fixture_018(id uuid);'),
-            ('019_product_catalogue.sql', 'CREATE TABLE catalogue_fixture_019(id uuid);')]:
+            ('019_product_catalogue.sql', 'CREATE TABLE catalogue_fixture_019(id uuid);'),
+            ('020_invoice_tracking.sql', 'CREATE TABLE billing_fixture_020(id uuid);')]:
             (self.source / 'neon/migrations' / name).write_text(text, encoding='utf-8')
         old = self.root / 'candidate-source'
         old.mkdir(mode=0o700)

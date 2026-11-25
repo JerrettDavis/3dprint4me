@@ -68,5 +68,6 @@ nav:
     - Maintain this handbook: developers/documentation.md
   - Reference:
     - Reference library: reference/index.md
+    - Invoice tracking: reference/INVOICE-TRACKING.md
     - Forms catalog: reference/partner-qa/forms/README.md
     - BDD scenario catalog: bdd.md

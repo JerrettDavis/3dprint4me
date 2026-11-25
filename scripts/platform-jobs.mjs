@@ -10,6 +10,7 @@ import { runMaintenance } from './print-estimate-maintenance.mjs';
 import { observeJob } from '../lib/platform/job-health.js';
 import { createSpoolmanScheduledTask } from '../lib/spoolman/runtime.js';
 import { createBookkeepingScheduledTask } from '../lib/bookkeeping/runtime.js';
+import { createInvoiceTrackingTasks } from '../lib/invoicing/tracking-runtime.js';
 import { createNeonPrintRepository } from '../lib/print-estimation/adapters/neon-print-repository.js';
 
 async function main() {
@@ -17,6 +18,7 @@ async function main() {
   const workerId=randomUUID(),store=createNeonWorkStore(),transport=createWebPushTransport();
   const syncSpools=createSpoolmanScheduledTask({repository:createNeonPrintRepository()});
   const bookkeep=createBookkeepingScheduledTask({query:sql});
+  const billing=createInvoiceTrackingTasks();
   async function leased(name,operation) {
     const claim=await sql`INSERT INTO platform_job_leases(name,worker_id,expires_at) VALUES(${name},${workerId},now()+interval '30 minutes')
       ON CONFLICT(name) DO UPDATE SET worker_id=EXCLUDED.worker_id,expires_at=EXCLUDED.expires_at
@@ -25,6 +27,9 @@ async function main() {
     try{await operation();}finally{await sql`DELETE FROM platform_job_leases WHERE name=${name} AND worker_id=${workerId}`;}
   }
   const jobs=createPlatformJobs({
+    billing:()=>observeJob('billing',billing.reconcile),
+    billingTax:()=>observeJob('billingTax',billing.advanceTax),
+    billingDelivery:()=>observeJob('billingDelivery',billing.deliver),
     spoolman:()=>observeJob('spoolman',syncSpools),
     statements:()=>observeJob('statements',()=>generateWeeklyStatements({database:getDatabase()})),
     bookkeeping:()=>observeJob('bookkeeping',bookkeep),

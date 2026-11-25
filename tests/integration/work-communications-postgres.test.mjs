@@ -12,9 +12,12 @@ import {createNeonPrintRepository} from '../../lib/print-estimation/adapters/neo
 import {createOperatorModels} from '../../lib/print-estimation/application/operator-models.js';
 import {createFilamentUseCases} from '../../lib/print-estimation/application/filament.js';
 import {createNeonWorkRepository} from '../../lib/work-management/adapters/neon-work-repository.js';
+import {createInvoiceTrackingRepository} from '../../lib/invoicing/tracking-repository.js';
+import {createInvoiceTrackingService} from '../../lib/invoicing/tracking-service.js';
+import {normalizeTrackedInvoice,normalizePaymentAllocation} from '../../lib/invoicing/tracking-domain.js';
 const docker=(...args)=>execFileSync('docker',args,{encoding:'utf8',timeout:90000,stdio:['pipe','pipe','pipe']}).trim();
 test('native PostgreSQL migrations, email claims, private model revisions and replay',{timeout:120000},async()=>{
- const name='3dprint4me-communications-'+randomUUID().slice(0,8);let admin,database,started=false;
+ const name='3dprint4me-communications-'+randomUUID().slice(0,8);let admin,database,restored,started=false;
  try{
   docker('run','--detach','--rm','--name',name,'--label','3dprint4me.purpose=communications-test','--publish','127.0.0.1::5432','--env','POSTGRES_HOST_AUTH_METHOD=trust','postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6');started=true;
   const info=JSON.parse(docker('inspect',name))[0],port=info.NetworkSettings.Ports['5432/tcp'][0].HostPort,url=`postgresql://postgres@127.0.0.1:${port}/postgres`;
@@ -51,8 +54,33 @@ test('native PostgreSQL migrations, email claims, private model revisions and re
   }
   const detail=await repository.forRequest('req_native');assert.equal(detail.assets.length,2);assert.equal(detail.estimates.filter(row=>row.purpose==='operator').length,2);
   const {rows:[unchanged]}=await admin.query("SELECT s.status,s.payload,w.project_draft FROM service_requests s JOIN work_items w ON w.request_id=s.id WHERE s.id='req_native'");assert.equal(unchanged.status,'draft');assert.equal(unchanged.project_draft,true);assert.equal(unchanged.payload.consent,false);assert.equal(unchanged.payload.estimate,null);
+  const tracking=createInvoiceTrackingRepository({database}),at='2026-11-24T18:00:00Z';
+  await tracking.command({id:'native-billing-settings',actorId:'op_native',fingerprint:'a'.repeat(64),revision:1,
+    mutate:settings=>({...settings,notificationsEnabled:true}),audit:{action:'settings'}});
+  const tracked=overrides=>normalizeTrackedInvoice({id:'InvoiceNative123',client_id:'ClientNative123',number:'SYNTHETIC-001',currency:'USD',
+    status_id:2,amount:10,total_taxes:0,paid_to_date:0,balance:10,due_date:'2026-12-20',partial_due_date:'',is_deleted:false,archived_at:0,invitations:[],...overrides});
+  let facts={source:{companyId:'CompanyNative123',groupId:'GroupNative123'},invoices:[tracked()],allocations:[]};
+  const sync=createInvoiceTrackingService({repository:tracking,provider:{readSnapshot:async()=>facts},now:()=>new Date(at)});
+  await sync.sync();
+  facts={...facts,invoices:[tracked({status_id:4,paid_to_date:10,balance:0})],allocations:[normalizePaymentAllocation({id:'AllocationNative123',invoiceId:'InvoiceNative123',paymentId:'PaymentNative123',currency:'USD',amount:10,refunded:0,status:'completed',deleted:false,date:'2026-11-24',updatedAt:1795543200})]};
+  await sync.sync();
+  const [leased]=await tracking.claimEvents({token:'native-delivery-worker',now:at,leaseMs:1000,limit:10});assert.ok(leased);
+  const billingVisitor=new pg.Pool(nativePoolOptions(url.replace('postgres@','visitor@')));
+  try{await assert.rejects(billingVisitor.query('SELECT * FROM invoice_tracking_state'),error=>error.code==='42501');}finally{await billingVisitor.end();}
+  const dump=docker('exec',name,'pg_dump','-U','postgres','--no-owner','postgres');
+  await admin.query('CREATE DATABASE billing_restore');
+  execFileSync('docker',['exec','-i',name,'psql','-U','postgres','-d','billing_restore','-v','ON_ERROR_STOP=1'],{input:dump,encoding:'utf8',timeout:90000,stdio:['pipe','pipe','pipe']});
+  restored=createNativeDatabase({pool:new pg.Pool(nativePoolOptions(url.replace('postgres@','platform_app@').replace('/postgres','/billing_restore')))});
+  const recovered=createInvoiceTrackingRepository({database:restored});
+  assert.equal((await recovered.readTracking()).snapshot.invoices[0].status,'paid');
+  assert.equal((await recovered.listEvents()).length,1);
+  assert.equal((await restored.query`SELECT id FROM invoice_tracking_commands`).length,1);
+  await createInvoiceTrackingService({repository:recovered,provider:{readSnapshot:async()=>facts},now:()=>new Date('2026-11-24T18:04:00Z')}).sync();
+  const [retry]=await recovered.claimEvents({token:'native-recovered-worker',now:'2026-11-24T18:04:00Z',leaseMs:1000,limit:10});
+  assert.equal(retry.id,leased.id);assert.equal(retry.attempts,2);
+  assert.equal((await recovered.listEvents()).length,1,'Restore must not replay historical payments');
  }finally{
-  await database?.close();await admin?.end();
+  await restored?.close();await database?.close();await admin?.end();
   if(started){const info=JSON.parse(docker('inspect',name))[0];assert.equal(info.Config.Labels['3dprint4me.purpose'],'communications-test');docker('stop',info.Id);}
  }
 });

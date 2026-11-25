@@ -7,6 +7,17 @@ import { forbiddenBrowserSecrets, scanBrowserSecrets } from "../../scripts/brows
 
 const root = new URL("../../", import.meta.url);
 const read = path => readFile(new URL(path, root), "utf8");
+test('billing package is separate, minimized and read-only with canonical owner links', async () => {
+  const feed = await read('integrations/home-assistant/billing.yaml');
+  const dashboard = await read('integrations/home-assistant/billing-dashboard.yaml');
+  assert.match(feed, /resource=billing/);
+  assert.match(feed, /Authorization:\s*!secret three_d_print_work_authorization/);
+  assert.match(feed, /scan_interval:\s*60/);
+  for (const field of ['sync', 'counts', 'totals', 'items', 'needsInvoicing', 'tax']) assert.ok(feed.includes(`- ${field}`));
+  assert.doesNotMatch(feed + dashboard, /clientId|companyId|contact|invitation|HOME_ASSISTANT_BILLING_TOKEN|INVOICE_NINJA_TOKEN/);
+  assert.match(dashboard, /https:\/\/work\.3dprint4\.me\/\?view=billing/);
+  assert.match(dashboard, /period\.submitted/); assert.match(dashboard, /period\.paid/);
+});
 
 test("Home Assistant package polls the authenticated read-only snapshot", async () => {
   const packageYaml = await read("integrations/home-assistant/package.yaml");

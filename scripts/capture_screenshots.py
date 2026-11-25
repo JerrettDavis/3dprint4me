@@ -15,6 +15,7 @@ from tests.support.server import json_request, running_server
 from tests.e2e.test_api import project_request
 from tests.support.print_seed import FIXTURES, fake_slicer_env, seed_print_request
 from tests.support.catalogue_preview import owner_catalogue_fixture, install_owner_catalogue_fixture
+from tests.support.billing_preview import install_billing_preview
 
 OUTPUT = ROOT / "screenshots"
 
@@ -175,6 +176,26 @@ def magnetic_light(page) -> None:
     page.locator(GENERATOR_READY).wait_for(state='attached', timeout=30000)
     page.locator('#cz-level').get_by_role('button', name='Advanced', exact=True).click()
     page.locator('#cz-light_base_mm').scroll_into_view_if_needed()
+
+
+def capture_billing_states() -> list[tuple[str, Path]]:
+    captured = []
+    with running_operator_workspace() as (_, operator, _):
+        for width, scheme in [(1440, 'light'), (1440, 'dark'), (390, 'light'), (390, 'dark')]:
+            with SiteBrowser(viewport=(width, 900), color_scheme=scheme, service_workers='block', reduced_motion='reduce') as site:
+                page = site.goto(operator, ready_selector='#work-list')
+                install_billing_preview(page, operator)
+                page.get_by_role('button', name='Billing', exact=True).click()
+                dialog = page.get_by_role('dialog', name='Billing', exact=True)
+                dialog.get_by_text('DEMO-001', exact=True).wait_for()
+                for state in ['overview', 'tax']:
+                    if state == 'tax':
+                        dialog.get_by_role('heading', name='Monthly OKTAP reporting').scroll_into_view_if_needed()
+                    path = OUTPUT / f'operator-billing-{state}-{width}-{scheme}.png'
+                    site.screenshot(path)
+                    captured.append((f'Billing {state} · {width} · {scheme}', path))
+                site.assert_no_page_errors(allow_console_warnings=('Service Worker registration blocked by Playwright',))
+    return captured
 
 
 def capture_catalogue_owner_states() -> list[tuple[str, Path]]:
@@ -1007,6 +1028,7 @@ def main() -> int:
     ])
     cases.extend(capture_product_catalogue_states())
     cases.extend(capture_catalogue_owner_states())
+    cases.extend(capture_billing_states())
     cases.extend(capture_customize_states())
     cases.extend(capture_customize_loading_states())
     cases.extend(capture_operator_states())

@@ -1,6 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createPlatformJobs } from '../../lib/platform/jobs.js';
+test('billing reconciliation, tax reminders and delivery use independent nonoverlapping schedules', async () => {
+  let time = 0, release;
+  const blocked = new Promise(resolve => { release = resolve; });
+  const calls = [];
+  const jobs = createPlatformJobs({ env: { PLATFORM_JOBS_ENABLED: '1' }, now: () => time,
+    drain: async () => {}, expire: async () => {}, cleanup: async () => {},
+    billing: async () => { calls.push('billing'); await blocked; },
+    billingTax: async () => calls.push('tax'), billingDelivery: async () => calls.push('delivery') });
+  const first = jobs.tick(); await Promise.resolve();
+  assert.deepEqual(calls, ['billing', 'tax', 'delivery']);
+  time = 60000; await jobs.tick();
+  assert.deepEqual(calls, ['billing', 'tax', 'delivery', 'tax', 'delivery']);
+  release(); await first;
+  time = 120000; await jobs.tick(); assert.equal(calls.filter(x => x === 'billing').length, 2);
+});
 
 test('local jobs are disabled until the explicit writer handover and never overlap',async()=>{
   let calls=0;const disabled=createPlatformJobs({env:{},drain:async()=>calls++,cleanup:async()=>calls++,expire:async()=>calls++});

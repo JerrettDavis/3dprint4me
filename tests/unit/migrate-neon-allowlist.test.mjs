@@ -13,3 +13,8 @@ test('inquiry workflow migration rejects Neon before opening any connection',()=
   assert.throws(()=>assertMigrationTarget('009_inquiry_workflow.sql',{driver:'postgres',url:'postgresql://example.neon.tech/db'}));
   assert.doesNotThrow(()=>assertMigrationTarget('009_inquiry_workflow.sql',{driver:'postgres',url:'postgresql://postgres:5432/platform_live_test'}));
 });
+test('invoice tracking migration requires the selected native PostgreSQL writer', () => {
+  assert.throws(() => assertMigrationTarget('020_invoice_tracking.sql', { driver: 'neon', url: 'postgresql://example.neon.tech/db' }));
+  assert.throws(() => assertMigrationTarget('020_invoice_tracking.sql', { driver: 'postgres', url: 'postgresql://example.neon.tech/db' }));
+  assert.doesNotThrow(() => assertMigrationTarget('020_invoice_tracking.sql', { driver: 'postgres', url: 'postgresql://postgres:5432/platform_live_test' }));
+});

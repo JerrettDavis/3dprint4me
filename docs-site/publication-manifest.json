@@ -15,7 +15,7 @@
     {
       "file": "docs/DEPLOYMENT.md",
       "output": "reference/DEPLOYMENT.md",
-      "sha256": "7d72e43dafbb32d0bb13b8d8097043229ddaf56732a5b500dd66b516c51d1b0d"
+      "sha256": "568b836b9e210b74b7be9767ee187e39a529be039f2613dc11d255ca1641b52d"
     },
     {
       "file": "docs/DOMAIN-LANGUAGE.md",
@@ -25,7 +25,7 @@
     {
       "file": "docs/GENERATORS.md",
       "output": "reference/GENERATORS.md",
-      "sha256": "dfc2cbb2676ff6e1c09197904aaa85c0bfb04a043cc715dcbcdbd67ad754c20d"
+      "sha256": "82f4f2b3129ece67566f270d26a7840f5d16f72b622f680f2b57d5710c8752bd"
     },
     {
       "file": "docs/PRODUCT-IMAGES.md",
@@ -40,7 +40,7 @@
     {
       "file": "docs/INVOICING.md",
       "output": "reference/INVOICING.md",
-      "sha256": "7f41013bf4884953f201fd15d8c6869ab56f132cee3967aa18b56458f0356d95"
+      "sha256": "8b1b3df1770da0d190f4dbe80721e8ac3a552dcafef79420a4841c0b9fd094bd"
     },
     {
       "file": "docs/OPERATIONS.md",
@@ -50,7 +50,7 @@
     {
       "file": "docs/OPERATOR-INBOX.md",
       "output": "reference/OPERATOR-INBOX.md",
-      "sha256": "6b4f84bef24a34715a3142234f079f0896c464cc8668859cfb6e65cb7414a313"
+      "sha256": "9b725f945ace7f5256b0f20cd0a9915d9407e789b42a55ec886dede968cef037"
     },
     {
       "file": "docs/PARTNER-API.md",
@@ -1486,6 +1486,11 @@
       "file": "docs/GRIDFINITY-PRINTABILITY.md",
       "output": "reference/GRIDFINITY-PRINTABILITY.md",
       "sha256": "bf44b756eec486e6ab5a7a3a133676b201c7ba3647d4ada5428c6ec0c7fab442"
+    },
+    {
+      "file": "docs/INVOICE-TRACKING.md",
+      "output": "reference/INVOICE-TRACKING.md",
+      "sha256": "3740bbb6b0ab1ec0cd5c4c50984c209a9c313e6f273b86b87e84630f7c87c7f8"
     }
   ]
 }

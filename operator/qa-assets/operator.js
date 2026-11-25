@@ -5,6 +5,7 @@ import { createAuthClient, createCookieAuthClient } from "./auth-client.js";
 import { renderPrintEstimation } from "./print-detail.js";
 import { renderCustomization } from "./customization-detail.js";
 import { openCatalogueDialog } from './catalogue.js';
+import { openBillingDialog, renderWorkBillingDisposition } from './billing.js';
 import { renderInvoiceDetail } from "./invoice-detail.js";
 import { renderFilamentInventory } from './filament-inventory.js';
 import { renderFilamentMatching } from './filament-detail.js';
@@ -155,6 +156,8 @@ function createDomView(api) {
       q('#filament-inventory').hidden = !signedIn;
       q('#partners-owner').hidden = !signedIn || model.operator?.role !== 'owner';
       q('#catalogue-products').hidden = !signedIn || model.operator?.role !== 'owner';
+      q('#billing-tracking').hidden = !signedIn || model.operator?.role !== 'owner';
+      if (!signedIn) document.querySelector('#billing-dialog')?.remove();
       if (!signedIn) document.querySelector('#catalogue-dialog')?.remove();
       if (["signed-out", "forbidden"].includes(name)) { detail.replaceChildren(); const button = q("#sign-in"); button.disabled = false; button.textContent = "Continue with GitHub"; }
       if (name === "forbidden") q("#auth-title").textContent = "This account is not approved.";
@@ -214,6 +217,7 @@ function createDomView(api) {
         onInventory: () => controller.showInventory()
       });
       const billing = !isInquiry && !item.projectDraft && controller.snapshot().operator?.role === "owner" ? renderInvoiceDetail({ item, api, onAuthError: () => { controller.clearPrivate(); controller.start(); } }) : null;
+      if (billing) billing.prepend(renderWorkBillingDisposition({ item, api, onAuthError: () => { controller.clearPrivate(); controller.start(); } }));
       if (options.saved) heading.classList.add("saved-flash"); detail.append(back, heading, actions, conversation, facts, ...(models?[models]:[]), ...(filament ? [filament] : []), ...(customization ? [customization] : []), ...(print ? [print] : []), ...(billing ? [billing] : []), form, activity); list.querySelectorAll("li").forEach(row => { row.dataset.active = String(row.dataset.id === item.id); }); document.body.dataset.detail = "open"; history.pushState({}, "", `/work/${item.id}`); q("#work-detail").focus();
     },
     inventory(data, callbacks) {
@@ -236,6 +240,7 @@ async function bootstrap() {
   const returningFromSignIn = () => Boolean(store?.getItem(SIGN_IN_PENDING_KEY)) || new URLSearchParams(location.search).has("neon_auth_session_verifier");
   const api = createApiClient({ apiBase: config.apiBase ?? "", getSessionHeaders: auth?.sessionHeaders ?? (async () => ({})) }); const view = createDomView(api); const controller = createOperatorController({ api, view, expectSession: returningFromSignIn }); view.attach(controller);
   document.querySelector('#filament-inventory').onclick = () => controller.showInventory();
+  document.querySelector('#billing-tracking').onclick = () => openBillingDialog({ api, onAuthError: () => { controller.clearPrivate(); controller.start(); } });
   document.querySelector('#catalogue-products').onclick = () => openCatalogueDialog({ api, onAuthError: () => { controller.clearPrivate(); controller.start(); } });
   document.querySelector("#sign-in").onclick = async event => {
     if (!auth) return controller.start();
@@ -247,6 +252,7 @@ async function bootstrap() {
   const push = createPushClient({ api }); document.querySelector("#notifications").onclick = async () => { const state = await push.getState(); if (!state.supported) return view.announce("Notifications are not available in this browser."); if (state.subscribed) { await push.disable(); view.announce("Notifications disabled."); } else { const result = await push.enable(); view.announce(result.state === "enabled" ? "Notifications enabled." : `Notifications remain ${result.state}.`); } };
   const themes = ["system", "light", "dark"]; document.querySelector("#theme").onclick = event => { const current = document.documentElement.dataset.theme || "system"; const next = themes[(themes.indexOf(current) + 1) % themes.length]; document.documentElement.dataset.theme = next; event.currentTarget.textContent = `Theme: ${next}`; };
   await controller.start(); try { store?.removeItem(SIGN_IN_PENDING_KEY); } catch {} const match = location.pathname.match(/^\/work\/([A-Za-z0-9_-]{8,128})$/); if (match) await controller.select(match[1]);
+  if (new URLSearchParams(location.search).get('view') === 'billing' && controller.snapshot().operator?.role === 'owner') await openBillingDialog({ api });
   let cursor = "0"; setInterval(async () => { if (document.hidden || !navigator.onLine || document.body.dataset.state !== "ready") return; try { const result = await api.events(cursor); if (result.nextCursor) cursor = result.nextCursor; if (result.events?.length) await controller.loadList(); } catch {} }, 20_000);
 }
 if (typeof document !== "undefined") bootstrap().catch(() => { document.querySelector("#session-view").hidden = true; document.querySelector("#auth-view").hidden = false; });

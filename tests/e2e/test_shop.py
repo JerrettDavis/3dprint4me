@@ -61,7 +61,7 @@ def test_home_uses_wide_viewports_without_stretching_filtered_cards(width, min_c
 def test_shop_filter_search_empty_recovery_and_real_paths():
     with SiteBrowser(viewport=(390, 844), color_scheme="light") as site:
         page = site.load("/")
-        assert page.locator("#shop-grid .cat-tile").count() == 16
+        assert page.locator("#shop-grid .cat-tile").count() == 17
         page.locator('[data-purpose-filter="business"]').focus()
         page.keyboard.press("Enter")
         assert page.locator("#shop-grid .cat-tile:visible").count() == 3
@@ -69,7 +69,7 @@ def test_shop_filter_search_empty_recovery_and_real_paths():
         assert page.locator("#shop-empty").is_visible()
         assert page.locator("#shop-count").inner_text() == "0 starting points"
         page.locator("#shop-reset").click()
-        assert page.locator("#shop-grid .cat-tile:visible").count() == 16
+        assert page.locator("#shop-grid .cat-tile:visible").count() == 17
         assert page.locator("#shop-search").evaluate("element => element === document.activeElement")
         assert page.locator('[data-purpose-filter="all"]').get_attribute("aria-pressed") == "true"
         page.locator("#shop-search").fill("road")
