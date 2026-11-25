@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -103,5 +104,26 @@ test("a ZIP cannot be finalized as a submission", async () => {
   const h = await harness(buildZip([{ name: "a.stl", data: cube("a") }]));
   try {
     await assert.rejects(h.useCases.analyze({ ...h.created, assetId: h.assetId }, { purpose: "submission" }), error => error.status === 400);
+  } finally { await h.cleanup(); }
+});
+
+
+test("pack analysis reads only the archive while extracted bytes retain hashes and validation", async () => {
+  const good = Buffer.from(cube("good"));
+  const h = await harness(buildZip([{ name: "good.stl", data: good, method: "deflate" }, { name: "bad.stl", data: "invalid geometry" }]));
+  try {
+    const reads = [];
+    const originalRead = h.fileStore.read;
+    h.fileStore.read = async (...args) => { reads.push(args[0]); return originalRead(...args); };
+    const result = await h.useCases.analyze({ ...h.created, assetId: h.assetId, bytes: Buffer.from("browser supplied replacement") });
+    assert.equal(result.status, "pack");
+    assert.deepEqual(reads, [(await h.repository.findAsset(h.assetId)).blobPath], "children must use the extracted server bytes without downloading them again");
+    const children = await h.repository.listChildren(h.assetId);
+    const ready = children.find(child => child.originalName === "good.stl");
+    assert.equal(ready.state, "ready");
+    assert.equal(ready.sha256, createHash("sha256").update(good).digest("hex"));
+    assert.deepEqual(ready.geometryMetrics.dimensionsMm, [10, 10, 10]);
+    assert.equal(children.find(child => child.originalName === "bad.stl").state, "failed", "extracted parts still run the geometry validator");
+    assert.deepEqual(Buffer.from(await originalRead(ready.blobPath, serverModelLimits().maxModelBytes)), good, "the child remains privately stored for later downloads and slicing");
   } finally { await h.cleanup(); }
 });
