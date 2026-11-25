@@ -19,6 +19,7 @@ def test_workspace_tools_and_first_request_remain_visible(size, theme, font):
         assert tools.is_visible()
         assert tools.evaluate('(node) => getComputedStyle(node).position !== "fixed"')
         assert tools.get_by_role('link', name='Partners', exact=True).is_visible()
+        assert tools.get_by_role('button', name='Billing', exact=True).is_visible()
         assert tools.get_by_role('button', name='Filament inventory', exact=True).is_visible()
         assert tools.get_by_role('button', name='Manage notifications', exact=True).is_visible()
         first = page.locator('#work-list button').first
