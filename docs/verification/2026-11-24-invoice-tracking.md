@@ -1,0 +1,14 @@
+# Invoice tracking pre-release evidence — November 24, 2026
+
+This record covers pre-release checks for [PR #93](https://github.com/JerrettDavis/3dprint4me/pull/93). Production acceptance and final CI results must be recorded on that PR before completion; a rehearsal is not a deployment.
+
+- Owner confirmed monthly OKTAP filing. The OTC Businesses Help Center establishes the 20th of the following month and the next business day for weekends/observed state holidays. First reporting period and applicable holiday calendar remain explicit activation inputs.
+- A read-only run of the new provider reader using the existing private server credential returned two scoped fabrication invoices: one paid, one draft, one payment allocation and USD only. No customer identities, invoice capability URLs or credentials are included here.
+- Fresh review found four tax-reminder/payment-evidence issues. Regression tests reproduced them; fixes were independently reviewed with no remaining concrete defects in those fixes. A separate follow-up verified tracking activation does not enable website draft creation.
+- Local final unit stage passed 1,635 tests. The subsequently added activation-isolation test also passed. The complete browser/audit pipeline was still running when this record was committed; its terminal result belongs in the PR acceptance evidence.
+- Real PostgreSQL 18 integration passed: runtime least privilege, private snapshot/command/outbox dump and restore, expired notification lease recovery, stable delivery identity and no historical payment replay.
+- Captured 270 screenshots in Edge, including desktop/390px light/dark billing overview and tax actions. Inspected the preview board in slices and the focused Billing images. The two independent tax acknowledgements remain visible on mobile.
+- Native host rehearsal passed for `63cf3392a4031ca98c0ede64f1f9f6509619fa97`: schema, least privilege, disabled partner program, session denials, no messages sent, isolated API overlap, scratch cleanup and unchanged live state. Archive SHA-256: `a0dfdb91e4e6cd72d7fe0ef2b402e55270d42bb7e2c58f9b17790f87663eb896`.
+- Handbook build and checks passed: 116 HTML pages, 714 search entries, all local links/assets and documented BDD references. Generated handbook output was retained outside storefront output after checks to avoid changing the storefront asset hash.
+
+Pending release gates: terminal full suite/audit, green PR CI against current main, reviewed native checkpoint/deploy, operator deployment, Home Assistant setup/controlled alert and live freshness/failure checks. New Home Assistant credential approval and the first reporting period are still pending owner input. No real invoice was changed and no tax return/payment was submitted.

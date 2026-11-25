@@ -13,7 +13,7 @@ def test_owner_billing_states_and_private_tax_actions(width, scheme):
         page = context.new_page()
         headers = {'access-control-allow-origin': operator, 'access-control-allow-credentials': 'true', 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'GET, POST, OPTIONS'}
         data = {'version': 1, 'revision': 1, 'sync': {'status': 'stale', 'lastSuccessfulAt': '2026-11-24T18:00:00Z'},
-                'counts': {'paid': 1, 'draft': 1, 'needsInvoicing': 1, 'overdue': 1}, 'totals': [],
+                'counts': {'paid': 1, 'draft': 1, 'needsInvoicing': 1, 'overdue': 0, 'viewed': 1}, 'totals': [],
                 'items': [{'id': 'Invoice123', 'number': 'DEMO-PAID', 'status': 'paid', 'currency': 'USD', 'totalCents': 5426, 'balanceCents': 0, 'paidCents': 5426, 'dueDate': '2026-11-20', 'viewed': True, 'opened': True, 'overdue': False, 'editorUrl': 'https://invoicing.co/#/invoices/Invoice123/edit'},
                           {'id': 'Invoice456', 'number': 'DEMO-DRAFT', 'status': 'draft', 'currency': 'USD', 'totalCents': 15192, 'balanceCents': 0, 'paidCents': 0, 'dueDate': None, 'viewed': False, 'opened': False, 'overdue': False, 'editorUrl': 'https://invoicing.co/#/invoices/Invoice456/edit'}],
                 'needsInvoicing': [{'workId': 'work_demonstration', 'url': 'https://work.3dprint4.me/work/work_demonstration'}],

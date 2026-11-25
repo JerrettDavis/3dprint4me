@@ -37,10 +37,10 @@ Use managed worktree `C:/Users/jd/.codex/worktrees/0f78/3dprint4me`, based on `o
 
 **Interfaces:** `normalizeTrackedInvoice(raw)` produces an allowlisted provider snapshot with IDs, number, status, currency, integer amounts, due dates and bounded invitation activity timestamps. `presentInvoiceTracking(invoices, { now, timeZone })` returns counts, separate currency totals and rows with independent overdue/viewed/opened flags. `invoiceTrackingEvents(previous, current)` emits stable first-open/first-view event identities; payment events are added from authoritative allocation records in Task 2.
 
-- [ ] Write tests for sent/partial overdue, due-today boundaries, timezone/DST, paid/draft/cancelled/reversed exclusions, draft zero balance, invalid dates/amounts, currency isolation and sensitive-field exclusion.
-- [ ] Run `node --test tests/unit/invoice-tracking-domain.test.mjs`; verify missing functionality fails.
-- [ ] Implement the exact interfaces with strict validation, no network/DB dependencies and integer money.
-- [ ] Rerun the command; require all passing. Commit only Task 1 files.
+- [x] Write tests for sent/partial overdue, due-today boundaries, timezone/DST, paid/draft/cancelled/reversed exclusions, draft zero balance, invalid dates/amounts, currency isolation and sensitive-field exclusion.
+- [x] Run `node --test tests/unit/invoice-tracking-domain.test.mjs`; verify missing functionality fails.
+- [x] Implement the exact interfaces with strict validation, no network/DB dependencies and integer money.
+- [x] Rerun the command; require all passing. Commit only Task 1 files.
 
 ### Task 2: Bounded provider reads and payment evidence
 
@@ -48,10 +48,10 @@ Use managed worktree `C:/Users/jd/.codex/worktrees/0f78/3dprint4me`, based on `o
 
 **Interfaces:** `createInvoiceTrackingProvider({ token, groupId, fetchImpl, timeoutMs }).readSnapshot()` returns complete normalized fabrication invoices and payment allocations or throws a sanitized failure. `normalizePaymentAllocation(raw)` retains stable allocation/payment/invoice IDs, amount/refund cents, update time and status; compare these records to emit transaction-backed payment/refund events.
 
-- [ ] Verify current official hosted list/include/pagination/filter contracts; pin URLs under `https://invoicing.co/api/v1/` and log source references without credentials.
-- [ ] Write failing contract tests for exact GET URL/headers, invitation fields, group exclusion, pagination, allocations/refunds, page-limit exhaustion, redirects, malformed/oversized responses, timeout and unconfigured mode making no calls.
-- [ ] Implement bounded read-only access with completeness guarantees; never reuse caller-supplied URLs or follow provider pagination links to arbitrary hosts.
-- [ ] Run both tracking test files; require all passing. Commit Task 2.
+- [x] Verify current official hosted list/include/pagination/filter contracts; pin URLs under `https://invoicing.co/api/v1/` and log source references without credentials.
+- [x] Write failing contract tests for exact GET URL/headers, invitation fields, group exclusion, pagination, allocations/refunds, page-limit exhaustion, redirects, malformed/oversized responses, timeout and unconfigured mode making no calls.
+- [x] Implement bounded read-only access with completeness guarantees; never reuse caller-supplied URLs or follow provider pagination links to arbitrary hosts.
+- [x] Run both tracking test files; require all passing. Commit Task 2.
 
 ### Task 3: Private persistence, reconciliation and tax periods
 
@@ -59,10 +59,10 @@ Use managed worktree `C:/Users/jd/.codex/worktrees/0f78/3dprint4me`, based on `o
 
 **Interfaces:** repository provides atomic `claimSync`, `commitSnapshot`, `recordSyncFailure`, `readTracking`, settings/disposition commands and leased notification outbox operations. `createInvoiceTrackingService({ repository, provider, now })` exposes `sync()` and owner/machine projections. Tax functions validate explicitly confirmed periods/schedules and independent submitted/paid acknowledgements.
 
-- [ ] Load Postgres best-practices before authoring schema. Write failing contracts for exclusive sync claim, first-import baseline, partial-read rollback, duplicate events, multiple payments, deleted/reversed records, lease expiry, stale freshness, owner-only revisioned settings/dispositions and tax acknowledgements.
-- [ ] Implement additive private RLS schema and native/local test adapters following existing repository conventions; retain prior good snapshot on failure. Add backup/restore coverage.
-- [ ] Add tax-date tests against current official Oklahoma rules; reject an unconfirmed schedule and keep submitted/payment state independent. Persist schedule evidence/effective date and audit changes.
-- [ ] Run all tracking/tax/repository tests; require all passing. Commit Task 3.
+- [x] Load Postgres best-practices before authoring schema. Write failing contracts for exclusive sync claim, first-import baseline, partial-read rollback, duplicate events, multiple payments, deleted/reversed records, lease expiry, stale freshness, owner-only revisioned settings/dispositions and tax acknowledgements.
+- [x] Implement additive private RLS schema and native/local test adapters following existing repository conventions; retain prior good snapshot on failure. Add backup/restore coverage.
+- [x] Add tax-date tests against current official Oklahoma rules; reject an unconfirmed schedule and keep submitted/payment state independent. Persist schedule evidence/effective date and audit changes.
+- [x] Run all tracking/tax/repository tests; require all passing. Commit Task 3.
 
 ### Task 4: API, jobs and recoverable Home Assistant delivery
 
@@ -70,17 +70,17 @@ Use managed worktree `C:/Users/jd/.codex/worktrees/0f78/3dprint4me`, based on `o
 
 **Interfaces:** owner-only billing resource exposes read/reconcile/settings/disposition/tax acknowledgement commands. Machine billing projection is explicitly versioned/minimized. Scheduled task syncs and drains a durable outbox. Outbound adapter uses a distinct server-only HA credential, fixed HTTPS origin and allowlisted services.
 
-- [ ] Write failing tests for owner/origin isolation, strict payload limits, machine inability to run owner commands, sanitized errors, scheduling/non-overlap, disabled mode and safe delivery retry/lease/acknowledgement.
-- [ ] Implement runtime composition and jobs; stable persistent notification IDs replace repeat deliveries. Keep phone destinations separate and disclose possible repeats on ambiguous timeout.
-- [ ] Run focused API/jobs/delivery and existing HA/invoice regression tests; require all passing. Commit Task 4.
+- [x] Write failing tests for owner/origin isolation, strict payload limits, machine inability to run owner commands, sanitized errors, scheduling/non-overlap, disabled mode and safe delivery retry/lease/acknowledgement.
+- [x] Implement runtime composition and jobs; stable persistent notification IDs replace repeat deliveries. Keep phone destinations separate and disclose possible repeats on ambiguous timeout.
+- [x] Run focused API/jobs/delivery and existing HA/invoice regression tests; require all passing. Commit Task 4.
 
 ### Task 5: Operator Billing and Home Assistant visuals
 
 **Files:** create `operator/assets/billing.js`; modify operator shell/API client/styles/service-worker build as needed, `integrations/home-assistant/package.yaml`, `dashboard.yaml`, `README.md`, screenshot tooling; add `tests/e2e/test_invoice_tracking.py` and UI/controller tests.
 
-- [ ] Read relevant UI design skill and established operator components. Add failing tests for filters/counts/currency, stale/provider-failure display, needs-invoicing/no-charge disposition, settings, tax acknowledgements and navigation/session expiry.
-- [ ] Implement owner Billing, Billing settings and Tax periods views with fixed provider links; preserve current per-job draft controls. Add built-in HA cards and minimized feed attributes without replacing unrelated dashboards.
-- [ ] Run desktop/390px light/dark keyboard/reduced-motion browser coverage. Run screenshots and inspect preview board plus billing states. Commit Task 5.
+- [x] Read relevant UI design skill and established operator components. Add failing tests for filters/counts/currency, stale/provider-failure display, needs-invoicing/no-charge disposition, settings, tax acknowledgements and navigation/session expiry.
+- [x] Implement owner Billing, Billing settings and Tax periods views with fixed provider links; preserve current per-job draft controls. Add built-in HA cards and minimized feed attributes without replacing unrelated dashboards.
+- [x] Run desktop/390px light/dark keyboard/reduced-motion browser coverage. Run screenshots and inspect preview board plus billing states. Commit Task 5.
 
 ### Task 6: Review, release and live acceptance
 
