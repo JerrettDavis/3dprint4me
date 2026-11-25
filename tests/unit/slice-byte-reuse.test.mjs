@@ -43,9 +43,11 @@ test("models larger than cache budget are read for every attempt", async () => {
 
 test("remote slicers never read model bytes", async () => {
   const h = harness();
-  // The dedicated runner below uses the remote provider contract.
-  const runner = createSliceJobRunner({ repository: { findAsset: async () => h.asset, claimJobs: async () => [{ assetId: h.asset.id, options: {}, attemptCount: 1, maxAttempts: 2 }], failJob: async () => ({state: "pending"}) }, fileStore: { read: async () => { throw new Error("unexpected download"); } }, slicer: { needsBytes: false, estimateSlice: async ({bytes}) => { assert.equal(bytes, null); throw new Error("remote retry"); } }, limits: {maxModelBytes: 100} });
+  let downloads = 0, received = "not called";
+  const runner = createSliceJobRunner({ repository: { findAsset: async () => h.asset, claimJobs: async () => [{ assetId: h.asset.id, options: {}, attemptCount: 1, maxAttempts: 2 }], failJob: async () => ({state: "pending"}) }, fileStore: { read: async () => { downloads++; throw new Error("unexpected download"); } }, slicer: { needsBytes: false, estimateSlice: async ({bytes}) => { received = bytes; throw new Error("remote retry"); } }, limits: {maxModelBytes: 100} });
   assert.equal((await runner.runOnce()).retrying, 1);
+  assert.equal(downloads, 0);
+  assert.equal(received, null);
 });
 
 
