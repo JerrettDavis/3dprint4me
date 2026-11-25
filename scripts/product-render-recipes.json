@@ -10,6 +10,14 @@
     { "id": "gridfinity-bin", "params": {}, "elevation": 40, "azimuth": -65 },
     { "id": "vase", "params": { "construction": "hollow" }, "elevation": 22, "azimuth": -65 },
     { "id": "skull-keychain", "params": {}, "elevation": 60, "azimuth": -90 },
-    { "id": "skeleton-figure", "params": {}, "elevation": 70, "azimuth": -90 }
+    { "id": "skeleton-figure", "params": {}, "elevation": 70, "azimuth": -90 },
+    { "id": "holiday-ornament", "params": {}, "elevation": 76, "azimuth": -90 },
+    { "id": "holiday-ornament-sledding", "generator": "holiday-ornament", "params": { "scene": "sledding", "font": "kaushan-script", "plate_color": "#183f67", "accent_color": "#ffc969" }, "elevation": 76, "azimuth": -90 },
+    { "id": "holiday-ornament-reindeer", "generator": "holiday-ornament", "params": { "scene": "reindeer", "font": "alex-brush", "plate_color": "#16473e", "accent_color": "#efb47c" }, "elevation": 76, "azimuth": -90 },
+    { "id": "holiday-ornament-winter-tree", "generator": "holiday-ornament", "params": { "scene": "winter-tree", "font": "lobster", "plate_color": "#49345f", "accent_color": "#9bdcaa" }, "elevation": 76, "azimuth": -90 },
+    { "id": "holiday-ornament-snowflake-lace", "generator": "holiday-ornament", "params": { "scene": "snowflake-lace", "font": "alex-brush", "plate_color": "#20526e", "snow_color": "#fff5db" }, "elevation": 76, "azimuth": -90 },
+    { "id": "holiday-ornament-woodland-cutout", "generator": "holiday-ornament", "params": { "scene": "woodland-cutout", "font": "lobster", "plate_color": "#235c49", "snow_color": "#fff5db" }, "elevation": 76, "azimuth": -90 },
+    { "id": "holiday-ornament-round-photo", "generator": "holiday-ornament", "params": { "scene": "round-photo", "font": "alex-brush", "plate_color": "#772d43", "accent_color": "#efb47c" }, "elevation": 76, "azimuth": -90 },
+    { "id": "holiday-ornament-square-photo", "generator": "holiday-ornament", "params": { "scene": "square-photo", "font": "kaushan-script", "plate_color": "#244858", "accent_color": "#90d7cb" }, "elevation": 76, "azimuth": -90 }
   ]
 }

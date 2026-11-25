@@ -1,5 +1,4 @@
-// The font control is one shared definition: every generator offers the same choices, the same
-// license confirmation for fonts from the customer's computer, and prints text in any of them.
+// The font control is shared; ornaments curate printable scripts rather than accepting local files.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -23,14 +22,14 @@ const toBuffer = b => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 const bebas = parse(toBuffer(bebasBytes));
 // Generators that print text (the pumpkin has none and so no font control).
 const generators = Object.values(GENERATORS).filter(g => g.font);
+const fullPickerGenerators = generators.filter(g => g.id !== "holiday-ornament");
 const withBuild = async g => ({ ...g, build: (await loadBuilder[g.id]()).default });
 // Parameters a generator needs besides the font (the Wi-Fi tag needs a password).
 const needed = g => (g.id === "wifi-tag" ? { password: "correct-horse" } : g.id==='infinity-fidget'?{block_1_symbol:'ABC'}:{});
 
 test("every generator uses the one shared font control", () => {
-  assert.equal(generators.length, 6);
-  for (const g of generators) {
-    assert.deepEqual(g.font, FONT_SPEC, `${g.id} font spec`);
+  for (const g of generators) assert.deepEqual(g.font, FONT_SPEC, `${g.id} font spec`);
+  for (const g of fullPickerGenerators) {
     assert.deepEqual(g.schema.font.options.map(o => o.value), FONT_OPTIONS.map(o => o.value), `${g.id} options`);
     assert.equal(g.schema.font.picker, "font");
     assert.equal(g.schema.font.default, g.id === "route-shield" ? "overpass-black" : "block");
@@ -41,8 +40,18 @@ test("every generator uses the one shared font control", () => {
   assert.deepEqual(FONT_OPTIONS.map(o => o.value), ["block", ...FONTS.map(f => f.id), "system", "custom"]);
 });
 
+test("holiday ornaments default to a curated script and do not accept block or external fonts", () => {
+  const g = getGenerator("holiday-ornament");
+  assert.equal(g.schema.font.picker, "font");
+  assert.equal(validateParams(g, {}).value.font, "pacifico");
+  for (const font of ["pacifico", "alex-brush", "kaushan-script", "lobster"]) {
+    assert.ok(validateParams(g, { font }).ok, font);
+  }
+  for (const font of ["block", "system", "custom"]) assert.ok(!validateParams(g, { font }).ok, font);
+});
+
 test("a font from the customer's computer needs the license confirmation; vetted fonts do not", () => {
-  for (const g of generators) {
+  for (const g of fullPickerGenerators) {
     for (const font of ["block", ...FONTS.map(f => f.id)]) assert.equal(validateParams(g, { font, ...needed(g) }).ok, true, `${g.id} ${font}`);
     for (const font of ["system", "custom"]) {
       const bare = validateParams(g, { font, ...needed(g) });

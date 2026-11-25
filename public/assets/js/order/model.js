@@ -1,5 +1,5 @@
-import {REFERRAL_CONSENT_VERSION} from './referral.js?v=8cfde5de2cda44f2';
-import { normalizeProductReference } from '../catalogue/reference.js?v=8cfde5de2cda44f2';
+import {REFERRAL_CONSENT_VERSION} from './referral.js?v=9ac764f878c3801f';
+import { normalizeProductReference } from '../catalogue/reference.js?v=9ac764f878c3801f';
 const COMMON_FIELDS = new Set([
   "service", "projectTitle", "description", "modelUrl", "deadline", "delivery",
   "contactNotes", "name", "email", "phone", "preferredContact", "address",

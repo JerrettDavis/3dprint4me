@@ -628,5 +628,77 @@
     ],
     "configurationSha256": "3eeec62ab68a1bf9a3735ec29cfe55c9172ef495d20d62f945eee91ee4782e59",
     "imageSha256": "d546f4684cd34e86bac118b2a41bc424fa835c25f7acf2832f416ce742226044"
+  },
+  "holiday-ornament": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": null,
+    "imageSha256": "03c644c4a63a8ea9dad589f550aa855f7d7724666fc8b5fb26892ab8785291ef"
+  },
+  "holiday-ornament-sledding": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": null,
+    "imageSha256": "a26f2104fc9c6b84c9897c99d1c4a82905d115720b8a6e9602a85922bb62c6f4"
+  },
+  "holiday-ornament-reindeer": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": null,
+    "imageSha256": "f5fa591713b61012a6e7744284e42e1de1f171e2b44cd2ee766c0cbc544929b5"
+  },
+  "holiday-ornament-winter-tree": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": null,
+    "imageSha256": "4aa6069968ad368e5f757ed884518740ccd79dbbc6a53d89b5b4a4eceff5b114"
+  },
+  "holiday-ornament-snowflake-lace": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": null,
+    "imageSha256": "dce79c0b0d6122a92f83c5a25cdfca4421e543c53230270a886dd3a8e2b2e8ce"
+  },
+  "holiday-ornament-woodland-cutout": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": null,
+    "imageSha256": "a8fb250645e9de174792413c96c26d797db26bf86a15d3ae40b422dc5b9551de"
+  },
+  "holiday-ornament-round-photo": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      4
+    ],
+    "configurationSha256": null,
+    "imageSha256": "be24a21a8fd77806335c70ec20dbc5521c61e2f1daa0e110e4c684890f60af46"
+  },
+  "holiday-ornament-square-photo": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      4
+    ],
+    "configurationSha256": null,
+    "imageSha256": "4b5d457d00bffda7de13397d965636ee013514d2f9aae90163c8b0c48f03c0ae"
   }
 }

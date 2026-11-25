@@ -1,6 +1,14 @@
 // Local browsing images only: no model engine, personal parameters or credentials.
 // Provenance and generation prompts: docs/PRODUCT-IMAGES.md.
 export const PRODUCT_MEDIA = {
+  'holiday-ornament': { src: '/assets/images/products/holiday-ornament.webp?v=03c644c4a63a8ea9', alt: 'Studio render of a burgundy ornament with a snowman, raised Noel lettering and a ribbon hole', label: 'Illustrative render' },
+  'holiday-ornament-sledding': { src: '/assets/images/products/holiday-ornament-sledding.webp?v=a26f2104fc9c6b84', alt: 'Blue ornament with a sledder on a snowy slope and a cursive name' },
+  'holiday-ornament-reindeer': { src: '/assets/images/products/holiday-ornament-reindeer.webp?v=f5fa591713b61012', alt: 'Green ornament with a copper-colored reindeer relief and a cursive name' },
+  'holiday-ornament-winter-tree': { src: '/assets/images/products/holiday-ornament-winter-tree.webp?v=4aa6069968ad368e', alt: 'Plum ornament with a green winter tree and a cursive name' },
+  'holiday-ornament-snowflake-lace': { src: '/assets/images/products/holiday-ornament-snowflake-lace.webp?v=dce79c0b0d6122a9', alt: 'Blue ring with an open snowflake lattice and a cursive name band' },
+  'holiday-ornament-woodland-cutout': { src: '/assets/images/products/holiday-ornament-woodland-cutout.webp?v=a8fb250645e9de17', alt: 'Green ring with a cut-through reindeer scene and a cursive name band' },
+  'holiday-ornament-round-photo': { src: '/assets/images/products/holiday-ornament-round-photo.webp?v=be24a21a8fd77806', alt: 'Burgundy ornament with an empty round photo window and a cursive name' },
+  'holiday-ornament-square-photo': { src: '/assets/images/products/holiday-ornament-square-photo.webp?v=4b5d457d00bffda7', alt: 'Blue ornament with an empty rounded-square photo window and a cursive name' },
   'skull-keychain': { src: '/assets/images/products/skull-keychain.webp?v=8816bb6f075e526d', alt: 'Studio render of an algorithmic ivory skull keychain with dark recessed eyes and a top loop', label: 'Illustrative render' },
   'skeleton-figure': { src: '/assets/images/products/skeleton-figure.webp?v=30d7bf1d7a2aeb9b', alt: 'Studio render of a flat-back skeleton with an ivory skull, pinstriped jacket, curled hands and branched bow', label: 'Illustrative render' },
   'vase': { src: '/assets/images/products/vase.webp?v=04d3b39849297ea1', alt: 'Studio render of a brown vase with winding dune relief', label: 'Illustrative render' },

@@ -1,6 +1,6 @@
 // Ready-made designs: a generator lists them as `designs: [{ id, label, blurb, group?, params }]`
 // (partial parameter sets over the schema defaults). Choosing one replaces the look and the
-// sample text; it never carries or removes a secret (a Wi-Fi password stays as typed).
+// sample text unless the generator opts to keep specific fields; sensitive values stay as typed.
 import { clampParams, sensitiveKeys, validateParams } from "../../public/assets/js/customize/schema.js";
 import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
 import { resolveProductLink } from '../../public/assets/js/catalogue/contract.js';
@@ -33,6 +33,11 @@ export function applyDesign(generator, design, current = {}) {
   const defaults = validateParams(generator, {}).value;
   const merged = { ...defaults, ...design.params };
   for (const key of sensitiveKeys(generator)) if (!design.product && Object.hasOwn(current, key)) merged[key] = current[key];
+  if (!design.product) {
+    for (const key of generator.preserveDesignFields ?? []) {
+      if (Object.hasOwn(current, key)) merged[key] = current[key];
+    }
+  }
   const clamped = clampParams(generator, merged);
   // Judged as the server would with the secret withheld: a design never needs one.
   return validateParams(generator, clamped, { skipSensitive: true }).ok ? clamped : null;
