@@ -358,6 +358,38 @@ For the September 15 release, CLI file uploads were blocked by commit-author mat
 
 See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
 
+## Completing an inspected admitted rollout
+
+`deploy/platform/partner-rollout-host.py` exposes `resume_admitted_release` only
+for a retained `candidate-api-admitted` journal. Hold the existing deployment
+lock and independently verify the release archive, live source, retained
+configuration and admitted container identities first. Do not rerun the complete
+rollout, clear health files, or create financial work to satisfy readiness.
+
+The private caller supplies the existing `root`, `source`, full `release`,
+`selected`, PostgreSQL container ID, immutable `images` and fresh readback-verified
+`checkpoint` context, plus `resume` containing `journalSha256`,
+`overrideSha256`, `configSha256` (exact hashes of `api.env`, `jobs.env`,
+`compose.env`, `database-target.private.json`), the current `jobs` container ID,
+Compose `project`, admitted `egress` network and `sourceSha256`. Derive the source
+digest independently from the verified archive and reviewed release metadata,
+using `source_tree_sha256`; do not certify the live tree merely by hashing itself.
+Configuration hashes must follow comparison with retained originals and approved
+projections. Never put this context or private configuration into public output.
+
+Resume checks the journal, source, configuration, database selection, admitted
+API/guard, writer and unrelated services before and after waiting for a fresh
+statement scheduler poll after resume begins. It performs no migrations,
+configuration changes or service starts. Only after these checks does it drain
+the existing guard and complete the journal. A failed check preserves the guard;
+a failed guard drain requires inspection of the retained journal before retry.
+
+Statement readiness validates the bounded successful-poll counter contract
+(`generated + skipped = claimed`). A successful idle poll can coexist with
+historical processing failure. The private journal records `statementsPolled`
+separately from `statementsProcessingHealthy`; monitoring and historical health
+files remain unchanged, and an inherited processing failure is not recovery.
+
 ## Catalogue release worker
 
 The private worker requires migration `019_product_catalogue.sql`, shared private

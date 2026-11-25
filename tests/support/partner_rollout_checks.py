@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import time
 import unittest
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 MODULE = ROOT / 'deploy/platform/partner-rollout-host.py'
@@ -97,7 +98,7 @@ class RolloutChecks(unittest.TestCase):
         if args[:2] == ['docker', 'inspect']:
             cid, fmt = args[2], args[-1]
             if 'NetworkSettings' in fmt:
-                return json.dumps({'platform_database': {}, 'platform_egress': {}})
+                return json.dumps({'platform_database': {}, 'platform_egress': {'Aliases': ['api']}})
             if 'com.docker.compose.project' in fmt: return 'synthetic-platform'
             if fmt == '{{.Image}}': return self.images[cid]
             if fmt == '{{.State.Running}}': return str(self.running[cid]).lower()
@@ -109,17 +110,112 @@ class RolloutChecks(unittest.TestCase):
         if args[:2] == ['docker', 'rm']:
             return args[-1]
         if args[:2] == ['docker', 'ps']:
+            for value in args:
+                if value.startswith('id='):
+                    cid = value[3:]
+                    return cid if self.running.get(cid) else ''
             return self.existing_guard
         if args[:2] == ['docker', 'exec']:
             if 'psql' in args:
                 return 'platform_live_synthetic' if input and b'SELECT database_name' in input else ''
             if args[2] in [self.services.get('api'), self.services.get('api_guard')]:
                 return json.dumps({'featureOff': True, 'privateDenied': True, 'originDenied': True})
-            return json.dumps({'nativeWriter': True, 'flagsOff': True, 'statementsHealthy': True})
+            return json.dumps({'nativeWriter': True, 'flagsOff': True, 'statementsPolled': True, 'statementsProcessingHealthy': False})
         return ''
 
     def deploy(self):
         return self.module.deploy_release(self.context, runner=self.runner)
+
+    def test_source_digest_uses_portable_posix_string_order_and_rejects_symlinks(self):
+        tree = self.root/'digest-source'; (tree/'a').mkdir(parents=True)
+        (tree/'a'/'b').write_bytes(b'nested'); (tree/'a.txt').write_bytes(b'dotted')
+        digest = hashlib.sha256()
+        for name, data in [('a.txt',b'dotted'),('a/b',b'nested')]:
+            digest.update(name.encode()+b'\0'+hashlib.sha256(data).hexdigest().encode()+b'\n')
+        self.assertEqual(self.module.source_tree_sha256(tree),digest.hexdigest())
+        (tree/'link').symlink_to(tree/'a.txt')
+        with self.assertRaises(ValueError): self.module.source_tree_sha256(tree)
+
+    def test_statement_poll_parser_distinguishes_idle_success_from_failure(self):
+        parser = self.module.STATEMENT_POLL_PARSER
+        valid = {'name': 'statements', 'ok': False, 'observedAt': 1000,
+                 'counts': {'claimed': 0, 'generated': 0, 'skipped': 0}}
+        cases = [(valid, False), ({**valid, 'ok': True}, True),
+                 ({**valid,'ok':True,'counts':{'claimed':2,'generated':1,'skipped':1}},True)]
+        bad = [None, {}, {**valid, 'counts': {}}, {**valid, 'name': 'push'},
+               {**valid, 'ok': 0}, {**valid, 'observedAt': 999}, {**valid, 'observedAt': 32001},
+               {**valid, 'observedAt': 1.5}, {**valid,'counts':{'claimed':9007199254740992,'generated':9007199254740992,'skipped':0}},
+               {**valid, 'counts': {'claimed': 1, 'generated': 1, 'skipped': 0}},
+               {**valid, 'counts': {**valid['counts'], 'failed': 1}},
+               {**valid, 'counts': {**valid['counts'], 'retrying': -1}},
+               {**valid, 'counts': {'claimed': 0, 'generated': 1, 'skipped': 0}},
+               {**valid, 'counts': {'claimed': 0.5, 'generated': 0.5, 'skipped': 0}}]
+        for row, expected in cases + [(row, None) for row in bad]:
+            code = parser + '\nconsole.log(JSON.stringify(parseStatementPoll(process.argv[1],{startedAt:1000,now:2000})));'
+            result = subprocess.run(['node', '--input-type=module', '-e', code, json.dumps(row)], capture_output=True, text=True, check=True)
+            parsed = json.loads(result.stdout)
+            self.assertEqual(parsed, None if expected is None else {'statementsProcessingHealthy': expected})
+        for text in ['{', 'x'*513]:
+            result = subprocess.run(['node','--input-type=module','-e', parser+'\nconsole.log(JSON.stringify(parseStatementPoll(process.argv[1],{startedAt:1000,now:2000})));',text],capture_output=True,text=True,check=True)
+            self.assertIsNone(json.loads(result.stdout))
+        result = subprocess.run(['node','--input-type=module','-e',parser+'\nconsole.log(JSON.stringify(parseStatementPoll(process.argv[1],{startedAt:1000,now:200001})));',json.dumps(valid)],capture_output=True,text=True,check=True)
+        self.assertIsNone(json.loads(result.stdout))
+
+    def resume_context(self):
+        self.fail = lambda args,data: args[:4] == ['docker','exec','-i','3'*64]
+        with self.assertRaises(RuntimeError): self.deploy()
+        self.fail = None
+        journal = self.root / ('partner-rollout-'+self.sha[:12]+'.private.json')
+        override = journal.with_suffix('.yml')
+        ctx = {**self.context, 'resume': {
+            'journalSha256': hashlib.sha256(journal.read_bytes()).hexdigest(),
+            'overrideSha256': hashlib.sha256(override.read_bytes()).hexdigest(),
+            'configSha256': {name:hashlib.sha256((self.root/name).read_bytes()).hexdigest() for name in ('api.env','jobs.env','compose.env','database-target.private.json')},
+            'jobs': '3'*64, 'project': 'synthetic-platform', 'egress': 'platform_egress',
+            'sourceSha256': self.module.source_tree_sha256(self.source)}}
+        self.calls.clear()
+        return ctx
+
+    def test_resume_rechecks_admitted_services_without_redeploying_or_clearing_health(self):
+        ctx = self.resume_context()
+        proof = self.module.resume_admitted_release(ctx, runner=self.runner)
+        self.assertFalse(proof['statementsProcessingHealthy'])
+        self.assertTrue(proof['statementsPolled'])
+        self.assertEqual([(a[1],a[-1]) for a,_ in self.calls if a[:2] in (['docker','stop'],['docker','rm'])], [('stop','1'*64),('rm','1'*64)])
+        self.assertFalse(any('up' in a or 'network' in a or (data and b'BEGIN' in data) for a,data in self.calls))
+        state = json.loads((self.root/('partner-rollout-'+self.sha[:12]+'.private.json')).read_text())
+        self.assertEqual(state['stage'], 'disabled-rollout-passed')
+        self.assertFalse(state['writerProof']['statementsProcessingHealthy'])
+
+    def test_resume_failure_preserves_guard(self):
+        for boundary in ['journal','config','source','jobs','smoke','poll','network','prior-writer','stage','post-poll']:
+            with self.subTest(boundary=boundary):
+                fixture = RolloutChecks('runTest'); fixture.setUp()
+                try:
+                    ctx = fixture.resume_context()
+                    if boundary == 'journal': ctx['resume']['journalSha256'] = '0'*64
+                    if boundary == 'config': (fixture.root/'api.env').write_text('CHANGED=1\n')
+                    if boundary == 'source': (fixture.source/'changed').write_text('changed')
+                    if boundary == 'jobs': fixture.services['jobs'] = fixture.initial['jobs']
+                    if boundary == 'network': ctx['resume']['egress'] = 'wrong_egress'
+                    if boundary == 'prior-writer': fixture.running[fixture.initial['jobs']] = True
+                    if boundary == 'stage':
+                        journal = fixture.root/('partner-rollout-'+fixture.sha[:12]+'.private.json')
+                        state = json.loads(journal.read_text()); state['stage'] = 'guarded-api-admitted'
+                        journal.write_text(json.dumps(state))
+                        ctx['resume']['journalSha256'] = hashlib.sha256(journal.read_bytes()).hexdigest()
+                    if boundary == 'smoke': fixture.fail = lambda a,d: a[:3] == ['docker','exec','2'*64]
+                    if boundary == 'poll': fixture.fail = lambda a,d: a[:4] == ['docker','exec','-i','3'*64]
+                    if boundary == 'post-poll':
+                        seen = []
+                        def change_after_poll(a,d):
+                            if a[:4] == ['docker','exec','-i','3'*64]: seen.append(True)
+                            return bool(seen) and a[:3] == ['docker','exec','2'*64]
+                        fixture.fail = change_after_poll
+                    with self.assertRaises(RuntimeError): fixture.module.resume_admitted_release(ctx, runner=fixture.runner)
+                    self.assertTrue(fixture.running['1'*64])
+                    self.assertFalse(any(a[:2] in (['docker','stop'],['docker','rm']) for a,_ in fixture.calls))
+                finally: fixture.doCleanups()
 
     def test_missing_stale_incomplete_or_wrong_database_checkpoint_stops_before_commands(self):
         for change in [None, {'createdAt': int(time.time())-3600}, {'roundtripVerified': False},
