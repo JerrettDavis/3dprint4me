@@ -92,6 +92,24 @@ test('manual limit verification is required and source annotations are bounded',
   assert.equal(metric(updateCapacity(null,[record()],now)).limitSource,'provider');
   assert.equal(metric(updateCapacity(null,[record({source:'manual'})],now)).quotaState,'unknown');
 });
+test('partial lower-bound usage can warn but cannot prove normal or recovery', () => {
+  const partial={partial:true,coverageEnd:now-86400000};
+  assert.equal(metric(updateCapacity(null,[record({...partial,used:10})],now)).status,'unknown');
+  assert.equal(metric(updateCapacity(null,[record({...partial,used:75})],now)).status,'warning');
+  assert.equal(metric(updateCapacity(null,[record({...partial,used:95})],now)).status,'critical');
+  let state=updateCapacity(null,[record({used:95})],now);
+  state=updateCapacity(state,[record({...partial,used:10,observedAt:now+1})],now+1);
+  state=updateCapacity(state,[record({...partial,used:10,observedAt:now+2})],now+2);
+  assert.equal(metric(state,now+2).status,'critical');
+  assert.equal(metric(state,now+2).percent,10);
+  assert.equal(metric(state,now+2).partial,true);
+  assert.equal(metric(state,now+2).coverageEnd,partial.coverageEnd);
+});
+test('coverage and rate-window annotations must be bounded and meaningful', () => {
+  for(const change of [{partial:'yes'}, {partial:true}, {partial:true,coverageEnd:null}, {coverageEnd:now+30001}, {observedAt:now-100000,coverageEnd:now}, {rateWindowMs:1000}, {id:'resend-rate',rateWindowMs:0}, {id:'resend-rate',rateWindowMs:86400001}]) assert.throws(()=>validateCapacity([record(change)],now));
+  const state=updateCapacity(null,[record({id:'resend-rate',used:null,rateWindowMs:1000})],now);
+  assert.equal(metric(state,now,'resend-rate').rateWindowMs,1000);
+});
 test('recovery must cross hysteresis margin twice and history stays bounded', () => {
   let state=updateCapacity(null,[record({used:95})],now);
   for (const [offset,used,status] of [[1,89,'critical'],[2,84,'critical'],[3,86,'critical'],[4,84,'critical'],[5,84,'warning'],[6,64,'warning'],[7,64,'normal']]) {
