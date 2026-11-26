@@ -37,6 +37,18 @@ class CapacityTests(unittest.TestCase):
  def test_cpu_delta(self):
   self.assertEqual(c.cpu_percent((100,30),(200,50)),80)
   self.assertIsNone(c.cpu_percent((100,30),(100,30)))
+ def test_writable_disk_capacity_excludes_reserved_blocks(self):
+  from types import SimpleNamespace
+  disk=SimpleNamespace(f_blocks=100,f_bfree=30,f_bavail=20,f_frsize=4096)
+  with patch.object(c.os,'statvfs',return_value=disk,create=True),patch.object(c,'cpu_sample',side_effect=ValueError):
+   row=c.host_capacity(Path('/'))[0]
+  self.assertEqual(row['used'],70*4096)
+  self.assertEqual(row['limit']-row['used'],20*4096)
+ def test_numeric_safety_and_receiver_clock_skew(self):
+  self.assertFalse(c.numeric(2**53))
+  item={'id':'db-size','used':3,'limit':None,'observedAt':131000,'periodStart':None,'periodEnd':None,'source':'local','scope':'host'}
+  with patch.object(c.time,'time_ns',return_value=100000000000):
+   with self.assertRaises(ValueError):c.capacity_records([item])
  def test_container_commands_never_read_environment(self):
   from types import SimpleNamespace
   calls=[]

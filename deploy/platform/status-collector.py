@@ -17,7 +17,7 @@ FIELDS = {'id', 'used', 'limit', 'observedAt', 'periodStart', 'periodEnd', 'sour
 
 
 def numeric(value):
-    return type(value) in (int, float) and math.isfinite(value) and value >= 0
+    return type(value) in (int, float) and math.isfinite(value) and 0 <= value <= 9007199254740991
 
 
 def capacity_records(records):
@@ -31,7 +31,7 @@ def capacity_records(records):
         if metric not in APP_IDS or metric in seen or (row['source'], row['scope']) != APP_IDS[metric]:
             raise ValueError('Unexpected capacity')
         seen.add(metric)
-        if not numeric(row['observedAt']) or row['observedAt'] > time.time_ns() // 1_000_000 + 60000:
+        if not numeric(row['observedAt']) or row['observedAt'] > time.time_ns() // 1_000_000 + 30000:
             raise ValueError('Unexpected capacity')
         if any(row[key] is not None and not numeric(row[key]) for key in ('used', 'limit', 'periodStart', 'periodEnd')):
             raise ValueError('Unexpected capacity')
@@ -69,10 +69,11 @@ def cpu_percent(first, second):
 def host_capacity(root):
     records = []
     def add(metric, used=None, limit=None):
-        records.append({'id': metric, 'used': used, 'limit': limit, 'observedAt': time.time_ns() // 1_000_000, 'periodStart': None, 'periodEnd': None, 'source': 'local', 'scope': 'host'})
+        records.append({'id': metric, 'used': used if numeric(used) else None, 'limit': limit if numeric(limit) else None, 'observedAt': time.time_ns() // 1_000_000, 'periodStart': None, 'periodEnd': None, 'source': 'local', 'scope': 'host'})
     try:
         disk = os.statvfs(root)
-        add('host-disk', (disk.f_blocks - disk.f_bfree) * disk.f_frsize, disk.f_blocks * disk.f_frsize)
+        used = (disk.f_blocks - disk.f_bfree) * disk.f_frsize
+        add('host-disk', used, used + disk.f_bavail * disk.f_frsize)
     except Exception:
         add('host-disk')
     try:

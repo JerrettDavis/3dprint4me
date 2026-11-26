@@ -14,4 +14,5 @@ test('reads only runtime aggregates and exact global current buckets',async()=>{
 });
 test('optional failures remain unknown and configured limits survive',async()=>{const result=await collectLocalCapacity({query:async()=>{throw Error('secret');},env:{PRINT_ESTIMATE_SESSIONS_GLOBAL:'17'},now});assert.equal(result.length,6);assert.ok(result.every(x=>x.used===null));assert.equal(result.find(x=>x.id==='rate-sessions-global').limit,17);assert.ok(!JSON.stringify(result).includes('secret'));});
 test('malformed database numeric values never enter metrics',async()=>{const result=await collectLocalCapacity({query:async()=>[{used:'Infinity',limit:-2}],env:{},now});assert.ok(result.filter(x=>x.id.startsWith('db-')).every(x=>x.used===null));assert.equal(result.find(x=>x.id==='db-connections').limit,null);});
+test('oversize database aggregates remain unknown',async()=>{const result=await collectLocalCapacity({query:async()=>[{used:String(2**53),limit:String(2**53)}],env:{},now});assert.ok(result.filter(x=>x.id.startsWith('db-')).every(x=>x.used===null&&x.limit===null));});
 
