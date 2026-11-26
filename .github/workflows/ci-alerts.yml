@@ -1,0 +1,50 @@
+name: Main verification alerts
+
+on:
+  workflow_run:
+    workflows: [Verify]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: main-verification-alert
+  cancel-in-progress: false
+
+jobs:
+  alert:
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deliver completion alert
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const run = context.payload.workflow_run;
+            const title = 'CI monitor: main verification';
+            const marker = '<!-- main-verification-monitor -->';
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'all', creator: 'github-actions[bot]', per_page: 100
+            });
+            let issue = issues.find(item => !item.pull_request && item.title === title && item.body?.includes(marker));
+            const previous = Number(issue?.body?.match(/ci-monitor-run-number: (\d+)/)?.[1] ?? 0);
+            if (run.run_number <= previous) return;
+            const passed = run.conclusion === 'success';
+            const body = `${marker}\n<!-- ci-monitor-run-number: ${run.run_number} -->\n` +
+              `Main verification **${run.conclusion}** for commit \`${run.head_sha}\`.\n\n` +
+              `[View workflow run](${run.html_url})\n\n` +
+              'This monitor reacts to workflow completion events. It does not poll. ' +
+              'Failures keep this issue open; successful verification closes it. Subscribe to this issue for completion alerts.';
+            if (!issue) {
+              ({data: issue} = await github.rest.issues.create({owner, repo, title, body, assignees: [owner]}));
+            } else {
+              await github.rest.issues.createComment({owner, repo, issue_number: issue.number, body});
+            }
+            await github.rest.issues.update({owner, repo, issue_number: issue.number, body,
+              state: passed ? 'closed' : 'open', ...(passed ? {state_reason: 'completed'} : {})});
+            await core.summary.addHeading('Main verification completion')
+              .addRaw(body).write();
