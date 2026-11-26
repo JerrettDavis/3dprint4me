@@ -32,9 +32,10 @@ if (mode === "hang") setTimeout(() => {}, 60_000);
 else if (mode === "empty") writeResult(0, "Success.");
 else {
   const header = fixture("bambu-plate-header.gcode");
-  if (mode === "header-only") {
+  if (mode === "header-only" || mode === 'partial-header') {
     // Without result.json the adapter must fall back to the G-code header (Orca-style version line).
     writeFileSync(join(outputDir, "plate_1.gcode"), header.replace("; BambuStudio 02.08.04.57", "; OrcaSlicer 2.4.2"));
+    if (mode === 'partial-header') writeFileSync(join(outputDir,'plate_2.gcode'),'; total estimated time: 1h\n');
   } else {
     // A test filament preset may carry "fake_grams" so tests can see which file was loaded.
     const grams = filament.fake_grams;

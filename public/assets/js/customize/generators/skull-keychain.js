@@ -1,4 +1,4 @@
-import { choice, number, skullRules, skullSchema } from "../skeleton.js?v=9ac764f878c3801f";
+import { choice, number, skullRules, skullSchema } from "../skeleton.js?v=4dfb9b39de27496a";
 
 export default {
   id: "skull-keychain", version: 4, title: "Skull keychain",

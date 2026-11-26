@@ -29,3 +29,13 @@ Observed Bambu Studio 02.08.04.57, X2D machine/process profile and PLA: 20,919.4
 The real adapter also sliced the existing three-color fixture with the fine profile: `0.12mm High Quality @BBL X2D`, 27,560.38 seconds, 88.80 g total, 80.8708 g waste, 298 changes and 149 layers. This establishes that selecting fine changes real production figures rather than only a displayed label. Effective profile fingerprint: `4f6bed94131038409a0f0697a5b9f43457cd479130fd51d79d5ab434aed8f30e`.
 
 The initial full unit/contract baseline completed: 1,729 passed, one skipped, zero failed. Subsequent profile changes have their own focused verification; a final full run remains required.
+
+## Prusa and interface evidence
+The pinned PrusaSlicer 2.8.1 image was built and exercised without networking or credentials using an explicitly synthetic engine-rehearsal configuration. Flat geometry produced no support sections. The T-shaped overhang without supports used 4.16 g and 1,927 seconds; organic supports produced 99 support sections, 5.82 g and 2,844 seconds. G-code recorded enabled automatic support and organic style. This verifies engine behavior, not calibration of a production Prusa printer.
+
+Ten focused intake browser/API tests passed after updating fake-worker fixtures to supply explicit synthetic profiles. Screenshot capture completed with 277 screenshots; the 390-pixel measured-production panel and a reduced overview of the 1280×70988 preview board were inspected. Final screenshot refresh remains needed after the final visible revision.
+
+Independent review identified and prompted regressions for partial Bambu header totals, incomplete Prusa profiles, generic/Prusa-painted color mappings and operator pack figures. The second full unit run reported 1,743 passed and one failed: the new pack metadata test ran against its pre-fix loaded module. The pack fix subsequently passed focused tests; do not treat that full run as green.
+
+### Outstanding production-fidelity gate
+Pinned Bambu source `PrintObject.cpp:3496–3502` overlays uploaded object configuration on global defaults. The CLI only replaces object config while orienting, whereas estimates preserve orientation. Before completion, sanitize uploaded 3MF process/object/layer overrides in the private working copy while preserving geometry and color assignments, then prove effective supports and quality with a real adversarial 3MF overhang. Merely setting global support fields is insufficient. Final full tests, screenshots, review, PR, green merge and main verification remain required.

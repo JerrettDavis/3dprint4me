@@ -4,8 +4,9 @@ import {execFileSync} from 'node:child_process';
 import {mkdtemp, readFile, writeFile, readdir, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {effectiveBambuProcess} from '../lib/print-estimation/slicer-process-policy.js';
+import {effectiveBambuProcess,effectivePrusaProfile} from '../lib/print-estimation/slicer-process-policy.js';
 import {parseBambuResult} from '../lib/print-estimation/adapters/bambu-cli-slicer.js';
+import {parseGcodeSummary} from '../lib/print-estimation/adapters/local-cli-slicer.js';
 
 function boxesStl(boxes) {
   const triangles = [];
@@ -22,7 +23,10 @@ function boxesStl(boxes) {
 
 const directory = await mkdtemp(join(tmpdir(), '3dp-support-rehearsal-'));
 try {
-  const base = JSON.parse(await readFile(process.env.SLICER_PROCESS_PROFILE, 'utf8'));
+  const prusa = process.env.SLICER_PROVIDER === 'local-cli';
+  // Engine verification only: this synthetic Prusa config is never deployed as a shop profile.
+  const base = prusa ? 'printer_settings_id = Synthetic engine rehearsal\n' + (await readFile('/source/deploy/slicer-worker/profiles/default.ini','utf8')).split('\n').filter(line=>!line.startsWith('#')).join('\n')
+    : JSON.parse(await readFile(process.env.SLICER_PROCESS_PROFILE, 'utf8'));
   const results = [];
   for (const [name, boxes, trees] of [
     ['flat-auto', [[0,0,0,20,20,4]], true],
@@ -30,21 +34,24 @@ try {
     ['overhang-auto', [[16,6,0,8,8,20],[0,0,20,40,20,4]], true]
   ]) {
     const model = join(directory, `${name}.stl`);
-    const preset = join(directory, `${name}.json`);
+    const preset = join(directory, `${name}.${prusa?'ini':'json'}`);
     const output = join(directory, name);
     await writeFile(model, boxesStl(boxes));
-    await writeFile(preset, JSON.stringify(trees ? effectiveBambuProcess(base) : {...base, enable_support:'0'}));
-    execFileSync(process.env.SLICER_BIN, ['--slice','0','--arrange','1','--orient','0','--load-settings',`${process.env.SLICER_MACHINE_PROFILE};${preset}`,
-      '--load-filaments','/app/profiles/filament-pla.json','--curr-bed-type',process.env.SLICER_BED_TYPE,'--outputdir',output,model],
+    await writeFile(preset, prusa ? (trees ? effectivePrusaProfile(base,'pla') : base) : JSON.stringify(trees ? effectiveBambuProcess(base) : {...base, enable_support:'0'}));
+    const args = prusa ? ['--export-gcode','--load',preset,'--output',`${output}.gcode`,model]
+      : ['--slice','0','--arrange','1','--orient','0','--load-settings',`${process.env.SLICER_MACHINE_PROFILE};${preset}`,
+      '--load-filaments','/app/profiles/filament-pla.json','--curr-bed-type',process.env.SLICER_BED_TYPE,'--outputdir',output,model];
+    execFileSync(process.env.SLICER_BIN, args,
       {timeout:300_000, maxBuffer:16*1024*1024, stdio:['ignore','pipe','pipe']});
-    const result = parseBambuResult(await readFile(join(output,'result.json'),'utf8'));
-    const gcodes = (await readdir(output)).filter(name=>name.endsWith('.gcode'));
+    const result = prusa ? {...parseGcodeSummary(await readFile(`${output}.gcode`,'utf8')),returnCode:0}
+      : parseBambuResult(await readFile(join(output,'result.json'),'utf8'));
+    const gcodes = prusa ? [`${name}.gcode`] : (await readdir(output)).filter(name=>name.endsWith('.gcode'));
     let supportFeatures = 0;
     const settings = new Set();
     for (const file of gcodes) {
-      const source = await readFile(join(output,file),'utf8');
+      const source = await readFile(join(prusa?directory:output,file),'utf8');
       supportFeatures += (source.match(/^;\s*(?:FEATURE|TYPE):\s*Support/igm) ?? []).length;
-      for (const line of source.split('\n')) if (/^;\s*(enable_support|support_type|support_on_build_plate_only)\s*=/.test(line)) settings.add(line.trim());
+      for (const line of source.split('\n')) if (/^;\s*(enable_support|support_type|support_on_build_plate_only|support_material|support_material_style|support_material_auto)\s*=/.test(line)) settings.add(line.trim());
     }
     results.push({name,...result,supportFeatures,settings:[...settings]});
   }
@@ -52,7 +59,7 @@ try {
   const [flat,off,on] = results;
   if (flat.returnCode !== 0 || off.returnCode !== 0 || on.returnCode !== 0 || flat.supportFeatures || off.supportFeatures || !on.supportFeatures
     || !(on.materialGrams > off.materialGrams) || !(on.elapsedSeconds > off.elapsedSeconds)
-    || !on.settings.some(line=>/support_type\s*=\s*tree\(auto\)/.test(line))) {
+    || !on.settings.some(line=>(prusa?/support_material_style\s*=\s*organic/:/support_type\s*=\s*tree\(auto\)/).test(line))) {
     throw new Error('Real-engine support rehearsal did not prove automatic trees and increased production totals.');
   }
 } finally {await rm(directory,{recursive:true,force:true});}

@@ -1,4 +1,4 @@
-import { VASE_PATTERNS } from '../vase-field.js?v=9ac764f878c3801f';
+import { VASE_PATTERNS } from '../vase-field.js?v=4dfb9b39de27496a';
 
 const urn = [
   { height: 0, radius: 0.62 }, { height: 0.18, radius: 0.88 },

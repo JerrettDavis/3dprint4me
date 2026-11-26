@@ -1,4 +1,4 @@
-import { productHref, isCurrentProduct } from './contract.js?v=9ac764f878c3801f';
+import { productHref, isCurrentProduct } from './contract.js?v=4dfb9b39de27496a';
 
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const esc = escapeHtml;

@@ -16,7 +16,7 @@ import { normalizeSliceResult, SliceError } from "../../lib/print-estimation/sli
 
 const fakeSlicer = fileURLToPath(new URL("../fixtures/print-estimation/fake-slicer.mjs", import.meta.url));
 const model = async () => new Uint8Array(await readFile(new URL("../fixtures/print-estimation/cube-20mm-binary.stl", import.meta.url)));
-const cli = (mode = "ok", extra = {}) => createLocalCliSlicer({ bin: fakeSlicer, args: ["--export-gcode", `--mode=${mode}`, "--output", "{output}", "{model}"], profileId: "pla-0.20mm-standard", ...extra });
+const cli = (mode = "ok", extra = {}) => createLocalCliSlicer({ bin: fakeSlicer, profilePath:fileURLToPath(new URL('../fixtures/print-estimation/shop-pla.ini',import.meta.url)), args: ["--export-gcode", `--mode=${mode}`, "--output", "{output}", "{model}"], profileId: "pla-0.20mm-standard", ...extra });
 const categoryOf = async promise => { try { await promise; return "resolved"; } catch (error) { assert.equal(error.name, "SliceError"); return error.category; } };
 
 test("local CLI slicer returns engine, version, profile, time, and material deterministically", async () => {

@@ -9,6 +9,13 @@ const titleCase = value => String(value ?? "").replaceAll("_", " ").replace(/^./
 const bytes = value => value == null ? "—" : value < 1024 * 1024 ? `${one.format(value / 1024)} KB` : `${one.format(value / 1024 / 1024)} MB`;
 const when = value => value ? new Date(value).toLocaleString() : "—";
 
+export function slicerDisplayFigures(estimate) {
+  if (!estimate.slicer) return null;
+  if (!estimate.slicer.pack) return estimate.slicer;
+  const production = estimate.production ?? {};
+  return {...estimate.slicer,...production.slicing,materialGrams:production.gramsPerUnit,elapsedSeconds:production.hoursPerUnit*3600};
+}
+
 function el(name, className, text) { const node = document.createElement(name); if (className) node.className = className; if (text != null) node.textContent = text; return node; }
 function facts(rows) {
   const list = el("dl", "print-facts");
@@ -84,7 +91,11 @@ function latestSection(estimate,assetName) {
   ]));
   const a = estimate.assumptions;
   section.append(el("p", "print-meta", `Assumptions: ${[String(a.material ?? "").toUpperCase(), a.quality, `${a.colors} color${a.colors === 1 ? "" : "s"}`, `supports ${a.supports}`, `qty ${a.quantity}`, a.delivery].filter(Boolean).join(" · ")}`));
-  if (estimate.slicer) section.append(el("p", "print-meta", `Slicer: ${one.format(estimate.slicer.elapsedSeconds / 3600)} h · ${one.format(estimate.slicer.materialGrams)} g · ${estimate.slicer.layerCount ?? "—"} layers · ${estimate.slicer.toolChanges ?? 0} tool changes`));
+  if (estimate.slicer) {
+    const s = slicerDisplayFigures(estimate);
+    section.append(el('p','print-meta',`Slicer: ${one.format(s.elapsedSeconds / 3600)} h · ${one.format(s.materialGrams)} g total · ${s.layerCount ?? '—'} layers · ${s.toolChanges == null ? 'unmeasured' : whole.format(s.toolChanges)} color changes`));
+    section.append(el('p','print-meta',`Process: ${s.processProfile ?? 'requires review'} · Supports: ${['automatic-tree','automatic-organic'].includes(s.supportPolicy) ? 'automatic trees where needed' : 'requires review'} · Waste: ${s.wasteGrams == null ? 'breakdown unavailable' : `${one.format(s.wasteGrams)} g included in total`}. Color placement and filament mapping require operator confirmation.`));
+  }
   return section;
 }
 

@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tests.support.browser_harness import ROOT, SiteBrowser
+from tests.support.browser_harness import ROOT, SiteBrowser, _module_source
 from tests.support.operator_harness import running_operator_workspace
 from tests.support.server import json_request, running_server
 from tests.e2e.test_api import project_request
@@ -66,6 +66,17 @@ def prepare_print_model(page) -> None:
     page.locator("#model-card[data-state='analyzed']").wait_for()
     page.locator("#quantity").fill("4")
     page.locator("#model-intake").scroll_into_view_if_needed()
+
+
+def prepare_sliced_print_model(page) -> None:
+    prepare_print_details(page)
+    # Presentation fixture based on the recorded offline three-color real-engine rehearsal.
+    modules = ROOT / 'public/assets/js/print-estimation'
+    page.add_script_tag(content='(() => {' + ''.join(_module_source(modules / name) for name in ['mesh.js','stl.js','three-mf.js','geometry.js','view.js']) + 'window.slicePreviewView = createModelPanelView;})();')
+    page.evaluate("""() => {
+      new window.slicePreviewView({document,card:document.querySelector('#model-card')}).render({file:{name:'three-color-bambu.3mf'},status:'analyzed',privateState:'verified',metrics:{format:'3mf',dimensionsMm:[58,18,18],volumeMm3:17496,surfaceAreaMm2:5832,triangleCount:36,warnings:[]},slice:{status:'ready',production:{estimatedGramsPerUnit:69.2,estimatedHoursPerUnit:5.8,slicing:{processProfile:'0.16mm High Quality @BBL X2D',supportPolicy:'automatic-tree',toolChanges:224,wasteGrams:60.9,supportGrams:null}}}},{});
+    }""")
+    page.locator('#model-card').scroll_into_view_if_needed()
 
 
 def prepare_consult_details(page) -> None:
@@ -1016,6 +1027,8 @@ def main() -> int:
         ("Print intake · desktop · light", capture("/order.html?service=print", "order-print-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_print_details)),
         ("Print model estimate · desktop · light", capture("/order.html?service=print", "order-print-model-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_print_model)),
         ("Print model estimate · mobile · dark", capture("/order.html?service=print", "order-print-model-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_print_model)),
+        ("Measured production · desktop · light", capture('/order.html?service=print', 'order-print-sliced-desktop-light.png', viewport=(1440,1000), scheme='light', prepare=prepare_sliced_print_model)),
+        ("Measured production · mobile · dark", capture('/order.html?service=print', 'order-print-sliced-mobile-dark.png', viewport=(390,844), scheme='dark', prepare=prepare_sliced_print_model)),
         ("Design intake · desktop · light", capture("/order.html?service=design", "order-design-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_design_details)),
         ("Repair intake · mobile · dark", capture("/order.html?service=repair", "order-repair-mobile-dark.png", viewport=(390, 844), scheme="dark", prepare=prepare_mobile_repair)),
         ("Consult intake · desktop · light", capture("/order.html?service=consult", "order-consult-desktop-light.png", viewport=(1440, 1000), scheme="light", prepare=prepare_consult_details)),

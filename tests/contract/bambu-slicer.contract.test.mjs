@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import {buildZip} from '../support/zip-fixtures.mjs';
 
 import { categorizeReturnCode, createBambuCliSlicer, parseBambuGcodeHeader, parseBambuResult } from "../../lib/print-estimation/adapters/bambu-cli-slicer.js";
 import { createSlicerFromEnv } from "../../lib/print-estimation/runtime.js";
@@ -66,6 +67,25 @@ test('Bambu CLI does not substitute PLA for an unsupported requested material', 
   });
 });
 
+test('multicolor STL requires color placement rather than a misleading single-color slice', async () => {
+  await withPresets(async ({slicer}) => {
+    assert.equal(await categoryOf((await slicer()).estimateSlice({bytes:await model(),filename:'part.stl',options:{material:'pla',colors:3}})), 'color_mapping_required');
+  });
+});
+
+test('partial multi-plate headers cannot become a complete production estimate', async () => {
+  await withPresets(async ({slicer}) => {
+    assert.equal(await categoryOf((await slicer('partial-header')).estimateSlice({bytes:await model(),filename:'part.stl'})), 'invalid_output');
+  });
+});
+
+test('generic 3MF color resources require mapping independently of the requested color count', async () => {
+  const bytes = buildZip([{name:'3D/3dmodel.model',data:'<model><resources><colorgroup><color color="#ff0000"/><color color="#00ff00"/></colorgroup></resources></model>'}]);
+  await withPresets(async ({slicer}) => {
+    assert.equal(await categoryOf((await slicer()).estimateSlice({bytes,filename:'generic.3mf',options:{material:'pla',colors:1}})), 'color_mapping_required');
+  });
+});
+
 test("Bambu CLI adapter returns a normalized estimate and maps the material to its filament preset", async () => {
   await withPresets(async ({ slicer }) => {
     const pla = normalizeSliceResult(await (await slicer()).estimateSlice({ bytes: await model(), filename: "cube.stl", options: { material: "pla" } }));
@@ -73,7 +93,7 @@ test("Bambu CLI adapter returns a normalized estimate and maps the material to i
       { engine: pla.engine, version: pla.engineVersion, profile: pla.profileId, seconds: pla.elapsedSeconds, grams: pla.materialGrams, layers: pla.layerCount, tools: pla.toolChanges },
       { engine: "bambu-studio-cli", version: "02.08.04.57", profile: "x2d-0.16hq-v1:pla", seconds: 1447.55, grams: 3.57, layers: 125, tools: 0 }
     );
-    const petg = await (await slicer()).estimateSlice({ bytes: await model(), filename: "cube.3mf", options: { material: "petg" } });
+    const petg = await (await slicer()).estimateSlice({ bytes: await model(), filename: "cube.stl", options: { material: "petg" } });
     assert.equal(petg.materialGrams, 4.2);
     assert.equal(petg.profileId, "x2d-0.16hq-v1:petg");
     assert.equal(await categoryOf((await slicer()).estimateSlice({ bytes: await model(), filename: "cube.stl", options: { material: "other" } })), 'unsupported');

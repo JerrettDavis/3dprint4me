@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 
-from tests.support.browser_harness import ROOT, SiteBrowser
+from tests.support.browser_harness import ROOT, SiteBrowser, _module_source
 
 FIXTURES = ROOT / "tests/fixtures/print-estimation"
 LOCAL_FALLBACK_WARNINGS = ("Backend unavailable; preserving a local request copy.",)
@@ -19,6 +19,30 @@ def open_print_details(site: SiteBrowser):
 
 def amount(page) -> str:
     return page.locator("#estimate-amount").inner_text()
+
+
+def test_model_panel_shows_measured_support_waste_and_color_mapping_guidance() -> None:
+    with SiteBrowser(viewport=(390, 844)) as site:
+        page = open_print_details(site)
+        modules = ROOT / 'public/assets/js/print-estimation'
+        page.add_script_tag(content='(() => {' + ''.join(_module_source(modules / name) for name in ['mesh.js','stl.js','three-mf.js','geometry.js','view.js']) + 'window.productionTestCreateView = createModelPanelView;})();')
+        page.evaluate("""() => {
+          window.productionTestView = window.productionTestCreateView({document,card:document.querySelector('#model-card')});
+          window.productionTestState = {file:{name:'assigned.3mf'},status:'analyzed',privateState:'verified',metrics:{format:'3mf',dimensionsMm:[20,20,20],volumeMm3:8000,surfaceAreaMm2:2400,triangleCount:12,warnings:[]},slice:{status:'ready',production:{estimatedGramsPerUnit:69.2,estimatedHoursPerUnit:5.8,slicing:{processProfile:'Shop fine',supportPolicy:'automatic-tree',toolChanges:224,wasteGrams:60.9,supportGrams:null}}}};
+          window.productionTestView.render(window.productionTestState,{});
+        }""")
+        text = page.locator('#model-card').inner_text()
+        assert 'Shop fine' in text
+        assert 'Automatic trees where needed' in text
+        assert '224' in text and 'color changes' in text.casefold()
+        assert '60.9 g included in total' in text
+        page.evaluate("""() => {
+          window.productionTestState.slice = {status:'failed',reason:'color_mapping_required'};
+          window.productionTestView.render(window.productionTestState,{material:'pla',quality:'standard',supports:'none',quantity:1});
+        }""")
+        assert 'assigned 3MF' in page.locator('#model-card').inner_text()
+        assert 'describe the color placement' in page.locator('#model-card').inner_text()
+        site.assert_no_page_errors()
 
 
 def test_stl_selection_measures_geometry_locally_and_updates_the_planning_range() -> None:

@@ -1,4 +1,4 @@
-import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=9ac764f878c3801f";
+import { estimateProductionFromGeometry, MODEL_WARNING_MESSAGES } from "./geometry.js?v=4dfb9b39de27496a";
 
 const modelPanelNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 const modelPanelInteger = new Intl.NumberFormat("en-US");
@@ -58,6 +58,8 @@ function packPicker(el, state) {
   nodes.push(el("p", "model-status pack-summary", chosen ? `${chosen} of ${parts.length} parts selected.` : "None of these parts could be measured; a person will review the pack."));
   if (ignored.length) nodes.push(el("p", "model-status", `Not printed: ${ignored.map(entry => entry.name).join(", ")}`));
   nodes.push(el("p", "model-status", PACK_SLICE_COPY[state.slice?.status] ?? "Measured from geometry — this is not a slice. The operator confirms the final price."));
+  const measured = state.slice?.production?.slicing;
+  if (measured) nodes.push(el('p','model-status', `Process: ${measured.processProfile ?? 'requires review'}. Supports: ${['automatic-tree','automatic-organic'].includes(measured.supportPolicy) ? 'automatic trees where needed' : 'requires review'}. Color changes: ${measured.toolChanges == null ? 'not measured' : modelPanelInteger.format(measured.toolChanges)}. Production waste: ${measured.wasteGrams == null ? 'breakdown unavailable' : `${modelPanelNumber.format(measured.wasteGrams)} g included in total`} per pack.`));
   // The stored pack price counts one plate per selected part, so it is usually above this range.
   nodes.push(el("p", "model-status pack-price-note", PACK_PRICE_NOTE));
   return nodes;
@@ -115,6 +117,17 @@ export function createModelPanelView({ document, card }) {
           row.append(el("dt", "", label), el("dd", "", value));
           facts.append(row);
         }
+        if (slice?.slicing) {
+          const details = slice.slicing;
+          for (const [label, value] of [
+            ['Process profile', details.processProfile ?? 'Requires review'],
+            ['Supports', ['automatic-tree','automatic-organic'].includes(details.supportPolicy) ? 'Automatic trees where needed' : 'Requires review'],
+            ['Color changes', details.toolChanges == null ? 'Not measured' : modelPanelInteger.format(details.toolChanges)],
+            ['Production waste', details.wasteGrams == null ? 'Included in total; breakdown unavailable' : `${modelPanelNumber.format(details.wasteGrams)} g included in total`]
+          ]) {
+            const row = el('div'); row.append(el('dt','',label),el('dd','',value)); facts.append(row);
+          }
+        }
         children.push(facts);
         children.push(el("p", "model-status", slice
           ? "A slicer profile estimated time and material, so the range is tighter. The operator still confirms the final price."
@@ -127,6 +140,9 @@ export function createModelPanelView({ document, card }) {
           for (const code of m.warnings) if (MODEL_WARNING_MESSAGES[code]) list.append(el("li", "", MODEL_WARNING_MESSAGES[code]));
           children.push(list);
         }
+      }
+      if (state.slice?.reason === 'color_mapping_required') {
+        children.push(el('p','model-status model-status-warning','Color placement needs review. Upload an assigned 3MF, or describe the color placement in your project details. You can still submit this request; the operator will confirm swaps, waste and price.'));
       }
       if (MODEL_PRIVATE_COPY[state.privateState]) children.push(el("p", `model-private model-private-${state.privateState}`, MODEL_PRIVATE_COPY[state.privateState]));
       const kept = children.includes(picker) && picker.parentNode === card ? picker : null;

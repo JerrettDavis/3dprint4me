@@ -82,7 +82,7 @@ See [PRICING-CALIBRATION.md](PRICING-CALIBRATION.md#dual-floor-print-pricing). E
 | `PRINT_ASSET_RETENTION_DAYS` | 90 | Model retention after work reaches a terminal status |
 | `SLICER_PROVIDER` | unset | `local-cli` (PrusaSlicer-style), `bambu-cli` (Bambu Studio / OrcaSlicer), or `http`; unset disables exact slicing. The storefront only checks that it is set. |
 | `SLICER_BIN`, `SLICER_PROFILE`, `SLICER_PROFILE_ID`, `SLICER_ARGS`, `SLICER_ENGINE`, `SLICER_ENGINE_VERSION` | — | Local CLI provider (PrusaSlicer-compatible defaults; `SLICER_ARGS` is a JSON array with `{model}`, `{output}`, `{profile}`) |
-| `SLICER_MACHINE_PROFILE`, `SLICER_PROCESS_PROFILE`, `SLICER_FILAMENT_PROFILES`, `SLICER_BED_TYPE` | — | `bambu-cli` provider: flattened preset JSON paths; filaments as `pla=/a.json;petg=/b.json` (a bare path is the default for every material); bed type e.g. `Textured PEI Plate`. Also uses `SLICER_BIN`, `SLICER_ENGINE` (default `bambu-studio-cli`), `SLICER_PROFILE_ID` (`:<material>` appended when a material-specific filament is used). |
+| `SLICER_MACHINE_PROFILE`, `SLICER_PROCESS_PROFILE`, `SLICER_FILAMENT_PROFILES`, `SLICER_BED_TYPE` | — | `bambu-cli` provider: flattened preset JSON paths; filaments as `pla=/a.json;petg=/b.json` (explicit material mappings are required); bed type e.g. `Textured PEI Plate`. Also uses `SLICER_BIN`, `SLICER_ENGINE` (default `bambu-studio-cli`), `SLICER_PROFILE_ID` (`:<material>` appended when a material-specific filament is used). |
 | `SLICER_HTTP_URL`, `SLICER_HTTP_TOKEN` | — | HTTPS worker provider; the worker receives a 10-minute signed model URL |
 | `SLICER_TIMEOUT_MS`, `SLICER_POLL_MS` | 120000 (300000 for `bambu-cli`), 15000 (300000 in the worker compose file) | Provider timeout and worker idle poll |
 
@@ -139,11 +139,15 @@ The defaults match the owner's current Bambu Studio selection; the Bambu Studio 
 - Printer `Bambu Lab X2D 0.4 nozzle`, process `0.16mm High Quality @BBL X2D`, bed `Textured PEI Plate`
 - Filaments `Generic PLA|PETG|ASA|TPU @BBL X2D 0.4 nozzle` for materials `pla|petg|asa|tpu` (`other` uses PLA)
 
-Change them with build args (`SLICER_MACHINE_PRESET`, `SLICER_PROCESS_PRESET`, `SLICER_FILAMENT_PLA|PETG|ASA|TPU`) or point an arg at a sanitized user preset JSON placed in `deploy/slicer-worker/profiles/bambu/` (see its README). Bump `SLICER_PROFILE_ID` whenever the selection changes. The customer's quality/supports options do not yet select different process presets; one process preset is used for every job.
+Change them with build args (`SLICER_MACHINE_PRESET`, `SLICER_PROCESS_PRESET`, `SLICER_FILAMENT_PLA|PETG|ASA|TPU`) or point an arg at a sanitized user preset JSON placed in `deploy/slicer-worker/profiles/bambu/` (see its README). Bump `SLICER_PROFILE_ID` whenever the selection changes. Quality selects the configured process preset and automatic tree detection is enabled for each job.
 
 OrcaSlicer (2.4.2, `OrcaSlicer_Linux_AppImage_Ubuntu2404_V2.4.2.AppImage`, sha256 `d12fb8c8eac1aecd2dfb6377acd48f994f8fa439ed5292fa532dd82880f029fd`) shares this CLI and can be used via `--build-arg SLICER_APPIMAGE_URL=... --build-arg SLICER_APPIMAGE_SHA256=...` with `SLICER_ENGINE=orca-slicer-cli`, but its vendor profiles do not include the X2D, and that path has not been exercised in a container.
 
 ### PrusaSlicer profile
+
+The adapter refuses the bundled placeholder and incomplete exports. A shop export must identify the printer and include bed shape, maximum height, nozzle diameter, filament diameter/density/type and layer height. `SLICER_PROFILE` provides the standard-quality export; use `SLICER_PROFILES=pla:standard=/profiles/a.ini;pla:fine=/profiles/b.ini;petg:standard=/profiles/c.ini` for explicit material/quality mappings. The material must match the export. Automatic organic supports replace support-disable settings in a private per-job copy; the slicer process receives a minimal environment without worker credentials.
+
+For both CLI providers, multicolor STL and unresolved 3MF color resources retain the planning estimate and request color-placement review. The bounded 3MF inspection reads color/assignment evidence only and stores no palette or project metadata values. Generic color resources and Prusa MMU painting require review; supported Bambu assignments are checked against measured swaps independently of the form's color count. Customers can provide an assigned 3MF or describe placement in project details. Production detail panels distinguish measured waste from an unavailable breakdown, and pack rollups preserve those subsets without adding them to total consumption.
 
 `profiles/default.ini` is a generic placeholder, not calibrated to any printer. Export your real config from PrusaSlicer (select printer, filament and print presets, then File > Export > Export Config...) and replace the file, or mount a directory at `/profiles` and set `SLICER_PROFILE=/profiles/<file>.ini`. Change `SLICER_PROFILE_ID` whenever the profile changes; it is recorded on every estimate.
 
