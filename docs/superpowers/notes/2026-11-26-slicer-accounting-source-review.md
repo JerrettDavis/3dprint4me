@@ -22,3 +22,10 @@ Five new accounting regression tests failed before the corresponding changes and
 Built `3dprint4me-slicer-profile-check:20261126` from this branch using the pinned Dockerfile. Ran `scripts/slicer-smoke.mjs` against the existing `three-color-bambu.3mf` fixture with `--network none` and read-only fixture/script mounts, without worker credentials.
 
 Observed Bambu Studio 02.08.04.57, X2D machine/process profile and PLA: 20,919.42 seconds, 69.22 g total filament, 60.8678412437439 g combined waste, 224 tool changes, 112 layers. Support grams remain unknown. This proves measured waste extraction on a real multicolor slice; it does not establish that tree supports are active. No waste component was added to the pricing total.
+
+## Automatic-tree and quality rehearsal
+`scripts/slicer-profile-rehearsal.mjs` generates a flat block and a T-shaped overhang and invokes the pinned real CLI without credentials or networking. With automatic trees, the flat block had zero support features. The overhang without supports used 3.3223 g and 1,350.35 seconds; automatic trees produced 124 support feature sections, 5.4497 g and 2,440.45 seconds. G-code settings explicitly recorded `enable_support = 1`, `support_type = tree(auto)` and `support_on_build_plate_only = 0`.
+
+The real adapter also sliced the existing three-color fixture with the fine profile: `0.12mm High Quality @BBL X2D`, 27,560.38 seconds, 88.80 g total, 80.8708 g waste, 298 changes and 149 layers. This establishes that selecting fine changes real production figures rather than only a displayed label. Effective profile fingerprint: `4f6bed94131038409a0f0697a5b9f43457cd479130fd51d79d5ab434aed8f30e`.
+
+The initial full unit/contract baseline completed: 1,729 passed, one skipped, zero failed. Subsequent profile changes have their own focused verification; a final full run remains required.

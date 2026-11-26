@@ -18,6 +18,12 @@ const result = JSON.parse(fixture("bambu-result.json"));
 const writeResult = (code, message) => writeFileSync(join(outputDir, "result.json"), JSON.stringify({ ...result, return_code: code, error_string: message, sliced_plates: code ? [] : result.sliced_plates }));
 
 const filament = JSON.parse(readFileSync(value("--load-filaments"), "utf8"));
+if (mode === 'verify-policy') {
+  const processPreset = JSON.parse(readFileSync(value('--load-settings').split(';')[1], 'utf8'));
+  if (processPreset.enable_support !== '1' || processPreset.support_type !== 'tree(auto)' || processPreset.layer_height !== '0.12') {
+    writeResult(-5, 'Effective process settings were not applied.'); process.exit(251);
+  }
+}
 if (filament.fake_needs_bed && !args.includes("--curr-bed-type")) { writeResult(-61, "Filaments are not compatible with the plate type."); process.exit(195); }
 if (mode === "reject") { writeResult(-50, "One of the plate is empty or has no object fully inside it."); process.exit(206); }
 if (mode === "config") { writeResult(-5, "The input preset file is invalid and can not be parsed."); process.exit(251); }

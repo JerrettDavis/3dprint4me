@@ -105,6 +105,8 @@ Browser analysis limits live in `SITE_CONFIG.printEstimation` and never replace 
 
 ## Slicer worker container
 
+The Bambu worker resolves trusted vendor process presets for each quality: draft uses `0.24mm Standard @BBL X2D`, standard uses the configured `SLICER_PROCESS_PRESET` (default `0.16mm High Quality @BBL X2D`), and fine uses `0.12mm High Quality @BBL X2D`. Override draft/fine at image build with `SLICER_PROCESS_DRAFT` and `SLICER_PROCESS_FINE`; at runtime, `SLICER_PROCESS_PROFILES` accepts `draft=/path.json;fine=/path.json` (optionally `standard=...`). Paths must refer to flattened, trusted shop process profiles. Each job enables automatic tree support detection, including supports starting on the model where needed. The support amount selected by a customer remains a planning assumption and does not disable production overhang detection. A SHA-256 `profileFingerprint` records machine, effective process, filament and bed selection alongside the human profile ID. Unsupported material/quality combinations produce a bounded `unsupported` result, retaining the planning estimate rather than silently slicing with PLA or a different quality.
+
 `deploy/slicer-worker/` packages `npm run estimate:worker` with a headless slicer for an always-on Docker host. Two images are provided:
 
 | Image | Slicer | Provider | Notes |

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseGcodeSummary } from '../../lib/print-estimation/adapters/local-cli-slicer.js';
 import { parseBambuResult } from '../../lib/print-estimation/adapters/bambu-cli-slicer.js';
+import { normalizeSliceResult } from '../../lib/print-estimation/slicer-contract.js';
 
 test('missing G-code swap evidence is unknown; an explicit zero is measured', () => {
   assert.equal(parseGcodeSummary('; filament used [g] = 10').toolChanges, null);
@@ -41,4 +42,14 @@ test('Bambu waste excludes model and supports and is already included in total g
   assert.equal(parse([{total_used_g: 30}]).wasteGrams, null);
   assert.equal(parse([{total_used_g: 10, main_used_g: 12}]).wasteGrams, null);
   assert.equal(parse([{total_used_g: 10, main_used_g: 10}]).wasteGrams, 0);
+});
+
+test('normalized slices retain bounded effective profile evidence', () => {
+  const result = normalizeSliceResult({elapsedSeconds:100,materialGrams:10,profileFingerprint:'a'.repeat(64),processProfile:'Shop fine',supportPolicy:'automatic-tree'});
+  assert.equal(result.profileFingerprint, 'a'.repeat(64));
+  assert.equal(result.processProfile, 'Shop fine');
+  assert.equal(result.supportPolicy, 'automatic-tree');
+  const absent = normalizeSliceResult({elapsedSeconds:100,materialGrams:10,profileFingerprint:'bad',supportPolicy:'arbitrary'});
+  assert.equal(absent.profileFingerprint,null);
+  assert.equal(absent.supportPolicy,null);
 });

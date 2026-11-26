@@ -51,5 +51,8 @@ test("vendor presets flatten parent chain, includes, then own keys within the sa
     const written = await flattenToDirectory({ profiles: root, out, machine: "Printer 0.4 nozzle", process: "0.16mm Fine", filaments: { pla: "Generic PLA @Printer" } });
     assert.deepEqual(written.map(item => item.file), ["machine.json", "process.json", "filament-pla.json"]);
     assert.equal(JSON.parse(await readFile(join(out, "process.json"), "utf8")).layer_height, "0.16");
+    await flattenToDirectory({profiles:root,out,machine:'Printer 0.4 nozzle',process:'0.16mm Fine',processes:{fine:'0.16mm Fine'},filaments:{pla:'Generic PLA @Printer'}});
+    assert.equal(JSON.parse(await readFile(join(out,'process-fine.json'),'utf8')).layer_height,'0.16');
+    await assert.rejects(flattenToDirectory({profiles:root,out,machine:'Printer 0.4 nozzle',process:'0.16mm Fine',processes:{unknown:'0.16mm Fine'},filaments:{pla:'Generic PLA @Printer'}}), /Invalid process quality/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
