@@ -60,6 +60,8 @@ Contributor note: the shared browser modules are imported with `?v=<hash>` query
 
 ## Pricing
 
+Slicer `materialGrams` represents total filament consumed, including support and production waste. Component measurements are informational subsets, never additional billable grams. The pinned Bambu CLI also supplies model-plus-support consumption; where complete, the adapter records the difference as `wasteGrams` (combined flushing, tower and other waste). It does not label this as purge-only consumption. Missing component or tool-change measurements remain `null`, rather than implying zero. Incomplete plate/filament summaries do not establish whole-job totals.
+
 See [PRICING-CALIBRATION.md](PRICING-CALIBRATION.md#dual-floor-print-pricing). Every snapshot stores the pricing-model version, rate-card version, material-cost snapshot (source and inventory IDs), derived machine/labor rates, options, production figures, engine/profile/version, and timestamps. Snapshots are insert-only; a database trigger rejects any change except linking a snapshot to its request once.
 
 ## Configuration

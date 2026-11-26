@@ -17,7 +17,7 @@ test("parseBambuResult sums per-slot filament grams and reports tool changes for
   assert.equal(result.elapsedSeconds, 20917.4);
 });
 
-test("parseBambuResult reports zero tool changes for a single-color plate", () => {
+test("parseBambuResult does not infer zero tool changes from one filament entry", () => {
   const result = parseBambuResult(JSON.stringify({ return_code: 0, sliced_plates: [{ total_predication: 100, filaments: [{ total_used_g: 5 }] }] }));
-  assert.equal(result.toolChanges, 0);
+  assert.equal(result.toolChanges, null);
 });
