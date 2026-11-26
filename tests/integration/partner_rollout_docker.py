@@ -107,8 +107,8 @@ def main(image, diagnostics=None):
             run(compose+['--profile','writers','run','--rm','--no-deps','--user','0','--cap-add','CHOWN','jobs','node','-e',"require('fs').chownSync('/run/platform-health/jobs',1000,1000)"])
             run(compose+['--profile','writers','up','-d','--wait','--wait-timeout','75','--no-deps','api','jobs','slicer','tunnel'],timeout=120)
             services = {name:run(compose+['ps','-q',name]) for name in ('api','jobs','slicer','tunnel')}
-        # An inherited failure is cleared only after the migrated statement job
-        # authoritatively scans this empty schedule. No generated work is claimed.
+            # An inherited failure is cleared only after the migrated statement job
+            # authoritatively scans this empty schedule. No generated work is claimed.
             run(['docker','exec','--user','1000:1000',services['jobs'],'node','-e',
                  "require('fs').writeFileSync(process.env.PLATFORM_JOB_HEALTH_DIR+'/statements.json',JSON.stringify({name:'statements',ok:false,observedAt:Date.now(),counts:{}}),{mode:0o640})"])
             networks = json.loads(run(['docker','inspect',services['api'],'--format','{{json .NetworkSettings.Networks}}']))
@@ -136,10 +136,10 @@ if(!existsSync('/tmp/stop'))failed++;console.log(JSON.stringify({checked,failed,
             assert all(proof.values())
             jobs = run(compose+['ps','-q','jobs'])
             health = json.loads(run(['docker','exec',jobs,'node','-e',"console.log(require('fs').readFileSync(process.env.PLATFORM_JOB_HEALTH_DIR+'/statements.json','utf8'))"]))
-        assert health['ok'] is True and health['counts'] == {'claimed':0,'generated':0,'skipped':0}, health
+            assert health['ok'] is True and health['counts'] == {'claimed':0,'generated':0,'skipped':0}, health
             journal = json.loads((root/('partner-rollout-'+release[:12]+'.private.json')).read_text())
             assert journal['writerProof']['statementsPolled'] is True
-        assert journal['writerProof']['statementsProcessingHealthy'] is True
+            assert journal['writerProof']['statementsProcessingHealthy'] is True
             run(['docker','exec',continuity_probe,'node','-e',"require('fs').writeFileSync('/tmp/stop','')"])
             assert run(['docker','wait',continuity_probe]) == '0'
             continuity = json.loads(run(['docker','logs',continuity_probe]))
