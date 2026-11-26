@@ -1,4 +1,5 @@
 import { capacitySnapshot, validateCapacity } from './capacity.js';
+import { functionalStatus, validateFunctional } from './functional.js';
 export const STALE_MS=12*60000;
 export const FUNCTIONAL_MS=24*3600000;
 const fresh=(record,now,age=STALE_MS)=>Number.isFinite(record?.observedAt??record?.checkedAt)&&now-(record.observedAt??record.checkedAt)<=age&&(record.observedAt??record.checkedAt)<=now+30000;
@@ -7,7 +8,8 @@ const stateOf=(value)=>value===true?'operational':value===false?'unavailable':'u
 export function publicSnapshot(state={},now=Date.now()) {
   const platform=fresh(state.platform,now)?state.platform.details:{};
   const control=fresh(state.control,now,FUNCTIONAL_MS)?state.control.details:{};
-  const functionalScopes={files:'Verified private upload and read',estimates:'Completed model and slicer check',email:'Owner-confirmed delivery'};
+const functionalScopes={files:'Verified private upload and read',estimates:'Completed model and slicer check',email:'Owner-confirmed delivery'};
+const automated=functionalStatus(state,now,platform.provider);
   const components=Object.entries(names).map(([id,name])=>{
     const probe=state.probes?.[id];
     let status=probe?(fresh(probe,now)?probe.status??stateOf(probe.ok):'unknown'):
@@ -20,7 +22,10 @@ export function publicSnapshot(state={},now=Date.now()) {
       fresh({observedAt:verifiedAt},now,FUNCTIONAL_MS)&&(id!=='estimates'||platform.jobs===true&&platform.files!==false)) {
       status='operational';functional={verifiedAt,validUntil:Math.min(verifiedAt+FUNCTIONAL_MS,state.control.observedAt+FUNCTIONAL_MS),scope:functionalScopes[id]};
     }
-    if(['requests','files','estimates','email','auth'].includes(id)&&(!fresh(api,now)||api.provider!==platform.provider))status='unknown';
+if(automated[id]&&platform[id]===null&&platform.database===true&&api?.ok===true&&(!api.status||api.status==='operational')&&
+  (id!=='estimates'||platform.jobs===true&&platform.files!==false)) {status='operational';functional=automated[id];}
+if(automated.failed.includes(id)){status='unavailable';functional=undefined;}
+if(['requests','files','estimates','email','auth'].includes(id)&&(!fresh(api,now)||api.provider!==platform.provider))status='unknown';
     return {id,name,status,checkedAt:functional?Math.min(state.platform.observedAt,api.checkedAt):probe?.checkedAt??state.platform?.observedAt??null,...functional};
   });
   // Provider reachability is never proof that a complete owner sign-in works.
@@ -39,7 +44,16 @@ export function privateSnapshot(state={},now=Date.now()) {
   const platform=fresh(state.platform,now)?state.platform.details:{};
   const backup=fresh(state.backup,now,6*3600000)?state.backup.details:{};
   const blockers=[];
-  const add=(id,title,next,severity='important')=>blockers.push({id,title,next,severity});
+const add=(id,title,next,severity='important')=>blockers.push({id,title,next,severity});
+const f=platform.functional;
+if(f) {
+ if(f.failureCode!=='none')add('functional-check','A scheduled functional check needs attention','Review the protected check stage and bounded retry time.');
+ if(f.cleanupPending)add('functional-cleanup','Synthetic verification cleanup is pending','Retry cleanup of the exact owned session; customer records must remain untouched.');
+ if(['ambiguous','failed'].includes(f.emailStage)||f.emailStage==='accepted'&&now-f.receiptSentAt>30*60000&&!functionalStatus(state,now,platform.provider).email)add('functional-receipt','Production receipt verification is unconfirmed','Review the exact verification attempt and signed delivery event before resending.');
+ if([f.filesVerifiedAt,f.estimatesVerifiedAt].some(t=>!Number.isFinite(t)||now-t>FUNCTIONAL_MS))add('functional-evidence','Current upload or slicing verification is missing','Review the scheduled check and its backoff; old timestamps cannot establish recovery.');
+ if(f.repairOutcome==='failed')add('functional-repair','A bounded worker recovery attempt failed','Inspect the existing service and its leases; automatic retries are capped.');
+ if(f.repairOutcome==='guarded')add('functional-repair-guarded','Worker recovery needs inspection','A running, unknown, or deployment-guarded service cannot be interrupted automatically.');
+}
   if(!fresh(state.platform,now))add('platform-stale','Local telemetry is missing or stale','Check the local host and telemetry runner.');
   if(!fresh(state.backup,now,6*3600000)||backup.success!==true)add('backup-missing','A recent encrypted backup is not verified','Run the backup and verify the encrypted snapshot.','critical');
   else if(!fresh(state.backup,now,2*3600000))add('backup-aging','The latest backup is more than two hours old','Check the backup schedule.');
@@ -70,7 +84,7 @@ export function privateSnapshot(state={},now=Date.now()) {
 }
 
 const schemas={
-  platform:{database:'boolean',provider:['postgres','neon','unknown'],email:[true,false,null],files:[true,false,null],estimates:[true,false,null],jobs:'boolean',diskFreePercent:'number',memoryUsedPercent:'number',restarts:'number',capacity:'capacity'},
+  platform:{database:'boolean',provider:['postgres','neon','unknown'],email:[true,false,null],files:[true,false,null],estimates:[true,false,null],jobs:'boolean',diskFreePercent:'number',memoryUsedPercent:'number',restarts:'number',capacity:'capacity',functional:'functional'},
   backup:{success:'boolean',copied:'boolean',capacity:'capacity'},
   manual:{capacity:'capacity'},
   control:{neonPlan:['free','paid','unknown'],neonOffloaded:'boolean',neonVerifiedAt:'number',sourceQuiet:'boolean',restoreVerifiedAt:'number',offsiteVerified:'boolean',alertsConfigured:'boolean',credentialsReady:'boolean',ownerLoginVerified:'boolean',cutoverVerified:'boolean',backupUnattended:'boolean',verifiedProvider:['postgres','neon'],filesVerifiedAt:'number',estimatesVerifiedAt:'number',emailVerifiedAt:'number'}
@@ -83,7 +97,8 @@ export async function validateHeartbeat({kind,body,signature,secret,now=Date.now
   const data=JSON.parse(body);
   if(!data||Object.keys(data).sort().join(',')!=='details,nonce,observedAt'||!Number.isSafeInteger(data.observedAt)||data.observedAt<=lastObservedAt||now-data.observedAt>90000||data.observedAt-now>30000||!/^[a-f0-9]{32}$/.test(data.nonce)||!data.details||Array.isArray(data.details))throw new Error('Invalid evidence.');
   for(const [key,value] of Object.entries(data.details)) {
-    const rule=schemas[kind][key];
+  const rule=schemas[kind][key];
+  if(rule==='functional'){validateFunctional(value,now);continue;}
     if(rule==='capacity') {
       const metrics=validateCapacity(value,now);
       if(metrics.some(m=>kind==='backup'?m.source!=='backup':kind==='manual'?m.source!=='manual':!['local','application'].includes(m.source)))throw new Error('Invalid evidence.');

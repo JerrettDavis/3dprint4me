@@ -99,6 +99,68 @@ https://3dprint4me-operations.vercel.app. Neither uses local PostgreSQL or
 Authentik for rendering or sign-in. Vercel/Cloudflare remain shared providers;
 this is independence from the local host/ISP, not full provider independence.
 
+### Scheduled functional verification and routine recovery
+
+The owner approved scheduled private upload/slicing checks and at most one
+owner-only receipt-verification email daily on November 26, 2026. These exercise
+the existing production paths without creating a customer request or invoice.
+The host collector invokes the reviewed sibling `status-functional.py` when its
+owner-only configuration contains `functional_enabled: true`; `receipt_enabled:
+true` additionally enables the approved verification email. Install both scripts
+beside one another, preserving owner/mode and the existing five-minute cron entry.
+The native API image must contain `scripts/platform-functional-probe.mjs` first.
+Unconfigured mode remains read-only and reports no invented functional success.
+
+The tiny private STL probe runs every six hours and resumes its exact
+capability-owned session while slicing is pending. Upload bytes are read back,
+anonymous private-object access must be denied, server geometry must succeed,
+and the real production worker must complete slicing. Cleanup deletes only that
+unattached owned session and its object. Cleanup failures remain visible and are
+retried; customer work and historical failed jobs are preserved. Failure backoff
+starts at fifteen minutes and caps at six hours; Retry-After is honored within a
+bounded day. No unchanged Blob backup downloads are added.
+
+Private progress lives in `status-functional.private.json` inside the private
+platform root, mode 0600. It contains synthetic ownership and the immutable
+verification-email envelope; never copy it to Git, a public output, or logs.
+Checkpoints are persisted before side effects. A pending/ambiguous send is not
+blindly repeated; a new attempt waits at least 24 hours. The sender and recipient
+are the native production receipt configuration, with a fixed diagnostic body
+and daily idempotency key. Existing customer receipt behavior is preserved.
+
+Register one Resend webhook at
+`https://status-api.3dprint4.me/webhook/receipt-delivery` for `email.delivered`,
+`email.failed`, `email.bounced`, and `email.delivery_delayed`. Store its isolated
+signing secret as Worker `RECEIPT_WEBHOOK_SECRET`; do not broaden or rotate the
+working send-only key. Follow Resend's [signature verification](https://resend.com/docs/webhooks/verify-webhooks-requests)
+and [delivery-event](https://resend.com/docs/webhooks/emails/delivered) contracts.
+Raw bounded bytes and Svix ID/timestamp/signature are verified before parsing.
+Only safe event/message IDs, type and original event time are retained, at most
+64 events for 24 hours. No addresses, subject or raw errors enter status state.
+Events may arrive before their signed platform correlation report. Replays do
+not renew verification. Acceptance, delivery to the recipient's server, and
+inbox reading are distinct; only the first two are machine-observable here.
+
+Signed platform `functional` evidence is strictly allowlisted and independent
+of manual control attestations. Actual upload, slice and delivered-event times
+expire after 24 hours, with the existing fresh platform/API and matching-provider
+requirements. A successful current probe never renews owner sign-in, billing,
+off-site custody, cutover or recovery-drill claims.
+
+Routine repair is limited to the existing jobs/slicer service, at most three
+attempts per day with a one-hour cooldown. The runner holds the deployment lock,
+rejects an existing guarded rollout, verifies unpaused live PostgreSQL, checks
+active job/slice leases, and starts only a verified stopped service with genuinely
+stale worker evidence. A running or unknown service is escalated for inspection;
+an observational lease check alone cannot fence new work claims. Missing evidence
+does not authorize a start. Starting a service does not prove
+recovery: real queue and functional checks must succeed afterward. Idle push and
+statement polls can clear old failures only after authoritative queue/schedule
+verification. Terminal unsupported slices on otherwise ready assets are retained
+as input failures, not reported as current infrastructure outages. Other failed
+or overdue work still blocks healthy status. No database/provider promotion,
+customer-job requeue, customer-message resend, or invoice dispatch is automated.
+
 Both documented public origins are explicitly allowed to read the Worker's
 public snapshot through CORS. Unrecognized origins receive no CORS grant;
 private operations still requires its independent authentication boundary.
@@ -137,8 +199,10 @@ Fresh platform/database and production API evidence must still agree on the
 verified provider; failed prerequisites are never overridden. Estimates also need
 healthy jobs. Open tabs expire both current telemetry and functional acceptance.
 Never populate these fields from configuration alone or renew them without
-repeating the functional check. Automated collection does not send diagnostic
-emails; new manual diagnostic delivery still requires owner authorization.
+repeating the functional check. Ordinary aggregate collection does not send
+diagnostic emails. The separately enabled, owner-approved daily receipt probe
+described above is the bounded exception; other diagnostic delivery still
+requires owner authorization.
 
 `POST /heartbeat/platform`, `/backup` and `/control` each use a separate secret.
 Send JSON `{observedAt,nonce,details}` with an HMAC-SHA256 hex

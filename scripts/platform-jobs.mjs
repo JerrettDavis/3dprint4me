@@ -31,9 +31,12 @@ async function main() {
     billingTax:()=>observeJob('billingTax',billing.advanceTax),
     billingDelivery:()=>observeJob('billingDelivery',billing.deliver),
     spoolman:()=>observeJob('spoolman',syncSpools),
-    statements:()=>observeJob('statements',()=>generateWeeklyStatements({database:getDatabase()})),
+    statements:()=>observeJob('statements',()=>generateWeeklyStatements({database:getDatabase()}),{verifyRecovery:async result=>result.reconciled===true}),
     bookkeeping:()=>observeJob('bookkeeping',bookkeep),
-    drain:()=>observeJob('push',()=>drainPushOutbox({store,transport,workerId,batchSize:20})),
+    drain:()=>observeJob('push',()=>drainPushOutbox({store,transport,workerId,batchSize:20}),{verifyRecovery:async()=>{
+      const [row]=await sql`SELECT NOT EXISTS(SELECT 1 FROM notification_outbox WHERE state IN ('failed','pending','processing')) AS healthy`;
+      return row?.healthy===true;
+    }}),
     cleanup:()=>leased('model-retention',()=>observeJob('cleanup',()=>runMaintenance([]))),
     expire:()=>leased('auth-expiry',()=>observeJob('expiry',async()=>{
       await sql`DELETE FROM platform_proxy_nonces WHERE expires_at<now()`;

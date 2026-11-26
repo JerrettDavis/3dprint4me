@@ -6,6 +6,34 @@ import { join } from 'node:path';
 import { observeJob, readJobHealth } from '../../lib/platform/job-health.js';
 import { collectPlatformStatus } from '../../lib/platform/status.js';
 import { generateWeeklyStatements } from '../../lib/partner-outreach/statements.js';
+import { PGlite } from '@electric-sql/pglite';
+test('idle recovery requires an authoritative check and preserves a failed check',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'3dp-recovery-'));const env={PLATFORM_JOB_HEALTH_DIR:dir};
+ try{
+  await assert.rejects(observeJob('push',async()=>{throw Error('old failure');},{env}));
+  await observeJob('push',async()=>({claimed:0}),{env,verifyRecovery:async()=>false});
+  assert.equal((await readJobHealth('push',{directory:dir,maxAge:10000})).ok,false);
+  await observeJob('push',async()=>({claimed:0}),{env,verifyRecovery:async()=>{throw Error('private database error');}});
+  assert.equal((await readJobHealth('push',{directory:dir,maxAge:10000})).ok,false);
+  await observeJob('push',async()=>({claimed:0}),{env,verifyRecovery:async()=>true});
+  assert.equal((await readJobHealth('push',{directory:dir,maxAge:10000})).ok,true);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
+test('analysis availability retains real failures but distinguishes terminal unsupported ready assets',async()=>{
+ const db=new PGlite();
+ try{
+  await db.exec(`CREATE TABLE operators(id text); CREATE TABLE notification_outbox(state text,next_attempt_at timestamptz,lease_expires_at timestamptz);
+   CREATE TABLE print_assets(id text,state text);CREATE TABLE print_analysis_jobs(asset_id text,state text,last_error_category text,next_attempt_at timestamptz,lease_expires_at timestamptz);
+   INSERT INTO print_assets VALUES('model','ready');INSERT INTO print_analysis_jobs VALUES('model','failed','unsupported',now(),NULL);`);
+  const collect=()=>collectPlatformStatus({query:async(strings)=> (await db.query(strings.join(''))).rows,health:async()=>({ok:true})});
+  assert.equal((await collect()).jobs,true,'An unsupported slice of a ready asset is not a worker outage');
+  await db.exec(`UPDATE print_assets SET state='uploaded'`);assert.equal((await collect()).jobs,false);
+  await db.exec(`UPDATE print_assets SET state='ready';UPDATE print_analysis_jobs SET last_error_category='temporary'`);assert.equal((await collect()).jobs,false);
+  await db.exec(`UPDATE print_analysis_jobs SET last_error_category=NULL`);assert.equal((await collect()).jobs,false,'Unknown terminal failures remain visible');
+  await db.exec(`UPDATE print_analysis_jobs SET state='pending',next_attempt_at=now()-interval '16 minutes'`);assert.equal((await collect()).jobs,false);
+  await db.exec(`UPDATE print_analysis_jobs SET state='processing',lease_expires_at=now()-interval '16 minutes'`);assert.equal((await collect()).jobs,false);
+ }finally{await db.close();}
+});
 
 for(const jobName of ['slicer','statements'])test(`${jobName} success/failure evidence is atomic, bounded and expires`,async()=>{
   const dir=await mkdtemp(join(tmpdir(),'3dp-health-'));

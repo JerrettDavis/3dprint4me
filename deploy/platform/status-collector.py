@@ -11,6 +11,7 @@ import secrets
 import subprocess
 import time
 import urllib.request
+import importlib.util
 
 APP_IDS = {'db-size': ('local', 'host'), 'db-connections': ('local', 'host'), **{f'rate-{name}-{scope}': ('application', 'application') for name in ('sessions', 'uploads') for scope in ('global', 'client')}}
 FIELDS = {'id', 'used', 'limit', 'observedAt', 'periodStart', 'periodEnd', 'source', 'scope'}
@@ -146,6 +147,17 @@ def collect(config):
     if not root.is_absolute() or root.is_symlink() or root.resolve() != root or root.stat().st_uid != os.getuid() or root.stat().st_mode & 0o077:
         raise ValueError("Private platform root required")
     command = ["docker", "compose", "--env-file", str(root / "compose.env"), "-f", str(root / "candidate-source/deploy/platform/compose.yml")]
+    functional=None
+    if config.get('functional_enabled') is True:
+        try:
+            helper=Path(__file__).with_name('status-functional.py')
+            if helper.is_symlink() or not helper.is_file() or helper.stat().st_uid!=os.getuid() or helper.stat().st_mode & 0o022:
+                raise ValueError('Reviewed private runner required')
+            spec=importlib.util.spec_from_file_location('status_functional_runner',helper)
+            runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
+            functional=runner.run(config,command)
+        except Exception:
+            pass
     details = {"database": False, "provider": "unknown", "files": False, "email": False, "estimates": False, "jobs": False}
     try:
         result = subprocess.run(command + ["exec", "-T", "api", "node", "scripts/platform-status.mjs"], capture_output=True, timeout=35, check=True)
@@ -157,6 +169,8 @@ def collect(config):
         pass  # Missing application evidence remains failed, never guessed healthy.
     host = host_capacity(root)
     details['capacity'] = details.get('capacity', []) + host + container_capacity(command)
+    if functional is not None:
+        details['functional']=functional
     # Preserve original health inputs for the incident monitor.
     try:
         disk = os.statvfs(root)
