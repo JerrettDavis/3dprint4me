@@ -402,4 +402,4 @@ before enabling `CATALOGUE_PUBLISH_ENABLED=1`. No migration or external release
 was performed by the catalogue implementation workflow.
 
 ## CI completion alerts
-`.github/workflows/ci-alerts.yml` listens for completed `Verify` runs on main. It updates one GitHub issue, **CI monitor: main verification**, assigned to the repository owner. Success closes the issue; failure keeps it open. Subscribe to that issue for completion notifications. The monitor uses completion events, has no schedule or polling loop, checks out no code, and ignores stale or duplicate run events. It does not send alerts into the Codex conversation.
+`.github/workflows/ci-alerts.yml` listens for completed `Verify` and `Publish handbook` runs on main. It updates one GitHub issue per workflow, **CI monitor: main verification** or **CI monitor: handbook publication**, assigned to the repository owner. Success closes the issue; failure keeps it open. Subscribe to that issue for completion notifications. The monitor uses completion events, has no schedule or polling loop, checks out no code, and ignores stale or duplicate run events. It does not send alerts into the Codex conversation.

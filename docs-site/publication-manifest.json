@@ -15,7 +15,7 @@
     {
       "file": "docs/DEPLOYMENT.md",
       "output": "reference/DEPLOYMENT.md",
-      "sha256": "44a60d85165f7fc2ab8168d123eb2c4a101d06b76b52bd06c407520355c2d3be"
+      "sha256": "9230bb42cc2be8b67902c99ab837b136cb27f05e7a084134ea995b55aa9094ef"
     },
     {
       "file": "docs/DOMAIN-LANGUAGE.md",
@@ -1175,7 +1175,7 @@
     {
       "file": "docs/PRINT-ESTIMATION.md",
       "output": "reference/PRINT-ESTIMATION.md",
-      "sha256": "61091f17fccc302343fe973665a5747fd4f93ce0704aa53569868a4155116c6f"
+      "sha256": "ea05438cc8f683b9e9bffe2ef879976c1862fbf928a8cde17a4003951c4df462"
     },
     {
       "file": "docs/QUICK-INQUIRY.md",

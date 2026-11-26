@@ -2,7 +2,7 @@ name: Main verification alerts
 
 on:
   workflow_run:
-    workflows: [Verify]
+    workflows: [Verify, Publish handbook]
     types: [completed]
     branches: [main]
 
@@ -11,7 +11,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: main-verification-alert
+  group: main-completion-alert-${{ github.event.workflow_run.name }}
   cancel-in-progress: false
 
 jobs:
@@ -25,8 +25,9 @@ jobs:
           script: |
             const {owner, repo} = context.repo;
             const run = context.payload.workflow_run;
-            const title = 'CI monitor: main verification';
-            const marker = '<!-- main-verification-monitor -->';
+            const kind = run.name === 'Verify' ? 'main verification' : 'handbook publication';
+            const title = `CI monitor: ${kind}`;
+            const marker = run.name === 'Verify' ? '<!-- main-verification-monitor -->' : '<!-- handbook-publication-monitor -->';
             const issues = await github.paginate(github.rest.issues.listForRepo, {
               owner, repo, state: 'all', creator: 'github-actions[bot]', per_page: 100
             });
@@ -35,7 +36,7 @@ jobs:
             if (run.run_number <= previous) return;
             const passed = run.conclusion === 'success';
             const body = `${marker}\n<!-- ci-monitor-run-number: ${run.run_number} -->\n` +
-              `Main verification **${run.conclusion}** for commit \`${run.head_sha}\`.\n\n` +
+              `${kind} **${run.conclusion}** for commit \`${run.head_sha}\`.\n\n` +
               `[View workflow run](${run.html_url})\n\n` +
               'This monitor reacts to workflow completion events. It does not poll. ' +
               'Failures keep this issue open; successful verification closes it. Subscribe to this issue for completion alerts.';
@@ -46,5 +47,5 @@ jobs:
             }
             await github.rest.issues.update({owner, repo, issue_number: issue.number, body,
               state: passed ? 'closed' : 'open', ...(passed ? {state_reason: 'completed'} : {})});
-            await core.summary.addHeading('Main verification completion')
+            await core.summary.addHeading(`${kind} completion`)
               .addRaw(body).write();
