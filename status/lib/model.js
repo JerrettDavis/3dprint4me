@@ -1,3 +1,4 @@
+import { capacitySnapshot, validateCapacity } from './capacity.js';
 export const STALE_MS=12*60000;
 export const FUNCTIONAL_MS=24*3600000;
 const fresh=(record,now,age=STALE_MS)=>Number.isFinite(record?.observedAt??record?.checkedAt)&&now-(record.observedAt??record.checkedAt)<=age&&(record.observedAt??record.checkedAt)<=now+30000;
@@ -32,6 +33,7 @@ export function publicSnapshot(state={},now=Date.now()) {
     incidents:(state.incidents??[]).slice(-20).map(x=>({component:names[x.component]??'Service',openedAt:x.openedAt,resolvedAt:x.resolvedAt??null}))};
 }
 export function privateSnapshot(state={},now=Date.now()) {
+  const capacity=capacitySnapshot(state.capacity,now);
   const control=fresh(state.control,now,86400000)?state.control.details:{};
   const restoreVerifiedAt=fresh(state.control,now,30*86400000)?state.control.details.restoreVerifiedAt:undefined;
   const platform=fresh(state.platform,now)?state.platform.details:{};
@@ -51,15 +53,24 @@ export function privateSnapshot(state={},now=Date.now()) {
   if(control.ownerLoginVerified!==true)add('owner-login','Full operator sign-in has not been verified','Complete a real owner sign-in against the production target.');
   if(control.cutoverVerified!==true)add('cutover','Production cutover checks remain incomplete','Verify real target traffic, private files, estimates and draft-only billing.');
   if(platform.jobs!==true)add('jobs','Local background jobs are not verified','Check worker success and the oldest waiting work.');
-  if(Number.isFinite(platform.diskFreePercent)&&platform.diskFreePercent<15)add('disk','Local disk capacity is low','Free or add capacity before writes are affected.',platform.diskFreePercent<5?'critical':'important');
+  const disk=capacity.metrics.find(x=>x.id==='host-disk');
+  if(Number.isFinite(platform.diskFreePercent)&&platform.diskFreePercent<15&&!['warning','critical'].includes(disk?.activeSeverity))add('disk','Local disk capacity is low','Free or add capacity before writes are affected.',platform.diskFreePercent<5?'critical':'important');
+  for(const m of capacity.metrics) {
+    if(['warning','critical'].includes(m.activeSeverity))add('capacity-'+m.thresholdFingerprint,m.label+' capacity '+m.activeSeverity,
+      (m.status==='stale'||m.status==='unknown'?'Last known pressure; obtain fresh quota evidence before declaring recovery. ':'')+'Review the protected capacity reading and its reset window.',m.activeSeverity==='critical'?'critical':'important');
+    if(m.status==='stale')add('capacity-stale-'+m.id,m.label+' evidence is stale','Check the capacity collector; last-known usage does not establish current capacity.');
+    if(m.status==='unknown'&&m.used!==null&&m.limit!==null)add('capacity-unknown-'+m.id,m.label+' current capacity is unverified','Review delayed usage or the dated allowance; incomplete evidence is not a recovery.');
+  }
   if(state.alerts?.configured!==true)add('alerts','External alert delivery is not configured','Configure the approved independent alert destination.');
   if(state.alerts?.lastFailureAt&&(state.alerts.lastSuccessAt??0)<state.alerts.lastFailureAt)add('alert-delivery','An operational alert could not be verified as delivered','Check the alert provider and pending event.');
-  return {...publicSnapshot(state,now),blockers,evidence:{probes:state.probes??{},platform:state.platform??null,backup:state.backup??null,control:state.control??null,alerts:state.alerts?{configured:state.alerts.configured,lastSuccessAt:state.alerts.lastSuccessAt??null,lastFailureAt:state.alerts.lastFailureAt??null,pending:Boolean(state.alerts.pending),ambiguousExpired:state.alerts.ambiguousExpired??false}:null},recovery:{mode:'manual',automaticFailover:false,readiness:'Not proven until a full recovery drill passes.'}};
+  if(state.alerts?.envelopeMissing)add('alert-envelope','A legacy pending alert has no verified sender/recipient envelope','Verify the original provider event and payload before repairing or retiring this pending event. Do not retry with a new recipient or key.');
+  const evidenceRecord=record=>record?{...record,details:Object.fromEntries(Object.entries(record.details??{}).filter(([key])=>key!=='capacity'))}:null;
+  return {...publicSnapshot(state,now),blockers,capacity,evidence:{probes:state.probes??{},platform:evidenceRecord(state.platform),backup:evidenceRecord(state.backup),control:state.control??null,providerCoverage:state.providerCoverage??null,providerAvailability:state.providerAvailability??null,alerts:state.alerts?{configured:state.alerts.configured,lastSuccessAt:state.alerts.lastSuccessAt??null,lastFailureAt:state.alerts.lastFailureAt??null,pending:Boolean(state.alerts.pending),ambiguousExpired:state.alerts.ambiguousExpired??false,digestConfigured:state.alerts.digestConfigured??false,digestStatus:state.alerts.digestStatus??'disabled',lastDigestDay:state.alerts.lastDigestDay??null,lastMissedDigestDay:state.alerts.lastMissedDigestDay??null}:null},recovery:{mode:'manual',automaticFailover:false,readiness:'Not proven until a full recovery drill passes.'}};
 }
 
 const schemas={
-  platform:{database:'boolean',provider:['postgres','neon','unknown'],email:[true,false,null],files:[true,false,null],estimates:[true,false,null],jobs:'boolean',diskFreePercent:'number',memoryUsedPercent:'number',restarts:'number'},
-  backup:{success:'boolean',copied:'boolean'},
+  platform:{database:'boolean',provider:['postgres','neon','unknown'],email:[true,false,null],files:[true,false,null],estimates:[true,false,null],jobs:'boolean',diskFreePercent:'number',memoryUsedPercent:'number',restarts:'number',capacity:'capacity'},
+  backup:{success:'boolean',copied:'boolean',capacity:'capacity'},
   control:{neonPlan:['free','paid','unknown'],neonOffloaded:'boolean',neonVerifiedAt:'number',sourceQuiet:'boolean',restoreVerifiedAt:'number',offsiteVerified:'boolean',alertsConfigured:'boolean',credentialsReady:'boolean',ownerLoginVerified:'boolean',cutoverVerified:'boolean',backupUnattended:'boolean',verifiedProvider:['postgres','neon'],filesVerifiedAt:'number',estimatesVerifiedAt:'number',emailVerifiedAt:'number'}
 };
 export async function validateHeartbeat({kind,body,signature,secret,now=Date.now(),lastObservedAt=0}) {
@@ -71,6 +82,11 @@ export async function validateHeartbeat({kind,body,signature,secret,now=Date.now
   if(!data||Object.keys(data).sort().join(',')!=='details,nonce,observedAt'||!Number.isSafeInteger(data.observedAt)||data.observedAt<=lastObservedAt||now-data.observedAt>90000||data.observedAt-now>30000||!/^[a-f0-9]{32}$/.test(data.nonce)||!data.details||Array.isArray(data.details))throw new Error('Invalid evidence.');
   for(const [key,value] of Object.entries(data.details)) {
     const rule=schemas[kind][key];
+    if(rule==='capacity') {
+      const metrics=validateCapacity(value,now);
+      if(metrics.some(m=>kind==='backup'?m.source!=='backup':!['local','application'].includes(m.source)))throw new Error('Invalid evidence.');
+      continue;
+    }
     if(!rule||(Array.isArray(rule)?!rule.includes(value):typeof value!==rule)||typeof value==='number'&&(!Number.isFinite(value)||value<0||value>Number.MAX_SAFE_INTEGER))throw new Error('Invalid evidence.');
   }
   return {observedAt:data.observedAt,details:data.details};

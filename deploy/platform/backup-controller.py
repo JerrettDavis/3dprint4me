@@ -352,14 +352,26 @@ sys.exit(code if code else (0 if footer else 1))
     return {'snapshots':snapshots,'filename':filename,'sha256':expected,'roundtrip_verified':True,**counters}
 
 
-def report(config_path,success):
+def report(config_path,success,result=None):
     private(config_path)
     config=json.loads(config_path.read_text())
     secret=config.get('status_backup_secret')
     if not isinstance(secret,str) or len(secret)<48:
         raise ValueError('Independent backup reporting key required')
     path='/heartbeat/backup'
-    body=json.dumps({'observedAt':time.time_ns()//1_000_000,'nonce':secrets.token_hex(16),'details':{'success':success,'copied':success}},separators=(',',':')).encode()
+    observed=time.time_ns()//1_000_000
+    details={'success':success,'copied':success}
+    if success and result is not None:
+        objects=result.get('private_objects',{})
+        if result.get('roundtrip_verified') is not True or objects.get('roundtrip_verified') is not True or len(result.get('checkpoint_receipts',[]))<2 or len(objects.get('snapshots',[]))<2:
+            raise ValueError('Verified complete checkpoint counters required')
+        values=[('backup-downloaded','downloadedBytes'),('backup-reused','reusedBytes'),('backup-downloaded-objects','downloadedObjects'),('backup-reused-objects','reusedObjects')]
+        details['capacity']=[]
+        for identity,key in values:
+            value=objects.get(key)
+            if type(value) is not int or not 0<=value<=9007199254740991:raise ValueError('Checkpoint counter bound')
+            details['capacity'].append({'id':identity,'used':value,'limit':None,'observedAt':observed,'periodStart':None,'periodEnd':None,'source':'backup','scope':'application'})
+    body=json.dumps({'observedAt':observed,'nonce':secrets.token_hex(16),'details':details},separators=(',',':')).encode()
     signature=hmac.new(secret.encode(),path.encode()+b'\n'+body,hashlib.sha256).hexdigest()
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self,*args,**kwargs):return None
@@ -374,7 +386,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     try:
         result=backup(args.config)
-        report(args.config,True)
+        report(args.config,True,result=result)
         print(json.dumps(result))
     except Exception:
         try:report(args.config,False)

@@ -7,6 +7,7 @@
   "preview_urls": false,
   "routes": [{"pattern": "status-api.3dprint4.me", "custom_domain": true}],
   "observability": {"enabled": false},
+  "vars": {"CAPACITY_DIGEST_ENABLED": "1"},
   "triggers": {"crons": ["*/5 * * * *"]},
   "durable_objects": {"bindings": [{"name": "STATUS_STATE", "class_name": "StatusState"}]},
   "migrations": [{"tag": "v1", "new_sqlite_classes": ["StatusState"]}]

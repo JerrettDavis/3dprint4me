@@ -6,7 +6,7 @@ const definitions = [
   ['cf-requests','Worker requests','Cloudflare','requests'], ['cf-do-reads','Durable Object reads','Cloudflare','rows'],
   ['cf-do-writes','Durable Object writes','Cloudflare','rows'], ['cf-do-storage','Durable Object storage','Cloudflare','bytes'],
   ['resend-daily','Daily email','Resend','emails'], ['resend-monthly','Monthly email','Resend','emails'], ['resend-rate','Email request rate','Resend','requests'],
-  ['host-disk','Host disk','Host','bytes','local'], ['host-memory','Host memory','Host','bytes','local'], ['host-cpu','Host CPU','Host','percent','local'],
+  ['host-disk','Host disk (writable)','Host','bytes','local'], ['host-memory','Host memory','Host','bytes','local'], ['host-cpu','Host CPU','Host','percent','local'],
   ['container-memory','Container memory','Host','bytes','local'], ['container-cpu','Container CPU','Host','percent','local'],
   ['db-size','Database size','Database','bytes','local'], ['db-connections','Database connections','Database','connections','local'],
   ['rate-sessions-global','Global session rate','Application','requests','application'], ['rate-uploads-global','Global upload rate','Application','requests','application'],

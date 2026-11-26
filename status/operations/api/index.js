@@ -8,9 +8,11 @@ export default async function handler(req,res) {
   if(process.env.OPERATIONS_PROTECTION_VERIFIED!=='1'||!process.env.STATUS_READER_SECRET){res.statusCode=503;res.end('Operations access is not configured.');return;}
   try{
     const time=String(Date.now()),signature=createHmac('sha256',process.env.STATUS_READER_SECRET).update('/operations-reader\n'+time).digest('hex');
-    const response=await fetch('https://status-api.3dprint4.me/operations-reader',{headers:{'x-status-read-time':time,'x-status-read-signature':signature,'User-Agent':'3dprint4me-operations/1'},redirect:'error',signal:AbortSignal.timeout(10000)});
+    const theme=new URL(req.url,'https://operations.invalid').searchParams.get('theme');
+    const query=['light','dark','system'].includes(theme)?'?theme='+theme:'';
+    const response=await fetch('https://status-api.3dprint4.me/operations-reader'+query,{headers:{'x-status-read-time':time,'x-status-read-signature':signature,'User-Agent':'3dprint4me-operations/1'},redirect:'error',signal:AbortSignal.timeout(10000)});
     if(!response.ok)throw new Error('Evidence unavailable.');
-    const body=await response.text();if(body.length>32768)throw new Error('Evidence bound.');
+    const body=await response.text();if(new TextEncoder().encode(body).length>98304)throw new Error('Evidence bound.');
     res.setHeader('Content-Type','text/html;charset=utf-8');res.setHeader('Referrer-Policy','no-referrer');
     res.setHeader('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
     res.statusCode=200;res.end(body);

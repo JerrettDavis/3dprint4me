@@ -1,6 +1,6 @@
 # Capacity reporting, daily digest, and threshold alerts
 
-Status: proposed design; owner selected daily digest plus threshold alerts. Implementation awaits design approval.
+Status: approved by owner November 25, 2026; implementation underway. Daily digest plus threshold alerts selected.
 
 ## Intent and scope
 

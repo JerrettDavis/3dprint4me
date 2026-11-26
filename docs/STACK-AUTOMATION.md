@@ -5,6 +5,11 @@ Docker definitions, slicer profiles, public configuration, cloud deployment
 settings and automation belong in Git. Credentials, customer records, model
 files, OAuth tokens, backup passwords and private controller configuration do not.
 The machine-readable component inventory is [`stack.json`](../deploy/platform/stack.json).
+Private capacity collection, daily 08:00 Central digests, threshold alerts, and
+provider credential/coverage limits are documented in the [status runbook](../status/README.md)
+and [provider adapter guide](STATUS-PROVIDERS.md). Missing usage access stays
+explicitly unknown; do not expand provider permissions or activate paid plans to
+make a monitoring row green.
 Retired Neon deployment instructions are historical, not production setup steps.
 
 ## Prerequisites and private custody
