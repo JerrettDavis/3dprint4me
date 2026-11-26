@@ -110,6 +110,16 @@ test('coverage and rate-window annotations must be bounded and meaningful', () =
   const state=updateCapacity(null,[record({id:'resend-rate',used:null,rateWindowMs:1000})],now);
   assert.equal(metric(state,now,'resend-rate').rateWindowMs,1000);
 });
+test('rolling window annotations are fixed provider-only labels', () => {
+  for(const windowKind of ['rolling-30-days','rolling-24-hours']) {
+    const state=updateCapacity(null,[record({windowKind})],now);
+    assert.equal(metric(state).windowKind,windowKind);
+    const manual=updateCapacity(null,[record({windowKind,source:'manual',limitSource:'manual',limitVerifiedAt:now})],now);
+    assert.equal(metric(manual).windowKind,windowKind);
+  }
+  for(const changes of [{windowKind:'calendar-month'},{windowKind:null},{windowKind:'<script>'},{id:'host-disk',source:'local',scope:'host',windowKind:'rolling-24-hours'},{id:'backup-downloaded',source:'backup',scope:'application',windowKind:'rolling-30-days'},{id:'rate-sessions-global',source:'application',scope:'application',windowKind:'rolling-24-hours'}]) assert.throws(()=>validateCapacity([record(changes)],now));
+  assert.equal(metric(updateCapacity(null,[record()],now)).windowKind,null);
+});
 test('recovery must cross hysteresis margin twice and history stays bounded', () => {
   let state=updateCapacity(null,[record({used:95})],now);
   for (const [offset,used,status] of [[1,89,'critical'],[2,84,'critical'],[3,86,'critical'],[4,84,'critical'],[5,84,'warning'],[6,64,'warning'],[7,64,'normal']]) {

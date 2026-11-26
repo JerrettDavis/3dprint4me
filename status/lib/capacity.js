@@ -16,7 +16,7 @@ const definitions = [
 ];
 const ages = {provider:7200000,local:720000,application:720000,backup:7200000,manual:86400000};
 export const CAPACITY_METRICS = Object.freeze(Object.fromEntries(definitions.map(([id,label,service,unit,source='provider']) => [id,Object.freeze({label,service,unit,source,maxAge:ages[source]})])));
-const keys = new Set(['id','used','limit','observedAt','periodStart','periodEnd','source','scope','unlimited','limitSource','limitVerifiedAt','partial','coverageEnd','rateWindowMs']);
+const keys = new Set(['id','used','limit','observedAt','periodStart','periodEnd','source','scope','unlimited','limitSource','limitVerifiedAt','partial','coverageEnd','rateWindowMs','windowKind']);
 const scopes = new Set(['account','project','store','host','application']);
 const number = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER;
 const nullable = value => value === null || number(value);
@@ -42,6 +42,7 @@ export function validateCapacity(records, now = Date.now()) {
       (record.partial === true && !number(record.coverageEnd)) ||
       (record.coverageEnd !== undefined && record.coverageEnd !== null && (!number(record.coverageEnd) || record.coverageEnd > now+30000 || record.coverageEnd > record.observedAt+30000)) ||
       (record.rateWindowMs !== undefined && (record.id !== 'resend-rate' || !number(record.rateWindowMs) || record.rateWindowMs <= 0 || record.rateWindowMs > 86400000)) ||
+      (record.windowKind !== undefined && (CAPACITY_METRICS[record.id]?.source !== 'provider' || !['rolling-30-days','rolling-24-hours'].includes(record.windowKind))) ||
       (record.unlimited !== undefined && typeof record.unlimited !== 'boolean') || (record.unlimited === true && record.limit !== null)) throw new Error('Invalid capacity record');
     seen.add(record.id);
     return {...record};
@@ -111,7 +112,7 @@ export function capacitySnapshot(state, now = Date.now()) {
     const activeSeverity=clean.thresholds[id]?.severity ?? 'normal';
     const base={id,label:definition.label,service:definition.service,unit:definition.unit,scope:r?.scope ?? null,source:r?.source ?? definition.source,
       used:r?.used ?? null,limit:r?.limit ?? null,observedAt:r?.observedAt ?? null,periodStart:r?.periodStart ?? null,periodEnd:r?.periodEnd ?? null,unlimited:r?.unlimited === true,
-      partial:r?.partial === true,coverageEnd:r?.coverageEnd ?? null,rateWindowMs:r?.rateWindowMs ?? null};
+      partial:r?.partial === true,coverageEnd:r?.coverageEnd ?? null,rateWindowMs:r?.rateWindowMs ?? null,windowKind:r?.windowKind ?? null};
     const quota=quotaState(r,now);
     const percent=r && quota === 'current' ? percentage(r) : null;
     const status=!r ? 'unknown' : now-r.observedAt > ages[r.source] || (r.periodEnd !== null && r.periodEnd <= now) ? 'stale' : quota !== 'current' ? 'unknown' : r.unlimited ? 'normal' : percent === null || (r.partial && activeSeverity === 'normal') ? 'unknown' : activeSeverity;
