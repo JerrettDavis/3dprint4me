@@ -12,6 +12,25 @@ const signed=(kind,details,extra={})=>{
   const secret='s'.repeat(64),body=JSON.stringify({observedAt:now,nonce:'a'.repeat(32),details});
   return {kind,secret,body,signature:createHmac('sha256',secret).update('/heartbeat/'+kind+'\n'+body).digest('hex'),now,...extra};
 };
+test('legacy disk alerts cannot bypass fresh capacity sample confirmation',()=>{
+const disk=metric('host-disk',{used:96,source:'local',scope:'host',periodEnd:null});
+const platform={observedAt:now,details:{diskFreePercent:4}};
+let capacity=updateCapacity({},[disk],now);
+let view=privateSnapshot({capacity,platform},now);
+assert.equal(view.capacity.metrics.find(x=>x.id==='host-disk').activeSeverity,'normal');
+assert.ok(!view.blockers.some(x=>x.id==='disk'||x.id.startsWith('capacity-host-disk:')));
+capacity=updateCapacity(capacity,[{...disk,observedAt:now+300000}],now+300000);
+view=privateSnapshot({capacity,platform:{...platform,observedAt:now+300000}},now+300000);
+assert.equal(view.blockers.filter(x=>x.id.startsWith('capacity-host-disk:')).length,1);
+assert.ok(!view.blockers.some(x=>x.id==='disk'));
+});
+test('legacy disk evidence remains available without a current measurable capacity reading',()=>{
+const platform={observedAt:now,details:{diskFreePercent:4}};
+assert.ok(privateSnapshot({platform},now).blockers.some(x=>x.id==='disk'));
+const disk=metric('host-disk',{used:96,source:'local',scope:'host',periodEnd:null,observedAt:now-13*60000});
+const capacity=updateCapacity({},[disk],now-13*60000);
+assert.ok(privateSnapshot({capacity,platform},now).blockers.some(x=>x.id==='disk'));
+});
 test('strict signed local capacity is accepted without exposing it in public projection',async()=>{
   const records=[metric('host-memory',{source:'local',scope:'host'})];
   await validateHeartbeat(signed('platform',{database:true,provider:'postgres',capacity:records}));

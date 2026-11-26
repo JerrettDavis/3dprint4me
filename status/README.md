@@ -25,6 +25,10 @@ not recovery. Partial provider readings can prove a crossed threshold, but canno
 prove low current usage or recovery. Remaining capacity from partial usage is an
 upper bound. Configured budgets are not claims about a provider's included plan.
 
+Fresh measurable disk capacity owns disk threshold decisions, including pending
+sample confirmation. The legacy free-disk percentage is a fallback only when no
+current measurable disk capacity is available; it cannot bypass confirmation.
+
 The durable email queue holds one immutable attempted message. Critical incident
 work wins over a new digest; an already attempted message must finish or be
 explicitly investigated before it can be replaced. Preserve the same payload/key

@@ -54,7 +54,8 @@ export function privateSnapshot(state={},now=Date.now()) {
   if(control.cutoverVerified!==true)add('cutover','Production cutover checks remain incomplete','Verify real target traffic, private files, estimates and draft-only billing.');
   if(platform.jobs!==true)add('jobs','Local background jobs are not verified','Check worker success and the oldest waiting work.');
   const disk=capacity.metrics.find(x=>x.id==='host-disk');
-  if(Number.isFinite(platform.diskFreePercent)&&platform.diskFreePercent<15&&!['warning','critical'].includes(disk?.activeSeverity))add('disk','Local disk capacity is low','Free or add capacity before writes are affected.',platform.diskFreePercent<5?'critical':'important');
+  const diskThresholdCovered=Number.isFinite(disk?.percent)&&disk.status!=='stale';
+  if(Number.isFinite(platform.diskFreePercent)&&platform.diskFreePercent<15&&!diskThresholdCovered&&!['warning','critical'].includes(disk?.activeSeverity))add('disk','Local disk capacity is low','Free or add capacity before writes are affected.',platform.diskFreePercent<5?'critical':'important');
   for(const m of capacity.metrics) {
     if(['warning','critical'].includes(m.activeSeverity))add('capacity-'+m.thresholdFingerprint,m.label+' capacity '+m.activeSeverity,
       (m.status==='stale'||m.status==='unknown'?'Last known pressure; obtain fresh quota evidence before declaring recovery. ':'')+'Review the protected capacity reading and its reset window.',m.activeSeverity==='critical'?'critical':'important');
