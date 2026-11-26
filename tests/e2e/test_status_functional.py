@@ -1,5 +1,6 @@
 import importlib.util
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 SPEC = importlib.util.spec_from_file_location('functional_host', Path(__file__).parents[2] / 'deploy/platform/status-functional.py')
@@ -7,6 +8,29 @@ m = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(m)
 
 class FunctionalRecoveryTests(unittest.TestCase):
+    def test_checkpoint_directory_is_durable_before_return(self):
+        import tempfile
+        events=[]
+        with tempfile.TemporaryDirectory() as directory:
+            destination=Path(directory)/'state.json'
+            replace=m.os.replace
+            original_open=m.os.open
+            original_close=m.os.close
+            def opened(path,*args):
+                return 98765 if path==destination.parent else original_open(path,*args)
+            def closed(fd):
+                if fd!=98765:
+                    original_close(fd)
+            def renamed(*args):
+                events.append('replace')
+                return replace(*args)
+            with patch.object(m.os,'name','posix'), patch.object(m.os,'O_DIRECTORY',0,create=True), patch.object(m.os,'open',side_effect=opened), patch.object(m.os,'close',side_effect=closed), patch.object(m.os,'fsync',side_effect=lambda fd:events.append('fsync')), patch.object(m.os,'replace',side_effect=renamed):
+                m.write_state(destination,{'version':1})
+            self.assertEqual(events,['fsync','replace','fsync'])
+            with patch.object(m.os,'name','posix'), patch.object(m.os,'O_DIRECTORY',0,create=True), patch.object(m.os,'open',side_effect=opened), patch.object(m.os,'close',side_effect=closed), patch.object(m.os,'fsync',side_effect=[None,OSError('directory persistence failed')]):
+                with self.assertRaises(OSError):
+                    m.write_state(destination,{'version':1})
+
     def test_recovery_never_interrupts_a_running_or_unknown_service(self):
         self.assertTrue(m.service_can_start({'running': False}))
         for state in ({'running':True},{},{'running':None},{'running':'false'}):

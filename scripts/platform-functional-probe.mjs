@@ -8,15 +8,16 @@ import { sendReceiptTransport } from '../lib/notifications.js';
 import { initialFunctionalState,runFunctionalProbe } from '../lib/platform/functional-probe.js';
 import {readFile} from 'node:fs/promises';
 import {collectPlatformStatus} from '../lib/platform/status.js';
+import {createCheckpointChannel} from '../lib/platform/checkpoint-channel.js';
 let control;
+const channel=createCheckpointChannel();
 try{
- let input='';for await(const chunk of process.stdin){input+=chunk;if(input.length>32768)throw Error('State bound');}
- const data=JSON.parse(input),state=data.state??initialFunctionalState();
+ const data=await channel.readInitial(),state=data.state??initialFunctionalState();
  if(state.version!==1)throw Error('State version');
  control=createControlStore();await createDatabaseActivation({getSelection:control.getSelection,persistSelection:control.persistSelection}).bootstrap();
  if(process.env.DATABASE_DRIVER!=='postgres')throw Error('Native target required');
  const runtime=createPrintEstimationRuntime();
- const checkpoint=async state=>{process.stdout.write(JSON.stringify(state)+'\n');};
+ const checkpoint=state=>channel.checkpoint(state);
  await runFunctionalProbe(state,{...runtime,checkpoint,emailEnabled:data.emailEnabled===true,mailTransport:async envelope=>{
   const response=await sendReceiptTransport(envelope);
   if(!response.ok){await response.body?.cancel();throw Error('Acceptance unavailable');}
@@ -43,4 +44,4 @@ try{
  const platform=await collectPlatformStatus();
  process.stdout.write(JSON.stringify({repairSafety:{database:true,unpaused:status.paused===false&&status.switching===false,noLeases:row?.no_leases===true,noSliceLeases:row?.no_slice_leases===true,staleServices,healthyServices:platform.jobs===true?['jobs','slicer']:[]}})+'\n');
 }catch{process.stderr.write('Functional verification unavailable; private diagnostics suppressed.\n');process.exitCode=1;}
-finally{await Promise.all([closeDatabase(),control?.close()]);}
+finally{channel.close();process.stdin.destroy();await Promise.all([closeDatabase(),control?.close()]);}

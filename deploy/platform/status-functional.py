@@ -31,6 +31,12 @@ def write_state(path,state):
         with os.fdopen(fd,'wb') as handle:
             handle.write(data);handle.flush();os.fsync(handle.fileno())
         os.replace(temporary,path)
+        if os.name=='posix':
+            directory=os.open(path.parent,os.O_RDONLY|os.O_DIRECTORY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
     finally:
         if temporary.exists():
             temporary.unlink()
@@ -88,8 +94,8 @@ def run(config,command):
         process=subprocess.Popen(args,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
         safety=None
         try:
-            process.stdin.write(json.dumps({'state':state,'emailEnabled':config.get('receipt_enabled') is True}).encode())
-            process.stdin.close()
+            process.stdin.write((json.dumps({'state':state,'emailEnabled':config.get('receipt_enabled') is True})+'\n').encode())
+            process.stdin.flush()
             selector=selectors.DefaultSelector();selector.register(process.stdout,selectors.EVENT_READ)
             deadline=time.monotonic()+100
             pending=b'';total=0
@@ -114,6 +120,7 @@ def run(config,command):
                         if value.get('version')!=1 or not isinstance(value.get('public'),dict):
                             raise ValueError('Invalid checkpoint')
                         state=value;write_state(state_path,state)
+                        process.stdin.write(b'checkpoint-ok\n');process.stdin.flush()
             if selector.get_map():
                 raise TimeoutError('Bounded functional probe timed out')
             process.wait(timeout=5)
@@ -157,5 +164,9 @@ def run(config,command):
             previous=read_state(state_path)
             return previous.get('public') if previous else None
         finally:
+            try:
+                process.stdin.close()
+            except (BrokenPipeError,OSError):
+                pass
             if process.poll() is None:
                 process.kill();process.wait(timeout=5)
