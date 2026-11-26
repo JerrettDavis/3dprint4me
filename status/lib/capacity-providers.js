@@ -6,7 +6,8 @@ const IDS = ['blob-transfer', 'blob-storage', 'blob-simple', 'blob-advanced', 'v
 const UNITS = { 'blob-transfer': 'bytes', 'blob-storage': 'bytes', 'blob-simple': 'operations', 'blob-advanced': 'operations', 'vercel-transfer': 'bytes', 'vercel-functions': 'GB-seconds', 'cf-requests': 'requests', 'cf-do-reads': 'rows', 'cf-do-writes': 'rows', 'cf-do-storage': 'bytes', 'resend-daily': 'emails', 'resend-monthly': 'emails', 'resend-rate': 'requests' };
 const number = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER;
 const time = value => typeof value === 'string' && value.length <= 40 && /T.*Z$/.test(value) && Number.isFinite(Date.parse(value)) ? Date.parse(value) : null;
-const configured = env => ({ vercel: Boolean(env.CAPACITY_VERCEL_TOKEN && /^team_[\w-]{1,100}$/.test(env.CAPACITY_VERCEL_TEAM_ID || '')), cloudflare: Boolean(env.CAPACITY_CLOUDFLARE_TOKEN && /^[a-f0-9]{32}$/.test(env.CAPACITY_CLOUDFLARE_ACCOUNT_ID || '')), resend: Boolean(env.CAPACITY_RESEND_KEY) });
+const resendKey = env => env.CAPACITY_RESEND_KEY || env.ALERT_RESEND_KEY;
+const configured = env => ({ vercel: Boolean(env.CAPACITY_VERCEL_TOKEN && /^team_[\w-]{1,100}$/.test(env.CAPACITY_VERCEL_TEAM_ID || '')), cloudflare: Boolean(env.CAPACITY_CLOUDFLARE_TOKEN && /^[a-f0-9]{32}$/.test(env.CAPACITY_CLOUDFLARE_ACCOUNT_ID || '')), resend: Boolean(resendKey(env)) });
 
 export function providerCoverage(env = {}) {
   const config = configured(env);
@@ -160,6 +161,6 @@ export async function collectProviderCapacity({ env = {}, now = Date.now(), fetc
     add('vercel', url.href, { method: 'GET', headers: { Authorization: `Bearer ${env.CAPACITY_VERCEL_TOKEN}` } }, text => parseVercel(text, env, now, month, day));
   }
   add('cloudflare', 'https://api.cloudflare.com/client/v4/graphql', { method: 'POST', headers: { Authorization: `Bearer ${env.CAPACITY_CLOUDFLARE_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ query: CF_QUERY, variables: { account: env.CAPACITY_CLOUDFLARE_ACCOUNT_ID, start: new Date(day).toISOString(), end: new Date(now).toISOString() } }) }, text => parseCloudflare(text, now, day));
-  add('resend', 'https://api.resend.com/usage', { method: 'GET', headers: { Authorization: `Bearer ${env.CAPACITY_RESEND_KEY}` } }, text => parseResend(text, now));
+  add('resend', 'https://api.resend.com/usage', { method: 'GET', headers: { Authorization: `Bearer ${resendKey(env)}` } }, text => parseResend(text, now));
   return manualLimits((await Promise.all(jobs)).flat(), env, now);
 }

@@ -9,6 +9,19 @@ test('unconfigured providers never make requests or expose configuration values'
   assert.deepEqual(await collectProviderCapacity({ env: {}, now, fetchImpl: () => assert.fail() }), []);
   assert.equal(JSON.stringify(providerCoverage({ CAPACITY_RESEND_KEY: 'secret' })).includes('secret'), false);
 });
+test('Resend reuses the existing alert credential, preferring a dedicated override', async () => {
+  for (const [env, expected] of [[{ ALERT_RESEND_KEY: 'existing-alert-key' }, 'existing-alert-key'], [{ ALERT_RESEND_KEY: 'existing-alert-key', CAPACITY_RESEND_KEY: 'dedicated-key' }, 'dedicated-key']]) {
+    assert.equal(providerCoverage(env).find(item => item.provider === 'resend').status, 'configured');
+    const rows = await collectProviderCapacity({ env, now, fetchImpl: async (url, init) => {
+      assert.equal(url, 'https://api.resend.com/usage'); assert.equal(init.method, 'GET');
+      assert.equal(init.headers.Authorization, `Bearer ${expected}`); return json(resend);
+    } });
+    assert.equal(rows.length, 3);
+  }
+  const events = [];
+  assert.deepEqual(await collectProviderCapacity({ env: { ALERT_RESEND_KEY: 'send-only' }, now, onAvailability: event => events.push(event), fetchImpl: async () => new Response('', { status: 403 }) }), []);
+  assert.equal(events[0].status, 'unavailable');
+});
 test('Resend uses documented account usage request and preserves rolling window uncertainty', async () => {
   const readings = await collectProviderCapacity({ env: { CAPACITY_RESEND_KEY: 'secret' }, now, fetchImpl: async (url, init) => {
     assert.equal(url, 'https://api.resend.com/usage'); assert.equal(init.method, 'GET');
