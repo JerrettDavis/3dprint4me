@@ -52,6 +52,14 @@ Optional `CAPACITY_PROVIDER_LIMITS_JSON` associates a fixed provider metric ID w
 {"blob-transfer":{"limit":10000000000,"unit":"bytes","periodStart":1793491200000,"periodEnd":1796083200000,"source":"configured"}}
 ```
 
+For an operator budget intended to recur after each reset, replace both explicit dates with `window:"calendar-month"` or `window:"utc-day"`. For example, this continues a selected 10 GB monthly budget into each new UTC calendar month:
+
+```json
+{"blob-transfer":{"limit":10000000000,"unit":"bytes","window":"calendar-month","source":"configured"}}
+```
+
+Recurring windows are accepted only with `source:"configured"`, without explicit dates, and only when the provider reading's exact start/end match the current named UTC window. A daily budget cannot attach to monthly billing, and there is no wildcard provider window. These are operator-selected budgets, never automatically renewed attestations of included provider allowances. Manual allowances continue to require explicit dates and `verifiedAt`.
+
 `source:"configured"` means an explicit operator budget, not provider plan evidence. Missing source or `source:"manual"` means a manually checked allowance and requires `verifiedAt`. The snapshot retains `limitSource:"manual"`/`limitVerifiedAt`, including expired verification; the model expires manual allowances after 24 hours and suppresses percentage/threshold decisions until renewed. Do not use a configured budget label to bypass expiry of an assertion about the provider's plan. Set the current window deliberately; stale or mismatched windows are ignored.
 
 ## Failure and resource bounds

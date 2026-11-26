@@ -78,6 +78,25 @@ test('explicit operator budgets remain distinct from provider allowances', async
   env.CAPACITY_PROVIDER_LIMITS_JSON = env.CAPACITY_PROVIDER_LIMITS_JSON.replace('configured', 'manual');
   assert.equal((await collectProviderCapacity({ env, now, fetchImpl }))[0].limit, null);
 });
+test('recurring operator budgets roll over only in their exact supported accounting window', async () => {
+  const budget = { source: 'configured', window: 'calendar-month', limit: 10e9, unit: 'bytes' };
+  const env = { CAPACITY_VERCEL_TOKEN: 's', CAPACITY_VERCEL_TEAM_ID: 'team_a', CAPACITY_VERCEL_SKUS: JSON.stringify({ 'blob-transfer': 'sku' }), CAPACITY_PROVIDER_LIMITS_JSON: JSON.stringify({ 'blob-transfer': budget }) };
+  for (const date of ['2026-11-25T12:00:00Z', '2026-12-25T12:00:00Z']) {
+    const stamp = Date.parse(date); const month = date.slice(0, 7);
+    const fetchImpl = async () => new Response(JSON.stringify({ SkuId: 'sku', SubAccountId: 'team_a', ChargeCategory: 'Usage', ConsumedQuantity: 2, ConsumedUnit: 'GB', ChargePeriodStart: `${month}-01T00:00:00Z`, ChargePeriodEnd: `${month}-02T00:00:00Z` }));
+    const rows = await collectProviderCapacity({ env, now: stamp, fetchImpl });
+    assert.equal(rows[0].limit, 10e9); assert.equal(rows[0].limitSource, 'configured');
+    for (const bad of [{ window: 'utc-day' }, { window: '*' }, { source: 'manual', verifiedAt: stamp }, { periodStart: 0, periodEnd: 1 }]) {
+      const result = await collectProviderCapacity({ env: { ...env, CAPACITY_PROVIDER_LIMITS_JSON: JSON.stringify({ 'blob-transfer': { ...budget, ...bad } }) }, now: stamp, fetchImpl });
+      assert.equal(result[0].limit, null);
+    }
+  }
+  const cfEnv = { CAPACITY_CLOUDFLARE_TOKEN: 's', CAPACITY_CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32), CAPACITY_PROVIDER_LIMITS_JSON: JSON.stringify({ 'cf-requests': { source: 'configured', window: 'utc-day', limit: 100, unit: 'requests' } }) };
+  for (const stamp of [now, now + 86400000]) {
+    const rows = await collectProviderCapacity({ env: cfEnv, now: stamp, fetchImpl: async () => json({ data: { viewer: { accounts: [{ workers: [{ sum: { requests: 80 } }] }] } } }) });
+    assert.equal(rows[0].limit, 100);
+  }
+});
 test('Cloudflare queries account analytics, returns only well formed present aggregates', async () => {
   const rows = await collectProviderCapacity({ env: { CAPACITY_CLOUDFLARE_TOKEN: 's', CAPACITY_CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32) }, now, fetchImpl: async (url, init) => {
     assert.equal(url, 'https://api.cloudflare.com/client/v4/graphql'); assert.equal(init.method, 'POST');

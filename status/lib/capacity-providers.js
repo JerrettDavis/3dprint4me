@@ -130,7 +130,17 @@ function manualLimits(readings, env, now) {
     const limits = JSON.parse(raw);
     return readings.map(row => {
       const entry = limits[row.id];
-      if (row.limit !== null || !entry || !number(entry.limit) || entry.unit !== UNITS[row.id] || !number(entry.periodStart) || !number(entry.periodEnd) || entry.periodStart !== row.periodStart || entry.periodEnd !== row.periodEnd || entry.periodStart > now || entry.periodEnd <= now) return row;
+      if (row.limit !== null || !entry || !number(entry.limit) || entry.unit !== UNITS[row.id]) return row;
+      let start = entry.periodStart; let end = entry.periodEnd;
+      if (entry.window !== undefined) {
+        // Recurrence is only an operator budget, never a renewed plan assertion.
+        if (entry.source !== 'configured' || start !== undefined || end !== undefined) return row;
+        if (entry.window === 'utc-day') { start = Math.floor(now / DAY) * DAY; end = start + DAY; }
+        else if (entry.window === 'calendar-month') {
+          const date = new Date(now); start = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1); end = Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1);
+        } else return row;
+      }
+      if (!number(start) || !number(end) || start !== row.periodStart || end !== row.periodEnd || start > now || end <= now) return row;
       if (entry.source === 'configured') return { ...row, limit: entry.limit, limitSource: 'configured' };
       if ((entry.source !== undefined && entry.source !== 'manual') || !number(entry.verifiedAt) || entry.verifiedAt > now + 30000) return row;
       return { ...row, limit: entry.limit, limitSource: 'manual', limitVerifiedAt: entry.verifiedAt };
