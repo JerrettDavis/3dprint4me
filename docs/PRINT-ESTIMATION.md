@@ -60,6 +60,8 @@ Contributor note: the shared browser modules are imported with `?v=<hash>` query
 
 ## Pricing
 
+Slicer `materialGrams` represents total filament consumed, including support and production waste. Component measurements are informational subsets, never additional billable grams. The pinned Bambu CLI also supplies model-plus-support consumption; where complete, the adapter records the difference as `wasteGrams` (combined flushing, tower and other waste). It does not label this as purge-only consumption. Missing component or tool-change measurements remain `null`, rather than implying zero. Incomplete plate/filament summaries do not establish whole-job totals.
+
 See [PRICING-CALIBRATION.md](PRICING-CALIBRATION.md#dual-floor-print-pricing). Every snapshot stores the pricing-model version, rate-card version, material-cost snapshot (source and inventory IDs), derived machine/labor rates, options, production figures, engine/profile/version, and timestamps. Snapshots are insert-only; a database trigger rejects any change except linking a snapshot to its request once.
 
 ## Configuration
@@ -80,7 +82,7 @@ See [PRICING-CALIBRATION.md](PRICING-CALIBRATION.md#dual-floor-print-pricing). E
 | `PRINT_ASSET_RETENTION_DAYS` | 90 | Model retention after work reaches a terminal status |
 | `SLICER_PROVIDER` | unset | `local-cli` (PrusaSlicer-style), `bambu-cli` (Bambu Studio / OrcaSlicer), or `http`; unset disables exact slicing. The storefront only checks that it is set. |
 | `SLICER_BIN`, `SLICER_PROFILE`, `SLICER_PROFILE_ID`, `SLICER_ARGS`, `SLICER_ENGINE`, `SLICER_ENGINE_VERSION` | — | Local CLI provider (PrusaSlicer-compatible defaults; `SLICER_ARGS` is a JSON array with `{model}`, `{output}`, `{profile}`) |
-| `SLICER_MACHINE_PROFILE`, `SLICER_PROCESS_PROFILE`, `SLICER_FILAMENT_PROFILES`, `SLICER_BED_TYPE` | — | `bambu-cli` provider: flattened preset JSON paths; filaments as `pla=/a.json;petg=/b.json` (a bare path is the default for every material); bed type e.g. `Textured PEI Plate`. Also uses `SLICER_BIN`, `SLICER_ENGINE` (default `bambu-studio-cli`), `SLICER_PROFILE_ID` (`:<material>` appended when a material-specific filament is used). |
+| `SLICER_MACHINE_PROFILE`, `SLICER_PROCESS_PROFILE`, `SLICER_FILAMENT_PROFILES`, `SLICER_BED_TYPE` | — | `bambu-cli` provider: flattened preset JSON paths; filaments as `pla=/a.json;petg=/b.json` (explicit material mappings are required); bed type e.g. `Textured PEI Plate`. Also uses `SLICER_BIN`, `SLICER_ENGINE` (default `bambu-studio-cli`), `SLICER_PROFILE_ID` (`:<material>` appended when a material-specific filament is used). |
 | `SLICER_HTTP_URL`, `SLICER_HTTP_TOKEN` | — | HTTPS worker provider; the worker receives a 10-minute signed model URL |
 | `SLICER_TIMEOUT_MS`, `SLICER_POLL_MS` | 120000 (300000 for `bambu-cli`), 15000 (300000 in the worker compose file) | Provider timeout and worker idle poll |
 
@@ -102,6 +104,8 @@ Browser analysis limits live in `SITE_CONFIG.printEstimation` and never replace 
 5. Exact slicing is optional: run `npm run estimate:worker` on a host with a slicer binary (`SLICER_PROVIDER=bambu-cli` or `local-cli`), or deploy an HTTP worker implementing the contract in `adapters/http-slicer.js`, and set `SLICER_PROVIDER` on the storefront so jobs are queued. The containerized worker for an always-on Docker host is described in [Slicer worker container](#slicer-worker-container).
 
 ## Slicer worker container
+
+The Bambu worker resolves trusted vendor process presets for each quality: draft uses `0.24mm Standard @BBL X2D`, standard uses the configured `SLICER_PROCESS_PRESET` (default `0.16mm High Quality @BBL X2D`), and fine uses `0.12mm High Quality @BBL X2D`. Override draft/fine at image build with `SLICER_PROCESS_DRAFT` and `SLICER_PROCESS_FINE`; at runtime, `SLICER_PROCESS_PROFILES` accepts `draft=/path.json;fine=/path.json` (optionally `standard=...`). Paths must refer to flattened, trusted shop process profiles. Each job enables automatic tree support detection, including supports starting on the model where needed. The support amount selected by a customer remains a planning assumption and does not disable production overhang detection. A SHA-256 `profileFingerprint` records machine, effective process, filament and bed selection alongside the human profile ID. Unsupported material/quality combinations produce a bounded `unsupported` result, retaining the planning estimate rather than silently slicing with PLA or a different quality.
 
 `deploy/slicer-worker/` packages `npm run estimate:worker` with a headless slicer for an always-on Docker host. Two images are provided:
 
@@ -135,11 +139,15 @@ The defaults match the owner's current Bambu Studio selection; the Bambu Studio 
 - Printer `Bambu Lab X2D 0.4 nozzle`, process `0.16mm High Quality @BBL X2D`, bed `Textured PEI Plate`
 - Filaments `Generic PLA|PETG|ASA|TPU @BBL X2D 0.4 nozzle` for materials `pla|petg|asa|tpu` (`other` uses PLA)
 
-Change them with build args (`SLICER_MACHINE_PRESET`, `SLICER_PROCESS_PRESET`, `SLICER_FILAMENT_PLA|PETG|ASA|TPU`) or point an arg at a sanitized user preset JSON placed in `deploy/slicer-worker/profiles/bambu/` (see its README). Bump `SLICER_PROFILE_ID` whenever the selection changes. The customer's quality/supports options do not yet select different process presets; one process preset is used for every job.
+Change them with build args (`SLICER_MACHINE_PRESET`, `SLICER_PROCESS_PRESET`, `SLICER_FILAMENT_PLA|PETG|ASA|TPU`) or point an arg at a sanitized user preset JSON placed in `deploy/slicer-worker/profiles/bambu/` (see its README). Bump `SLICER_PROFILE_ID` whenever the selection changes. Quality selects the configured process preset and automatic tree detection is enabled for each job.
 
 OrcaSlicer (2.4.2, `OrcaSlicer_Linux_AppImage_Ubuntu2404_V2.4.2.AppImage`, sha256 `d12fb8c8eac1aecd2dfb6377acd48f994f8fa439ed5292fa532dd82880f029fd`) shares this CLI and can be used via `--build-arg SLICER_APPIMAGE_URL=... --build-arg SLICER_APPIMAGE_SHA256=...` with `SLICER_ENGINE=orca-slicer-cli`, but its vendor profiles do not include the X2D, and that path has not been exercised in a container.
 
 ### PrusaSlicer profile
+
+The adapter refuses the bundled placeholder and incomplete exports. A shop export must identify the printer and include bed shape, maximum height, nozzle diameter, filament diameter/density/type and layer height. `SLICER_PROFILE` provides the standard-quality export; use `SLICER_PROFILES=pla:standard=/profiles/a.ini;pla:fine=/profiles/b.ini;petg:standard=/profiles/c.ini` for explicit material/quality mappings. The material must match the export. Automatic organic supports replace support-disable settings in a private per-job copy; the slicer process receives a minimal environment without worker credentials.
+
+For both CLI providers, multicolor STL and unresolved 3MF color resources retain the planning estimate and request color-placement review. The bounded 3MF inspection reads color/assignment evidence only and stores no palette or project metadata values. Generic color resources and Prusa MMU painting require review; supported Bambu assignments are checked against measured swaps independently of the form's color count. Customers can provide an assigned 3MF or describe placement in project details. Production detail panels distinguish measured waste from an unavailable breakdown, and pack rollups preserve those subsets without adding them to total consumption.
 
 `profiles/default.ini` is a generic placeholder, not calibrated to any printer. Export your real config from PrusaSlicer (select printer, filament and print presets, then File > Export > Export Config...) and replace the file, or mount a directory at `/profiles` and set `SLICER_PROFILE=/profiles/<file>.ini`. Change `SLICER_PROFILE_ID` whenever the profile changes; it is recorded on every estimate.
 
@@ -323,3 +331,6 @@ Roll back application code first. Migrations 004-006 are additive and may remain
 ## Spoolman inventory integration
 
 See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
+
+### Uploaded slicer settings
+The worker sanitizes a private working copy of 3MF files before slicing. Shop machine, process and filament profiles replace uploaded process settings; object/layer support overrides and custom code are removed. Geometry, transforms, negative/modifier volumes and color assignments remain. Explicit support volumes or unknown volume types require review rather than silently changing the model. Bambu purge volumes are recalculated from the validated palette. Original uploads remain private and unchanged.

@@ -1,6 +1,6 @@
-import { PRODUCTS } from './products.js?v=9ac764f878c3801f';
-import { filterProducts } from './views.js?v=9ac764f878c3801f';
-import { revealTiles } from '../tile-motion.js?v=9ac764f878c3801f';
+import { PRODUCTS } from './products.js?v=4dfb9b39de27496a';
+import { filterProducts } from './views.js?v=4dfb9b39de27496a';
+import { revealTiles } from '../tile-motion.js?v=4dfb9b39de27496a';
 
 const form = document.querySelector('.catalogue-filters');
 if (form) {

@@ -18,7 +18,7 @@ async function source(value) {
   return value.toLowerCase().endsWith(".json") ? JSON.parse(await readFile(value, "utf8")) : value;
 }
 
-export async function flattenToDirectory({ profiles, vendor = "BBL", out, machine, process: processPreset, filaments }) {
+export async function flattenToDirectory({ profiles, vendor = "BBL", out, machine, process: processPreset, processes = {}, filaments }) {
   const index = await indexVendorPresets(profiles);
   await mkdir(out, { recursive: true });
   const write = async (file, type, preset) => {
@@ -27,6 +27,10 @@ export async function flattenToDirectory({ profiles, vendor = "BBL", out, machin
     return { file, name: flattened.name };
   };
   const written = [await write("machine.json", "machine", machine), await write("process.json", "process", processPreset)];
+  for (const [quality, preset] of Object.entries(processes)) {
+    if (!['draft', 'standard', 'fine'].includes(quality)) throw new Error('Invalid process quality.');
+    written.push(await write(`process-${quality}.json`, 'process', preset));
+  }
   for (const [key, preset] of Object.entries(filaments)) {
     if (!/^[a-z0-9-]+$/.test(key)) throw new Error(`Invalid filament key "${key}".`);
     written.push(await write(`filament-${key}.json`, "filament", preset));
@@ -38,7 +42,8 @@ async function main() {
   const { values } = parseArgs({
     options: {
       profiles: { type: "string" }, vendor: { type: "string", default: "BBL" }, out: { type: "string" },
-      machine: { type: "string" }, process: { type: "string" }, filament: { type: "string", multiple: true, default: [] }
+      machine: { type: "string" }, process: { type: "string" }, filament: { type: "string", multiple: true, default: [] },
+      'process-quality': {type: 'string', multiple: true, default: []}
     }
   });
   if (!values.profiles || !values.out || !values.machine || !values.process || !values.filament.length) {
@@ -49,7 +54,12 @@ async function main() {
     if (at < 1) throw new Error(`--filament expects key=<name|file>, got "${entry}".`);
     return [entry.slice(0, at), entry.slice(at + 1)];
   }));
-  const written = await flattenToDirectory({ ...values, filaments });
+  const processes = Object.fromEntries(values['process-quality'].map(entry => {
+    const at = entry.indexOf('=');
+    if (at < 1) throw new Error('--process-quality expects quality=<name|file>.');
+    return [entry.slice(0, at), entry.slice(at + 1)];
+  }));
+  const written = await flattenToDirectory({ ...values, processes, filaments });
   for (const { file, name } of written) console.log(`${file}: ${name}`);
 }
 

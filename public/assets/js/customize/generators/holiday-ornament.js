@@ -1,6 +1,6 @@
-import { contrastRatio } from "../color.js?v=9ac764f878c3801f";
-import { findFont, FONT_SPEC } from "../fonts.js?v=9ac764f878c3801f";
-import { PRODUCT_MEDIA } from "../product-media.js?v=9ac764f878c3801f";
+import { contrastRatio } from "../color.js?v=4dfb9b39de27496a";
+import { findFont, FONT_SPEC } from "../fonts.js?v=4dfb9b39de27496a";
+import { PRODUCT_MEDIA } from "../product-media.js?v=4dfb9b39de27496a";
 
 const designs = [
   { id: "snowman", group: "Solid winter scenes", label: "Snowman", blurb: "A scarf, a top hat and falling snow.", params: {} },

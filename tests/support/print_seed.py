@@ -15,6 +15,7 @@ def fake_slicer_env(mode: str = "ok") -> dict[str, str]:
     return {
         "SLICER_PROVIDER": "local-cli",
         "SLICER_BIN": str(FIXTURES / "fake-slicer.mjs"),
+        "SLICER_PROFILE": str(FIXTURES / 'shop-pla.ini'),
         "SLICER_ARGS": json.dumps(["--export-gcode", f"--mode={mode}", "--output", "{output}", "{model}"]),
         "SLICER_PROFILE_ID": "pla-0.20mm-standard",
     }
