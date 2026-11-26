@@ -7,11 +7,12 @@ function chicagoDay(now) {
   const parts=Object.fromEntries(chicagoFormat.formatToParts(now).map(x=>[x.type,x.value]));
   return {day:`${parts.year}-${parts.month}-${parts.day}`,due:Number(parts.hour)>=8};
 }
+const windowLabel=kind=>({'rolling-30-days':'Rolling 30 days','rolling-24-hours':'Rolling 24 hours'}[kind]??'');
 export function capacityEmailSummary(view) {
   const metrics=view.capacity?.metrics??[];
   if(!metrics.length)return 'Capacity readings: unavailable.';
   return 'Capacity & limits (private)\n'+metrics.slice(0,40).map(m=>
-    `• ${m.service??''} / ${m.label} (${m.scope??'scope unavailable'}): ${m.partial?'at least ':''}${number(m.used)} used / ${m.unlimited?'unlimited':number(m.limit)} ${m.unit}; ${m.partial?'up to ':''}${number(m.remaining)} remaining; ${m.status}.\n  Source: ${m.source??'unknown'}; measured ${time(m.observedAt)}; reset/window end ${time(m.periodEnd)}.\n  Limit: ${m.limitSource??m.source??'unknown'}${m.limitSource==='configured'?' budget':''}; verified ${time(m.limitVerifiedAt)}; quota evidence ${m.quotaState??'unknown'}.${m.partial?' Usage coverage through '+time(m.coverageEnd)+' (partial).':''}${m.rateWindowMs?' Rate window '+number(m.rateWindowMs)+' ms.':''}`).join('\n');
+    `• ${m.service??''} / ${m.label} (${m.scope??'scope unavailable'}): ${m.partial?'at least ':''}${number(m.used)} used / ${m.unlimited?'unlimited':number(m.limit)} ${m.unit}; ${m.partial?'up to ':''}${number(m.remaining)} remaining; ${m.status}.\n  Source: ${m.source??'unknown'}; measured ${time(m.observedAt)}; reset/window end ${time(m.periodEnd)}.\n  Limit: ${m.limitSource??m.source??'unknown'}${m.limitSource==='configured'?' budget':''}; verified ${time(m.limitVerifiedAt)}; quota evidence ${m.quotaState??'unknown'}.${m.partial?' Usage coverage through '+time(m.coverageEnd)+' (partial).':''}${windowLabel(m.windowKind)?' Usage window: '+windowLabel(m.windowKind)+'.':''}${m.rateWindowMs?' Rate window '+number(m.rateWindowMs)+' ms.':''}`).join('\n');
 }
 const footer=now=>'\n\nChecked '+time(now)+'.\nPublic status: https://status.3dprint4.me\nPrivate evidence: https://3dprint4me-operations.vercel.app\n\nInvoices remain draft-only. This message does not dispatch an invoice.';
 export async function deliverStatusAlert({state,view,env,now=Date.now(),persist,fetchImpl=fetch}) {

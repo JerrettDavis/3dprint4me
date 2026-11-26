@@ -65,6 +65,12 @@ No new paid feature, permission escalation, public capacity data, customer data,
 
 ## Task 6: Full verification and rollout
 
+Verified implementation detail: the actual Hobby account exposes a rolling usage
+dashboard and its authenticated billing endpoint returns 404. Add a separate
+signed manual-evidence endpoint/CLI (existing control credential, independent replay
+state, manual provider metrics only) so dated fallback readings never renew other
+control attestations. Fixed rolling-window labels must not fabricate a reset.
+
 - [ ] Run npm test, screenshots, docs build/check, native/Worker-specific rehearsals and independent whole-change review. Inspect all results; fix causes rather than weakening coverage.
 - [ ] Commit/push PR with exact final scope; verify green CI, merge main and deploy only exact tested source to independent Worker/status/operations and local collector/native runtime as required. Preserve all existing private config and unrelated services.
 - [ ] Verify anonymous access denied on protected root/API/aliases/generated deployments, public JSON capacity-free, fresh supported provider readings/scopes, signed local/backup aggregates, email event persistence and scheduled digest delivery to existing owner. Use controlled-clock threshold rehearsal without changing real quotas; no unsolicited diagnostic messages.

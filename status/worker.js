@@ -47,7 +47,7 @@ export class StatusState {
       const kind=path.slice('/heartbeat/'.length);
       try{
         if(state[kind]?.receivedAt&&now-state[kind].receivedAt<60000)return json({error:'Evidence arrived too frequently.'},429);
-        const data=await validateHeartbeat({kind,body:await bodyText(request),signature:request.headers.get('x-status-signature'),secret:this.env['STATUS_'+kind.toUpperCase()+'_SECRET'],now,lastObservedAt:state[kind]?.observedAt??0});
+        const data=await validateHeartbeat({kind,body:await bodyText(request),signature:request.headers.get('x-status-signature'),secret:this.env['STATUS_'+(kind==='manual'?'CONTROL':kind.toUpperCase())+'_SECRET'],now,lastObservedAt:state[kind]?.observedAt??0});
         const next={...state,[kind]:{...data,receivedAt:now}};
         if(data.details.capacity)next.capacity=updateCapacity(state.capacity,data.details.capacity,now);
         await this.ctx.storage.put('state',next);return json({ok:true});
@@ -69,7 +69,7 @@ export default {
   async fetch(request,env) {
     const path=new URL(request.url).pathname;
     if(path==='/operations'||path==='/operations-reader'&&!await authorizeReader(request,env))return json({error:'Independent operator sign-in is required.'},403);
-    if(!((path==='/api/public'||path==='/operations-reader')&&request.method==='GET'||/^\/heartbeat\/(platform|backup|control)$/.test(path)&&request.method==='POST'))return json({error:'Not found.'},404);
+    if(!((path==='/api/public'||path==='/operations-reader')&&request.method==='GET'||/^\/heartbeat\/(platform|backup|control|manual)$/.test(path)&&request.method==='POST'))return json({error:'Not found.'},404);
     try{
       const stub=env.STATUS_STATE.get(env.STATUS_STATE.idFromName('3dprint4me'));
       const response=await stub.fetch(path==='/operations-reader'?new Request('https://status.internal/operations'+new URL(request.url).search):request);

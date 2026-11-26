@@ -1,12 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { deliverStatusAlert } from '../../status/lib/alerts.js';
+import { deliverStatusAlert, capacityEmailSummary } from '../../status/lib/alerts.js';
+import { operationsPage } from '../../status/lib/operations-page.js';
 import { privateSnapshot } from '../../status/lib/model.js';
 import { updateCapacity } from '../../status/lib/capacity.js';
 
 const env={ALERT_RESEND_KEY:'private-key',ALERT_FROM:'workshop@example.com',ALERT_TO:'owner@example.com',CAPACITY_DIGEST_ENABLED:'1'};
 const metric={id:'blob-transfer',label:'Blob transfer',service:'Vercel Blob',scope:'account',unit:'bytes',used:75,limit:100,remaining:25,percent:75,observedAt:Date.parse('2026-11-25T14:00:00Z'),periodEnd:Date.parse('2026-12-01T00:00:00Z'),source:'provider',status:'warning'};
 const view={blockers:[],components:[{id:'api',name:'Request API',status:'operational'}],capacity:{metrics:[metric]}};
+test('rolling observations identify their window in private pages and emails without inventing a reset',async()=>{
+for(const [windowKind,label] of [['rolling-30-days','Rolling 30 days'],['rolling-24-hours','Rolling 24 hours']]) {
+const rolling={...view,generatedAt:metric.observedAt,capacity:{metrics:[{...metric,windowKind,periodEnd:null}]}};
+assert.match(capacityEmailSummary(rolling),new RegExp(label));
+const html=await operationsPage(rolling).text();
+assert.match(html,new RegExp(label));
+assert.match(html,/Reset \/ window end: Not measured/);
+}
+});
 const run=async(state,now,options={})=>{
   const sent=[];let saved;
   const next=await deliverStatusAlert({state,view,env,now:Date.parse(now),persist:async value=>{saved=structuredClone(value);},fetchImpl:async(url,request)=>{

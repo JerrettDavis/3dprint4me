@@ -25,6 +25,20 @@ test('strict signed local capacity is accepted without exposing it in public pro
   assert.equal(privateView.capacity.metrics.find(x=>x.id==='blob-transfer').status,'warning');
   assert.ok(privateView.blockers.some(x=>x.id.includes('capacity-blob-transfer')));
 });
+test('manual owner evidence has its own replay ordering and cannot renew control attestations',async()=>{
+  const records=new Map([['state',{control:{observedAt:now-3600000,details:{ownerLoginVerified:true}}}]]);
+  const ctx={storage:{get:async k=>records.get(k),put:async(k,v)=>records.set(k,v)},blockConcurrencyWhile:fn=>fn()};
+  const secret='s'.repeat(64),actor=new StatusState(ctx,{STATUS_CONTROL_SECRET:secret});
+  const args=signed('manual',{capacity:[metric('blob-transfer',{source:'manual',limitSource:'manual',limitVerifiedAt:now})]});
+  const request=()=>new Request('https://status.internal/heartbeat/manual',{method:'POST',headers:{'x-status-signature':args.signature},body:args.body});
+  assert.equal((await actor.fetch(request())).status,200);
+  assert.equal(records.get('state').control.observedAt,now-3600000);
+  assert.equal(records.get('state').capacity.readings[0].source,'manual');
+  records.get('state').manual.receivedAt-=61000;
+  assert.equal((await actor.fetch(request())).status,401);
+  await assert.rejects(()=>validateHeartbeat(signed('manual',{capacity:[metric()]})));
+  await assert.rejects(()=>validateHeartbeat(signed('manual',{ownerLoginVerified:true})));
+});
 test('capacity page escapes markup, stays bounded and displays private evidence semantics',async()=>{
   const state={capacity:updateCapacity({},[metric()],now)};
   const view=privateSnapshot(state,now);view.blockers.push({severity:'important',title:'<script>private</script>',next:'Review safely.'});

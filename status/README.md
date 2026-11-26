@@ -46,6 +46,33 @@ after twelve minutes; backup counters after two hours. Manual quota verification
 expires after 24 hours independently of usage freshness. At most 40 readings and
 30 compact daily summaries are retained.
 
+### Dated manual evidence when usage APIs are unavailable
+
+The current Hobby account's authenticated Vercel billing endpoint returns 404.
+Hobby has no billing cycle; do not equate a calendar-month FOCUS query with its
+rolling usage dashboard, or invent a reset date. A signed manual reading can
+record an owner-verified dashboard observation until automatic access is available.
+This is a dated fallback, not automatic dashboard scraping.
+
+Create an owner-only JSON array **outside Git**, using the exact fixed metric IDs
+and units from the provider guide. Each reading must have `source:"manual"`, an
+appropriate account/project/store scope, its actual `observedAt`, and `used`/`limit`
+numbers (or null when unavailable). A non-null allowance also needs
+`limitSource:"manual"` and its actual `limitVerifiedAt`. Both observations and
+allowance checks must be within 24 hours. Use null `periodStart`/`periodEnd` if the
+provider has no verified fixed reset; set `windowKind:"rolling-30-days"` or
+`"rolling-24-hours"` only when that reporting window is verified. Do not renew an
+old observation merely by submitting it again.
+
+Run `python deploy/platform/status-capacity-attest.py --config <private-status-keys.json>
+--readings <private-readings.json>` from the repository, with Node available for
+the shared schema validator. Input files require the same private ACL/mode checks
+as backup custody. It sends only a bounded HMAC-signed `/heartbeat/manual` report
+using the existing owner control reporting key. That route has separate replay
+ordering and accepts manual capacity only: it cannot update/renew control,
+functional checks, billing attestations or recovery claims. No arbitrary provider
+URL, new credential, raw provider exception, or customer data is accepted.
+
 The native collector adds fixed host and api/jobs/slicer aggregate resource
 readings, runtime-role database size/connections and global estimate/upload rate
 buckets. Client caps are configuration only; no client identifiers or individual

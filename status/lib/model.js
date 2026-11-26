@@ -71,6 +71,7 @@ export function privateSnapshot(state={},now=Date.now()) {
 const schemas={
   platform:{database:'boolean',provider:['postgres','neon','unknown'],email:[true,false,null],files:[true,false,null],estimates:[true,false,null],jobs:'boolean',diskFreePercent:'number',memoryUsedPercent:'number',restarts:'number',capacity:'capacity'},
   backup:{success:'boolean',copied:'boolean',capacity:'capacity'},
+  manual:{capacity:'capacity'},
   control:{neonPlan:['free','paid','unknown'],neonOffloaded:'boolean',neonVerifiedAt:'number',sourceQuiet:'boolean',restoreVerifiedAt:'number',offsiteVerified:'boolean',alertsConfigured:'boolean',credentialsReady:'boolean',ownerLoginVerified:'boolean',cutoverVerified:'boolean',backupUnattended:'boolean',verifiedProvider:['postgres','neon'],filesVerifiedAt:'number',estimatesVerifiedAt:'number',emailVerifiedAt:'number'}
 };
 export async function validateHeartbeat({kind,body,signature,secret,now=Date.now(),lastObservedAt=0}) {
@@ -84,7 +85,7 @@ export async function validateHeartbeat({kind,body,signature,secret,now=Date.now
     const rule=schemas[kind][key];
     if(rule==='capacity') {
       const metrics=validateCapacity(value,now);
-      if(metrics.some(m=>kind==='backup'?m.source!=='backup':!['local','application'].includes(m.source)))throw new Error('Invalid evidence.');
+      if(metrics.some(m=>kind==='backup'?m.source!=='backup':kind==='manual'?m.source!=='manual':!['local','application'].includes(m.source)))throw new Error('Invalid evidence.');
       continue;
     }
     if(!rule||(Array.isArray(rule)?!rule.includes(value):typeof value!==rule)||typeof value==='number'&&(!Number.isFinite(value)||value<0||value>Number.MAX_SAFE_INTEGER))throw new Error('Invalid evidence.');
