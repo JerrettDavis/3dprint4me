@@ -27,3 +27,10 @@ test('Prusa painted triangles and volume assignments cannot bypass color mapping
     {name:'Metadata/Slic3r_PE_model.config',data:'<config><object><volume><metadata key="extruder" value="2"/></volume></object></config>'}]);
   assert.equal((await inspectSliceColors(bytes)).mapping,'review');
 });
+
+test('encoded slot numbers are detected and mixed-material projects require review',async()=>{
+  const assigned=buildZip([{name:'Metadata/model_settings.config',data:'<config><metadata key="extruder" value="&#50;"/></config>'}]);
+  assert.equal((await inspectSliceColors(assigned)).colorCount,2);
+  const mixed=buildZip([{name:'Metadata/project_settings.config',data:JSON.stringify({filament_type:['PLA','PETG']})}]);
+  assert.equal((await inspectSliceColors(mixed)).mapping,'review');
+});

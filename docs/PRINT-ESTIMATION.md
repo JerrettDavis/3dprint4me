@@ -331,3 +331,6 @@ Roll back application code first. Migrations 004-006 are additive and may remain
 ## Spoolman inventory integration
 
 See [Spoolman sync operations](SPOOLMAN.md) for private networking, migration 011, source ownership, cost coverage, freshness, operator refresh, and recovery verification. Spoolman stock is imported read-only; printer consumption remains owned by the existing Home Assistant integration.
+
+### Uploaded slicer settings
+The worker sanitizes a private working copy of 3MF files before slicing. Shop machine, process and filament profiles replace uploaded process settings; object/layer support overrides and custom code are removed. Geometry, transforms, negative/modifier volumes and color assignments remain. Explicit support volumes or unknown volume types require review rather than silently changing the model. Bambu purge volumes are recalculated from the validated palette. Original uploads remain private and unchanged.

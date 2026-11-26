@@ -37,5 +37,9 @@ Ten focused intake browser/API tests passed after updating fake-worker fixtures 
 
 Independent review identified and prompted regressions for partial Bambu header totals, incomplete Prusa profiles, generic/Prusa-painted color mappings and operator pack figures. The second full unit run reported 1,743 passed and one failed: the new pack metadata test ran against its pre-fix loaded module. The pack fix subsequently passed focused tests; do not treat that full run as green.
 
-### Outstanding production-fidelity gate
-Pinned Bambu source `PrintObject.cpp:3496–3502` overlays uploaded object configuration on global defaults. The CLI only replaces object config while orienting, whereas estimates preserve orientation. Before completion, sanitize uploaded 3MF process/object/layer overrides in the private working copy while preserving geometry and color assignments, then prove effective supports and quality with a real adversarial 3MF overhang. Merely setting global support fields is insufficient. Final full tests, screenshots, review, PR, green merge and main verification remain required.
+### Closed archive fidelity review
+Private slicer copies now remove uploaded process, object, layer, painted-support and custom-code overrides. Geometry, negative/modifier volume semantics and color assignments survive. Support volumes and unknown volume types require operator review. Both Bambu and Prusa archive dialects have regression coverage, including their actual override filenames.
+
+Offline pinned-engine rehearsals passed after sanitization: Bambu adversarial archive changed from zero supports to 124 support sections with a maximum physical layer step of 0.2mm (0.16mm process plus first layer). Assigned multicolor output measured 83.7927g total, including 75.3453g waste and 112 swaps. Purge is recalculated from the palette; uploaded zero purge settings are removed. Prusa adversarial object support overrides are removed and organic supports return (99 sections). Original private assets are unchanged.
+
+These are engine verification fixtures, not claims of physical printer calibration. Full tests, screenshots and green integration are recorded separately.
