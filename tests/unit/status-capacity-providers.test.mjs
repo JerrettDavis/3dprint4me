@@ -49,8 +49,13 @@ test('Vercel FOCUS aggregates mapped usage only, validates unit/account/window, 
   assert.equal(rows[0].periodEnd, Date.parse('2026-12-01T00:00:00Z'));
   assert.equal(rows[0].coverageEnd, Date.parse('2026-11-25T00:00:00Z')); assert.equal(rows[0].partial, true);
   for (const bad of [{ ConsumedUnit: 'GB-month' }, { SubAccountId: 'other' }, { ChargePeriodEnd: '2027-01-01' }, { ConsumedQuantity: '-1' }]) {
-    assert.deepEqual(await collectProviderCapacity({ env, now, fetchImpl: async () => new Response(JSON.stringify({ ...row, ...bad })) }), []);
+    const events = [];
+    assert.deepEqual(await collectProviderCapacity({ env, now, onAvailability: event => events.push(event), fetchImpl: async () => new Response(JSON.stringify({ ...row, ...bad })) }), []);
+    assert.equal(events[0].status, 'unavailable');
   }
+  const events = [];
+  assert.deepEqual(await collectProviderCapacity({ env, now, onAvailability: event => events.push(event), fetchImpl: async () => new Response('') }), []);
+  assert.equal(events[0].status, 'ok');
 });
 test('explicit operator budgets remain distinct from provider allowances', async () => {
   const env = { CAPACITY_CLOUDFLARE_TOKEN: 's', CAPACITY_CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32), CAPACITY_PROVIDER_LIMITS_JSON: JSON.stringify({ 'cf-requests': { limit: 100, unit: 'requests', source: 'configured', periodStart: Date.parse('2026-11-25T00:00:00Z'), periodEnd: Date.parse('2026-11-26T00:00:00Z') } }) };
@@ -70,8 +75,16 @@ test('Cloudflare queries account analytics, returns only well formed present agg
   assert.deepEqual(rows.map(r => [r.id, r.used]), [['cf-requests', 80], ['cf-do-reads', 20], ['cf-do-writes', 3]]);
 });
 test('GraphQL errors never produce fresh zero or leak provider messages', async () => {
-  const rows = await collectProviderCapacity({ env: { CAPACITY_CLOUDFLARE_TOKEN: 's', CAPACITY_CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32) }, now, fetchImpl: async () => json({ errors: [{ message: 'secret' }], data: { viewer: { accounts: [] } } }) });
-  assert.deepEqual(rows, []);
+  const events = [];
+  const rows = await collectProviderCapacity({ env: { CAPACITY_CLOUDFLARE_TOKEN: 's', CAPACITY_CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32) }, now, onAvailability: event => events.push(event), fetchImpl: async () => json({ errors: [{ message: 'secret' }], data: { viewer: { accounts: [] } } }) });
+  assert.deepEqual(rows, []); assert.equal(events[0].status, 'unavailable');
+});
+test('HTTP success with malformed usage reports unavailable rather than successful coverage', async () => {
+  for (const payload of [{ object: 'other' }, { object: 'usage', emails: {} }]) {
+    const events = [];
+    assert.deepEqual(await collectProviderCapacity({ env: { CAPACITY_RESEND_KEY: 's' }, now, onAvailability: event => events.push(event), fetchImpl: async () => json(payload) }), []);
+    assert.equal(events[0].status, 'unavailable');
+  }
 });
 test('a provider failure does not discard another provider success', async () => {
   const rows = await collectProviderCapacity({ env: { CAPACITY_RESEND_KEY: 's', CAPACITY_CLOUDFLARE_TOKEN: 's', CAPACITY_CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32) }, now, fetchImpl: async url => {

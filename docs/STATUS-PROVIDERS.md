@@ -56,7 +56,7 @@ Optional `CAPACITY_PROVIDER_LIMITS_JSON` associates a fixed provider metric ID w
 
 ## Failure and resource bounds
 
-All origins/paths are fixed HTTPS endpoints. Redirects are rejected. Each request has an eight-second abort deadline and a one-MiB decoded response cap; JSONL has a 10,000-row cap. Provider requests run concurrently. No raw response, exception, account identifier or secret is returned or logged. Only successfully parsed, finite, nonnegative, safe-range values leave the adapter. Optional callback errors cannot discard valid readings. Failure in one provider does not discard another provider's evidence.
+All origins/paths are fixed HTTPS endpoints. Redirects are rejected. Each request has an eight-second abort deadline and a one-MiB decoded response cap; JSONL has a 10,000-row cap. Provider requests run concurrently. No raw response, exception, account identifier or secret is returned or logged. Only successfully parsed, finite, nonnegative, safe-range values leave the adapter. Optional callback errors cannot discard valid readings. Failure in one provider does not discard another provider's evidence. HTTP 200 alone is not successful coverage: GraphQL errors, invalid response schemas and wholly invalid mapped billing rows report unavailable. A valid empty billing result is successful API availability but creates no fresh usage readings; existing evidence still ages.
 
 At most three requests per hourly run (72/day when fully configured); there are no additional object reads, tracking integrations or email sends in this module. The existing scheduler and snapshot retention own caching/backoff/state limits. An account billing response larger than the cap remains unavailable; do not silently paginate/truncate and claim a complete total.
 

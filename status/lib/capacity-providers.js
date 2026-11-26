@@ -50,7 +50,7 @@ async function request(url, init, fetchImpl, now) {
 }
 
 function parseResend(text, now) {
-  const body = JSON.parse(text); if (body.object !== 'usage') return [];
+  const body = JSON.parse(text); if (body.object !== 'usage') throw new Error('schema');
   const result = [];
   for (const period of ['daily', 'monthly']) {
     const quota = body.emails?.[period]; const end = time(quota?.resets_at);
@@ -66,6 +66,7 @@ function parseResend(text, now) {
     const rateWindowMs = Number.parseInt(rate.duration, 10);
     if (rateWindowMs <= DAY) result.push({ ...reading('resend-rate', null, rate.limit, now), rateWindowMs });
   }
+  if (!result.length) throw new Error('schema');
   return result;
 }
 
@@ -83,7 +84,7 @@ function skuMap(env) {
 function parseVercel(text, env, now, start, end) {
   const map = skuMap(env); const totals = new Map(); const invalid = new Set();
   const lines = text.trim() ? text.trim().split('\n') : [];
-  if (lines.length > 10000) return [];
+  if (lines.length > 10000) throw new Error('size');
   for (const line of lines) {
     const row = JSON.parse(line); if (row.ChargeCategory !== 'Usage') continue;
     const id = Object.keys(map).find(key => map[key] === row.SkuId); if (!id) continue;
@@ -98,7 +99,9 @@ function parseVercel(text, env, now, start, end) {
     const value = totals.get(id) || 0; totals.set(id, value + quantity * factor);
   }
   const nextMonth = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth() + 1, 1);
-  return [...totals].filter(([id, value]) => !invalid.has(id) && number(value)).map(([id, value]) => ({ ...reading(id, value, null, now, start, nextMonth), partial: true, coverageEnd: end }));
+  const result = [...totals].filter(([id, value]) => !invalid.has(id) && number(value)).map(([id, value]) => ({ ...reading(id, value, null, now, start, nextMonth), partial: true, coverageEnd: end }));
+  if (!result.length && (invalid.size || totals.size)) throw new Error('schema');
+  return result;
 }
 
 const CF_QUERY = `query Capacity($account: String!, $start: Time!, $end: Time!) {
@@ -109,13 +112,14 @@ const CF_QUERY = `query Capacity($account: String!, $start: Time!, $end: Time!) 
 }`;
 
 function parseCloudflare(text, now, start) {
-  const body = JSON.parse(text); if (body.errors?.length) return [];
-  const accounts = body.data?.viewer?.accounts; if (!Array.isArray(accounts) || accounts.length !== 1) return [];
+  const body = JSON.parse(text); if (body.errors?.length) throw new Error('schema');
+  const accounts = body.data?.viewer?.accounts; if (!Array.isArray(accounts) || accounts.length !== 1) throw new Error('schema');
   const account = accounts[0]; const output = [];
   for (const [key, field, id] of [['workers', 'requests', 'cf-requests'], ['rows', 'rowsRead', 'cf-do-reads'], ['rows', 'rowsWritten', 'cf-do-writes']]) {
     const groups = account[key];
     if (Array.isArray(groups) && groups.length === 1 && number(groups[0]?.sum?.[field])) output.push(reading(id, groups[0].sum[field], null, now, start, start + DAY));
   }
+  if (!output.length && !(Array.isArray(account.workers) && account.workers.length === 0 && Array.isArray(account.rows) && account.rows.length === 0)) throw new Error('schema');
   return output;
 }
 
