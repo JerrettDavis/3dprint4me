@@ -1026,6 +1026,8 @@ def main() -> int:
         ("Referral permission · narrow · light", capture('/order.html?service=consult', 'order-referral-contact-light.png', viewport=(320,844), scheme='light', full_page=True, prepare=prepare_referral_contact)),
         ("Privacy · referral notice · light", capture('/privacy.html', 'privacy-referral-light.png', viewport=(1280,1000), scheme='light', full_page=True)),
     ])
+    from tests.support.status_capacity import capture_capacity_states
+    cases.extend(capture_capacity_states(OUTPUT))
     cases.extend(capture_product_catalogue_states())
     cases.extend(capture_catalogue_owner_states())
     cases.extend(capture_billing_states())

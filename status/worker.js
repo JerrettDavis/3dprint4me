@@ -1,5 +1,8 @@
 import { privateSnapshot, publicSnapshot, probeServices, updateProbeState, validateHeartbeat } from './lib/model.js';
 import { deliverStatusAlert } from './lib/alerts.js';
+import { updateCapacity } from './lib/capacity.js';
+import { operationsPage } from './lib/operations-page.js';
+import { collectProviderCapacity, providerCoverage } from './lib/capacity-providers.js';
 
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}});
 async function bodyText(request) {
@@ -11,11 +14,6 @@ async function bodyText(request) {
   const bytes=new Uint8Array(length);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
   return new TextDecoder().decode(bytes);
 }
-const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function operationsPage(snapshot) {
-  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="60"><title>3dprint4.me operations</title><style>html{color-scheme:light dark;font:17px/1.5 system-ui}body{max-width:64rem;margin:auto;padding:1.5rem}article{border-bottom:1px solid #888;padding:1rem 0}h1,h2{line-height:1.2}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:light-dark(#075b93,#8dcfff)}:focus-visible{outline:3px solid #c87a00}</style><main><a href="https://status.3dprint4.me">Public status</a><h1>Operations & recovery</h1><p>Verified ${escape(new Date(snapshot.generatedAt).toISOString())}. Refreshes each minute.</p><p>Recovery is manual. Automatic failover is disabled.</p><h2>${snapshot.blockers.length} open blockers</h2>${snapshot.blockers.map(x=>`<article><strong>${escape(x.severity)} · ${escape(x.title)}</strong><p>${escape(x.next)}</p></article>`).join('')||'<p>No recorded blockers. Review the dated evidence below.</p>'}<h2>Evidence</h2><pre>${escape(JSON.stringify(snapshot.evidence,null,2))}</pre></main></html>`,{headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"}});
-}
-
 // SQLite-backed Durable Object: serial execution makes replay checks atomic even
 // across Worker isolates. No PostgreSQL, Neon, timers or local services required.
 export class StatusState {
@@ -31,6 +29,16 @@ export class StatusState {
       if(!history.includes(entry))history.push(entry);
       entry.checks++;if(Object.values(next.probes).some(x=>!x.ok))entry.failed++;
       next.history=history.slice(-30);
+      if(!state.providerCollectionAt||now-state.providerCollectionAt>=3600000) {
+        next.providerCollectionAt=now;
+        next.providerCoverage=providerCoverage(this.env);
+        next.providerAvailability={...(state.providerAvailability??{})};
+        const skipUntil=Object.fromEntries(Object.entries(next.providerAvailability).map(([id,value])=>[id,value.retryAt??0]));
+        try {
+          const readings=await collectProviderCapacity({env:this.env,now,skipUntil,onAvailability:value=>{next.providerAvailability[value.provider]=value;}});
+          next.capacity=updateCapacity(state.capacity,readings,now);
+        }catch{/* Original last-good measurement timestamps remain unchanged. */}
+      }
       next.alerts={...(next.alerts??{}),configured:Boolean(this.env.ALERT_RESEND_KEY&&this.env.ALERT_FROM&&this.env.ALERT_TO)};
       const final=await deliverStatusAlert({state:next,view:privateSnapshot(next,now),env:this.env,now,persist:value=>this.ctx.storage.put('state',value)});
       await this.ctx.storage.put('state',final);return json({ok:true});
@@ -39,12 +47,14 @@ export class StatusState {
       const kind=path.slice('/heartbeat/'.length);
       try{
         if(state[kind]?.receivedAt&&now-state[kind].receivedAt<60000)return json({error:'Evidence arrived too frequently.'},429);
-        const data=await validateHeartbeat({kind,body:await bodyText(request),signature:request.headers.get('x-status-signature'),secret:this.env['STATUS_'+kind.toUpperCase()+'_SECRET'],now,lastObservedAt:state[kind]?.observedAt??0});
-        await this.ctx.storage.put('state',{...state,[kind]:{...data,receivedAt:now}});return json({ok:true});
+        const data=await validateHeartbeat({kind,body:await bodyText(request),signature:request.headers.get('x-status-signature'),secret:this.env['STATUS_'+(kind==='manual'?'CONTROL':kind.toUpperCase())+'_SECRET'],now,lastObservedAt:state[kind]?.observedAt??0});
+        const next={...state,[kind]:{...data,receivedAt:now}};
+        if(data.details.capacity)next.capacity=updateCapacity(state.capacity,data.details.capacity,now);
+        await this.ctx.storage.put('state',next);return json({ok:true});
       }catch{return json({error:'Evidence could not be verified.'},401);}
     }
     if(path==='/api/public'&&request.method==='GET')return json(publicSnapshot(state,now));
-    if(path==='/operations'&&request.method==='GET')return operationsPage(privateSnapshot(state,now));
+    if(path==='/operations'&&request.method==='GET')return operationsPage(privateSnapshot(state,now),{theme:new URL(request.url).searchParams.get('theme')??'system'});
     return json({error:'Not found.'},404);
   }
 }
@@ -59,10 +69,10 @@ export default {
   async fetch(request,env) {
     const path=new URL(request.url).pathname;
     if(path==='/operations'||path==='/operations-reader'&&!await authorizeReader(request,env))return json({error:'Independent operator sign-in is required.'},403);
-    if(!((path==='/api/public'||path==='/operations-reader')&&request.method==='GET'||/^\/heartbeat\/(platform|backup|control)$/.test(path)&&request.method==='POST'))return json({error:'Not found.'},404);
+    if(!((path==='/api/public'||path==='/operations-reader')&&request.method==='GET'||/^\/heartbeat\/(platform|backup|control|manual)$/.test(path)&&request.method==='POST'))return json({error:'Not found.'},404);
     try{
       const stub=env.STATUS_STATE.get(env.STATUS_STATE.idFromName('3dprint4me'));
-      const response=await stub.fetch(path==='/operations-reader'?new Request('https://status.internal/operations'):request);
+      const response=await stub.fetch(path==='/operations-reader'?new Request('https://status.internal/operations'+new URL(request.url).search):request);
       if(path==='/api/public') {
         const headers=new Headers(response.headers),origin=request.headers.get('origin');
         const allowed=['https://status.3dprint4.me','https://3dprint4me-status.vercel.app',...(env.DASHBOARD_ORIGINS??'').split(',')];

@@ -1,5 +1,94 @@
 # Independent status
 
+## Private capacity, daily digest, and thresholds
+
+The protected operations view includes capacity readings and their account/host
+scope, units, allowance provenance, accounting window, reset, and observation
+time. Its appearance links select system/light/dark without client scripts.
+Capacity figures never enter the public snapshot. Browser views read cached
+evidence and do not call provider APIs. The protected function response is
+bounded to 96 KiB for the fixed metric registry; no provider credentials reach HTML.
+
+Set the Worker variable `CAPACITY_DIGEST_ENABLED=1` to enable one daily digest
+after **08:00 America/Chicago**, including daylight-saving changes. It uses the
+existing `ALERT_FROM`, `ALERT_TO`, and `ALERT_RESEND_KEY` owner destination. A late
+run catches up only today's digest; missed days are not replayed. The private
+page shows scheduled/delayed/blocked/delivered state and missed dates. No new
+recipient, invoice dispatch, or diagnostic email is introduced.
+
+Warnings start at 70% and critical alerts at 90% of a known finite allowance or
+explicit configured budget. Host/container resources require two fresh samples;
+recovery requires two fresh samples below the crossed threshold minus five
+percentage points. Threshold fingerprints include the metric, window, and severity,
+so numeric changes within the same band do not resend. Stale/unknown evidence is
+not recovery. Partial provider readings can prove a crossed threshold, but cannot
+prove low current usage or recovery. Remaining capacity from partial usage is an
+upper bound. Configured budgets are not claims about a provider's included plan.
+
+The durable email queue holds one immutable attempted message. Critical incident
+work wins over a new digest; an already attempted message must finish or be
+explicitly investigated before it can be replaced. Preserve the same payload/key
+on retries. After 23 hours, an uncertain pending event is blocked for intervention.
+Legacy pending records missing the original sender/recipient envelope also block
+delivery. Verify the original Resend event and envelope before repairing or retiring
+one; never guess a new recipient or idempotency key. Upgrades do not resend it.
+The existing eight-attempt UTC-day cap and fifteen-minute send spacing apply to
+digests and alerts together; the page reports a delayed digest rather than claiming
+delivery. A digest does not reset incident/threshold deduplication state.
+
+Provider API collection occurs at most hourly and honors Retry-After without
+inline retries. See [provider setup and limitations](../docs/STATUS-PROVIDERS.md)
+for exact environment variables, read permissions, reviewed Vercel SKU mapping,
+and dated manual allowance versus configured-budget schemas. Unconfigured or
+unsupported metrics remain unknown. Provider failures preserve original last-good
+timestamps. Provider readings expire after two hours; host/application readings
+after twelve minutes; backup counters after two hours. Manual quota verification
+expires after 24 hours independently of usage freshness. At most 40 readings and
+30 compact daily summaries are retained.
+
+### Dated manual evidence when usage APIs are unavailable
+
+The current Hobby account's authenticated Vercel billing endpoint returns 404.
+Hobby has no billing cycle; do not equate a calendar-month FOCUS query with its
+rolling usage dashboard, or invent a reset date. A signed manual reading can
+record an owner-verified dashboard observation until automatic access is available.
+This is a dated fallback, not automatic dashboard scraping.
+
+Create an owner-only JSON array **outside Git**, using the exact fixed metric IDs
+and units from the provider guide. Each reading must have `source:"manual"`, an
+appropriate account/project/store scope, its actual `observedAt`, and `used`/`limit`
+numbers (or null when unavailable). A non-null allowance also needs
+`limitSource:"manual"` and its actual `limitVerifiedAt`. Both observations and
+allowance checks must be within 24 hours. Use null `periodStart`/`periodEnd` if the
+provider has no verified fixed reset; set `windowKind:"rolling-30-days"` or
+`"rolling-24-hours"` only when that reporting window is verified. Do not renew an
+old observation merely by submitting it again.
+
+Run `python deploy/platform/status-capacity-attest.py --config <private-status-keys.json>
+--readings <private-readings.json>` from the repository, with Node available for
+the shared schema validator. Input files require the same private ACL/mode checks
+as backup custody. It sends only a bounded HMAC-signed `/heartbeat/manual` report
+using the existing owner control reporting key. That route has separate replay
+ordering and accepts manual capacity only: it cannot update/renew control,
+functional checks, billing attestations or recovery claims. No arbitrary provider
+URL, new credential, raw provider exception, or customer data is accepted.
+
+The native collector adds fixed host and api/jobs/slicer aggregate resource
+readings, runtime-role database size/connections and global estimate/upload rate
+buckets. Client caps are configuration only; no client identifiers or individual
+buckets are exported. Optional read failures stay unknown. Its service timeout is
+100 seconds to accommodate bounded subprocesses; its cadence remains five minutes.
+Successful backup heartbeats include only current, complete dual-store readback
+counters (downloaded/reused objects and bytes), with no extra Blob reads. Legacy
+collectors remain compatible while being rolled forward.
+
+Added steady collection budget: at most 72 provider requests/day across three
+configured adapters, reusing the existing 288 scheduled invocations/day and durable
+state writes. One extra successful digest/day is within the shared eight-attempt
+delivery cap. Telemetry adds less than 16 KiB/report and a bounded current-state
+record; verify actual deployed Worker CPU/storage usage and account allowances
+before relying on available headroom. No paid tier is activated.
+
 Public dashboard: https://status.3dprint4.me (alternate
 https://3dprint4me-status.vercel.app). Protected operations:
 https://3dprint4me-operations.vercel.app. Neither uses local PostgreSQL or
