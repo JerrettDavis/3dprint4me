@@ -10,6 +10,13 @@ provider credential/coverage limits are documented in the [status runbook](../st
 and [provider adapter guide](STATUS-PROVIDERS.md). Missing usage access stays
 explicitly unknown; do not expand provider permissions or activate paid plans to
 make a monitoring row green.
+
+Scheduled functional verification and bounded jobs/slicer recovery are documented
+in the [status runbook](../status/README.md#scheduled-functional-verification-and-routine-recovery).
+The approved daily owner-only receipt probe uses the production transport plus
+signed delivery events; it does not create customer requests or send customer
+messages. Routine repair does not authorize database failover or replace manual
+disaster-recovery, billing, owner-login, or custody evidence.
 Retired Neon deployment instructions are historical, not production setup steps.
 
 ## Prerequisites and private custody

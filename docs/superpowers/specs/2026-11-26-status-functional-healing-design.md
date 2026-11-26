@@ -56,4 +56,11 @@ Expired owner sign-in, billing, off-site custody, cutover, and backup-scheduler 
 
 ## Remaining implementation choices
 
+Implementation ruling after independent review: automatically start only a
+Docker-verified stopped existing service. A stale running service is escalated,
+because lease absence is an observation rather than a fence against new claims.
+This intentionally leaves unresponsive running processes for inspection instead
+of risking interruption of newly claimed customer work. All other safety checks,
+cooldowns and attempt caps still apply.
+
 Reuse the current native collector, server-side provider modules, signed heartbeat boundary, independent Worker, and protected Vercel view. Keep synthetic ownership and retry state in the existing private platform root. Do not add a public scheduler or a dependency on an owner desktop session. Exact probe intervals can be reduced if measured provider costs require it, while leaving stale evidence honest.

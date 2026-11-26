@@ -3,6 +3,7 @@ import { deliverStatusAlert } from './lib/alerts.js';
 import { updateCapacity } from './lib/capacity.js';
 import { operationsPage } from './lib/operations-page.js';
 import { collectProviderCapacity, providerCoverage } from './lib/capacity-providers.js';
+import { verifyDeliveryEvent, updateDeliveryEvents } from './lib/functional.js';
 
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}});
 async function bodyText(request) {
@@ -21,7 +22,14 @@ export class StatusState {
   fetch(request){return this.ctx.blockConcurrencyWhile(()=>this.handle(request));}
   async handle(request) {
     const path=new URL(request.url).pathname,now=Date.now();
-    const state=await this.ctx.storage.get('state')??{};
+const state=await this.ctx.storage.get('state')??{};
+if(path==='/webhook/receipt-delivery'&&request.method==='POST') {
+ try{
+  const event=await verifyDeliveryEvent({body:await bodyText(request),headers:request.headers,secret:this.env.RECEIPT_WEBHOOK_SECRET,now});
+  state.deliveryEvents=updateDeliveryEvents(state.deliveryEvents,event,now);
+  await this.ctx.storage.put('state',state);return json({ok:true});
+ }catch{return json({error:'Delivery event could not be verified.'},401);}
+}
     if(path==='/internal/probe'&&request.method==='POST') {
       if(state.checkedAt&&now-state.checkedAt<240000)return json({ok:true});
       const next=updateProbeState(state,await probeServices({now}),now),day=new Date(now).toISOString().slice(0,10);
@@ -69,7 +77,7 @@ export default {
   async fetch(request,env) {
     const path=new URL(request.url).pathname;
     if(path==='/operations'||path==='/operations-reader'&&!await authorizeReader(request,env))return json({error:'Independent operator sign-in is required.'},403);
-    if(!((path==='/api/public'||path==='/operations-reader')&&request.method==='GET'||/^\/heartbeat\/(platform|backup|control|manual)$/.test(path)&&request.method==='POST'))return json({error:'Not found.'},404);
+if(!((path==='/api/public'||path==='/operations-reader')&&request.method==='GET'||(/^\/heartbeat\/(platform|backup|control|manual)$/.test(path)||path==='/webhook/receipt-delivery')&&request.method==='POST'))return json({error:'Not found.'},404);
     try{
       const stub=env.STATUS_STATE.get(env.STATUS_STATE.idFromName('3dprint4me'));
       const response=await stub.fetch(path==='/operations-reader'?new Request('https://status.internal/operations'+new URL(request.url).search):request);

@@ -10,6 +10,9 @@ def test_protected_capacity_is_readable_at_390_and_uses_dated_evidence(theme):
         page.set_content(capacity_html(theme), wait_until='load')
         assert page.locator('html').get_attribute('data-theme') == theme
         assert page.get_by_role('heading', name='Capacity & limits', exact=True).count() == 1
+        assert page.get_by_role('heading', name='Functional checks & recovery', exact=True).count() == 1
+        assert page.get_by_text('Next model check:', exact=False).count() == 1
+        assert page.get_by_text('One-hour cooldown;', exact=False).count() == 1
         assert page.locator('[data-capacity-status="warning"]').count() >= 1
         assert page.locator('[data-capacity-status="critical"]').count() >= 1
         assert page.locator('[data-capacity-status="stale"]').count() >= 1
