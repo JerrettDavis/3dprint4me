@@ -700,5 +700,167 @@
     ],
     "configurationSha256": null,
     "imageSha256": "4b5d457d00bffda7de13397d965636ee013514d2f9aae90163c8b0c48f03c0ae"
+  },
+  "catalogue-holiday-ornament-snowman-r1": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": "82a3f3e1f99d73e4eb512906b6c817026e57ea379c48e89fa4514e1c200ccf85",
+    "imageSha256": "26bcb58bb68900046daadc4fec3fbdbb33869a695f32df84fa13f53232a0a474"
+  },
+  "catalogue-holiday-ornament-snowman-r1-detail": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": "82a3f3e1f99d73e4eb512906b6c817026e57ea379c48e89fa4514e1c200ccf85",
+    "imageSha256": "6ce471052e724c117f72dc1defa7baa65ee54583543946bbab3dc1c6f37c97cf"
+  },
+  "catalogue-holiday-ornament-snowflake-lace-r1": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": "e8c099b9c17d7365ea6ecb98ef1b9c9303345c104699857969761ea1c1a004b7",
+    "imageSha256": "181057449251ad219e7331a594548094c16ce21a3d1f8c8acf1c3d88197c4efa"
+  },
+  "catalogue-holiday-ornament-snowflake-lace-r1-detail": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      3.6
+    ],
+    "configurationSha256": "e8c099b9c17d7365ea6ecb98ef1b9c9303345c104699857969761ea1c1a004b7",
+    "imageSha256": "8131a66ea12be68a33f1e261561f417c296b95bf0a1d24ce840d1a2ac842016d"
+  },
+  "catalogue-holiday-ornament-round-photo-r1": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      4
+    ],
+    "configurationSha256": "cce59d5cc80d5424c0e6dfbc92b8c1c62e87cff647fd9cb217179ba5b5e01756",
+    "imageSha256": "1a51b2f9fbfed515377a4858c334114de40f5ee909f425c7bafd2af0c4228c35"
+  },
+  "catalogue-holiday-ornament-round-photo-r1-detail": {
+    "dimensionsMm": [
+      80,
+      86.3,
+      4
+    ],
+    "configurationSha256": "cce59d5cc80d5424c0e6dfbc92b8c1c62e87cff647fd9cb217179ba5b5e01756",
+    "imageSha256": "26f17052fc8f627709dfdbddf09975c8e26e2a6de4b50692569350739a46ab1a"
+  },
+  "catalogue-skull-keychain-loop-r1": {
+    "dimensionsMm": [
+      38.0,
+      42.25,
+      14
+    ],
+    "configurationSha256": "b68cb5a2aba3cafff17ae09cccac6655439114c7a307e93a36e82fc6dc1997a5",
+    "imageSha256": "4e5f2fd805b109b8ab9d164e974a2664bdf7e29e538856460c00ac68b3bfb6f4"
+  },
+  "catalogue-skull-keychain-loop-r1-detail": {
+    "dimensionsMm": [
+      38.0,
+      42.25,
+      14
+    ],
+    "configurationSha256": "b68cb5a2aba3cafff17ae09cccac6655439114c7a307e93a36e82fc6dc1997a5",
+    "imageSha256": "84ebe72276bc9361d127c582842f58c4473574baabff4957859d78accff5de46"
+  },
+  "catalogue-skull-keychain-engraved-r1": {
+    "dimensionsMm": [
+      38.0,
+      42.25,
+      14
+    ],
+    "configurationSha256": "21abd74183a0b19ffc442721c55c498deef7cd55a5eea0c43dd409d7eb0ad306",
+    "imageSha256": "d445871b37154a09c5b375f0dc1f5de25cead15194d47992bd6f1c9fbe1eb230"
+  },
+  "catalogue-skull-keychain-engraved-r1-detail": {
+    "dimensionsMm": [
+      38.0,
+      42.25,
+      14
+    ],
+    "configurationSha256": "21abd74183a0b19ffc442721c55c498deef7cd55a5eea0c43dd409d7eb0ad306",
+    "imageSha256": "e391481c55681fac86d9e5b135556a3b241efce39c8d8ba3a89064466efedf0a"
+  },
+  "catalogue-skull-keychain-large-r1": {
+    "dimensionsMm": [
+      55.0,
+      52.75,
+      10
+    ],
+    "configurationSha256": "0527759463e8340500f51f74f527437b2ddea40df885a90c0073339d65df0002",
+    "imageSha256": "c02ccf1919caed72c86ddff34e7bd6f6b6648cb3f4b421c27d2ee5f8d9a70f0a"
+  },
+  "catalogue-skull-keychain-large-r1-detail": {
+    "dimensionsMm": [
+      55.0,
+      52.75,
+      10
+    ],
+    "configurationSha256": "0527759463e8340500f51f74f527437b2ddea40df885a90c0073339d65df0002",
+    "imageSha256": "4109480fc8e32fcee6dc3f87136bed1edc8b131ce91d9ff67bd73e2649ced30a"
+  },
+  "catalogue-skeleton-figure-fused-r1": {
+    "dimensionsMm": [
+      64.5,
+      176.077,
+      33.5
+    ],
+    "configurationSha256": "244bcb640d903cbd4b7a830b78b6b555c98c99a3564bd73942c47846131fb119",
+    "imageSha256": "3b8a7f5f253afad38dddbe1fe35f58bd7b652170dbcba6a91dbcbcab8e772315"
+  },
+  "catalogue-skeleton-figure-fused-r1-detail": {
+    "dimensionsMm": [
+      64.5,
+      176.077,
+      33.5
+    ],
+    "configurationSha256": "244bcb640d903cbd4b7a830b78b6b555c98c99a3564bd73942c47846131fb119",
+    "imageSha256": "e562788732a64302d0ead96b8a9021e8a2311c9675f1a3918841a04cc5997912"
+  },
+  "catalogue-skeleton-figure-threaded-r1": {
+    "dimensionsMm": [
+      132.461,
+      176.077,
+      33.5
+    ],
+    "configurationSha256": "5ba2691b4cc0fb8ab033be75568a7cf19e010aa3e177d855bcd1a587e23b5b17",
+    "imageSha256": "d0c6609fdd6f7da779b03b83c16248e222d1e6203be681ed9194395c39bba233"
+  },
+  "catalogue-skeleton-figure-threaded-r1-detail": {
+    "dimensionsMm": [
+      132.461,
+      176.077,
+      33.5
+    ],
+    "configurationSha256": "5ba2691b4cc0fb8ab033be75568a7cf19e010aa3e177d855bcd1a587e23b5b17",
+    "imageSha256": "bf3eccff45855c2c3fb70e4b4ed4e507107afe580e908245acc454b23bb76b5a"
+  },
+  "catalogue-skeleton-figure-flex-r1": {
+    "dimensionsMm": [
+      87.777,
+      211.677,
+      33.5
+    ],
+    "configurationSha256": "6bb95a665928d7974ead6abfa471e22355ff36efb8f524ea740cffb682640bb2",
+    "imageSha256": "6fcff8ffe7877f2503881a3c603c3d97c27de0516b057f57bf21fb4b59a83b6a"
+  },
+  "catalogue-skeleton-figure-flex-r1-detail": {
+    "dimensionsMm": [
+      87.777,
+      211.677,
+      33.5
+    ],
+    "configurationSha256": "6bb95a665928d7974ead6abfa471e22355ff36efb8f524ea740cffb682640bb2",
+    "imageSha256": "85b5c8a86606b7e043dce12d596501493495dfa2d652d88e7f28ffa2ddff8626"
   }
 }

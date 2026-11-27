@@ -1,4 +1,4 @@
-import { footprint } from '../gridfinity.js?v=4dfb9b39de27496a';
+import { footprint } from '../gridfinity.js?v=aedca5e5a0dd9e90';
 
 const vase = p => p.style === 'vase';
 const presets = {

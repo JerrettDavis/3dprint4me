@@ -5,6 +5,7 @@ const camera = {
   'vase': 22, 'pumpkin': 22, 'infinity-fidget': 35, 'gridfinity-bin': 40,
   'gridfinity-base': 48, 'name-plate': 48, 'wifi-tag': 55, 'rating-card': 55,
   'route-shield': 55, 'display-sign': 30,
+  'holiday-ornament': 65, 'skull-keychain': 65, 'skeleton-figure': 65,
 };
 
 export function catalogueRenderRecipes(products, { camera: preset = 'standard' } = {}) {

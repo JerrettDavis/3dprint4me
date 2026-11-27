@@ -2,10 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderShop, renderProduct, filterProducts } from '../../public/assets/js/catalogue/views.js';
 import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
+import { listPublicGenerators } from '../../public/assets/js/customize/registry.js';
 
 test('shop exposes product detail links and genuine generator categories', () => {
   const html = renderShop(PRODUCTS);
-  assert.equal((html.match(/class="catalogue-card"/g) ?? []).length, 30);
+  assert.equal((html.match(/class="catalogue-card"/g) ?? []).length, filterProducts(PRODUCTS).length);
+  for (const generator of listPublicGenerators()) {
+    assert.ok(filterProducts(PRODUCTS).filter(p => p.generatorId === generator.id).length >= 3, generator.id);
+    assert.ok(html.includes(`/shop/${PRODUCTS.find(p => p.generatorId === generator.id).id}/`), generator.id);
+  }
   assert.match(html, /href="\/shop\/pumpkin-witch\/"/);
   assert.match(html, /type="search"/);
   assert.match(html, /name="category"/);

@@ -6,13 +6,13 @@ import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
 import { catalogueRenderRecipes } from '../../scripts/catalogue-render-recipes.mjs';
 import { productRenderInputHash } from '../../scripts/product-render-inputs.mjs';
 
-test('all sixty shipped gallery views match the current exact configuration, studio, mesh and image receipts', async () => {
+test('all shipped gallery views match the current exact configuration, studio, mesh and image receipts', async () => {
   const receipt = JSON.parse(await readFile(new URL('../../scripts/product-render-manifest.json', import.meta.url), 'utf8'));
   const media = JSON.parse(await readFile(new URL('../../scripts/catalogue-media.json', import.meta.url), 'utf8'));
   const studio = createHash('sha256').update(await readFile(new URL('../../scripts/render-products.py', import.meta.url))).digest('hex');
   assert.equal(receipt.inputSha256, await productRenderInputHash(), 'rebuild media after geometry inputs change');
   const recipes = catalogueRenderRecipes(PRODUCTS);
-  assert.equal(recipes.length, 60);
+  assert.equal(recipes.length, PRODUCTS.filter(p => p.status === 'published').length * 2);
   for (const recipe of recipes) {
     const evidence = receipt.renders.find(r => r.id === recipe.id);
     assert.ok(evidence, recipe.id);

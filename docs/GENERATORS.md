@@ -42,7 +42,7 @@ preview, local planning facts, and **Continue to request**, which hands the buil
 ordinary print request on `/order.html`. The server never builds geometry; it re-validates the
 parameters as provenance. The uploaded 3MF is the object that is estimated and printed.
 
-Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`, `infinity-fidget`, `vase`, `skull-keychain`, `skeleton-figure`.
+Public set: `route-shield`, `wifi-tag`, `rating-card`, `name-plate`, `pumpkin`, `display-sign`, `gridfinity-base`, `gridfinity-bin`, `infinity-fidget`, `vase`, `skull-keychain`, `skeleton-figure`, `holiday-ornament`. Each has three representative products in `/shop/`.
 
 **Skull keychain and Skeleton figure** generate their geometry locally from equations.
 Reference measurements inform proportions, but no STL vertices, sampled heights or baked
@@ -929,4 +929,3 @@ this is provenance, never model or pricing proof. Sensitive fields remain local.
 Generator-version updates hide old snapshots from discovery and never reinterpret
 them with a newer builder. Review breaking safety-schema changes before release.
 See [PRODUCT-CATALOGUE.md](PRODUCT-CATALOGUE.md) for the complete contract.
-

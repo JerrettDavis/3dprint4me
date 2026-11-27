@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateProduct, productHref, resolveProductLink } from '../../public/assets/js/catalogue/contract.js';
-import { getGenerator } from '../../public/assets/js/customize/registry.js';
+import { getGenerator, listPublicGenerators } from '../../public/assets/js/customize/registry.js';
+import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
 import { sensitiveKeys } from '../../public/assets/js/customize/schema.js';
 import { launchProducts } from '../../scripts/catalogue-seeds.mjs';
 
@@ -80,6 +81,19 @@ test('withdrawal also blocks older pinned links, including after a later republi
   assert.equal(resolveProductLink(g, '?product=little-witch&revision=1', [original, withdrawal]).status, 'unavailable');
   assert.equal(resolveProductLink(g, '?product=little-witch&revision=1', [original, withdrawal, republished]).status, 'unavailable');
   assert.equal(resolveProductLink(g, '?product=little-witch&revision=3', [original, withdrawal, republished]).status, 'ready');
+});
+
+test('every public generator has representative published, usable shop examples', () => {
+  for (const g of listPublicGenerators()) {
+    const products = PRODUCTS.filter(p => p.generatorId === g.id && p.status === 'published');
+    assert.ok(products.length >= 3, `${g.id} needs three representative examples`);
+    assert.equal(new Set(products.map(p => JSON.stringify(p.params))).size, products.length, g.id);
+    for (const p of products) {
+      assert.doesNotThrow(() => validateProduct(p));
+      assert.equal(resolveProductLink(g, `?product=${p.id}&revision=${p.revision}`, PRODUCTS).status, 'ready');
+      assert.equal(p.images.length, 2);
+    }
+  }
 });
 
 test('thirty approved launch candidates retain their original generator coverage and valid distinct safe settings', () => {
