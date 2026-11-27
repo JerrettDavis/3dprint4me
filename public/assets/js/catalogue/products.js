@@ -2263,5 +2263,443 @@ export const PRODUCTS = [
         "kind": "render"
       }
     ]
+  },
+  {
+    "id": "holiday-ornament-snowman",
+    "revision": 1,
+    "generatorId": "holiday-ornament",
+    "generatorVersion": 3,
+    "title": "Snowman name ornament",
+    "category": "Seasonal",
+    "summary": "A scarf, a top hat and falling snow.",
+    "status": "published",
+    "params": {
+      "scene": "snowman",
+      "name": "Noel",
+      "font": "pacifico",
+      "name_finish": "raised",
+      "year": "",
+      "year_side": "front",
+      "year_finish": "raised",
+      "diameter_mm": 80,
+      "plate_color": "#80253f",
+      "snow_color": "#fff5db",
+      "accent_color": "#ffb36b"
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/holiday-ornament-snowman-r1.webp?v=26bcb58bb6890004",
+        "alt": "Snowman name ornament, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/holiday-ornament-snowman-r1-detail.webp?v=6ce471052e724c11",
+        "alt": "Snowman name ornament, alternate studio view",
+        "kind": "render"
+      }
+    ]
+  },
+  {
+    "id": "holiday-ornament-snowflake-lace",
+    "revision": 1,
+    "generatorId": "holiday-ornament",
+    "generatorVersion": 3,
+    "title": "Snowflake lace ornament",
+    "category": "Seasonal",
+    "summary": "An open snowflake joined to the ring at six points.",
+    "status": "published",
+    "params": {
+      "scene": "snowflake-lace",
+      "name": "Noel",
+      "font": "alex-brush",
+      "name_finish": "raised",
+      "year": "",
+      "year_side": "front",
+      "year_finish": "raised",
+      "diameter_mm": 80,
+      "plate_color": "#20526e",
+      "snow_color": "#fff5db",
+      "accent_color": "#ffb36b"
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/holiday-ornament-snowflake-lace-r1.webp?v=181057449251ad21",
+        "alt": "Snowflake lace ornament, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/holiday-ornament-snowflake-lace-r1-detail.webp?v=8131a66ea12be68a",
+        "alt": "Snowflake lace ornament, alternate studio view",
+        "kind": "render"
+      }
+    ]
+  },
+  {
+    "id": "holiday-ornament-round-photo",
+    "revision": 1,
+    "generatorId": "holiday-ornament",
+    "generatorVersion": 3,
+    "title": "Round photo ornament",
+    "category": "Seasonal",
+    "summary": "A round window with a recessed seat for a paper photo.",
+    "status": "published",
+    "params": {
+      "scene": "round-photo",
+      "name": "Noel",
+      "font": "alex-brush",
+      "name_finish": "raised",
+      "year": "",
+      "year_side": "front",
+      "year_finish": "raised",
+      "diameter_mm": 80,
+      "plate_color": "#772d43",
+      "snow_color": "#fff5db",
+      "accent_color": "#efb47c"
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/holiday-ornament-round-photo-r1.webp?v=1a51b2f9fbfed515",
+        "alt": "Round photo ornament, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/holiday-ornament-round-photo-r1-detail.webp?v=26f17052fc8f6277",
+        "alt": "Round photo ornament, alternate studio view",
+        "kind": "render"
+      }
+    ]
+  },
+  {
+    "id": "skull-keychain-loop",
+    "revision": 1,
+    "generatorId": "skull-keychain",
+    "generatorVersion": 4,
+    "title": "Reinforced skull keychain",
+    "category": "Gifts & fun",
+    "summary": "Flat back and a thick external loop.",
+    "status": "published",
+    "params": {
+      "head_width_mm": 38,
+      "head_height_mm": 34.5,
+      "head_depth_mm": 14,
+      "chin_fullness_pct": 100,
+      "eye_size_pct": 100,
+      "eye_recess_pct": 9,
+      "tooth_count": 18,
+      "smile_width_pct": 100,
+      "inlay_depth_mm": 0.8,
+      "multicolor": true,
+      "skull_color": "#f2eee2",
+      "face_color": "#20232a",
+      "attachment": "loop",
+      "hole_diameter_mm": 4,
+      "loop_wall_mm": 3
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/skull-keychain-loop-r1.webp?v=4e5f2fd805b109b8",
+        "alt": "Reinforced skull keychain, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/skull-keychain-loop-r1-detail.webp?v=84ebe72276bc9361",
+        "alt": "Reinforced skull keychain, alternate studio view",
+        "kind": "render"
+      }
+    ]
+  },
+  {
+    "id": "skull-keychain-engraved",
+    "revision": 1,
+    "generatorId": "skull-keychain",
+    "generatorVersion": 4,
+    "title": "Single-color skull keychain",
+    "category": "Gifts & fun",
+    "summary": "Engraved features; no AMS needed.",
+    "status": "published",
+    "params": {
+      "head_width_mm": 38,
+      "head_height_mm": 34.5,
+      "head_depth_mm": 14,
+      "chin_fullness_pct": 100,
+      "eye_size_pct": 100,
+      "eye_recess_pct": 9,
+      "tooth_count": 18,
+      "smile_width_pct": 100,
+      "inlay_depth_mm": 0.8,
+      "multicolor": false,
+      "skull_color": "#f2eee2",
+      "face_color": "#20232a",
+      "attachment": "loop",
+      "hole_diameter_mm": 4,
+      "loop_wall_mm": 3
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/skull-keychain-engraved-r1.webp?v=d445871b37154a09",
+        "alt": "Single-color skull keychain, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/skull-keychain-engraved-r1-detail.webp?v=e391481c55681fac",
+        "alt": "Single-color skull keychain, alternate studio view",
+        "kind": "render"
+      }
+    ]
+  },
+  {
+    "id": "skull-keychain-large",
+    "revision": 1,
+    "generatorId": "skull-keychain",
+    "generatorVersion": 4,
+    "title": "Large skull bag charm",
+    "category": "Gifts & fun",
+    "summary": "A larger rounded charm.",
+    "status": "published",
+    "params": {
+      "head_width_mm": 55,
+      "head_height_mm": 45,
+      "head_depth_mm": 10,
+      "chin_fullness_pct": 100,
+      "eye_size_pct": 100,
+      "eye_recess_pct": 9,
+      "tooth_count": 18,
+      "smile_width_pct": 100,
+      "inlay_depth_mm": 0.8,
+      "multicolor": true,
+      "skull_color": "#f2eee2",
+      "face_color": "#20232a",
+      "attachment": "loop",
+      "hole_diameter_mm": 4,
+      "loop_wall_mm": 3
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/skull-keychain-large-r1.webp?v=c02ccf1919caed72",
+        "alt": "Large skull bag charm, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/skull-keychain-large-r1-detail.webp?v=4109480fc8e32fce",
+        "alt": "Large skull bag charm, alternate studio view",
+        "kind": "render"
+      }
+    ]
+  },
+  {
+    "id": "skeleton-figure-fused",
+    "revision": 1,
+    "generatorId": "skeleton-figure",
+    "generatorVersion": 6,
+    "title": "Flat-back skeleton figure",
+    "category": "Gifts & fun",
+    "summary": "Algorithmic skull, fitted suit and curved hands.",
+    "status": "published",
+    "params": {
+      "head_width_mm": 64.5,
+      "head_height_mm": 58.5,
+      "head_depth_mm": 33.5,
+      "chin_fullness_pct": 105,
+      "eye_size_pct": 100,
+      "eye_recess_pct": 9,
+      "tooth_count": 16,
+      "smile_width_pct": 100,
+      "inlay_depth_mm": 0.8,
+      "multicolor": true,
+      "skull_color": "#f2eee2",
+      "face_color": "#20232a",
+      "assembly": "fused",
+      "torso_length_mm": 44,
+      "torso_width_mm": 24,
+      "body_depth_mm": 7,
+      "limb_depth_mm": 5,
+      "limb_width_mm": 7,
+      "neck_length_mm": 10,
+      "neck_width_mm": 6,
+      "upper_arm_mm": 28,
+      "forearm_mm": 25,
+      "elbow_bend_deg": 18,
+      "hand_length_mm": 23,
+      "hand_width_mm": 8,
+      "finger_width_mm": 1.8,
+      "thigh_mm": 32,
+      "shin_mm": 30,
+      "knee_bend_deg": 10,
+      "foot_length_mm": 14,
+      "bow": "fused",
+      "bow_width_mm": 44,
+      "bow_branch_mm": 2,
+      "bow_depth_mm": 2,
+      "joint_wall_mm": 2.4,
+      "joint_clearance_mm": 0.5,
+      "joint_coupon": false,
+      "thread_diameter_mm": 8,
+      "thread_clearance_mm": 0.3,
+      "fit_coupon": false,
+      "body_color": "#20232a",
+      "coat_tail_mm": 16,
+      "jacket_waist_pct": 65,
+      "pinstripes": true,
+      "stripe_spacing_mm": 2.5,
+      "stripe_width_mm": 0.5,
+      "shirt_color": "#f2eee2",
+      "bow_color": "#20232a"
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/skeleton-figure-fused-r1.webp?v=3b8a7f5f253afad3",
+        "alt": "Flat-back skeleton figure, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/skeleton-figure-fused-r1-detail.webp?v=e562788732a64302",
+        "alt": "Flat-back skeleton figure, alternate studio view",
+        "kind": "render"
+      }
+    ]
+  },
+  {
+    "id": "skeleton-figure-threaded",
+    "revision": 1,
+    "generatorId": "skeleton-figure",
+    "generatorVersion": 6,
+    "title": "Screw-on head skeleton",
+    "category": "Gifts & fun",
+    "summary": "Separate algorithmic skull and a flat branched bow.",
+    "status": "published",
+    "params": {
+      "head_width_mm": 64.5,
+      "head_height_mm": 58.5,
+      "head_depth_mm": 33.5,
+      "chin_fullness_pct": 105,
+      "eye_size_pct": 100,
+      "eye_recess_pct": 9,
+      "tooth_count": 16,
+      "smile_width_pct": 100,
+      "inlay_depth_mm": 0.8,
+      "multicolor": true,
+      "skull_color": "#f2eee2",
+      "face_color": "#20232a",
+      "assembly": "threaded",
+      "torso_length_mm": 44,
+      "torso_width_mm": 24,
+      "body_depth_mm": 7,
+      "limb_depth_mm": 5,
+      "limb_width_mm": 7,
+      "neck_length_mm": 10,
+      "neck_width_mm": 6,
+      "upper_arm_mm": 28,
+      "forearm_mm": 25,
+      "elbow_bend_deg": 18,
+      "hand_length_mm": 23,
+      "hand_width_mm": 8,
+      "finger_width_mm": 1.8,
+      "thigh_mm": 32,
+      "shin_mm": 30,
+      "knee_bend_deg": 10,
+      "foot_length_mm": 14,
+      "bow": "separate",
+      "bow_width_mm": 44,
+      "bow_branch_mm": 2,
+      "bow_depth_mm": 2,
+      "joint_wall_mm": 2.4,
+      "joint_clearance_mm": 0.5,
+      "joint_coupon": false,
+      "thread_diameter_mm": 8,
+      "thread_clearance_mm": 0.3,
+      "fit_coupon": false,
+      "body_color": "#20232a",
+      "coat_tail_mm": 16,
+      "jacket_waist_pct": 65,
+      "pinstripes": true,
+      "stripe_spacing_mm": 2.5,
+      "stripe_width_mm": 0.5,
+      "shirt_color": "#f2eee2",
+      "bow_color": "#20232a"
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/skeleton-figure-threaded-r1.webp?v=d0c6609fdd6f7da7",
+        "alt": "Screw-on head skeleton, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/skeleton-figure-threaded-r1-detail.webp?v=bf3eccff45855c2c",
+        "alt": "Screw-on head skeleton, alternate studio view",
+        "kind": "render"
+      }
+    ]
+  },
+  {
+    "id": "skeleton-figure-flex",
+    "revision": 1,
+    "generatorId": "skeleton-figure",
+    "generatorVersion": 6,
+    "title": "Interlocked flexi skeleton",
+    "category": "Gifts & fun",
+    "summary": "Separate rigid pieces linked at the neck, shoulders and hips; no TPU.",
+    "status": "published",
+    "params": {
+      "head_width_mm": 64.5,
+      "head_height_mm": 58.5,
+      "head_depth_mm": 33.5,
+      "chin_fullness_pct": 105,
+      "eye_size_pct": 100,
+      "eye_recess_pct": 9,
+      "tooth_count": 16,
+      "smile_width_pct": 100,
+      "inlay_depth_mm": 0.8,
+      "multicolor": true,
+      "skull_color": "#f2eee2",
+      "face_color": "#20232a",
+      "assembly": "flex",
+      "torso_length_mm": 44,
+      "torso_width_mm": 24,
+      "body_depth_mm": 7,
+      "limb_depth_mm": 5,
+      "limb_width_mm": 7,
+      "neck_length_mm": 10,
+      "neck_width_mm": 6,
+      "upper_arm_mm": 28,
+      "forearm_mm": 25,
+      "elbow_bend_deg": 18,
+      "hand_length_mm": 23,
+      "hand_width_mm": 8,
+      "finger_width_mm": 1.8,
+      "thigh_mm": 32,
+      "shin_mm": 30,
+      "knee_bend_deg": 10,
+      "foot_length_mm": 14,
+      "bow": "none",
+      "bow_width_mm": 44,
+      "bow_branch_mm": 2,
+      "bow_depth_mm": 2,
+      "joint_wall_mm": 2.4,
+      "joint_clearance_mm": 0.5,
+      "joint_coupon": false,
+      "thread_diameter_mm": 8,
+      "thread_clearance_mm": 0.3,
+      "fit_coupon": false,
+      "body_color": "#20232a",
+      "coat_tail_mm": 16,
+      "jacket_waist_pct": 65,
+      "pinstripes": true,
+      "stripe_spacing_mm": 2.5,
+      "stripe_width_mm": 0.5,
+      "shirt_color": "#f2eee2",
+      "bow_color": "#20232a"
+    },
+    "images": [
+      {
+        "src": "/assets/images/products/catalogue/skeleton-figure-flex-r1.webp?v=6fcff8ffe7877f25",
+        "alt": "Interlocked flexi skeleton, studio render",
+        "kind": "render"
+      },
+      {
+        "src": "/assets/images/products/catalogue/skeleton-figure-flex-r1-detail.webp?v=85b5c8a86606b7e0",
+        "alt": "Interlocked flexi skeleton, alternate studio view",
+        "kind": "render"
+      }
+    ]
   }
 ];

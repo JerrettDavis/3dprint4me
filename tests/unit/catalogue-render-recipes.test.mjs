@@ -5,7 +5,7 @@ import { PRODUCTS } from '../../public/assets/js/catalogue/products.js';
 
 test('render recipes rebuild each exact safe published configuration with a stable fingerprint', () => {
   const recipes = catalogueRenderRecipes(PRODUCTS);
-  assert.equal(recipes.length, 60);
+  assert.equal(recipes.length, PRODUCTS.filter(p => p.status === 'published').length * 2);
   const witch = recipes.find(r => r.id === 'catalogue-pumpkin-witch-r1');
   assert.equal(witch.generator, 'pumpkin');
   assert.equal(witch.params.topper, 'witch');

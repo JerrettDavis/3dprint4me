@@ -30,6 +30,35 @@ def catalogue_url():
         yield url
 
 
+def test_shop_represents_every_public_generator(catalogue_browser, catalogue_url):
+    registry = subprocess.run(['node', '--input-type=module', '-e',
+        "import {listPublicGenerators} from './public/assets/js/customize/registry.js'; console.log(JSON.stringify(listPublicGenerators().map(g => g.id)))"],
+        cwd=Path(__file__).resolve().parents[2], check=True, capture_output=True, text=True)
+    with catalogue_browser.new_context(viewport={'width': 390, 'height': 844}) as context:
+        page = context.new_page()
+        for generator in json.loads(registry.stdout):
+            page.goto(f'{catalogue_url}/shop/?generator={generator}')
+            expect(page.locator('.catalogue-card:visible')).to_have_count(3)
+            images = page.locator('.catalogue-card:visible img')
+            for image in images.all():
+                image.scroll_into_view_if_needed()
+                expect(image).to_have_js_property('complete', True)
+                assert image.evaluate('(img) => img.naturalWidth') > 0, generator
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), generator
+
+
+@pytest.mark.parametrize('product', ['holiday-ornament-snowflake-lace', 'skull-keychain-engraved', 'skeleton-figure-flex'])
+def test_new_shop_examples_build_the_pictured_configuration(catalogue_browser, catalogue_url, product):
+    with catalogue_browser.new_context(viewport={'width': 390, 'height': 844}) as context:
+        page = context.new_page()
+        page.goto(f'{catalogue_url}/shop/{product}/')
+        expect(page.locator('.catalogue-product img')).to_have_count(2)
+        page.get_by_role('link', name='Customize this design', exact=True).click()
+        expect(page.locator("body[data-build-state='ready']")).to_be_attached(timeout=90000)
+        expect(page.locator('#cz-continue')).to_be_enabled()
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+
+
 def test_shop_filters_and_deep_links_preserve_a_saved_draft(catalogue_browser, catalogue_url):
     with catalogue_browser.new_context(viewport={'width': 390, 'height': 844}) as context:
         page = context.new_page()

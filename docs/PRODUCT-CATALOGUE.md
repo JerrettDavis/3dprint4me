@@ -10,7 +10,7 @@ live in production.
 
 ## Customer experience
 
-`/shop/` lists 30 starting designs across all ten public customizers. Each
+`/shop/` lists 39 starting designs across all thirteen public customizers. Each
 product has a static detail page and two studio views built from the actual
 generator geometry. Search, collection filters and generator filters stay in
 the URL. Request/customize actions pin both product ID and immutable revision.
@@ -58,7 +58,15 @@ confirmation. A render demonstrates model settings, not physical validation.
   builds are stable. Run `npm run customizer:build && npm run assets:version`
   after changing generator UI or bundled snapshots.
 
-Do not rerun seed generation to rewrite a publicly released revision. New
+Seed generation appends missing product IDs and preserves every existing snapshot.
+The original 30 designs retain their released settings; nine additional examples
+cover holiday ornaments (solid scene, openwork and photo frame), skull keychains
+(reinforced loop, single color and bag charm), and skeleton figures (fused,
+screw-on head and interlocked joints). Each has two actual-geometry studio views.
+The catalogue coverage test requires three usable published products per public
+generator so a newly registered generator cannot silently disappear from the shop.
+
+Do not rewrite a publicly released revision. New
 settings require a new revision, renders and review. Old snapshots must retain
 their original meaning, or explicitly report withdrawal/incompatibility.
 

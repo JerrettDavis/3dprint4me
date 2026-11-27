@@ -246,6 +246,9 @@ def capture_product_catalogue_states() -> list[tuple[str, Path]]:
         for width, height, scheme in [(1440, 1000, 'light'), (1440, 1000, 'dark'), (390, 844, 'light'), (390, 844, 'dark'), (1920, 1080, 'light'), (3440, 1440, 'dark')]:
             for name, route, ready in [
                 ('shop', '/shop/', '#catalogue-grid'),
+                ('ornaments', '/shop/?generator=holiday-ornament', '#catalogue-grid'),
+                ('skulls', '/shop/?generator=skull-keychain', '#catalogue-grid'),
+                ('skeletons', '/shop/?generator=skeleton-figure', '#catalogue-grid'),
                 ('product', '/shop/pumpkin-witch/', '.catalogue-product'),
                 ('product-request', '/customize/g/name-plate/?product=name-plate-office&revision=1&intent=request', "body[data-build-state='ready']"),
             ]:
